@@ -5,6 +5,7 @@
   import Staff from "./staff/Staff.svelte";
   import ChordDropdown from "./chords/ChordDropdown.svelte";
   import TutorPanel from "./tutor/TutorPanel.svelte";
+  import TrustPanel from "./trust/TrustPanel.svelte";
   import Piano from "./input/Piano.svelte";
   import ThemeToggle from "./ThemeToggle.svelte";
   import Toolbar from "./toolbar/Toolbar.svelte";
@@ -29,6 +30,7 @@
   {/if}
   <ChordDropdown />
   <TutorPanel />
+  <TrustPanel />
   <p class="credits">
     Piano samples: Salamander Grand Piano by Alexander Holm,
     <a href="https://creativecommons.org/licenses/by/3.0/" rel="license noopener" target="_blank"

@@ -17,8 +17,15 @@ test("the app loads under the production CSP, with every region and no a11y viol
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hear Hear", level: 1 })).toBeVisible();
-  for (const region of ["Welcome", "Staff", "Chords", "Tutor", "Keyboard"]) {
-    await expect(page.getByRole("region", { name: region })).toBeVisible();
+  for (const region of [
+    "Welcome",
+    "Staff",
+    "Chords",
+    "Tutor",
+    "How much should you trust the tutor?",
+    "Keyboard",
+  ]) {
+    await expect(page.getByRole("region", { name: region, exact: true })).toBeVisible();
   }
 
   const axe = async () => {
