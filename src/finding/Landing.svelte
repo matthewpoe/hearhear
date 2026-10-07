@@ -19,6 +19,8 @@
   import SongPicker from "../toolbar/SongPicker.svelte";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
+  import { recorder } from "../record/tunes.js";
+  import { isUserTune } from "../record/take.js";
 
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
@@ -38,9 +40,12 @@
   const songId = $derived($song.id);
   const demo = $derived($ui.demoAwaitingGuess);
 
+  /** A take is running: the key question waits for Stop. */
+  const recording = $derived($recorder.status === "armed" || $recorder.status === "recording");
+
   /** @type {"none" | "prompt" | "find"} */
   const view = $derived.by(() => {
-    if (empty) return "none";
+    if (empty || recording) return "none";
     // A demo always waits for its guess, even after an undo (D18).
     if ($song.key.provisional && demo) return "prompt";
     if (intent === "dismissed") return "find";
@@ -49,7 +54,8 @@
     // shows the question as the guess left it: the chosen chip and the result.
     if (demo) return "prompt";
     if (!$song.key.provisional) return "none";
-    return $song.notes.length >= PHRASE_NOTES ? "prompt" : "none";
+    // A recorded tune asks at once, however short: finding home comes next.
+    return $song.notes.length >= PHRASE_NOTES || isUserTune(songId) ? "prompt" : "none";
   });
 
   const soundNote = $derived(

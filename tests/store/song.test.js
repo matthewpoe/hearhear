@@ -182,6 +182,20 @@ describe("song store", () => {
     assert.deepEqual(starts(store), [0, 10, 20]);
   });
 
+  it("renames the song as one undoable step, refusing a blank or overlong title", () => {
+    const store = storeWith();
+    store.rename("Joyful noodle");
+    assert.equal(store.get().title, "Joyful noodle");
+    store.undo();
+    assert.equal(store.get().title, "Ode to Joy");
+    assert.throws(() => store.rename("   "), RangeError);
+    assert.throws(() => store.rename(" padded "), RangeError);
+    assert.throws(() => store.rename("x".repeat(121)), RangeError);
+    const before = store.get().version;
+    store.rename("Ode to Joy");
+    assert.equal(store.get().version, before, "the same title is no change");
+  });
+
   describe("undo and redo", () => {
     it("round-trips every edit", () => {
       const store = storeWith();
