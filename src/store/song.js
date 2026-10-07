@@ -1,0 +1,312 @@
+/**
+ * The song store: the one source of truth for staff, audio, lead sheet, and
+ * tutor. It changes only through the named actions below. Each action validates
+ * the result, bumps `version`, and pushes the previous song onto the undo stack,
+ * so every edit is undoable and tutor suggestions can detect staleness.
+ *
+ * Songs are immutable values: actions build a new song rather than mutating.
+ *
+ * @import { Key, Meter, Note, ChordSpec, Song } from "../types.js"
+ */
+
+import { createReadable } from "../lib/readable.js";
+import { rekeySong, transposeSong, ticksPerBar } from "../theory/index.js";
+
+const MAX_NOTES = 400;
+const MIN_MIDI = 21;
+const MAX_MIDI = 108;
+const UNDO_LIMIT = 200;
+
+/** @returns {Song} An empty song in provisional C major, 4/4. */
+export function emptySong() {
+  return {
+    schemaVersion: 1,
+    id: "untitled",
+    title: "Untitled",
+    key: { tonic: "C", mode: "major", provisional: true },
+    meter: { beatsPerBar: 4, beatUnit: 4, pickupTicks: 0, provisional: true },
+    tempo: 96,
+    version: 0,
+    notes: [],
+    chords: [],
+  };
+}
+
+/**
+ * Check the invariants JSON Schema can't express. Throws on the first violation.
+ * @param {Song} song
+ */
+export function validateSong(song) {
+  const fail = (/** @type {string} */ why) => {
+    throw new RangeError(`Invalid song: ${why}`);
+  };
+  if (song.notes.length > MAX_NOTES) fail(`more than ${MAX_NOTES} notes`);
+  if (song.meter.pickupTicks >= ticksPerBar(song.meter)) fail("pickup is a full bar or longer");
+  const ids = new Set();
+  let end = 0;
+  for (const note of song.notes) {
+    if (ids.has(note.id)) fail(`duplicate note id ${note.id}`);
+    ids.add(note.id);
+    if (!Number.isInteger(note.start) || !Number.isInteger(note.dur) || note.dur < 1) {
+      fail(`note ${note.id} has non-integer or empty timing`);
+    }
+    if (note.midi < MIN_MIDI || note.midi > MAX_MIDI) fail(`note ${note.id} is off the piano`);
+    if (note.start < end) fail(`note ${note.id} overlaps the note before it`);
+    end = note.start + note.dur;
+  }
+  const anchored = new Set();
+  for (const chord of song.chords) {
+    if (!ids.has(chord.noteId)) fail(`chord ${chord.id} sits on missing note ${chord.noteId}`);
+    if (anchored.has(chord.noteId)) fail(`two chords on note ${chord.noteId}`);
+    anchored.add(chord.noteId);
+  }
+}
+
+/**
+ * Next unused id with a prefix, e.g. "n1a". Ids are base-36 counters so they
+ * stay short and deterministic in tests.
+ * @param {"n" | "c"} prefix
+ * @param {{ id: string }[]} existing
+ */
+function nextId(prefix, existing) {
+  const max = existing.reduce((m, { id }) => Math.max(m, parseInt(id.slice(1), 36) || 0), 0);
+  return prefix + (max + 1).toString(36);
+}
+
+/**
+ * Shift every note that starts after `afterTick` by `delta` ticks.
+ * @param {Note[]} notes
+ * @param {number} afterTick
+ * @param {number} delta
+ */
+function ripple(notes, afterTick, delta) {
+  return notes.map((n) => (n.start > afterTick ? { ...n, start: n.start + delta } : n));
+}
+
+/** @param {Note[]} notes */
+const byStart = (notes) => [...notes].sort((a, b) => a.start - b.start);
+
+/**
+ * Create a song store. The app uses the `song` singleton below; tests and the
+ * eval harness create their own.
+ * @param {Song} [initial]
+ */
+export function createSongStore(initial = emptySong()) {
+  validateSong(initial);
+  const store = createReadable(initial);
+  const history = createReadable({ canUndo: false, canRedo: false });
+  /** @type {Song[]} */
+  let past = [];
+  /** @type {Song[]} */
+  let future = [];
+
+  const publishHistory = () =>
+    history.set({ canUndo: past.length > 0, canRedo: future.length > 0 });
+
+  /**
+   * Apply an edit as one undoable step. The version always moves forward,
+   * even on undo, so suggestions made against an older song read as stale.
+   * @param {(song: Song) => Song} edit
+   */
+  function commit(edit) {
+    const current = store.get();
+    const next = { ...edit(current), version: current.version + 1 };
+    validateSong(next);
+    past = [...past, current].slice(-UNDO_LIMIT);
+    future = [];
+    store.set(next);
+    publishHistory();
+    return next;
+  }
+
+  /** @param {string} id */
+  const noteById = (id) => {
+    const note = store.get().notes.find((n) => n.id === id);
+    if (!note) throw new RangeError(`No note ${id}`);
+    return note;
+  };
+
+  return {
+    subscribe: store.subscribe,
+    /** Current song, for non-reactive callers (event handlers, evals). */
+    get: store.get,
+    /** `{ canUndo, canRedo }`, as its own store so toolbar buttons can react. */
+    history: { subscribe: history.subscribe },
+
+    /**
+     * Replace the song (demo tune, new document). Clears undo history.
+     * @param {Song} song
+     */
+    load(song) {
+      const next = { ...song, version: store.get().version + 1 };
+      validateSong(next);
+      past = [];
+      future = [];
+      store.set(next);
+      publishHistory();
+    },
+
+    /**
+     * Add a melody note. Throws if it would overlap another note.
+     * @param {{ midi: number, start: number, dur: number }} note
+     * @returns {string} the new note's id
+     */
+    addNote({ midi, start, dur }) {
+      const id = nextId("n", store.get().notes);
+      commit((s) => ({ ...s, notes: byStart([...s.notes, { id, midi, start, dur }]) }));
+      return id;
+    },
+
+    /**
+     * Change a note's length. Later notes ripple by the difference, so halving
+     * never leaves a stray rest and doubling never overlaps.
+     * @param {string} noteId
+     * @param {number} dur ticks
+     */
+    setDuration(noteId, dur) {
+      const note = noteById(noteId);
+      commit((s) => ({
+        ...s,
+        notes: ripple(s.notes, note.start, dur - note.dur).map((n) =>
+          n.id === noteId ? { ...n, dur } : n,
+        ),
+      }));
+    },
+
+    /**
+     * Turn a note into a rest: the note and its chord go, the time stays.
+     * @param {string} noteId
+     */
+    makeRest(noteId) {
+      noteById(noteId);
+      commit((s) => ({
+        ...s,
+        notes: s.notes.filter((n) => n.id !== noteId),
+        chords: s.chords.filter((c) => c.noteId !== noteId),
+      }));
+    },
+
+    /**
+     * Delete a note and its chord; later notes ripple back to close the gap.
+     * @param {string} noteId
+     */
+    deleteNote(noteId) {
+      const note = noteById(noteId);
+      commit((s) => ({
+        ...s,
+        notes: ripple(
+          s.notes.filter((n) => n.id !== noteId),
+          note.start,
+          -note.dur,
+        ),
+        chords: s.chords.filter((c) => c.noteId !== noteId),
+      }));
+    },
+
+    /**
+     * Move one note up or down an octave.
+     * @param {string} noteId
+     * @param {1 | -1} direction
+     */
+    moveOctave(noteId, direction) {
+      noteById(noteId);
+      commit((s) => ({
+        ...s,
+        notes: s.notes.map((n) => (n.id === noteId ? { ...n, midi: n.midi + 12 * direction } : n)),
+      }));
+    },
+
+    /**
+     * Place, change, or (with null) remove the chord on a note's onset.
+     * @param {string} noteId
+     * @param {ChordSpec | null} chord
+     */
+    setChord(noteId, chord) {
+      noteById(noteId);
+      commit((s) => {
+        const others = s.chords.filter((c) => c.noteId !== noteId);
+        if (!chord) return { ...s, chords: others };
+        const existing = s.chords.find((c) => c.noteId === noteId);
+        const id = existing?.id ?? nextId("c", s.chords);
+        return { ...s, chords: [...others, { id, noteId, root: chord.root, type: chord.type }] };
+      });
+    },
+
+    /**
+     * Re-key: change only the key hypothesis. What the user heard never changes;
+     * every degree, numeral, and color re-derives.
+     * @param {Key} key
+     */
+    rekey(key) {
+      commit((s) => rekeySong(s, key));
+    },
+
+    /**
+     * Transpose: move melody, chords, and tonic together. Same numbers, new sound.
+     * @param {number} semitones ±12 is the octave control
+     */
+    transpose(semitones) {
+      commit((s) => transposeSong(s, semitones));
+    },
+
+    /**
+     * Re-bar: change only the meter hypothesis. Bar lines move; notes do not.
+     * @param {Meter} meter
+     */
+    rebar(meter) {
+      commit((s) => ({ ...s, meter }));
+    },
+
+    /**
+     * Replace a run of notes in one undoable step: record mode's take, and the
+     * one-key revert of a take to plain quarter notes. Removed notes' chords go too.
+     * @param {string[]} noteIds notes to remove
+     * @param {{ midi: number, start: number, dur: number }[]} notes notes to add
+     * @returns {string[]} the new notes' ids
+     */
+    replaceTake(noteIds, notes) {
+      const removed = new Set(noteIds);
+      /** @type {string[]} */
+      const ids = [];
+      commit((s) => {
+        const kept = s.notes.filter((n) => !removed.has(n.id));
+        const added = notes.map((n) => {
+          const id = nextId("n", [...s.notes, ...ids.map((i) => ({ id: i }))]);
+          ids.push(id);
+          return { id, ...n };
+        });
+        return {
+          ...s,
+          notes: byStart([...kept, ...added]),
+          chords: s.chords.filter((c) => !removed.has(c.noteId)),
+        };
+      });
+      return ids;
+    },
+
+    undo() {
+      const previous = past.at(-1);
+      if (!previous) return;
+      const current = store.get();
+      past = past.slice(0, -1);
+      future = [...future, current];
+      store.set({ ...previous, version: current.version + 1 });
+      publishHistory();
+    },
+
+    redo() {
+      const next = future.at(-1);
+      if (!next) return;
+      const current = store.get();
+      future = future.slice(0, -1);
+      past = [...past, current];
+      store.set({ ...next, version: current.version + 1 });
+      publishHistory();
+    },
+  };
+}
+
+/** @typedef {ReturnType<typeof createSongStore>} SongStore */
+
+/** The app's song. */
+export const song = createSongStore();

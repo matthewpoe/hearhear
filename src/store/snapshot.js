@@ -1,0 +1,79 @@
+/**
+ * Build the tutor's view of the song: bar by bar, spelled pitches, scale
+ * degrees, and chords as numeral, Nashville, and letter. Never MIDI numbers.
+ * The shape is contracts/tutor-request.schema.json's `snapshot`; this is the
+ * one place the camelCase song model crosses to the snake_case wire format.
+ *
+ * @import { Song, LabelStyle } from "../types.js"
+ */
+
+import {
+  letterOf,
+  midiToDegree,
+  nashvilleOf,
+  numeralOf,
+  positionOf,
+  rebar,
+  spell,
+  ticksPerBeat,
+} from "../theory/index.js";
+
+const ACCIDENTAL = { "-1": "b", 0: "", 1: "#" };
+
+/** Round to three places so fractional beats (triplets) serialize cleanly. */
+const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
+
+/**
+ * @param {Song} song
+ * @param {{ labelStyle: LabelStyle }} view
+ */
+export function toTutorSnapshot(song, { labelStyle }) {
+  const { key, meter } = song;
+  const beatTicks = ticksPerBeat(meter);
+  const notesById = new Map(song.notes.map((n) => [n.id, n]));
+  const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
+
+  const bars = rebar(song, meter).map(({ index, noteIds }) => {
+    const notes = noteIds.map(
+      (id) => /** @type {import("../types.js").Note} */ (notesById.get(id)),
+    );
+    return {
+      bar: index,
+      notes: notes.map((n) => {
+        const { degree, accidental } = midiToDegree(n.midi, key);
+        return {
+          beat: round(positionOf(n.start, meter).beat),
+          pitch: spell(n.midi, key),
+          degree: `${ACCIDENTAL[accidental]}${degree}`,
+          beats: round(n.dur / beatTicks),
+        };
+      }),
+      chords: notes.flatMap((n) => {
+        const chord = chordByNote.get(n.id);
+        if (!chord) return [];
+        return [
+          {
+            beat: round(positionOf(n.start, meter).beat),
+            numeral: numeralOf(chord, key),
+            nashville: nashvilleOf(chord, key),
+            letter: letterOf(chord),
+          },
+        ];
+      }),
+    };
+  });
+
+  return {
+    version: song.version,
+    key: { tonic: key.tonic, mode: key.mode, provisional: key.provisional },
+    meter: {
+      beats_per_bar: meter.beatsPerBar,
+      beat_unit: meter.beatUnit,
+      pickup_beats: round(meter.pickupTicks / beatTicks),
+      provisional: meter.provisional,
+    },
+    tempo: song.tempo,
+    label_style: labelStyle,
+    bars,
+  };
+}

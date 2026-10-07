@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "id": "st-james-infirmary",
+  "title": "St. James Infirmary",
+  "key": {
+    "tonic": "D",
+    "mode": "minor",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 4,
+    "beatUnit": 4,
+    "pickupTicks": 12,
+    "provisional": false
+  },
+  "tempo": 72,
+  "version": 0,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 57,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 62,
+      "start": 12,
+      "dur": 12
+    },
+    {
+      "id": "n3",
+      "midi": 62,
+      "start": 24,
+      "dur": 6
+    },
+    {
+      "id": "n4",
+      "midi": 62,
+      "start": 30,
+      "dur": 6
+    },
+    {
+      "id": "n5",
+      "midi": 65,
+      "start": 36,
+      "dur": 12
+    },
+    {
+      "id": "n6",
+      "midi": 62,
+      "start": 48,
+      "dur": 12
+    },
+    {
+      "id": "n7",
+      "midi": 69,
+      "start": 60,
+      "dur": 24
+    },
+    {
+      "id": "n8",
+      "midi": 67,
+      "start": 84,
+      "dur": 12
+    },
+    {
+      "id": "n9",
+      "midi": 65,
+      "start": 96,
+      "dur": 12
+    },
+    {
+      "id": "na",
+      "midi": 62,
+      "start": 108,
+      "dur": 36
+    },
+    {
+      "id": "nb",
+      "midi": 57,
+      "start": 144,
+      "dur": 12
+    },
+    {
+      "id": "nc",
+      "midi": 62,
+      "start": 156,
+      "dur": 12
+    },
+    {
+      "id": "nd",
+      "midi": 62,
+      "start": 168,
+      "dur": 6
+    },
+    {
+      "id": "ne",
+      "midi": 65,
+      "start": 174,
+      "dur": 6
+    },
+    {
+      "id": "nf",
+      "midi": 69,
+      "start": 180,
+      "dur": 12
+    },
+    {
+      "id": "n10",
+      "midi": 67,
+      "start": 192,
+      "dur": 12
+    },
+    {
+      "id": "n11",
+      "midi": 65,
+      "start": 204,
+      "dur": 48
+    }
+  ],
+  "chords": []
+}
