@@ -15,7 +15,7 @@
  * @import { SongStore } from "./song.js"
  */
 
-import { isSwing, validateSong } from "./song.js";
+import { isLyric, isSwing, validateSong } from "./song.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
 export const STORE_VERSION = 1;
@@ -101,7 +101,8 @@ function isSong(song) {
         /^n[0-9a-z]{1,16}$/.test(n.id) &&
         isInt(n.midi, 21, 108) &&
         isInt(n.start, 0) &&
-        isInt(n.dur, 1, 576),
+        isInt(n.dur, 1, 576) &&
+        (n.lyric === undefined || isLyric(n.lyric)),
     ) &&
     Array.isArray(chords) &&
     chords.every(
