@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
+import stJames from "../../content/songs/st-james-infirmary.json" with { type: "json" };
 import { guessRhythm } from "../../src/theory/index.js";
 
 const WOBBLE_MS = [0, 14, -11, 7, -16, 9, -5, 12];
@@ -175,6 +176,39 @@ describe("guessRhythm", () => {
       onsets.map((t) => t * 12),
     );
     assert.equal(swing, false);
+  });
+
+  it("recovers St. James tapped straight at quarter = 76, reading its eighths as eighths", () => {
+    // Mostly eighths: the most common gap implies about 152 BPM, so it's an eighth.
+    const beatMs = 60000 / stJames.tempo;
+    const first = stJames.notes[0].start;
+    const onsets = stJames.notes.map((n) => (n.start - first) / 12);
+    const last = stJames.notes.at(-1);
+    const endMs = 1000 + ((last.start + last.dur - first) / 12) * beatMs;
+    const { notes, beatMs: detected, swing } = guessRhythm(tapAt(onsets, beatMs), { endMs });
+    assert.ok(Math.abs(60000 / detected - stJames.tempo) < 3, `${60000 / detected} BPM`);
+    assert.deepEqual(
+      notes,
+      stJames.notes.map(({ start, dur }) => ({ start: start - first, dur })),
+    );
+    assert.equal(swing, false);
+  });
+
+  it("reads the beat in a plausible tempo: a very fast gap is an eighth, a very slow one a half", () => {
+    // Quarters tapped every 300 ms (200 BPM) read as eighths at 100.
+    const fast = guessRhythm(tapAt([0, 1, 2, 3], 300));
+    assert.ok(Math.abs(60000 / fast.beatMs - 100) < 5, `${60000 / fast.beatMs}`);
+    assert.deepEqual(
+      fast.notes.slice(0, 3).map((n) => n.start),
+      [0, 6, 12],
+    );
+    // Quarters every 1.6 s (37.5 BPM) read as half notes at 75.
+    const slow = guessRhythm(tapAt([0, 1, 2, 3], 1600));
+    assert.ok(Math.abs(60000 / slow.beatMs - 75) < 3, `${60000 / slow.beatMs}`);
+    assert.deepEqual(
+      slow.notes.slice(0, 3).map((n) => n.start),
+      [0, 24, 48],
+    );
   });
 
   it("gives a tapped last note one beat when the take's end is unknown", () => {

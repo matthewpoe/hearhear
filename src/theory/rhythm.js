@@ -22,6 +22,27 @@ const DUPLICATE_ONSET = 0.2;
 const DEFAULT_BEAT_MS = 625;
 
 /**
+ * The tempos a beat is read in. A most common gap faster than FASTEST_BPM is
+ * an eighth (a tune that moves mostly in eighths, like St. James at 76), so the
+ * beat is twice it; slower than SLOWEST_BPM, half it. The band is wider than
+ * an octave, so one doubling or halving never jumps across it.
+ */
+const FASTEST_BPM = 140;
+const SLOWEST_BPM = 50;
+
+/**
+ * A beat length moved by octaves into the plausible tempo band.
+ * @param {number} ms
+ */
+function plausibleBeat(ms) {
+  if (!(ms > 0) || !Number.isFinite(ms)) return DEFAULT_BEAT_MS;
+  let beat = ms;
+  while (60000 / beat > FASTEST_BPM) beat *= 2;
+  while (60000 / beat < SLOWEST_BPM) beat /= 2;
+  return beat;
+}
+
+/**
  * A computer key is tapped, not held like a piano key (Matthew's spec): a
  * press shorter than this, or shorter than half a beat, is a tap, and a tap
  * says nothing about the note's length.
@@ -102,7 +123,8 @@ function swungPairs(gaps, beatMs) {
 
 /**
  * Read swing the jazz way: a swung eighth pair is written as two straight
- * eighths. The beat is the most common gap, unless the most common sum of a
+ * eighths. The beat is the most common gap (moved into a plausible tempo,
+ * 50–140 BPM), unless the most common sum of a
  * swung pair explains more of the take (a line of swung eighths alternates
  * two gaps, neither of them the beat). Each swung pair's
  * gaps are then evened out to half its length.
@@ -112,7 +134,7 @@ function swungPairs(gaps, beatMs) {
  */
 function readSwing(gaps) {
   const positive = gaps.filter((g) => g > 0);
-  const straightBeat = mostCommonGap(positive);
+  const straightBeat = plausibleBeat(mostCommonGap(positive));
   const sums = [];
   for (let i = 0; i + 1 < gaps.length; i++) {
     if (swingRatio(gaps[i], gaps[i + 1])) sums.push(gaps[i] + gaps[i + 1]);
@@ -129,7 +151,7 @@ function readSwing(gaps) {
   };
   let beatMs = straightBeat;
   if (sums.length > 0) {
-    const swingBeat = mostCommonGap(sums);
+    const swingBeat = plausibleBeat(mostCommonGap(sums));
     if (explained(swingBeat) > explained(straightBeat)) beatMs = swingBeat;
   }
   const pairs = swungPairs(gaps, beatMs);
