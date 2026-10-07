@@ -1,5 +1,5 @@
 # Clone to running app: `make install && make dev`.
-.PHONY: install dev test lint format typecheck contracts check smoke build
+.PHONY: install dev test lint format typecheck contracts check smoke build eval-live
 
 install:
 	npm ci
@@ -35,6 +35,11 @@ contracts:
 
 build:
 	npm run build
+
+# A live eval against a local server. Reads ANTHROPIC_API_KEY and TUTOR_ACCESS_CODE
+# from your shell, never a file; smoke-tests 3 requests, then asks (or CONFIRM=1).
+eval-live:
+	@CONFIRM=$(CONFIRM) ./scripts/eval-live.sh
 
 smoke: build
 	npx playwright test
