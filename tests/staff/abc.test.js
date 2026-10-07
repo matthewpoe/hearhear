@@ -70,13 +70,16 @@ test("an accidental lasts to the end of its bar and is restated after the bar li
     song({ tonic: "C", mode: "major" }, [
       note("a", 66, 0, 12),
       note("b", 66, 12, 12),
-      note("c", 65, 24, 12),
+      note("g", 67, 24, 12),
+      note("c", 65, 36, 12),
       note("d", 66, 48, 12),
+      note("e", 67, 60, 12),
     ]),
     CONFIRMED,
   );
-  // F# then a bare F# (still sharp), then F natural, then a new bar restates the sharp.
-  assert.deepEqual(body(abc), ["^F12 F12 =F12 z12 | ^F12 |]"]);
+  // F# then a bare F# (still sharp), then F natural, then a new bar restates
+  // the sharp. Each F# rises to G, so the melody spells it as a sharp.
+  assert.deepEqual(body(abc), ["^F12 F12 G12 =F12 | ^F12 G12 |]"]);
 });
 
 test("a flat minor key takes its signature from K:, so a diatonic flat first in the bar is bare", () => {

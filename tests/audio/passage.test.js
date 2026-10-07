@@ -64,13 +64,21 @@ describe("clickCues", () => {
     );
   });
 
-  it("clicks every eighth in 6/8 and accents each bar's first", () => {
+  it("clicks each dotted quarter in 6/8 and accents each bar's first", () => {
     const cues = clickCues(meter({ beatsPerBar: 6, beatUnit: 8 }), { fromTick: 0, toTick: 72 });
-    assert.deepEqual(ticksOf(cues), [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66]);
+    assert.deepEqual(ticksOf(cues), [0, 18, 36, 54]);
     assert.deepEqual(
       cues.filter((c) => c.kind === "click" && c.accent).map((c) => c.tick),
       [0, 36],
     );
+  });
+
+  it("clicks after an eighth pickup in 6/8 on the dotted quarters of the bar", () => {
+    const cues = clickCues(meter({ beatsPerBar: 6, beatUnit: 8, pickupTicks: 6 }), {
+      fromTick: 0,
+      toTick: 78,
+    });
+    assert.deepEqual(ticksOf(cues), [6, 24, 42, 60]);
   });
 });
 

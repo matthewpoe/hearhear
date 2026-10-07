@@ -32,7 +32,7 @@ async function clickInPlace(page, locator, yFraction = 0.5) {
 test("a dropdown pick leaves the page where it was", async ({ page }) => {
   page.setDefaultTimeout(5000);
   await page.goto("/");
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
   await page.locator("#staff .abcjs-notehead").first().waitFor();
   await page

@@ -12,7 +12,7 @@ for (const [width, height] of [
   test(`the tool row is one line at ${width}x${height}, and the staff leads`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await page.goto("/");
-    await page.getByRole("button", { name: "Beginner tips" }).click();
+    await page.getByRole("button", { name: "Leave lesson" }).click();
     await page.getByRole("button", { name: /Ode to Joy/ }).click();
     await expect(page.locator("#staff svg")).toBeVisible();
     await expect(page.locator("#staff").getByText("Loading the piano…")).toHaveCount(0, {
@@ -67,7 +67,7 @@ for (const [width, height] of [
       .getByRole("group", { name: "Home note" })
       .getByRole("button", { name: "D", exact: true })
       .click();
-    await question.getByRole("button", { name: "Done: on to chords" }).click();
+    await question.getByRole("button", { name: "Next: find the chords" }).click();
     await expect(question).toHaveCount(0);
     await expect(steps.locator('[aria-current="step"]')).toContainText("Chords");
     await expect(steps).toContainText("D major");
@@ -115,7 +115,7 @@ test("a recorded tune asks Rhythm to confirm its guess once the key is chosen", 
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
 
   // Record five notes a beat apart, stop, and name the tune.
   await page.getByRole("button", { name: /^Record a tune/ }).click();
@@ -137,7 +137,7 @@ test("a recorded tune asks Rhythm to confirm its guess once the key is chosen", 
     .getByRole("group", { name: "Home note" })
     .getByRole("button", { name: "C", exact: true })
     .click();
-  await question.getByRole("button", { name: "Done: on to chords" }).click();
+  await question.getByRole("button", { name: "Next: check the rhythm" }).click();
   const steps = page.getByRole("list", { name: "Steps" });
   await expect(steps.locator('[aria-current="step"]')).toContainText("Rhythm");
   const rhythm = page.getByRole("group", { name: "Does this rhythm sound right?" });
