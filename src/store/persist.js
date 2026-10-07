@@ -54,9 +54,16 @@ const BEAT_UNITS = new Set(DEFS.meter.properties.beatUnit.enum);
  */
 
 /**
- * A recorded take as played: each press's pitch and key-down/up times (ms),
- * and when Stop was pressed.
- * @typedef {{ presses: { midi: number, downMs: number, upMs?: number | null }[], endMs: number }} RawTake
+ * One phrase as played: each press's pitch and key-down/up times (ms), when
+ * Stop was pressed, and the ids of the notes it made (left out by takes saved
+ * before phrases, which made the whole tune).
+ * @typedef {{ presses: { midi: number, downMs: number, upMs?: number | null }[], endMs: number, ids?: string[] }} RawPhrase
+ */
+
+/**
+ * A recorded take as played: its first phrase, and any phrases recorded
+ * after it (`later`, oldest first).
+ * @typedef {RawPhrase & { later?: RawPhrase[] }} RawTake
  */
 
 /**
@@ -85,6 +92,30 @@ const isList = (list, { maxItems = Infinity }, check) =>
 
 /** @param {unknown} value @returns {value is Record<string, any>} */
 const isObject = (value) => typeof value === "object" && value !== null;
+
+/**
+ * A stored phrase of a raw take checks out: finite times, pitches on the
+ * piano, and note ids (if any) in the song's id pattern.
+ * @param {unknown} phrase
+ */
+const isPhrase = (phrase) =>
+  isObject(phrase) &&
+  Number.isFinite(phrase.endMs) &&
+  isList(
+    phrase.presses,
+    { maxItems: MAX_NOTES },
+    (p) =>
+      isObject(p) &&
+      isInt(p.midi, { minimum: MIN_MIDI, maximum: MAX_MIDI }) &&
+      Number.isFinite(p.downMs) &&
+      (p.upMs === undefined || p.upMs === null || Number.isFinite(p.upMs)),
+  ) &&
+  (phrase.ids === undefined ||
+    isList(
+      phrase.ids,
+      { maxItems: MAX_NOTES },
+      (id) => typeof id === "string" && NOTE_ID.test(id),
+    ));
 
 /**
  * The checks song.schema.json makes, in plain JS, with the schema's own
@@ -254,19 +285,13 @@ export function createSongMemory(storage) {
       if (!raw) return null;
       try {
         const take = JSON.parse(raw);
-        const ok =
-          isObject(take) &&
-          Number.isFinite(take.endMs) &&
-          Array.isArray(take.presses) &&
-          take.presses.length <= MAX_NOTES &&
-          take.presses.every(
-            (/** @type {unknown} */ p) =>
-              isObject(p) &&
-              isInt(p.midi, MIN_MIDI, MAX_MIDI) &&
-              Number.isFinite(p.downMs) &&
-              (p.upMs === undefined || p.upMs === null || Number.isFinite(p.upMs)),
-          );
-        return ok ? take : null;
+        if (!isObject(take)) return null;
+        const later = take.later ?? [];
+        if (!Array.isArray(later)) return null;
+        const phrases = [take, ...later];
+        // The note limit is the whole tune's, however many phrases made it.
+        const presses = phrases.reduce((sum, p) => sum + (p?.presses?.length ?? 0), 0);
+        return presses <= MAX_NOTES && phrases.every(isPhrase) ? take : null;
       } catch {
         return null;
       }

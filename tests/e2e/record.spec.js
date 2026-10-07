@@ -1,8 +1,8 @@
 // Record a tune: arm from the welcome, play a short tune on the number row
 // with timed presses, stop with Escape, name it in the inline field, and find
 // it on the staff and in the song picker, after a reload too. Then rename it
-// by clicking its title, record it again (Undo brings the first take back),
-// and discard it (Undo brings it back). Fails on any console error and any
+// by clicking its title, start it over (Undo brings the first take back),
+// and discard it (the first demo opens; Undo brings it back). Fails on any console error and any
 // axe violation, in both themes.
 
 import { test, expect } from "@playwright/test";
@@ -106,7 +106,7 @@ test("record a tune, name it, and find it on the staff, in the picker, and after
 
   // 7. Dark theme, with the recording state showing.
   await page.getByRole("button", { name: "Dark mode" }).click();
-  await bar.getByRole("button", { name: "Record again" }).click();
+  await bar.getByRole("button", { name: "Start over" }).click();
   await expect(bar.getByText("Ready to record")).toBeVisible();
   await axe(page);
   await tapTune(page, ["Digit5", "Digit4", "Digit3", "Digit2"]);
@@ -117,11 +117,9 @@ test("record a tune, name it, and find it on the staff, in the picker, and after
   await page.getByRole("button", { name: "Undo", exact: true }).first().click();
   await expect(staffNotes(page)).toHaveCount(5);
 
-  // 8. Discard goes back to the welcome; Undo brings the tune back.
+  // 8. Discard opens the first demo, never the empty welcome; Undo brings the tune back.
   await bar.getByRole("button", { name: "Discard tune" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Hear a tune. Find where home is." }),
-  ).toBeVisible();
+  await expect(page.locator("#staff svg")).toHaveAttribute("aria-label", /^Notation: (?!Porch)/);
   await expect(bar).toContainText("Discarded “Porch song, take 2”.");
   await axe(page);
   await bar.getByRole("button", { name: "Undo" }).click();

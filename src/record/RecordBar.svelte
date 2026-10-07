@@ -3,13 +3,20 @@
    * Record mode's bar, over the staff: the recording state while a take
    * runs (a red dot, the elapsed time, the note count, and Stop), the title
    * field after it, and for one of the user's own tunes its title (click to
-   * rename), Record again, and Discard. Escape stops a take; it is free while
-   * recording, since the menus it closes elsewhere are shut.
+   * rename) and what comes next: Record next phrase, Redo that phrase (the
+   * latest phrase, ringed on the staff), Hear that phrase, Start over, and
+   * Discard. After a Discard it holds the Undo offer, over whatever opened in
+   * the tune's place. Escape stops a take; it is free while recording, since
+   * the menus it closes elsewhere are shut.
    */
   import { tick } from "svelte";
   import { get } from "svelte/store";
   import { flatArmed } from "../input/NumberRow.js";
   import { song } from "../store/song.js";
+  import { ui } from "../store/ui.js";
+  import { clearHighlight, highlight } from "../staff/staffEvents.js";
+  import { playWithVisuals } from "../staff/playback.js";
+  import { songEnd } from "../staff/bars.js";
   import { recorder, shelf } from "./tunes.js";
   import { MAX_TAKE_NOTES, isUserTune } from "./take.js";
 
@@ -28,6 +35,19 @@
   let titleButton = $state();
   /** @type {HTMLButtonElement | undefined} */
   let undoButton = $state();
+  /** @type {HTMLButtonElement | undefined} */
+  let nextButton = $state();
+
+  /** The staff class on the latest phrase's notes, so Redo that phrase says what it redoes. */
+  const LATEST = "latest-phrase";
+  // Read again after every take (the bar's state changes) and song change.
+  const phrases = $derived.by(() => {
+    void $rec;
+    return mine ? recorder.phrases($song) : [];
+  });
+  const latest = $derived(phrases.at(-1) ?? null);
+  const roomLeft = $derived($song.notes.length < MAX_TAKE_NOTES);
+  const canNext = $derived(phrases.length > 0 && roomLeft);
   let draft = $state("");
   let clock = $state(0);
 
@@ -61,8 +81,33 @@
     if ($rec.discarded !== null) tick().then(() => undoButton?.focus({ preventScroll: true }));
   });
 
+  // After a phrase, Record next phrase takes focus: Escape, then Enter, records on.
+  $effect(() => {
+    if ($rec.added > 0) tick().then(() => nextButton?.focus({ preventScroll: true }));
+  });
+
+  // The latest phrase is ringed while there is more than one (one phrase is
+  // the whole tune). Put back a frame after any song or view change, since
+  // the staff redraws and drops its note classes.
+  $effect(() => {
+    void $ui;
+    const ids = !live && phrases.length > 1 && latest ? latest.ids : [];
+    if (ids.length === 0) return;
+    const frame = requestAnimationFrame(() => {
+      clearHighlight(LATEST);
+      highlight(ids, LATEST);
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      clearHighlight(LATEST);
+    };
+  });
+
   /** What the status line announces: changes of state only, never every note. */
   const announcement = $derived.by(() => {
+    if (status === "armed" && $rec.phrase) {
+      return "Ready to record a phrase. Your first note starts it.";
+    }
     if (status === "armed") return "Ready to record. Your first note starts the take.";
     if (status === "recording") return "Recording.";
     if (status === "naming" && $rec.afterTake) {
@@ -71,6 +116,10 @@
       return `Recorded ${count} ${count === 1 ? "note" : "notes"}.${full} Name your tune.`;
     }
     if ($rec.discarded !== null) return `Discarded ${$rec.discarded}.`;
+    if ($rec.added > 0) {
+      const count = $song.notes.length;
+      return `Added ${$rec.added} ${$rec.added === 1 ? "note" : "notes"}; the tune has ${count}.`;
+    }
     return "";
   });
 
@@ -127,14 +176,27 @@
     titleButton?.focus({ preventScroll: true });
   }
 
-  function recordAgain() {
+  /**
+   * The bar's actions after a take. From the title field, the name typed so
+   * far is kept first.
+   * @param {() => void} act
+   */
+  function then(act) {
     if (recorder.get().status === "naming") recorder.name(draft);
-    recorder.record({ again: true });
+    act();
   }
 
-  function discard() {
-    if (recorder.get().status === "naming") recorder.name(draft);
-    recorder.discard();
+  const nextPhrase = () => then(() => recorder.record({ phrase: "next" }));
+  const redoPhrase = () => then(() => recorder.record({ phrase: "redo" }));
+  const startOver = () => then(() => recorder.record({ again: true }));
+  const discard = () => then(() => recorder.discard());
+
+  /** Play the latest phrase alone, with the playhead. */
+  function hearPhrase() {
+    if (!latest) return;
+    playWithVisuals({ fromTick: latest.start, toTick: songEnd(song.get()) }).catch((error) =>
+      console.error("Playback failed", error),
+    );
   }
 </script>
 
@@ -146,6 +208,7 @@
       <div class="rec">
         <span class="dot" class:on={status === "recording"} aria-hidden="true"></span>
         <strong>{status === "recording" ? "Recording" : "Ready to record"}</strong>
+        {#if $rec.phrase}<span class="hint">a phrase</span>{/if}
       </div>
       {#if status === "armed"}
         <p class="hint">
@@ -196,14 +259,7 @@
           home is.
         </p>
       {/if}
-      <div class="actions">
-        <button type="button" onmousedown={(e) => e.preventDefault()} onclick={recordAgain}>
-          <span class="dot small" aria-hidden="true"></span>Record again
-        </button>
-        <button type="button" onmousedown={(e) => e.preventDefault()} onclick={discard}>
-          Discard tune
-        </button>
-      </div>
+      {@render actions()}
     {:else if mine}
       <button
         type="button"
@@ -220,18 +276,22 @@
       </button>
       <p class="kind">
         Your tune · {$song.notes.length}
-        {$song.notes.length === 1 ? "note" : "notes"}
+        {$song.notes.length === 1 ? "note" : "notes"}{#if phrases.length > 1}
+          · {phrases.length} phrases{/if}{#if $rec.added > 0}
+          · added {$rec.added}{/if}
+      </p>
+      {@render actions()}
+    {:else if $rec.discarded !== null}
+      <p class="discarded notice">
+        Discarded “{$rec.discarded}”. Undo brings it back, every phrase included.
       </p>
       <div class="actions">
-        <button type="button" onclick={() => recorder.record({ again: true })}>
-          <span class="dot small" aria-hidden="true"></span>Record again
-        </button>
-        <button type="button" onclick={() => recorder.discard()}>Discard tune</button>
-      </div>
-    {:else if $rec.discarded !== null}
-      <p class="discarded">Discarded “{$rec.discarded}”.</p>
-      <div class="actions">
-        <button type="button" bind:this={undoButton} onclick={() => recorder.undoDiscard()}>
+        <button
+          type="button"
+          class="primary"
+          bind:this={undoButton}
+          onclick={() => recorder.undoDiscard()}
+        >
           Undo
         </button>
         <button type="button" onclick={() => recorder.dismiss()} aria-label="Dismiss">×</button>
@@ -239,6 +299,47 @@
     {/if}
   </section>
 {/if}
+
+<!-- What comes after a take, most used first. A mouse press keeps focus in the
+     title field, so its blur doesn't close the field under the click. -->
+{#snippet actions()}
+  <div class="actions">
+    {#if canNext}
+      <button
+        type="button"
+        class="primary"
+        bind:this={nextButton}
+        onmousedown={(e) => e.preventDefault()}
+        onclick={nextPhrase}
+      >
+        <span class="dot small" aria-hidden="true"></span>Record next phrase
+      </button>
+    {/if}
+    {#if phrases.length > 0}
+      <button
+        type="button"
+        onmousedown={(e) => e.preventDefault()}
+        onclick={redoPhrase}
+        title={phrases.length > 1
+          ? "Record the ringed phrase again; the rest stays"
+          : "Record the tune again"}
+      >
+        Redo that phrase
+      </button>
+    {/if}
+    {#if phrases.length > 1}
+      <button type="button" onmousedown={(e) => e.preventDefault()} onclick={hearPhrase}>
+        Hear that phrase
+      </button>
+    {/if}
+    <button type="button" class="quiet" onmousedown={(e) => e.preventDefault()} onclick={startOver}>
+      Start over
+    </button>
+    <button type="button" class="quiet" onmousedown={(e) => e.preventDefault()} onclick={discard}>
+      Discard tune
+    </button>
+  </div>
+{/snippet}
 <p class="visually-hidden" role="status">{announcement}</p>
 
 <style>
@@ -372,6 +473,24 @@
     border-color: var(--ink);
     background: var(--ink);
     color: var(--paper);
+  }
+  .primary .dot.small {
+    box-shadow: 0 0 0 1px var(--paper);
+  }
+  /* Start over and Discard: there, but quieter than building the tune. */
+  .quiet {
+    border-color: transparent;
+    color: var(--ink-muted);
+  }
+  .discarded.notice {
+    font-weight: 500;
+  }
+  /* The latest phrase on the staff: a soft ring, quieter than the playhead. */
+  :global(#staff .latest-phrase .abcjs-notehead) {
+    stroke: var(--staff-hover);
+    stroke-width: 4px;
+    stroke-opacity: 0.55;
+    paint-order: stroke;
   }
   .actions {
     display: inline-flex;

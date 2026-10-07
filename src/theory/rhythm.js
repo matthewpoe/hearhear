@@ -156,15 +156,18 @@ function swungPairs(gaps, beatMs) {
  * where they could be dotted figures. With "straight" they are read
  * literally: a pair near 2:1 or 3:1 is a dotted eighth and a sixteenth, a
  * gentler one two eighths, and nothing is marked swung.
+ * With `beat` given (a later phrase of a tune whose beat is known), that is
+ * the beat: no other is guessed, and pairs are read against it.
  * @param {number[]} gaps ms between onsets
  * @param {Feel} [feel]
+ * @param {number} [beat] the beat already known, in ms
  * @returns {{ gaps: number[], beatMs: number, swing: boolean, fixed: Map<number, number> }}
  *   `swing`: the take reads as swung (by default, more of its eighth pairs
  *   were swung than straight); `fixed`: ticks set for some gaps
  */
-function readSwing(gaps, feel = "auto") {
+function readSwing(gaps, feel = "auto", beat = undefined) {
   const positive = gaps.filter((g) => g > 0);
-  const straightBeat = plausibleBeat(mostCommonGap(positive));
+  const straightBeat = beat ?? plausibleBeat(mostCommonGap(positive));
   const sums = [];
   for (let i = 0; i + 1 < gaps.length; i++) {
     if (swingRatio(gaps[i], gaps[i + 1])) sums.push(gaps[i] + gaps[i + 1]);
@@ -195,7 +198,7 @@ function readSwing(gaps, feel = "auto") {
     }
   }
   let beatMs = straightBeat;
-  if (sums.length > 0) {
+  if (sums.length > 0 && beat === undefined) {
     // Every long-short pair, for the dotted-figure check below.
     const pairSum = mostCommonGap(sums);
     const swingBeat = swingSums.length > 0 ? plausibleBeat(mostCommonGap(swingSums)) : NaN;
@@ -276,17 +279,20 @@ function readSwing(gaps, feel = "auto") {
  * release (not a number, or before its key-down) is treated as legato: the
  * note lasts until the next one, and the last note lasts one beat.
  * @param {{ downMs: number, upMs: number }[]} events in order
- * @param {{ endMs?: number, feel?: Feel }} [options] `endMs`: when the take
- *   stopped; `feel`: how to read long-short pairs (default "auto", the guess)
+ * @param {{ endMs?: number, feel?: Feel, beatMs?: number }} [options] `endMs`:
+ *   when the take stopped; `feel`: how to read long-short pairs (default
+ *   "auto", the guess); `beatMs`: the beat to read against instead of
+ *   guessing one (a phrase recorded onto a tune that has its tempo)
  * @returns {{ notes: { start: number, dur: number }[], beatMs: number, dropped: number[], swing: boolean }}
  *   notes in ticks from 0, one per event not dropped; `beatMs` is the detected
  *   beat, so record mode can set the tempo; `dropped` lists the indices of
  *   events merged into the next one, ascending
  */
-export function guessRhythm(events, { endMs, feel = "auto" } = {}) {
+export function guessRhythm(events, { endMs, feel = "auto", beatMs } = {}) {
   const dropped = duplicateOnsets(events);
   const kept = events.filter((_, i) => !dropped.includes(i));
-  return { ...guessKept(kept, endMs, feel), dropped };
+  const beat = Number.isFinite(beatMs) && /** @type {number} */ (beatMs) > 0 ? beatMs : undefined;
+  return { ...guessKept(kept, endMs, feel, beat), dropped };
 }
 
 /**
@@ -295,11 +301,13 @@ export function guessRhythm(events, { endMs, feel = "auto" } = {}) {
  * @param {{ downMs: number, upMs: number }[]} events
  * @param {number | undefined} endMs
  * @param {Feel} feel
+ * @param {number | undefined} beat the beat already known, if any
  */
-function guessKept(events, endMs, feel) {
+function guessKept(events, endMs, feel, beat) {
   const { gaps, beatMs, swing, fixed } = readSwing(
     events.slice(1).map((e, i) => e.downMs - events[i].downMs),
     feel,
+    beat,
   );
   const half = TICKS_PER_QUARTER / 2;
 

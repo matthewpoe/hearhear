@@ -101,7 +101,7 @@ export function validateSong(song) {
 /**
  * The highest id counter in a song. Ids are a prefix plus a base-36 counter
  * ("n1a", "c3") so they stay short and deterministic in tests.
- * @param {Song} song
+ * @param {{ notes: { id: string }[], chords: { id: string }[] }} song
  */
 function highestId(song) {
   return [...song.notes, ...song.chords].reduce(
@@ -414,7 +414,9 @@ export function createSongStore(initial = emptySong()) {
      * one-key revert of a take to plain quarter notes. Removed notes' chords and
      * syllables go too; a take is new notes, so they carry no syllables.
      * @param {string[]} noteIds notes to remove
-     * @param {{ midi: number, start: number, dur: number }[]} notes notes to add
+     * @param {{ midi: number, start: number, dur: number, id?: string }[]} notes
+     *   notes to add; one may bring an id back (a take re-read keeps its
+     *   notes' ids, so record mode still knows which phrase is which)
      * @param {{ tempo?: number, swing?: number | null }} [options] set in the
      *   same step: `tempo`, the take's tempo (a re-recorded tune); `swing`,
      *   its swing ratio, or null for none (a take re-read with another feel)
@@ -422,7 +424,10 @@ export function createSongStore(initial = emptySong()) {
      */
     replaceTake(noteIds, notes, { tempo, swing } = {}) {
       const removed = new Set(noteIds);
-      const ids = notes.map(() => newId("n"));
+      // A brought-back id is never issued again.
+      const brought = notes.flatMap(({ id }) => (id ? [{ id }] : []));
+      lastId = Math.max(lastId, highestId({ notes: brought, chords: [] }));
+      const ids = notes.map((n) => n.id ?? newId("n"));
       commit((s) => {
         const kept = { ...s };
         if (swing === null) delete kept.swing;
