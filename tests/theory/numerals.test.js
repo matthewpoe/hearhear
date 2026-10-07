@@ -161,6 +161,10 @@ describe("functionInfo", () => {
     );
   });
 
+  it("reads an unknown function as the neutral other, never throwing", () => {
+    assert.deepEqual(functionInfo(/** @type {any} */ ("mystery")), functionInfo("other"));
+  });
+
   it("hands out a copy, so a caller can't change the contract", () => {
     functionInfo("dominant").shape = "star";
     assert.equal(functionInfo("dominant").shape, "square");

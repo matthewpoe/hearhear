@@ -43,6 +43,7 @@ export function functionOf(numeral, mode) {
  *   e.g. { shape: "circle", color: "--fn-tonic", meaning: "home, rest" }
  */
 export function functionInfo(fn) {
-  const { shape, color, meaning } = functions.functions[fn];
+  // Anything outside the four functions reads as the neutral 'other', as functionOf would.
+  const { shape, color, meaning } = functions.functions[fn] ?? functions.functions.other;
   return { shape, color, meaning };
 }
