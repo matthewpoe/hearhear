@@ -38,6 +38,14 @@ export function emptySong() {
 }
 
 /**
+ * A song's optional swing ratio: a number from 1 (straight) to 3.
+ * @param {unknown} swing
+ */
+export function isSwing(swing) {
+  return typeof swing === "number" && Number.isFinite(swing) && swing >= 1 && swing <= 3;
+}
+
+/**
  * Check the invariants JSON Schema can't express. Throws on the first violation.
  * @param {Song} song
  */
@@ -47,6 +55,7 @@ export function validateSong(song) {
   };
   if (song.notes.length > MAX_NOTES) fail(`more than ${MAX_NOTES} notes`);
   if (song.meter.pickupTicks >= ticksPerBar(song.meter)) fail("pickup is a full bar or longer");
+  if (song.swing !== undefined && !isSwing(song.swing)) fail("swing isn't a ratio from 1 to 3");
   const ids = new Set();
   let end = 0;
   for (const note of song.notes) {
