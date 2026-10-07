@@ -29,7 +29,13 @@ from hearhear.limits import BodySizeLimit, client_ip
 from hearhear.live import stream_live
 from hearhear.log import log_event
 from hearhear.models import MAX_BODY_BYTES, TutorRequest
-from hearhear.tutor import replay_fixture
+from hearhear.tutor import (
+    LESSON_SERVED_BY,
+    is_lesson_name,
+    load_lesson,
+    replay,
+    replay_fixture,
+)
 
 settings = load_settings()
 budget = TokenBudget(settings.daily_token_budget)
@@ -196,6 +202,7 @@ ACCESS_LOCKED_MESSAGE = (
     "the recorded lessons still work."
 )
 
+LESSON_MISSING_MESSAGE = "That recorded lesson isn't here."
 BUSY_MESSAGE = "The tutor is helping someone else right now. Try again in a moment."
 BUSY_RETRY_AFTER = 5
 
@@ -243,11 +250,25 @@ async def tutor(
     x_tutor_access: Annotated[str | None, Header()] = None,
 ) -> StreamingResponse | JSONResponse:
     """Order of checks: body cap (413, middleware), validation (422), rate
-    limit (429), then in live mode the access gate (429 locked, 401), the
+    limit (429), then a recorded lesson if X-Tutor-Fixture names one (404
+    when it isn't recorded), then in live mode the access gate (429 locked, 401), the
     daily budget (503) and the in-flight cap (503), then the stream. Fixture
     mode has none of the live checks."""
     request_id = uuid.uuid4().hex
     headers = {"Cache-Control": "no-store", "X-Request-Id": request_id}
+    # A recorded lesson replays in either mode, before the gate, the budget
+    # and the in-flight cap: committed files, no Claude call, no cost.
+    if x_tutor_fixture is not None and is_lesson_name(x_tutor_fixture):
+        lesson = load_lesson(x_tutor_fixture)
+        if lesson is None:
+            log_event("request_rejected", code="lesson_not_found", request_id=request_id)
+            return error_response(404, "lesson_not_found", LESSON_MISSING_MESSAGE, headers)
+        log_event("tutor_lesson", request_id=request_id, hint_level=body.hint_level)
+        return StreamingResponse(
+            replay(body, lesson, request_id, LESSON_SERVED_BY),
+            media_type="text/event-stream",
+            headers=headers,
+        )
     if settings.tutor_mode == "fixture":
         log_event("tutor_fixture", request_id=request_id, hint_level=body.hint_level)
         return StreamingResponse(
@@ -263,7 +284,7 @@ async def tutor(
         log_event("request_rejected", code="over_budget", request_id=request_id)
         message = "The live tutor is out of budget for today; the recorded lessons still work."
         return error_response(503, "over_budget", message, headers)
-    # X-Tutor-Fixture is ignored here: live mode never replays fixtures. The
+    # Any other X-Tutor-Fixture is ignored here: live mode never replays shape fixtures. The
     # generator calls Claude only once the response starts iterating it.
     stream = stream_live(
         body,

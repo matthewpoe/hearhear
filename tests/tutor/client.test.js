@@ -121,6 +121,12 @@ describe("askTutor", () => {
       const headers = await sentHeaders({});
       assert.equal("X-Tutor-Access" in headers, false);
     });
+
+    it("names a recorded lesson in X-Tutor-Fixture only when asked to", async () => {
+      const headers = await sentHeaders({ fixture: "lesson:ode-ending" });
+      assert.equal(headers["X-Tutor-Fixture"], "lesson:ode-ending");
+      assert.equal("X-Tutor-Fixture" in (await sentHeaders({})), false);
+    });
   });
 
   it("reports a fetch that never reaches the server as network", async () => {

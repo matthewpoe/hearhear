@@ -1,11 +1,13 @@
 import asyncio
+import json
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from helpers import settings_with
+from helpers import LESSON, settings_with
 
 from hearhear import app as app_module
+from hearhear import tutor
 from hearhear.access import AccessLockout
 from hearhear.budget import TokenBudget
 
@@ -24,3 +26,15 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setattr(app_module, "streams", asyncio.Semaphore(settings.max_concurrent))
     app_module.limiter.reset()
     return TestClient(app_module.app)
+
+
+@pytest.fixture
+def recorded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """A recorded-lessons dir holding `ode-ending`, with a JSON file beside it
+    that no lesson id may reach."""
+    lessons = tmp_path / "lessons" / "recorded"
+    lessons.mkdir(parents=True)
+    (lessons / "ode-ending.json").write_text(json.dumps(LESSON))
+    (lessons.parent / "secret.json").write_text(json.dumps(LESSON))
+    monkeypatch.setattr(tutor, "LESSONS_DIR", lessons)
+    return lessons

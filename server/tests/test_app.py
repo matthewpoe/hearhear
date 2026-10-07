@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from conftest import LESSON
 from fastapi.testclient import TestClient
 from helpers import SNAPSHOT, events, import_app
 
@@ -265,3 +266,43 @@ def test_snapshot_rejects_midi_numbers_as_pitches() -> None:
     }
     with pytest.raises(ValidationError):
         Snapshot.model_validate(bad)
+
+
+def test_fixture_header_replays_a_recorded_lesson(client: TestClient, recorded: Path) -> None:
+    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    response = client.post(
+        "/api/tutor", json=body, headers={"X-Tutor-Fixture": "lesson:ode-ending"}
+    )
+    stream = events(response.text)
+    assert stream[0] == ("message", {"delta": "Recorded: it lands."})
+    assert dict(stream)["suggestions"]["served_by"] == "recorded"
+
+
+@pytest.mark.parametrize(
+    "name", ["lesson:ode-unfinished", "lesson:../secret", "lesson:", "lesson:Ode"]
+)
+def test_a_lesson_not_recorded_is_a_404_never_another_file(
+    client: TestClient, recorded: Path, name: str
+) -> None:
+    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    response = client.post("/api/tutor", json=body, headers={"X-Tutor-Fixture": name})
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "lesson_not_found"
+    assert len(response.headers["x-request-id"]) == 32
+
+
+def test_a_replay_never_pauses_longer_than_the_cap(
+    client: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    slow = {"events": [{**event, "delayMs": 600_000} for event in LESSON["events"]]}
+    (recorded / "slow.json").write_text(json.dumps(slow))
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(tutor.asyncio, "sleep", sleep)
+    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    response = client.post("/api/tutor", json=body, headers={"X-Tutor-Fixture": "lesson:slow"})
+    assert response.status_code == 200
+    assert waits == [tutor.MAX_REPLAY_DELAY_MS / 1000] * 3

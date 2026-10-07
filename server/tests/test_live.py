@@ -4,6 +4,7 @@ over a mock transport. No network calls."""
 import asyncio
 import json
 from collections.abc import AsyncIterator
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -755,3 +756,48 @@ def test_the_cap_leaves_fixture_mode_alone(
 ) -> None:
     one_slot_taken(monkeypatch)
     assert client.post("/api/tutor", json={"snapshot": SNAPSHOT}).status_code == 200
+
+
+def test_live_mode_replays_a_recorded_lesson_without_a_code(
+    live_mode: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    del live_mode.headers["X-Tutor-Access"]
+    monkeypatch.setattr(app_module, "budget", TokenBudget(1))
+    app_module.budget.spend(10)
+    response = live_mode.post(
+        "/api/tutor",
+        json={"snapshot": SNAPSHOT},
+        headers={"X-Tutor-Fixture": "lesson:ode-ending"},
+    )
+    assert response.status_code == 200
+    stream = events(response.text)
+    assert stream[0] == ("message", {"delta": "Recorded: it lands."})
+    assert dict(stream)["suggestions"]["served_by"] == "recorded"
+    assert fake.calls == [], "no Claude call"
+
+
+def test_live_mode_refuses_a_lesson_path_outside_the_lessons(
+    live_mode: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    response = live_mode.post(
+        "/api/tutor",
+        json={"snapshot": SNAPSHOT},
+        headers={"X-Tutor-Fixture": "lesson:../secret"},
+    )
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "lesson_not_found"
+    assert fake.calls == []
+
+
+def test_live_mode_still_gates_a_shape_fixture_name(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    del live_mode.headers["X-Tutor-Access"]
+    response = live_mode.post(
+        "/api/tutor", json={"snapshot": SNAPSHOT}, headers={"X-Tutor-Fixture": "nudge"}
+    )
+    assert response.status_code == 401
+    assert fake.calls == []
