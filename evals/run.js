@@ -20,7 +20,6 @@ import { readFile, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { format } from "prettier";
-import { toTutorSnapshot } from "../src/store/snapshot.js";
 import { letterOf, positionOf } from "../src/theory/index.js";
 import { loadTunes } from "./dataset/derive.js";
 import {
@@ -31,6 +30,7 @@ import {
   sameHarmony,
   scoreSuggestions,
 } from "./metrics.js";
+import { evalRequest, evalSnapshot } from "./request.js";
 import { resultsTable, summarize } from "./summary.js";
 import { AccessError, callTutor } from "./tutorCall.js";
 
@@ -76,7 +76,7 @@ for (const tune of await loadTunes()) {
   const song = await readJson(`evals/dataset/songs/${tune.id}.json`);
   // The tutor and the baseline both see the melody with no chords: what goes there is the question.
   const melody = { ...song, chords: [] };
-  const snapshot = toTutorSnapshot(melody, { labelStyle: "roman" });
+  const snapshot = evalSnapshot(song);
   const baseline = { hits: 0, clashing: 0, points: 0 };
 
   for (const chord of song.chords) {
@@ -95,16 +95,7 @@ for (const tune of await loadTunes()) {
       if (records.length >= limit) break;
       let exchange;
       try {
-        exchange = await callTutor(
-          baseUrl,
-          {
-            snapshot,
-            hint_level: level,
-            question: `What chord could go under the melody note at bar ${bar}, beat ${beat}?`,
-            history: [],
-          },
-          accessCode,
-        );
+        exchange = await callTutor(baseUrl, evalRequest(snapshot, level, bar, beat), accessCode);
       } catch (error) {
         if (!(error instanceof AccessError)) throw error;
         console.error(error.message);

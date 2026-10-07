@@ -21,7 +21,9 @@ The harness asks `/api/health` which mode the server is in. In fixture mode the 
 
 ## What each request is
 
-The song with **no chords** (key and meter confirmed), the hint level, and the question "What chord could go under the melody note at bar _b_, beat _n_?", with no history. The snapshot comes from the app's own `toTutorSnapshot`, in Roman-numeral style.
+The song with **no chords** (key and meter confirmed), the hint level, and the question "What chord could go under the melody note at bar _b_, beat _n_?", with no history. The snapshot comes from the app's own `toTutorSnapshot`, in Roman-numeral style, built in `request.js`.
+
+The request never carries the song's title (`request.js` strips any, tested in `tests/evals/request.test.js`), so the model can't look up a famous hymnal harmonization by name. A caveat remains: these are well-known tunes, so some recall from the melody alone is possible.
 
 ## Metrics
 
@@ -44,6 +46,6 @@ Key-identification accuracy (PRD section 7) isn't measured yet: every request ca
 
 ## Files
 
-- `run.js`: the harness. `tutorCall.js`: one timed exchange. `metrics.js`, `summary.js`: pure scoring, tested in `tests/evals/`.
+- `run.js`: the harness. `request.js`: the melody-only request. `tutorCall.js`: one timed exchange. `metrics.js`, `summary.js`: pure scoring, tested in `tests/evals/`.
 - `dataset/`: tunes, sources, and `derive.js`.
 - `results/latest.json`: the last run, with every reply. `results/README.md`: its table.
