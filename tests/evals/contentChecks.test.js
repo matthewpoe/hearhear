@@ -10,7 +10,8 @@ test("keySpoilers finds the tonic as a note or chord name, and letter-plus-mode 
   const d = { tonic: "D" };
   assert.deepEqual(keySpoilers("Home is D.", d), ["D"]);
   assert.deepEqual(keySpoilers("Try a D chord, or Dmaj7.", d), ["D", "Dmaj7"]);
-  assert.deepEqual(keySpoilers("It sounds like E minor to me.", d), ["E minor"]);
+  assert.deepEqual(keySpoilers("It sounds like E minor to me.", { tonic: "E" }), ["E", "E minor"]);
+  assert.deepEqual(keySpoilers("A minor is home.", { tonic: "A" }), ["A minor"]);
   assert.deepEqual(keySpoilers("Home is B-flat.", { tonic: "Bb" }), ["B-flat"]);
   assert.deepEqual(keySpoilers("Home is A.", { tonic: "A" }), ["A"]);
 });
@@ -22,6 +23,11 @@ test("keySpoilers lets ordinary words and other notes through", () => {
   assert.deepEqual(keySpoilers("Does the minor feel come from the last note?", d), []);
   assert.deepEqual(keySpoilers("A good place to listen is the end.", { tonic: "A" }), []);
   assert.deepEqual(keySpoilers("Home is B.", { tonic: "Bb" }), []);
+  // A sentence-initial article before a mode word is not the key.
+  const e = { tonic: "E" };
+  assert.deepEqual(keySpoilers("A minor key sounds darker because its third is lowered.", e), []);
+  assert.deepEqual(keySpoilers("A major chord can still fit a minor tune.", e), []);
+  assert.deepEqual(keySpoilers("A minor third above the tonic gives it color.", d), []);
 });
 
 /** @param {string[]} deltas */

@@ -103,9 +103,11 @@ const CHORD_SUFFIX = "(?:m|maj|min|dim|aug|sus|add|°|ø|\\+)?\\d*";
 /**
  * The words in a message that give away a hidden key: the tonic as a note or
  * chord name (word-bounded, with its accidental, so in D the "D" of "Do" or the
- * "D#" of a different note doesn't count), and any letter paired with "major"
- * or "minor", which names a key outright. A bare "A" before a lowercase word
- * reads as the article, not the note.
+ * "D#" of a different note doesn't count), and the tonic paired with "major"
+ * or "minor", which names the key outright. A bare "A" before a lowercase word
+ * reads as the article, not the note, except in "A major" or "A minor" when
+ * the tonic is A. Another letter with a mode ("A minor third" in D) is not
+ * this key, so it passes.
  * @param {string} message
  * @param {{ tonic: string }} key
  * @returns {string[]}
@@ -121,8 +123,12 @@ export function keySpoilers(message, key) {
   const found = [...message.matchAll(tonic)]
     .filter((m) => !(m[0] === "A" && /^ [a-z]/.test(message.slice(m.index + 1))))
     .map((m) => m[0]);
-  const keyPhrase = /(?<![A-Za-z0-9])[A-G](?:#|♯|b|♭|[ -]sharp|[ -]flat)? (?:major|minor)\b/gi;
-  for (const m of message.matchAll(keyPhrase)) if (/^[A-G]/.test(m[0])) found.push(m[0]);
+  const keyPhrase = new RegExp(
+    `(?<![A-Za-z0-9#♯♭])${letter}${ACCIDENTAL_WORDS[accidental]}${natural} (?:major|minor)\\b`,
+    "gi",
+  );
+  // Case-insensitive for "Major", but the letter itself must be a capital.
+  for (const m of message.matchAll(keyPhrase)) if (m[0][0] === letter) found.push(m[0]);
   return [...new Set(found)];
 }
 
