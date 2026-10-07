@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from helpers import settings_with
+from helpers import LESSON, settings_with
 
 from hearhear import app as app_module
 from hearhear import tutor
@@ -26,20 +26,6 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setattr(app_module, "streams", asyncio.Semaphore(settings.max_concurrent))
     app_module.limiter.reset()
     return TestClient(app_module.app)
-
-
-LESSON = {
-    "name": "ode-ending",
-    "events": [
-        {"event": "message", "data": {"delta": "Recorded: it lands."}, "delayMs": 0},
-        {
-            "event": "suggestions",
-            "data": {"hint_level": "answer", "suggestions": [], "dropped": 0},
-            "delayMs": 0,
-        },
-        {"event": "done", "data": {}, "delayMs": 0},
-    ],
-}
 
 
 @pytest.fixture

@@ -58,3 +58,18 @@ def events(body: str) -> list[tuple[str, dict[str, Any]]]:
         event_line, data_line = block.split("\n")
         parsed.append((event_line.removeprefix("event: "), json.loads(data_line[6:])))
     return parsed
+
+
+# A recorded lesson's shape (content/lessons/README.md), for the replay tests.
+LESSON = {
+    "name": "ode-ending",
+    "events": [
+        {"event": "message", "data": {"delta": "Recorded: it lands."}, "delayMs": 0},
+        {
+            "event": "suggestions",
+            "data": {"hint_level": "answer", "suggestions": [], "dropped": 0},
+            "delayMs": 0,
+        },
+        {"event": "done", "data": {}, "delayMs": 0},
+    ],
+}

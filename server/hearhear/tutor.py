@@ -26,6 +26,9 @@ LESSONS_DIR = REPO_ROOT / "content" / "lessons" / "recorded"
 LESSON_PREFIX = "lesson:"
 # `served_by` for a recorded lesson: real tutor output, played back.
 LESSON_SERVED_BY = "recorded"
+# The longest pause a replay makes between events, whatever a file says, so a
+# recorded lesson can't hold a connection open for long.
+MAX_REPLAY_DELAY_MS = 1500
 _LESSON_ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
@@ -144,7 +147,7 @@ async def replay(
 ) -> AsyncIterator[str]:
     """Replay a fixture's or a recorded lesson's events with their recorded pacing."""
     for step in fixture["events"]:
-        await asyncio.sleep(step["delayMs"] / 1000)
+        await asyncio.sleep(min(step["delayMs"], MAX_REPLAY_DELAY_MS) / 1000)
         data = step["data"]
         if step["event"] == "suggestions":
             data, clamp = suggestions_data(
