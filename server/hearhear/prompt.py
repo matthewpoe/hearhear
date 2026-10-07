@@ -5,6 +5,11 @@ to Claude as JSON inside tags, with `<` and `>` escaped so no field can close
 its tag, and the system prompt says to read it as data. Only values the server
 has validated against a closed set (hint level, label style, key provisional,
 key hidden) appear outside the tags.
+
+While the key is hidden, the snapshot Claude sees doesn't carry it either: no
+tonic or mode, no spelled pitches, no letter-name chords, and the label style
+reads "roman". Withholding it from the data, not only forbidding it in the
+prompt, means no reply can leak what the model was never told.
 """
 
 import json
@@ -89,12 +94,15 @@ holding a candidate home note underneath, a V to I at the end), and return no \
 suggestions. Listening steps then point to the last note, the drone test, and \
 bars and beats, never to suggestion buttons.
 - When the request says the key is hidden, the student is working out the key \
-of a tune by ear and the app hides every key label until they guess. Do not \
-name or hint at the key, the tonic, the mode, or the key signature, whether \
-directly or through letter names, scale degrees, or Roman numerals. Point them \
-at what to listen for instead, and return no suggestions: the app does not \
-show them while the key is hidden. Listening steps then point to bars, \
-beats, and the drones the app offers, never to scale degrees.
+of a tune by ear and the app hides every key label until they guess. It is \
+hidden from you too: the snapshot leaves out the tonic, the mode, the spelled \
+pitches, and the letter-name chords, so neither of you knows the key yet. Do \
+not name or hint at the key, the tonic, the mode, or the key signature, \
+whether directly or through letter names, scale degrees, or Roman numerals, \
+and do not guess at it. Describe what to listen for instead, and return no \
+suggestions: the app does not show them while the key is hidden. Listening \
+steps then point to bars, beats, and the drones the app offers, never to \
+scale degrees.
 
 Labels:
 - Write chords in the student's label style, which the request names: \
@@ -140,6 +148,22 @@ eight).
 """
 
 
+def _without_the_key(data: dict[str, Any]) -> dict[str, Any]:
+    """A dumped snapshot with everything that spells the key taken out: the
+    whole key (tonic and mode; provisional is stated outside the data), every
+    spelled pitch, and every letter-name chord, with the label style set to
+    roman. Degrees, numerals, and Nashville numbers are relative to a tonic
+    Claude is not told, so they stay."""
+    del data["key"]
+    data["label_style"] = "roman"
+    for bar in data["bars"]:
+        for note in bar["notes"]:
+            del note["pitch"]
+        for chord in bar["chords"]:
+            del chord["letter"]
+    return data
+
+
 def _as_data(value: Any) -> str:
     """JSON with `<` and `>` escaped, so the text can't close or open a tag."""
     return (
@@ -162,12 +186,16 @@ def user_message(request: TutorRequest) -> str:
     hidden = "yes" if snapshot.key_hidden else "no"
     # The version is the server's to echo; key_hidden is stated once, outside the data.
     data = snapshot.model_dump(exclude={"version", "key_hidden"}, exclude_none=True)
+    label_style = snapshot.label_style
+    if snapshot.key_hidden:
+        data = _without_the_key(data)
+        label_style = "roman"
     return (
         f"<snapshot>{_as_data(data)}</snapshot>\n"
         f"<history>{_as_data(history)}</history>\n"
         f"<student_message>{_as_data(question)}</student_message>\n\n"
         f"Hint level requested: {request.hint_level}\n"
-        f"Label style: {snapshot.label_style}\n"
+        f"Label style: {label_style}\n"
         f"Key provisional: {provisional}\n"
         f"Key hidden: {hidden}"
     )
