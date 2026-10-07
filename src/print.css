@@ -18,7 +18,7 @@
   body header,
   body footer,
   main > :not(#staff),
-  #staff .toolbar {
+  #staff > .header {
     display: none !important;
   }
 

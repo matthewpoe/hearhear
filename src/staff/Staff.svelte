@@ -12,6 +12,10 @@
   import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
+  import History from "../toolbar/History.svelte";
+  import LabelControls from "../toolbar/LabelControls.svelte";
+  import VoiceLeading from "../toolbar/VoiceLeading.svelte";
+  import Toolbar from "../toolbar/Toolbar.svelte";
   import "../print.css";
 
   /** @typedef {typeof import("abcjs").default} Abcjs */
@@ -83,6 +87,10 @@
         staffwidth: 760,
         paddingleft: 0,
         paddingright: 0,
+        paddingtop: 0,
+        // A small title: the masthead already names the song, and the music
+        // needs the height (it prints the same way).
+        format: { titlefont: "Jost 13" },
       });
       const { notes, chords } = mapDrawnNotes(tune, pieces);
       registerNoteElements(notes);
@@ -193,11 +201,20 @@
 </script>
 
 <section id="staff" class="staff" aria-label="Staff">
-  <div class="toolbar">
+  <!-- One compact row of controls over the music; it wraps on phones. -->
+  <div class="header">
     <Transport />
+    {#if $song.notes.length > 0}
+      <History />
+      <LabelControls />
+      <VoiceLeading />
+    {/if}
     <button type="button" class="print" onclick={() => window.print()} disabled={!abcjs}>
       Print lead sheet
     </button>
+    {#if $song.notes.length > 0}
+      <Toolbar />
+    {/if}
   </div>
   {#if loadError}
     <p class="error" role="alert">
@@ -212,29 +229,33 @@
       The staff couldn't draw this song ({drawError}). Undo the last change to get it back.
     </p>
   {/if}
-  <div class="notation mode-{mode}" bind:this={host}></div>
+  <!-- abcjs sizes the host with a percentage padding, which resolves against
+       its parent's width, so the width cap sits on this wrapper. -->
+  <div class="frame" class:untitled={$song.notes.length === 0}>
+    <div class="notation mode-{mode}" bind:this={host}></div>
+  </div>
 </section>
 
 <style>
   .staff {
-    padding: var(--space-4);
+    padding: var(--space-2) var(--space-3);
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
     background: var(--surface);
   }
-  .toolbar {
+  .header {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-2);
   }
   .print {
-    padding: var(--space-1) var(--space-3);
+    padding: var(--space-1) var(--space-2);
     border: 1px solid var(--rule);
     border-radius: var(--radius-lg);
     background: var(--surface);
     color: var(--ink);
+    font-size: var(--text-sm);
     cursor: pointer;
   }
   .print:disabled {
@@ -261,8 +282,18 @@
   }
 
   /* abcjs draws with currentColor, so the staff is --ink in both themes. */
+  /* Capped so the drawing doesn't scale up past two systems' worth of
+     height on wide screens: the step panel and keyboard share the fold. */
+  .frame {
+    max-width: 56rem;
+    margin-inline: auto;
+  }
   .notation {
     color: var(--ink);
+  }
+  /* A blank staff waiting for a tune has no name to show yet. */
+  .untitled :global(.abcjs-title) {
+    visibility: hidden;
   }
   .notation :global(text) {
     font-family: var(--font);
