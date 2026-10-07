@@ -229,7 +229,7 @@ async def tutor(
     if settings.tutor_mode == "fixture":
         log_event("tutor_fixture", request_id=request_id, hint_level=body.hint_level)
         return StreamingResponse(
-            replay_fixture(body, settings.fixtures_dir, x_tutor_fixture),
+            replay_fixture(body, settings.fixtures_dir, request_id, x_tutor_fixture),
             media_type="text/event-stream",
             headers=headers,
         )
