@@ -21,7 +21,7 @@ test("St. James shows its words under the staff, and the Words switch hides them
   page.on("pageerror", (error) => problems.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Leave tour" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
 
   const staff = page.locator("#staff");
   const words = staff.getByRole("switch", { name: "Words" });

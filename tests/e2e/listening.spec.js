@@ -81,7 +81,7 @@ test("play the whole tune or bar N, and the drone on home", async ({ page }) => 
   page.on("pageerror", (error) => problems.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Leave tour" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
 
   const transport = page.locator("#staff [aria-label='Playback']");

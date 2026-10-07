@@ -93,10 +93,12 @@ describe("every walkthrough step waits for one action", () => {
 });
 
 describe("the strip offers only the way out", () => {
-  it("GuidedPath.svelte's buttons are Leave tour and Finish, nothing else", async () => {
+  it("GuidedPath.svelte's buttons are Leave lesson and Finish, nothing else", async () => {
     const markup = (await source("guided/GuidedPath.svelte")).split("</script>").at(-1) ?? "";
-    const labels = [...markup.matchAll(/<button[^>]*>([^<]*)<\/button>/g)].map(([, t]) => t.trim());
-    assert.deepEqual(labels.sort(), ["Finish", "Leave tour"]);
+    const labels = [...markup.matchAll(/<button[^>]*>([^<]*)<\/button\s*>/g)].map(([, t]) =>
+      t.trim(),
+    );
+    assert.deepEqual(labels.sort(), ["Finish", "Leave lesson"]);
     assert.doesNotMatch(markup, /["'>]\s*(Next|Got it|Back)\s*["'<]/);
   });
 });

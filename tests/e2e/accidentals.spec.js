@@ -31,7 +31,7 @@ test("right-click a note to change its accidental, by mouse and keyboard", async
   page.on("pageerror", (error) => problems.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Leave tour" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
   // Home is D, so G4 is a plain G and G sharp is written as one.
   await page

@@ -5,10 +5,9 @@
   // the dock's measured height (--dock-height, the page's scroll padding)
   // includes it. It teaches the real interface: the strip shows the step's
   // one-line instruction (its action in the accent color), the step count,
-  // the Draft badge, and Leave tour (Finish on the last step), and never does
+  // the Draft badge, and Leave lesson (Finish on the last step), and never does
   // a step for the viewer. Instead it spotlights the real control the step
-  // asks for (spotlight.js, shared with the beginner tips) and scrolls it into
-  // view. There is no Next or Back: a step advances only when the app shows
+  // asks for (spotlight.js) and scrolls it into view. There is no Next or Back: a step advances only when the app shows
   // it done, and one already done when the tour reaches it is skipped. The
   // viewer can leave at any time and resume later from the masthead
   // (GuidedEntry.svelte). It starts on its own on a first visit (tour.js),
@@ -82,7 +81,17 @@
     facts,
   });
   const met = $derived(conditionMet(step.done, appState));
-  const hint = $derived(hintFor(step, appState));
+  /**
+   * Another song is on the staff mid-walk (the song select, or a recording):
+   * every step after the first is about the tour's tune, so the strip asks
+   * for it back and spotlights the song select rather than a silent step.
+   */
+  const offSong = $derived(index > 0 && $song.id !== path.song);
+  const hint = $derived(
+    offSong
+      ? `[[Load ${tourTune?.title ?? "the tune"}]] again to keep going.`
+      : hintFor(step, appState),
+  );
   const last = $derived(index === steps.length - 1);
 
   // Doing a step's action is the only way forward: the step advances once
@@ -204,7 +213,8 @@
    * @returns {{ el: Element | null, more?: Element[], noteId?: string }}
    */
   function targetOf(at) {
-    const target = stepTarget(steps[at], song.get());
+    const offTune = at > 0 && song.get().id !== path.song;
+    const target = offTune ? { songId: path.song } : stepTarget(steps[at], song.get());
     if (!target) return { el: null };
     if (target.codes) {
       // The piano's keys run from LOWEST up, one button each.
@@ -325,36 +335,41 @@
   }
 </script>
 
-{#if $tour.running}
-  <section class="strip" aria-label="Guided tour" bind:this={strip}>
-    <div class="row">
-      <span class="count"
-        >{step.sendOff
-          ? "Guided tour · done"
-          : `Guided tour · step ${index + 1}/${steps.filter((s) => !s.sendOff).length}`}</span
-      >
-      <span class="badge" title={path.status}>Draft</span>
-      <span class="visually-hidden">({path.status})</span>
-      <p class="line" aria-live="polite">
-        <strong id="guided-step-title" tabindex="-1">{step.title}:</strong>
-        {#each actionParts(step.line) as part, i (i)}{#if part.act}<strong class="act"
-              >{part.text}</strong
-            >{:else}{part.text}{/if}{/each}
-        {#if met}<span class="done">Done.</span>{/if}
-      </p>
-      {#if last}
-        <button type="button" class={met ? "primary" : "link"} onclick={finishTour}>Finish</button>
-      {:else}
-        <button type="button" class="link" onclick={leaveTour}>Leave tour</button>
-      {/if}
-    </div>
-    {#if hint}<p class="hint">
-        {#each actionParts(hint) as part, i (i)}{#if part.act}<strong class="act"
-              >{part.text}</strong
-            >{:else}{part.text}{/if}{/each}
-      </p>{/if}
-  </section>
-{/if}
+<!-- Always on the page, so the walkthrough starting on its own, each new
+     step, and each hint are announced. -->
+<div aria-live="polite">
+  {#if $tour.running}
+    <section class="strip" aria-label="Guided lesson" bind:this={strip}>
+      <div class="row">
+        <span class="count"
+          >{step.sendOff
+            ? "Guided lesson · done"
+            : `Guided lesson · step ${index + 1}/${steps.filter((s) => !s.sendOff).length}`}</span
+        >
+        <span class="badge" title={path.status}>Draft</span>
+        <span class="visually-hidden">({path.status})</span>
+        <p class="line">
+          <strong id="guided-step-title" tabindex="-1">{step.title}:</strong>
+          {#each actionParts(step.line) as part, i (i)}{#if part.act}<strong class="act"
+                >{part.text}</strong
+              >{:else}{part.text}{/if}{/each}
+          {#if met}<span class="done">Done.</span>{/if}
+        </p>
+        {#if last}
+          <button type="button" class={met ? "primary" : "link"} onclick={finishTour}>Finish</button
+          >
+        {:else}
+          <button type="button" class="link" onclick={leaveTour}>Leave lesson</button>
+        {/if}
+      </div>
+      {#if hint}<p class="hint">
+          {#each actionParts(hint) as part, i (i)}{#if part.act}<strong class="act"
+                >{part.text}</strong
+              >{:else}{part.text}{/if}{/each}
+        </p>{/if}
+    </section>
+  {/if}
+</div>
 
 <style>
   .strip {
@@ -464,6 +479,7 @@
     .line {
       flex-basis: 100%;
       order: 1;
+      white-space: normal;
     }
   }
 </style>

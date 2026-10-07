@@ -61,7 +61,7 @@ const ALWAYS = ["#tutor > h2", "#tutor .demo", "#tutor .ask", "#chords [role='di
 function stripProblems(page, id) {
   const selectors = [...(TARGETS[/** @type {keyof typeof TARGETS} */ (id)] ?? []), ...ALWAYS];
   return page.evaluate((selectors) => {
-    const strip = document.querySelector("section[aria-label='Guided tour']");
+    const strip = document.querySelector("section[aria-label='Guided lesson']");
     if (!strip) return ["no strip"];
     const problems = [];
     const inside = () => {
@@ -148,7 +148,7 @@ for (const viewport of [
     // A first visit: the walkthrough starts on its own in the dock, with no
     // choice screen and without taking focus.
     await page.goto("/");
-    const tour = page.getByRole("region", { name: "Guided tour" });
+    const tour = page.getByRole("region", { name: "Guided lesson" });
     await expect(tour).toBeVisible();
     const entry = page.getByRole("button", { name: "Guided lesson" });
     await expect(entry).toHaveCount(0);
@@ -156,8 +156,8 @@ for (const viewport of [
     await expect(page.getByRole("button", { name: "Beginner tips" })).toHaveCount(0);
     const heading = page.locator("#guided-step-title");
     await expect(heading).not.toBeFocused();
-    const count = tour.getByText(/^Guided tour · step \d+\/\d+$/);
-    await expect(count).toHaveText(`Guided tour · step 1/${steps.length - 1}`);
+    const count = tour.getByText(/^Guided lesson · step \d+\/\d+$/);
+    await expect(count).toHaveText(`Guided lesson · step 1/${steps.length - 1}`);
     await expect(tour.getByText("Draft", { exact: true })).toBeVisible();
     // The Draft badge carries the placeholder note, for screen readers too.
     await expect(tour.getByText(/placeholder: pending Matthew's ear check/i)).toBeAttached();
@@ -185,9 +185,9 @@ for (const viewport of [
     const expectStep = async (id, target) => {
       const at = steps.findIndex((/** @type {{ id: string }} */ s) => s.id === id);
       await expect(heading).toHaveText(`${titleOf(id)}:`);
-      await expect(count).toHaveText(`Guided tour · step ${at + 1}/${steps.length - 1}`);
+      await expect(count).toHaveText(`Guided lesson · step ${at + 1}/${steps.length - 1}`);
       // No button does the step: only the way out.
-      await expect(tour.getByRole("button")).toHaveText(["Leave tour"]);
+      await expect(tour.getByRole("button")).toHaveText(["Leave lesson"]);
       await expect.poll(() => spotlit(page, target), `${id} spotlight`).toBe(true);
       await expect.poll(() => stripProblems(page, id)).toEqual([]);
     };
@@ -217,7 +217,7 @@ for (const viewport of [
 
     // Leave mid-way: the spotlight goes, and "Guided lesson" resumes where it
     // was left, with focus on the step.
-    await tour.getByRole("button", { name: "Leave tour" }).click();
+    await tour.getByRole("button", { name: "Leave lesson" }).click();
     await expect(heading).toHaveCount(0);
     await expect(page.locator("[data-spotlight]")).toHaveCount(0);
     await expect(entry).toBeFocused();
@@ -287,7 +287,7 @@ for (const viewport of [
     // The send-off: not a step, just the way on. Finish ends it, and so does
     // pressing Record.
     await expect(heading).toHaveText(`${titleOf("your-turn")}:`);
-    await expect(tour.getByText("Guided tour · done")).toBeVisible();
+    await expect(tour.getByText("Guided lesson · done")).toBeVisible();
     await expect(tour.getByRole("button")).toHaveText(["Finish"]);
     await expect.poll(() => spotlit(page, { selector: "#record-button" })).toBe(true);
     await page.screenshot({ path: test.info().outputPath(`send-off-${viewport.width}.png`) });
@@ -302,7 +302,7 @@ for (const viewport of [
     await expect(entry).toBeVisible();
     await expect(page.locator("[data-spotlight], #staff .spotlight")).toHaveCount(0);
     await page.reload();
-    await expect(page.getByRole("region", { name: "Guided tour" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Guided lesson" })).toHaveCount(0);
     await expect(entry).toBeVisible();
 
     // Started again with the tune open, a fresh run reloads it bare (no key,
@@ -310,8 +310,52 @@ for (const viewport of [
     await entry.click();
     await expectStep("listen", { selector: "#staff [aria-label='Playback'] button" });
     await expect(page.getByRole("list", { name: "Placed chords" })).toHaveCount(0);
-    await tour.getByRole("button", { name: "Leave tour" }).click();
+    await tour.getByRole("button", { name: "Leave lesson" }).click();
 
     expect(problems).toEqual([]);
   });
 }
+
+test("at phone width the step's whole line shows, wrapped, not cut off (390x844)", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const tour = page.getByRole("region", { name: "Guided lesson" });
+  await expect(tour).toBeVisible();
+  const line = tour.locator(".line");
+  const whole = () => line.evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+  expect(await whole(), "step line truncated").toBe(true);
+  await page
+    .locator("#song-chooser")
+    .getByRole("button", { name: /Ode to Joy/ })
+    .click();
+  await expect(page.locator("#guided-step-title")).toHaveText(`${titleOf("listen")}:`);
+  expect(await whole(), "step line truncated").toBe(true);
+});
+
+test("another song mid-walk asks for the tour's tune back, and spotlights the song select", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const tour = page.getByRole("region", { name: "Guided lesson" });
+  await page
+    .locator("#song-chooser")
+    .getByRole("button", { name: /Ode to Joy/ })
+    .click();
+  const heading = page.locator("#guided-step-title");
+  await expect(heading).toHaveText(`${titleOf("listen")}:`);
+
+  await page.locator("#song-select").selectOption({ label: "St. James Infirmary" });
+  await expect(tour.locator(".hint")).toHaveText("Load Ode to Joy again to keep going.");
+  await expect(tour.locator(".hint .act")).toHaveText("Load Ode to Joy");
+  await expect.poll(() => spotlit(page, { selector: "#song-select" })).toBe(true);
+  await expect(heading).toHaveText(`${titleOf("listen")}:`);
+
+  await page.locator("#song-select").selectOption({ label: "Ode to Joy" });
+  await expect(tour.locator(".hint")).toHaveCount(0);
+  await expect
+    .poll(() => spotlit(page, { selector: "#staff [aria-label='Playback'] button" }))
+    .toBe(true);
+});

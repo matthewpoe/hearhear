@@ -12,7 +12,7 @@ for (const [width, height] of [
   test(`the tool row is one line at ${width}x${height}, and the staff leads`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await page.goto("/");
-    await page.getByRole("button", { name: "Leave tour" }).click();
+    await page.getByRole("button", { name: "Leave lesson" }).click();
     await page.getByRole("button", { name: /Ode to Joy/ }).click();
     await expect(page.locator("#staff svg")).toBeVisible();
     await expect(page.locator("#staff").getByText("Loading the piano…")).toHaveCount(0, {
@@ -115,7 +115,7 @@ test("a recorded tune asks Rhythm to confirm its guess once the key is chosen", 
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Leave tour" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
 
   // Record five notes a beat apart, stop, and name the tune.
   await page.getByRole("button", { name: /^Record a tune/ }).click();

@@ -38,7 +38,7 @@ Matthew: the onboarding "needs to be way more actionable and way more concise ..
 - **2026-10-07 — It starts on its own on a first visit, without taking focus, and only once per tab.** After someone leaves or finishes it, it stays put for the session (sessionStorage `hearhear.guided.dismissed`), and a single "Guided lesson" button in the masthead brings it back, with focus on the step. The landing's "Show me how" invitation is gone. The other e2e specs leave the walkthrough where they used to turn tips off. _Rejected:_ a choice screen ("Walk me through it" or "I'll explore"), which Matthew dropped; localStorage (would never auto-start again on a new visit).
 - **2026-10-07 — A fresh run with the tune already open reloads it bare.** No button loads the tune any more, and the song select can't re-pick the song already open. So a fresh run that finds Ode to Joy open reloads it bare (no key, no chords), which finishes step 1, and asks for Play again. A saved copy that the song list brings back mid-run is reloaded bare too.
 - **2026-10-07 — Eight steps and a send-off, built around the North Star (Matthew). Supersedes the twelve-step entry above.** Matthew delegated the wording and asked for a walkthrough that "focuses mercilessly" on why the product exists. Cut: chord keys A–J, the generic "1 is home", the bar-8 lean, and the separate vi step. vi and I are now one step: it finishes on I, and the dropdown's audition covers the comparison. New conditions:
-  - `degrees`: the last notes played, as scale degrees. "Press 3 3 4 5" finishes only on that sequence, so any key isn't enough, and a tap on the on-screen piano counts too.
+  - `degrees`: the last notes played, as scale degrees. "Play 3 3 4 5" finishes only on that sequence, so any key isn't enough, and a tap on the on-screen piano counts too.
   - The `transposed` fact: the tour's tune sounds at another pitch.
   - `sendOff` on the closing line. "Now try your own: press Record." is not a step: Finish ends it, and pressing Record ends it too without moving focus.
 
@@ -55,3 +55,11 @@ Matthew: the onboarding "needs to be way more actionable and way more concise ..
   8. **Another key:** new sound, same numbers. It proves the relationships, not the pitches, were the thing.
 
   Then the send-off: the same tools on a tune of your own.
+
+- **2026-10-07 — Merge-gate fixes.**
+  - At phone width the step's line wraps instead of being cut off.
+  - If another song is open mid-walk (any step after the first), the strip says "Load Ode to Joy again to keep going." and spotlights the song select. Before, the step went silent.
+  - The live region is a wrapper that is always on the page. That way the auto-start, each step and each hint are announced, and the line no longer has a live region of its own nested inside.
+  - "Guided lesson" is the name everywhere: the masthead button, the strip's region and count, and "Leave lesson".
+  - The numbers line is "Play 3 3 4 5 on the number row or keys: the tune, counted from home." The gate's suggested wording ran to 18 words, so it was trimmed to 16.
+  - The PRD and the rationale notes keep their history, with a note that the callouts were replaced. The tutor's "while beginner callouts are on" line was already dead: no beginner flag is sent, and the prompt always glosses terms. The note says so, and the prompt is unchanged.

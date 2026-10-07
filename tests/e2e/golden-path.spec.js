@@ -45,7 +45,7 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(page.getByRole("heading", { name: "Hear Hear", level: 1 })).toBeVisible();
   await axe(page);
   // The core path, without the walkthrough; it has its own spec.
-  await page.getByRole("button", { name: "Leave tour" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
 
   // 1. Load the demo. Its key is hidden until the user commits a guess.
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
