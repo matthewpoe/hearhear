@@ -15,8 +15,8 @@ from hearhear.log import log_event
 from hearhear.models import HintLevel, TutorRequest
 
 FIXTURE_NAMES = frozenset({"nudge", "comparison", "answer", "malformed", "over-budget"})
-# `served_by` in fixture mode. No model served the reply, so the eval harness,
-# which counts only replies served by TUTOR_MODEL, never counts a fixture.
+# `served_by` in fixture mode: no model served the reply. The eval harness
+# runs against live mode, so it never sees one.
 FIXTURE_SERVED_BY = "fixture"
 
 
@@ -77,8 +77,12 @@ def suggestions_data(
     suggestions: list[dict[str, Any]],
     dropped: int,
     served_by: str,
+    fallback: bool,
 ) -> tuple[dict[str, Any], Clamp]:
     """The `suggestions` event's data, and what the server held back from it.
+
+    `fallback` is true when the refusal fallback served any of the reply; the
+    eval harness excludes those replies on this flag, not by comparing ids.
 
     Withholding by default is enforced here, not only by the system prompt:
     every suggestion is withheld, and counted in `dropped`, when the request
@@ -93,6 +97,7 @@ def suggestions_data(
         "snapshot_version": request.snapshot.version,
         "dropped": dropped + clamp.withheld,
         "served_by": served_by,
+        "fallback": fallback,
     }
     return data, clamp
 
@@ -116,6 +121,7 @@ async def replay_fixture(
                 suggestions=data["suggestions"],
                 dropped=data["dropped"],
                 served_by=FIXTURE_SERVED_BY,
+                fallback=False,
             )
             if clamp.applied:
                 log_event("tutor_clamped", request_id=request_id, **clamp.log_fields())

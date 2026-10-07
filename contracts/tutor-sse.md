@@ -4,9 +4,19 @@
 
 Claude's reply is constrained by structured outputs (`output_config.format` set to `tutor-reply.schema.json`), so the stream is JSON text. The proxy parses the accumulating text with `pydantic_core.from_json(..., allow_partial="trailing-strings")`, which includes the unfinished string at the end, so `message` text streams as Claude writes it rather than one whole value at a time. It forwards new `message` text as deltas and validates the full reply with Pydantic at the end. Pydantic is needed because the API does not enforce numeric or length bounds.
 
-Live requests opt into Anthropic's server-side refusal fallback (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`). If the requested model declines, a fallback model finishes the reply inside the same stream: message text already sent stays, and the fallback model continues from it. The `suggestions` event's `served_by` says which model served the reply.
+Live requests opt into Anthropic's server-side refusal fallback (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`). If the requested model declines, a fallback model finishes the reply inside the same stream: message text already sent stays, and the fallback model continues from it. The `suggestions` event's `served_by` says which model served the reply, and `fallback` says whether a fallback model wrote any of it.
 
-Every response to `POST /api/tutor` that passes validation and the rate limit carries an `X-Request-Id` header, a 32-character hex id that also appears in the server's logs for that request. The 503 below carries it too; 413, 422, and 429 are refused before a request id exists.
+## Access code (live mode only)
+
+In live mode (`TUTOR_MODE=live`), every request must carry the passphrase in an `X-Tutor-Access` request header. It is a header, never a body field, so it stays out of `tutor-request.schema.json` and out of the snapshot Claude sees. The client percent-encodes the value (header values must be Latin-1, and a passphrase may not be); the server decodes it before comparing. The server reads the expected code from `TUTOR_ACCESS_CODE` and refuses to start in live mode when that is unset or has no letters or digits. Both sides are compared after casefolding and removing everything but letters and digits, so `Treble Clef 42`, `treble-clef-42`, and `TREBLECLEF42` all match. The comparison is constant-time, and neither the sent nor the expected code ever appears in a log line, error message, or response.
+
+A missing code (or one with no letters or digits) and a wrong code both return `401 access_required`. Wrong codes, but not missing ones, count toward a per-IP lockout: after 5 wrong codes in 10 minutes, every live request from that IP returns `429 access_locked`, even with the right code, until the oldest of those guesses is 10 minutes old. That limit is separate from the tutor's `rate_limited`, which counts every request.
+
+**Fixture mode has no gate.** It ignores `X-Tutor-Access`, so CI, local development, and the recorded demo need no code.
+
+## Errors before the stream
+
+Every response to `POST /api/tutor` that passes validation and the rate limit carries an `X-Request-Id` header, a 32-character hex id that also appears in the server's logs for that request. The 401, `access_locked` 429, and 503 below carry it too; 413, 422, and `rate_limited` 429 are refused before a request id exists.
 
 Non-stream failures return JSON with no stream at all: the client gets this status and body instead of `text/event-stream`. Each one carries `{ "error": { "code", "message" } }`:
 
@@ -15,22 +25,24 @@ Non-stream failures return JSON with no stream at all: the client gets this stat
 | 413    | `too_large`       | Body over 128 KB                                                                                                          | Stream E    |
 | 422    | `invalid_request` | Fails `TutorRequest` validation                                                                                           | Phase 0     |
 | 429    | `rate_limited`    | Per-IP limit. Carries `Retry-After`, in whole seconds until the limit resets.                                             | Stream E    |
+| 401    | `access_required` | Live mode only: `X-Tutor-Access` is missing or wrong. The panel asks for the code and offers the recorded lessons.        | Stream E2   |
+| 429    | `access_locked`   | Live mode only: this IP sent 5 wrong codes in 10 minutes. Carries `Retry-After`, in whole seconds until it may try again. | Stream E2   |
 | 503    | `over_budget`     | Daily token budget spent, checked before Claude is called. The client switches to cached lessons. Carries `X-Request-Id`. | Stream E    |
 
-Checks run in that order: body cap, validation, rate limit, budget. A request turned away at any of them never reaches Claude.
+Checks run in that order: body cap, validation, rate limit, then in live mode the access lockout, the access code, and the budget. A request turned away at any of them never reaches Claude, and an unauthenticated client never learns whether the budget is spent.
 
 ## Events, in order
 
-| Event         | Data                                                                                                          | Count                                                                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `message`     | `{ "delta": string }`                                                                                         | 0..n. Text appended to the tutor's message as Claude streams it.                                                                                        |
-| `suggestions` | `{ "hint_level", "suggestions": Suggestion[], "snapshot_version": int, "dropped": int, "served_by": string }` | Exactly 1 on success. Holds the server-validated suggestions; `dropped` counts the ones that failed validation, plus any the hint-level clamp withheld. |
-| `error`       | `{ "code": "upstream" \| "invalid_output" \| "unanswerable" \| "over_budget", "message": string }`            | 0..1. Replaces `suggestions` when the stream fails midway. Any message text already shown stays.                                                        |
-| `done`        | `{}`                                                                                                          | Exactly 1, always last.                                                                                                                                 |
+| Event         | Data                                                                                                                               | Count                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `message`     | `{ "delta": string }`                                                                                                              | 0..n. Text appended to the tutor's message as Claude streams it.                                                                                        |
+| `suggestions` | `{ "hint_level", "suggestions": Suggestion[], "snapshot_version": int, "dropped": int, "served_by": string, "fallback": boolean }` | Exactly 1 on success. Holds the server-validated suggestions; `dropped` counts the ones that failed validation, plus any the hint-level clamp withheld. |
+| `error`       | `{ "code": "upstream" \| "invalid_output" \| "unanswerable" \| "over_budget", "message": string }`                                 | 0..1. Replaces `suggestions` when the stream fails midway. Any message text already shown stays.                                                        |
+| `done`        | `{}`                                                                                                                               | Exactly 1, always last.                                                                                                                                 |
 
 The `suggestions` event's `hint_level` and `suggestions` match `tutor-reply.schema.json`. `snapshot_version` echoes `request.snapshot.version`; Claude never sees or produces it.
 
-`served_by` is the model that produced the reply, as the API reported it: `TUTOR_MODEL` normally, a fallback model's id when the refusal fallback served it, and `"fixture"` in fixture mode. The eval harness counts only replies whose `served_by` equals `TUTOR_MODEL`, and reports how many it excluded.
+`served_by` is the model that produced the reply, as the API reported it: `TUTOR_MODEL` normally, a fallback model's id when the refusal fallback served it, and `"fixture"` in fixture mode. `fallback` is `true` when the refusal fallback served any of the reply, and always `false` in fixture mode. The eval harness excludes replies with `fallback: true` and reports how many it excluded. It keys on the flag, not on whether `served_by` equals `TUTOR_MODEL`: the flag records what happened, while a string comparison would also exclude a reply the requested model served if the API reported it under a different id (a dated snapshot or an alias).
 
 **Hint-level clamp.** Withholding by default is enforced by the proxy, not only by the system prompt, on both the live and fixture paths:
 

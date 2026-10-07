@@ -1,15 +1,12 @@
 import base64
 import hashlib
 import json
-import os
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from helpers import SNAPSHOT, events
+from helpers import SNAPSHOT, events, import_app
 
 from hearhear import tutor
 
@@ -89,7 +86,9 @@ def test_csp_hash_is_pinned_to_the_locked_abcjs() -> None:
 
 def test_fixture_reports_it_was_served_by_no_model(client: TestClient) -> None:
     response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "hint_level": "comparison"})
-    assert dict(events(response.text))["suggestions"]["served_by"] == "fixture"
+    suggestions = dict(events(response.text))["suggestions"]
+    assert suggestions["served_by"] == "fixture"
+    assert suggestions["fallback"] is False
 
 
 def clamp_logs(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
@@ -190,23 +189,10 @@ def test_a_fixture_at_the_requested_level_is_not_clamped(
     assert logged == [], "nothing held back, so nothing logged"
 
 
-def import_app(**env: str) -> subprocess.CompletedProcess[str]:
-    """Import the app in a fresh interpreter, as uvicorn does at startup."""
-    clean = {k: v for k, v in os.environ.items() if not k.startswith(("ANTHROPIC_", "TUTOR_"))}
-    return subprocess.run(
-        [sys.executable, "-c", "import hearhear.app"],
-        cwd=REPO_ROOT / "server",
-        env={**clean, **env},
-        capture_output=True,
-        text=True,
-        timeout=60,
-        check=False,
-    )
-
-
 @pytest.mark.parametrize("key", [None, "", "   "], ids=["unset", "empty", "blank"])
 def test_live_mode_without_an_api_key_fails_at_startup(key: str | None) -> None:
-    env = {"TUTOR_MODE": "live"} | ({} if key is None else {"ANTHROPIC_API_KEY": key})
+    env = {"TUTOR_MODE": "live", "TUTOR_ACCESS_CODE": "open sesame"}
+    env |= {} if key is None else {"ANTHROPIC_API_KEY": key}
     result = import_app(**env)
     assert result.returncode != 0
     assert "RuntimeError" in result.stderr
@@ -214,7 +200,11 @@ def test_live_mode_without_an_api_key_fails_at_startup(key: str | None) -> None:
 
 
 def test_live_mode_with_an_api_key_starts_without_echoing_it() -> None:
-    result = import_app(TUTOR_MODE="live", ANTHROPIC_API_KEY="sk-ant-test-not-a-real-key")
+    result = import_app(
+        TUTOR_MODE="live",
+        ANTHROPIC_API_KEY="sk-ant-test-not-a-real-key",
+        TUTOR_ACCESS_CODE="open sesame",
+    )
     assert result.returncode == 0, result.stderr
     assert "sk-ant-test" not in result.stdout + result.stderr
 

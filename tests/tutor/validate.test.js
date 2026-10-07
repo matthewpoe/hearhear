@@ -70,6 +70,42 @@ describe("checkSuggestions", () => {
     assert.equal(items[0].noteId, stJames.notes[0].id);
   });
 
+  describe("numeral and letter agree by chord identity, not spelling", () => {
+    it("keeps an enharmonic root and stores the numeral's spelling", () => {
+      const { items, dropped } = checkSuggestions(
+        [variant({ numeral: "bVI", letter: "A#" })],
+        /** @type {any} */ (ode),
+      );
+      assert.equal(dropped, 0);
+      assert.deepEqual(items[0].chord, { root: "Bb", type: "M" });
+    });
+
+    for (const letter of ["C#dim", "C#o", "C#°", "Db°"]) {
+      it(`keeps vii° in D written as ${letter}`, () => {
+        const [item] = checkSuggestions(
+          [variant({ numeral: "vii°", letter })],
+          /** @type {any} */ (ode),
+        ).items;
+        assert.deepEqual(item?.chord, { root: "C#", type: "dim" });
+      });
+    }
+
+    for (const letter of ["Bm", "Bmin"]) {
+      it(`keeps vi in D written as ${letter}`, () => {
+        const [item] = checkSuggestions(
+          [variant({ numeral: "vi", letter })],
+          /** @type {any} */ (ode),
+        ).items;
+        assert.deepEqual(item?.chord, { root: "B", type: "m" });
+      });
+    }
+
+    it("still drops a real mismatch: the right root with the wrong quality", () => {
+      const result = checkSuggestions([variant({ letter: "Am" })], /** @type {any} */ (ode));
+      assert.deepEqual(result, { items: [], dropped: 1 });
+    });
+  });
+
   const BAD = {
     "a bar given as a string": variant({ bar: "4" }),
     "a beat given as a string": variant({ beat: "3" }),
@@ -77,6 +113,7 @@ describe("checkSuggestions", () => {
     "a bar past the end of the song": variant({ bar: 99 }),
     "a numeral and letter that disagree": variant({ letter: "D" }),
     "a numeral that doesn't parse": variant({ numeral: "VIII" }),
+    "a letter that doesn't parse": variant({ letter: "A major" }),
     "an unknown confidence": variant({ confidence: "certain" }),
     "a missing reason": variant({ reason: undefined }),
     "a null entry": null,

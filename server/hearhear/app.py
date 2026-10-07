@@ -20,6 +20,7 @@ from slowapi.errors import RateLimitExceeded
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from hearhear.access import AccessLockout, code_matches, normalize
 from hearhear.budget import TokenBudget
 from hearhear.config import load_settings
 from hearhear.errors import error_response
@@ -31,6 +32,7 @@ from hearhear.tutor import replay_fixture
 
 settings = load_settings()
 budget = TokenBudget(settings.daily_token_budget)
+lockout = AccessLockout()
 limiter = Limiter(key_func=client_ip)
 app = FastAPI(title="Hear Hear", docs_url=None, redoc_url=None, openapi_url=None)
 app.state.limiter = limiter
@@ -164,33 +166,89 @@ def health() -> dict[str, str]:
     return {"status": "ok", "tutor_mode": settings.tutor_mode}
 
 
+ACCESS_MISSING_MESSAGE = (
+    "The live tutor is for invited listeners. Enter the access code to ask a question; "
+    "the recorded lessons are open to everyone."
+)
+ACCESS_WRONG_MESSAGE = (
+    "That access code didn't match. Check it and try again; the recorded lessons still work."
+)
+ACCESS_LOCKED_MESSAGE = (
+    "Too many tries with the wrong access code. Wait a few minutes and try again; "
+    "the recorded lessons still work."
+)
+
+
+def _refuse_without_access(
+    request: Request, given: str | None, headers: dict[str, str]
+) -> JSONResponse | None:
+    """The live-mode passphrase gate: a 429 while this IP is locked out, a 401
+    for a missing or wrong code, or None to let the request through.
+
+    A locked-out IP is refused even with the right code, so a guess made
+    during the lockout learns nothing. Only wrong codes count toward it; a
+    request with no code (or one with no letters or digits) is not a guess.
+    Logs say which check refused, never what was sent.
+    """
+    ip = client_ip(request)
+    request_id = headers["X-Request-Id"]
+    retry_after = lockout.retry_after(ip)
+    if retry_after is not None:
+        log_event("request_rejected", code="access_locked", request_id=request_id)
+        return error_response(
+            429,
+            "access_locked",
+            ACCESS_LOCKED_MESSAGE,
+            {**headers, "Retry-After": str(retry_after)},
+        )
+    if code_matches(given, settings.access_code):
+        return None
+    if given is None or not normalize(given):
+        log_event(
+            "request_rejected", code="access_required", reason="missing", request_id=request_id
+        )
+        return error_response(401, "access_required", ACCESS_MISSING_MESSAGE, headers)
+    lockout.record_wrong(ip)
+    log_event("request_rejected", code="access_required", reason="wrong", request_id=request_id)
+    return error_response(401, "access_required", ACCESS_WRONG_MESSAGE, headers)
+
+
 @app.post("/api/tutor", response_model=None)
 @limiter.limit(_rate_limit)
 async def tutor(
     request: Request,
     body: TutorRequest,
     x_tutor_fixture: Annotated[str | None, Header()] = None,
+    x_tutor_access: Annotated[str | None, Header()] = None,
 ) -> StreamingResponse | JSONResponse:
     """Order of checks: body cap (413, middleware), validation (422), rate
-    limit (429), daily budget (503), then the stream."""
+    limit (429), then in live mode the access gate (429 locked, 401) and the
+    daily budget (503), then the stream. Fixture mode has no gate."""
     request_id = uuid.uuid4().hex
     headers = {"Cache-Control": "no-store", "X-Request-Id": request_id}
     if settings.tutor_mode == "fixture":
         log_event("tutor_fixture", request_id=request_id, hint_level=body.hint_level)
-        stream = replay_fixture(body, settings.fixtures_dir, request_id, x_tutor_fixture)
-    elif budget.exhausted():
+        return StreamingResponse(
+            replay_fixture(body, settings.fixtures_dir, request_id, x_tutor_fixture),
+            media_type="text/event-stream",
+            headers=headers,
+        )
+
+    refused = _refuse_without_access(request, x_tutor_access, headers)
+    if refused is not None:
+        return refused
+    if budget.exhausted():
         log_event("request_rejected", code="over_budget", request_id=request_id)
         message = "The live tutor is out of budget for today; the recorded lessons still work."
         return error_response(503, "over_budget", message, headers)
-    else:
-        # X-Tutor-Fixture is ignored here: live mode never replays fixtures.
-        stream = stream_live(
-            body,
-            client=anthropic_client(),
-            model=settings.tutor_model,
-            budget=budget,
-            request_id=request_id,
-        )
+    # X-Tutor-Fixture is ignored here: live mode never replays fixtures.
+    stream = stream_live(
+        body,
+        client=anthropic_client(),
+        model=settings.tutor_model,
+        budget=budget,
+        request_id=request_id,
+    )
     return StreamingResponse(stream, media_type="text/event-stream", headers=headers)
 
 
