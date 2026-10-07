@@ -77,7 +77,12 @@ const quiet = console.debug;
 beforeEach(() => {
   console.debug = () => {}; // the audio stubs log every note
   song.load({ ...song.get(), key: { tonic: "C", mode: "major", provisional: true } });
-  ui.update({ windowOctave: 0 });
+  ui.update({
+    windowOctave: 0,
+    bottomRow: "notes",
+    selectedNoteId: null,
+    demoAwaitingGuess: false,
+  });
   target = fakeWindow();
   stop = listenToNumberRow(/** @type {any} */ (target));
 });
@@ -202,6 +207,84 @@ describe("liveNotes", () => {
     release(60, "pointer:2");
     assert.deepEqual(held(), [60]);
     up("Digit1");
+    assert.deepEqual(held(), []);
+  });
+});
+
+describe("chord row", () => {
+  const NOTE = { id: "n1", midi: 64, start: 0, dur: 12 };
+
+  /** @param {boolean} provisional */
+  function loadSong(provisional) {
+    song.load({
+      ...song.get(),
+      key: { tonic: "C", mode: "major", provisional },
+      notes: [NOTE],
+      chords: [],
+    });
+  }
+
+  beforeEach(() => ui.update({ bottomRow: "chords" }));
+
+  it("plays the chord on each degree, held while the key is held", () => {
+    loadSong(true);
+    down("KeyG");
+    assert.deepEqual(held(), [43, 47, 50]); // G B D, all under home (C4)
+    up("KeyG");
+    assert.deepEqual(held(), []);
+  });
+
+  it("the Notes switch restores single low notes", () => {
+    ui.update({ bottomRow: "notes" });
+    down("KeyA");
+    assert.deepEqual(held(), [36]);
+    up("KeyA");
+  });
+
+  it("assigns the chord to the selected note once the key is confirmed, as one undoable action", () => {
+    loadSong(false);
+    ui.update({ selectedNoteId: "n1" });
+    const before = song.get().version;
+    down("KeyF");
+    assert.deepEqual(
+      song.get().chords.map(({ noteId, root, type }) => ({ noteId, root, type })),
+      [{ noteId: "n1", root: "F", type: "M" }],
+    );
+    assert.equal(song.get().version, before + 1);
+    // F A C under the note, with the note on top.
+    assert.deepEqual(held(), [53, 57, 60, 64]);
+    up("KeyF");
+  });
+
+  it("only plays, never assigns, while the key is tentative or hidden", () => {
+    for (const demoAwaitingGuess of [false, true]) {
+      loadSong(true);
+      ui.update({ selectedNoteId: "n1", demoAwaitingGuess });
+      down("KeyG");
+      up("KeyG");
+      assert.deepEqual(song.get().chords, []);
+    }
+  });
+
+  it("Backspace and Delete clear the selected note's chord", () => {
+    loadSong(false);
+    ui.update({ selectedNoteId: "n1" });
+    for (const code of ["Backspace", "Delete"]) {
+      down("KeyA");
+      up("KeyA");
+      assert.equal(song.get().chords.length, 1);
+      const event = down(code);
+      assert.equal(event.defaultPrevented, true);
+      assert.deepEqual(song.get().chords, []);
+    }
+  });
+
+  it("leaves Backspace alone with nothing to clear, and ignores text fields", () => {
+    loadSong(false);
+    ui.update({ selectedNoteId: "n1" });
+    assert.equal(down("Backspace").defaultPrevented, false);
+    down("KeyA", { target: new FakeElement("input") });
+    assert.deepEqual(song.get().chords, []);
     assert.deepEqual(held(), []);
   });
 });
