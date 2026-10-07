@@ -138,7 +138,7 @@ describe("functionOf", () => {
     assert.deepEqual(fns(E_MINOR), [
       ...["tonic", "subdominant", "dominant", "tonic", "subdominant"],
       ...["dominant", "dominant", "dominant"],
-      ...["other", "other"],
+      ...["tonic", "subdominant"],
       ...["dominant", "dominant"],
     ]);
   });

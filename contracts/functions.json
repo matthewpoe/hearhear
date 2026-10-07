@@ -1,5 +1,5 @@
 {
-  "$comment": "Harmonic function per mode; read only by functionOf() in src/theory. Matching ignores an added seventh (ii7 is ii, V7 is V). Rules applied before the table: any applied chord (V/x, vii°/x) and any major-minor seventh chord on a degree other than V (I7, II7, III7, VI7, VII7) is a secondary dominant, and any diminished chord on a raised degree (#iv°, #i°, #ii°, #v°) is a leading-tone chord: both are dominant. Anything unmatched is other (neutral gray, '?' chip).",
+  "$comment": "Harmonic function per mode; read only by functionOf() in src/theory. Matching ignores an added seventh (ii7 is ii, V7 is V). Rules applied before the table: any applied chord (V/x, vii°/x) and any major-minor seventh chord on a degree other than V (I7, II7, III7, VI7, VII7) is a secondary dominant, and any diminished chord on a raised degree (#iv°, #i°, #ii°, #v°) is a leading-tone chord: both are dominant. In minor, the major I and IV borrowed from the parallel major keep their function (the Picardy I is tonic, the Dorian IV subdominant). Anything unmatched is other (neutral gray, '?' chip), by design: bIII in major is left out, so it invites asking the tutor.",
   "functions": {
     "tonic": { "color": "--fn-tonic", "shape": "circle", "meaning": "home, rest" },
     "subdominant": { "color": "--fn-subdominant", "shape": "triangle", "meaning": "moving away" },
@@ -16,8 +16,8 @@
     "dominant": ["V", "vii°", "v"]
   },
   "minor": {
-    "tonic": ["i", "III"],
-    "subdominant": ["iv", "VI", "VII", "ii°"],
+    "tonic": ["i", "III", "I"],
+    "subdominant": ["iv", "VI", "VII", "ii°", "IV"],
     "dominant": ["V", "vii°", "v"]
   }
 }
