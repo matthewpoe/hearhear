@@ -12,7 +12,6 @@
   import Piano from "./input/Piano.svelte";
   import ThemeToggle from "./ThemeToggle.svelte";
   import SongPicker from "./toolbar/SongPicker.svelte";
-  import Callouts from "./callouts/Callouts.svelte";
   import GuidedEntry from "./guided/GuidedEntry.svelte";
   import GuidedPath from "./guided/GuidedPath.svelte";
   import RecordBar from "./record/RecordBar.svelte";
@@ -60,7 +59,6 @@
     <SongPicker />
   {/if}
   <div class="masthead-tools">
-    <Callouts />
     <ThemeToggle />
   </div>
   <GuidedEntry />

@@ -29,7 +29,7 @@ for (const { song, home, dark, cadence, top } of TUNES) {
     page.on("pageerror", (error) => problems.push(error.message));
 
     await page.goto("/");
-    await page.getByRole("button", { name: "Beginner tips" }).click();
+    await page.getByRole("button", { name: "Leave tour" }).click();
     await page.getByRole("button", { name: new RegExp(song.title) }).click();
 
     // Every note has a clickable head on the staff, under a time signature.

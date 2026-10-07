@@ -1,8 +1,9 @@
 /**
- * The guided path's pure logic (Stream G): what each step's condition reads
- * from the song (a step advances once its condition holds), which note a bar
- * and beat names, and the progress a viewer leaves and resumes. No DOM or store imports;
- * the component passes in the app state it read.
+ * The guided walkthrough's pure logic: what each step's condition reads from
+ * the app (a step advances once its condition holds), which steps are skipped
+ * here, which note a bar and beat names, and the progress a viewer leaves and
+ * resumes. No DOM or store imports; the component passes in the app state it
+ * read.
  *
  * @import { Song, Note } from "../types.js"
  */
@@ -16,15 +17,19 @@ import { numeralOf, positionOf } from "../theory/index.js";
  *   | { type: "keyCommitted" }
  *   | { type: "chordAt", bar: number, beat: number, numeral: string }
  *   | { type: "played" }
- *   | { type: "tutorReplied" }} Condition
+ *   | { type: "tutorReplied" }
+ *   | { type: "fact", fact: string }} Condition
  *
- * A step's button in the strip: it does the step's action, or opens what
- * the action needs. `label` is the button's text.
- * @typedef {({ type: "loadSong", song: string }
- *   | { type: "press", within: string, name: string }
- *   | { type: "openChords", bar: number, beat: number }
- *   | { type: "audition", bar: number, beat: number, numeral: string }
- *   | { type: "askTutor", lesson: string }) & { label: string }} Action
+ * A `fact` is one of FACTS, read from the stores, or a name in the content's
+ * `pageFacts` (a selector; true while something on the page matches it).
+ *
+ * The real control a step asks the viewer to use, which the tour spotlights:
+ * a demo tune's card on the welcome (else the song select), a button by its
+ * accessible name inside an element id, any element, or a note on the staff.
+ * @typedef {{ type: "song", song: string }
+ *   | { type: "button", within: string, name: string }
+ *   | { type: "element", selector: string }
+ *   | { type: "note", bar: number, beat: number }} Target
  *
  * @typedef {{
  *   id: string,
@@ -32,17 +37,49 @@ import { numeralOf, positionOf } from "../theory/index.js";
  *   line: string,
  *   done: Condition,
  *   hint?: { when: Condition, text: string },
- *   action?: Action,
+ *   target: Target,
+ *   when?: Record<string, boolean>,
+ *   needsHardwareKeyboard?: boolean,
  * }} Step
+ *
+ * `when`: facts that must hold for the step to apply (the A–J step needs the
+ * row to play chords); `needsHardwareKeyboard`: its action is a physical key,
+ * so a touch screen skips it.
  *
  * @typedef {{ status: string, song: string, steps: Step[] }} GuidedPath
  *
  * What the conditions read: the song on the staff, whether it has been
  * played since it was loaded, how many replies the tutor has given in its
  * conversation, and whether a tune was loaded since this run of the tour
- * started (so a fresh tour never skips its load step).
- * @typedef {{ song: Song, played: boolean, tutorReplies: number, loadedThisTour: boolean }} AppState
+ * started (so a fresh tour never skips its load step), and the facts.
+ * @typedef {{
+ *   song: Song,
+ *   played: boolean,
+ *   tutorReplies: number,
+ *   loadedThisTour: boolean,
+ *   facts?: Record<string, boolean>,
+ * }} AppState
  */
+
+/**
+ * The facts the component reads from the stores, as opposed to the page:
+ * a single note held (number row or piano), a chord held on the A–J row,
+ * whether that row plays chords, and whether the recorder is armed or
+ * recording.
+ */
+export const FACTS = /** @type {const} */ ([
+  "notePlaying",
+  "chordKeyHeld",
+  "chordRow",
+  "recordStarted",
+]);
+
+/**
+ * Facts that hold only while a key is down. A step waiting for one needs a
+ * fresh press: a key still held from the step before (a chord-row letter that
+ * placed a chord) doesn't count.
+ */
+export const MOMENTARY = /** @type {readonly string[]} */ (["notePlaying", "chordKeyHeld"]);
 
 /**
  * The note that starts at a bar and beat, if any.
@@ -78,7 +115,7 @@ export function numeralAt(song, bar, beat) {
  * @param {AppState} state
  * @returns {boolean}
  */
-export function conditionMet(condition, { song, played, tutorReplies, loadedThisTour }) {
+export function conditionMet(condition, { song, played, tutorReplies, loadedThisTour, facts }) {
   switch (condition.type) {
     case "songLoaded":
       return loadedThisTour && song.id === condition.song && song.notes.length > 0;
@@ -96,9 +133,23 @@ export function conditionMet(condition, { song, played, tutorReplies, loadedThis
       return played && song.notes.length > 0;
     case "tutorReplied":
       return tutorReplies > 0;
+    case "fact":
+      return facts?.[condition.fact] === true;
     default:
       return false;
   }
+}
+
+/**
+ * Whether a step doesn't apply here, so the walkthrough passes over it: its
+ * action needs a physical key on a touch screen, or a fact it needs doesn't
+ * hold.
+ * @param {Step} step
+ * @param {{ touch: boolean, facts: Record<string, boolean> }} here
+ */
+export function skipped(step, { touch, facts }) {
+  if (touch && step.needsHardwareKeyboard) return true;
+  return Object.entries(step.when ?? {}).some(([fact, wanted]) => facts[fact] !== wanted);
 }
 
 /**
@@ -113,27 +164,27 @@ export function hintFor(step, state) {
 }
 
 /**
- * What a step asks the viewer to use, for the strip to scroll into view: a
- * selector, and for a "press" action the button's accessible name inside it.
- * Null when the step names nothing on the page (or a note the song lacks).
+ * Where a step's target is, for the strip to spotlight and scroll to: a
+ * selector, with a button's accessible name inside it, a demo tune's id (its
+ * card or the song select, which the component resolves), or a note's id.
+ * Null when the target is a note the song lacks.
  * @param {Step} step
  * @param {Song} song
- * @returns {{ selector: string, button?: string } | null}
+ * @returns {{ selector?: string, button?: string, songId?: string, noteId?: string } | null}
  */
 export function stepTarget(step, song) {
-  const action = step.action;
-  switch (action?.type) {
-    case "loadSong":
-      return { selector: "#song-chooser" };
-    case "press":
-      return { selector: `#${action.within}`, button: action.name };
-    case "openChords":
-    case "audition": {
-      const note = noteAt(song, action.bar, action.beat);
-      return note ? { selector: `#staff [data-note-id=${JSON.stringify(note.id)}]` } : null;
+  const target = step.target;
+  switch (target.type) {
+    case "song":
+      return { songId: target.song };
+    case "button":
+      return { selector: `#${target.within}`, button: target.name };
+    case "element":
+      return { selector: target.selector };
+    case "note": {
+      const note = noteAt(song, target.bar, target.beat);
+      return note ? { noteId: note.id } : null;
     }
-    case "askTutor":
-      return { selector: "#tutor .ask" };
     default:
       return null;
   }
@@ -160,7 +211,7 @@ export function checkPath(path, song) {
   /** @type {string[]} */
   const problems = [];
   for (const step of path.steps) {
-    for (const part of [step.done, step.hint?.when, step.action]) {
+    for (const part of [step.done, step.hint?.when, step.target]) {
       if (part && "bar" in part && !noteAt(song, part.bar, part.beat)) {
         problems.push(`${step.id}: no note at bar ${part.bar} beat ${part.beat} in ${song.id}`);
       }
@@ -198,20 +249,4 @@ export function saveProgress(index, storage) {
   } catch {
     // Storage blocked or full: the path still runs, it just forgets on reload.
   }
-}
-
-/**
- * The exchange a lesson names in content/lessons/plan.json: its question and
- * hint level.
- * @param {{ exchanges: { id: string, question: string, hint_level: string }[] }} plan
- * @param {string} lesson
- * @returns {{ question: string, level: "nudge" | "comparison" | "answer" } | null}
- */
-export function lessonExchange(plan, lesson) {
-  const exchange = plan.exchanges.find((e) => e.id === lesson);
-  if (!exchange) return null;
-  const level = ["nudge", "comparison", "answer"].includes(exchange.hint_level)
-    ? /** @type {"nudge" | "comparison" | "answer"} */ (exchange.hint_level)
-    : "nudge";
-  return { question: exchange.question, level };
 }

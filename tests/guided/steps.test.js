@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import path from "../../content/guided-path.json" with { type: "json" };
-import plan from "../../content/lessons/plan.json" with { type: "json" };
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import { createSongStore } from "../../src/store/song.js";
 import { chordFromNumeral } from "../../src/theory/index.js";
@@ -10,11 +9,11 @@ import {
   clampStep,
   conditionMet,
   hintFor,
-  lessonExchange,
   loadProgress,
   noteAt,
   numeralAt,
   saveProgress,
+  skipped,
   stepTarget,
 } from "../../src/guided/steps.js";
 
@@ -76,18 +75,12 @@ describe("the guided path's content", () => {
     );
   });
 
-  it("has unique step ids, a title and a one-line instruction on each, and a label on each action", () => {
+  it("has unique step ids, and a title, a one-line instruction and a target on each", () => {
     assert.equal(new Set(steps.map((s) => s.id)).size, steps.length);
     for (const step of steps) {
-      assert.ok(step.title && step.line, step.id);
-      if (step.action) assert.ok(step.action.label, step.id);
+      assert.ok(step.title && step.line && step.target, step.id);
+      assert.ok(!("action" in step), `${step.id}: the tour has no step buttons`);
     }
-  });
-
-  it("asks the tutor with a question from the lesson plan", () => {
-    const asks = steps.flatMap((s) => (s.action?.type === "askTutor" ? [s.action.lesson] : []));
-    assert.notEqual(asks.length, 0);
-    for (const lesson of asks) assert.ok(lessonExchange(plan, lesson), lesson);
   });
 
   it("is completed, step by step, by playing the story through the song store", () => {
@@ -103,18 +96,43 @@ describe("the guided path's content", () => {
     };
     let replies = 0;
     let played = false;
+    /** @type {Record<string, boolean>} */
+    let facts = { chordRow: true };
+    const at = () => ({ ...state(store.get(), replies, played), facts });
     for (const step of steps) {
-      const before = state(store.get(), replies, played);
-      assert.equal(conditionMet(step.done, before), step.id === "load", step.id);
+      assert.equal(conditionMet(step.done, at()), step.id === "load", step.id);
       if (step.id === "ask") replies = 1;
       else if (step.id === "listen") played = true;
+      else if (step.done.type === "fact") facts = { ...facts, [step.done.fact]: true };
       else doIt[step.id]();
-      assert.ok(conditionMet(step.done, state(store.get(), replies, played)), step.id);
+      assert.ok(conditionMet(step.done, at()), step.id);
+      if (step.done.type === "fact") facts = { ...facts, [step.done.fact]: false };
     }
   });
 });
 
+describe("skipped", () => {
+  const chordKeys = /** @type {Step} */ (steps.find((s) => s.id === "chord-keys"));
+  it("skips a physical-key step on a touch screen, and only there", () => {
+    assert.equal(skipped(chordKeys, { touch: true, facts: { chordRow: true } }), true);
+    assert.equal(skipped(chordKeys, { touch: false, facts: { chordRow: true } }), false);
+  });
+  it("skips a step whose facts don't hold", () => {
+    assert.equal(skipped(chordKeys, { touch: false, facts: { chordRow: false } }), true);
+  });
+  it("never skips a step with no needs", () => {
+    assert.equal(skipped(steps[0], { touch: true, facts: {} }), false);
+  });
+});
+
 describe("conditionMet", () => {
+  it("reads a fact", () => {
+    const met = { type: /** @type {const} */ ("fact"), fact: "notePlaying" };
+    assert.ok(conditionMet(met, { ...state(tune), facts: { notePlaying: true } }));
+    assert.ok(!conditionMet(met, { ...state(tune), facts: { notePlaying: false } }));
+    assert.ok(!conditionMet(met, state(tune)));
+  });
+
   it("wants the named song with notes", () => {
     const met = { type: /** @type {const} */ ("songLoaded"), song: "ode-to-joy" };
     assert.ok(conditionMet(met, state(tune)));
@@ -222,41 +240,28 @@ describe("progress", () => {
   });
 });
 
-describe("lessonExchange", () => {
-  it("gives the plan's question and hint level", () => {
-    const ending = plan.exchanges.find((e) => e.id === "ode-ending");
-    assert.deepEqual(lessonExchange(plan, "ode-ending"), {
-      question: ending?.question,
-      level: "answer",
-    });
-    assert.equal(lessonExchange(plan, "nope"), null);
-  });
-});
-
 describe("stepTarget", () => {
   /** @param {string} id */
   const target = (id) =>
     stepTarget(/** @type {Step} */ (steps.find((s) => s.id === id)), demo().get());
   /** @param {number} bar @param {number} beat */
-  const noteSelector = (bar, beat) => `#staff [data-note-id="${noteAt(tune, bar, beat)?.id}"]`;
+  const noteId = (bar, beat) => ({ noteId: noteAt(tune, bar, beat)?.id });
 
-  it("points each step at what it asks the viewer to use", () => {
-    assert.deepEqual(target("load"), { selector: "#song-chooser" });
+  it("points each step at the real control it asks the viewer to use", () => {
+    assert.deepEqual(target("load"), { songId: "ode-to-joy" });
     assert.deepEqual(target("listen"), { selector: "#staff", button: "Play" });
-    assert.deepEqual(target("home"), { selector: "#key-prompt", button: "Help me find it" });
-    assert.deepEqual(target("half-cadence"), { selector: noteSelector(4, 3) });
-    assert.deepEqual(target("set-up-ending"), { selector: noteSelector(8, 1) });
-    assert.deepEqual(target("wrong-ish"), { selector: noteSelector(8, 3) });
-    assert.deepEqual(target("land"), { selector: noteSelector(8, 3) });
+    assert.deepEqual(target("home"), { selector: "#key-prompt" });
+    assert.deepEqual(target("half-cadence"), noteId(4, 3));
+    assert.deepEqual(target("set-up-ending"), noteId(8, 1));
+    assert.deepEqual(target("wrong-ish"), noteId(8, 3));
+    assert.deepEqual(target("land"), noteId(8, 3));
     assert.deepEqual(target("ask"), { selector: "#tutor .ask" });
   });
 
-  it("names nothing for a step without an action or a missing note", () => {
-    const bare = /** @type {Step} */ ({ ...steps[0], action: undefined });
-    assert.equal(stepTarget(bare, tune), null);
+  it("names nothing for a note the song lacks", () => {
     const off = /** @type {Step} */ ({
       ...steps[0],
-      action: { type: "openChords", bar: 99, beat: 1, label: "x" },
+      target: { type: "note", bar: 99, beat: 1 },
     });
     assert.equal(stepTarget(off, tune), null);
   });
