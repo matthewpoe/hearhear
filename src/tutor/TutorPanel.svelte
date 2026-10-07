@@ -1,3 +1,12 @@
+<script module>
+  import { createAccess } from "./access.js";
+
+  // The live tutor's passphrase, once per page load: a `#code=` link is read
+  // and cleared from the address bar before anything else can see it.
+  const access = createAccess(window);
+  access.load();
+</script>
+
 <script>
   // The tutor conversation under the chord grid. Each send carries a fresh
   // snapshot of the song, the question, and the session's recent history. The
@@ -5,7 +14,7 @@
   // the song they were made for, then handed to the chord row (Stream D2) as
   // alternatives to audition. Nothing here changes the song.
   import { song } from "../store/song.js";
-  import { untrack } from "svelte";
+  import { tick, untrack } from "svelte";
   import { ui, keyLabelMode } from "../store/ui.js";
   import { suggestions, isStale } from "../store/suggestions.js";
   import { toTutorSnapshot } from "../store/snapshot.js";
@@ -39,6 +48,12 @@
   let controller = null;
   /** @type {HTMLTextAreaElement | undefined} */
   let textarea = $state();
+  /** What the user is typing into the passphrase prompt. Never stored. */
+  let passphrase = $state("");
+  /** The last request carried a passphrase and the server turned it away. */
+  let codeRejected = $state(false);
+  /** @type {HTMLInputElement | undefined} */
+  let passphraseInput = $state();
 
   const hasReply = $derived(log.some((turn) => turn.role === "tutor"));
   /** A reply has arrived and nothing has been asked since. */
@@ -80,6 +95,7 @@
     const exchange = new AbortController();
     controller = exchange;
     const view = ui.get();
+    const accessCode = access.get();
     try {
       const reply = await askTutor(
         {
@@ -96,6 +112,7 @@
             if (pending) pending.reply += text;
           },
           signal: exchange.signal,
+          accessCode,
         },
       );
       if (exchange.signal.aborted) return;
@@ -121,6 +138,13 @@
       if (!(error instanceof TutorError)) console.error("Tutor exchange failed", error);
       failureCode = error instanceof TutorError ? error.code : "unknown";
       status = "failed";
+      if (failureCode === "access_required") {
+        codeRejected = Boolean(accessCode);
+        access.forget();
+        // The prompt is the next step, and its description is read on focus.
+        await tick();
+        passphraseInput?.focus();
+      }
     }
   }
 
@@ -142,6 +166,15 @@
     send(pending.question, pending.level);
     // Try again unmounts as the retry starts; keep a keyboard user in the panel.
     if (keyboard) textarea?.focus();
+  }
+
+  /** @param {SubmitEvent} event */
+  function unlock(event) {
+    event.preventDefault();
+    if (!passphrase.trim()) return;
+    access.set(passphrase);
+    passphrase = "";
+    retry();
   }
 
   // Focus moves to the text box only after a keyboard activation. After a
@@ -220,7 +253,31 @@
     {/if}
   </div>
 
-  {#if status === "failed"}
+  {#if status === "failed" && failureCode === "access_required"}
+    <form class="gate" onsubmit={unlock}>
+      <p id="tutor-gate-ask">
+        The live tutor is for invited listeners. What's the passphrase?
+        {#if codeRejected}That one didn't match; check it and try again.{/if}
+      </p>
+      <label for="tutor-passphrase">Passphrase</label>
+      <div class="actions">
+        <input
+          id="tutor-passphrase"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          aria-describedby="tutor-gate-ask tutor-gate-lessons"
+          bind:this={passphraseInput}
+          bind:value={passphrase}
+        />
+        <button type="submit" class="primary" disabled={!passphrase.trim()}>Unlock the tutor</button
+        >
+      </div>
+      <p id="tutor-gate-lessons" class="aside">
+        No passphrase? The recorded lessons work without one, and they're on their way.
+      </p>
+    </form>
+  {:else if status === "failed"}
     <div class="failure" role="alert">
       <p>{failureText(failureCode)}</p>
       {#if canRetry(failureCode)}
@@ -346,6 +403,29 @@
   }
   .failure p {
     margin: 0;
+  }
+
+  .gate {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+  }
+  .gate p {
+    margin: 0;
+  }
+  .gate .aside {
+    color: var(--ink-muted);
+  }
+  .gate input {
+    flex: 1 1 12rem;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
   }
 
   .ask {
