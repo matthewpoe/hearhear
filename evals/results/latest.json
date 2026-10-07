@@ -1,9 +1,9 @@
 {
   "run": {
-    "date": "2026-10-07T05:16:45.273Z",
+    "date": "2026-10-07T05:37:36.588Z",
     "mode": "fixture",
     "model": "fixture",
-    "endpoint": "http://127.0.0.1:8743/api/tutor",
+    "endpoint": "http://127.0.0.1:8762/api/tutor",
     "note": "Fixture run: the server replayed canned replies about a different song, so these numbers measure the plumbing (requests, streaming, parsing, scoring), not the model."
   },
   "headline": {
@@ -15,10 +15,10 @@
     "hitRate": { "count": 0, "total": 41 },
     "clashRate": { "count": 0, "total": 0 },
     "pedagogy": { "count": 41, "total": 41 },
-    "latencyMs": { "p50": 508, "p95": 769 },
-    "firstDeltaMs": { "p50": 130, "p95": 296 },
+    "latencyMs": { "p50": 355, "p95": 403 },
+    "firstDeltaMs": { "p50": 48, "p95": 50 },
     "baseline": {
-      "hitRate": { "count": 21, "total": 41 },
+      "hitRate": { "count": 20, "total": 41 },
       "clashRate": { "count": 0, "total": 41 }
     }
   },
@@ -38,8 +38,8 @@
           "hitRate": null,
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": { "count": 7, "total": 7 },
-          "latencyMs": { "p50": 619, "p95": 1219 },
-          "firstDeltaMs": { "p50": 238, "p95": 637 }
+          "latencyMs": { "p50": 355, "p95": 371 },
+          "firstDeltaMs": { "p50": 49, "p95": 57 }
         },
         "comparison": {
           "replies": 7,
@@ -50,8 +50,8 @@
           "hitRate": { "count": 0, "total": 7 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 450, "p95": 612 },
-          "firstDeltaMs": { "p50": 109, "p95": 334 }
+          "latencyMs": { "p50": 310, "p95": 313 },
+          "firstDeltaMs": { "p50": 49, "p95": 50 }
         },
         "answer": {
           "replies": 7,
@@ -62,8 +62,8 @@
           "hitRate": { "count": 0, "total": 7 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 683, "p95": 805 },
-          "firstDeltaMs": { "p50": 200, "p95": 386 }
+          "latencyMs": { "p50": 401, "p95": 403 },
+          "firstDeltaMs": { "p50": 48, "p95": 49 }
         }
       },
       "baseline": {
@@ -86,8 +86,8 @@
           "hitRate": null,
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": { "count": 6, "total": 6 },
-          "latencyMs": { "p50": 552, "p95": 899 },
-          "firstDeltaMs": { "p50": 197, "p95": 408 }
+          "latencyMs": { "p50": 355, "p95": 358 },
+          "firstDeltaMs": { "p50": 48, "p95": 51 }
         },
         "comparison": {
           "replies": 6,
@@ -98,8 +98,8 @@
           "hitRate": { "count": 0, "total": 6 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 608, "p95": 773 },
-          "firstDeltaMs": { "p50": 230, "p95": 317 }
+          "latencyMs": { "p50": 309, "p95": 313 },
+          "firstDeltaMs": { "p50": 48, "p95": 49 }
         },
         "answer": {
           "replies": 6,
@@ -110,8 +110,8 @@
           "hitRate": { "count": 0, "total": 6 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 471, "p95": 654 },
-          "firstDeltaMs": { "p50": 96, "p95": 196 }
+          "latencyMs": { "p50": 401, "p95": 403 },
+          "firstDeltaMs": { "p50": 48, "p95": 49 }
         }
       },
       "baseline": {
@@ -134,8 +134,8 @@
           "hitRate": null,
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": { "count": 16, "total": 16 },
-          "latencyMs": { "p50": 478, "p95": 653 },
-          "firstDeltaMs": { "p50": 107, "p95": 261 }
+          "latencyMs": { "p50": 354, "p95": 365 },
+          "firstDeltaMs": { "p50": 48, "p95": 58 }
         },
         "comparison": {
           "replies": 16,
@@ -146,8 +146,8 @@
           "hitRate": { "count": 0, "total": 16 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 465, "p95": 624 },
-          "firstDeltaMs": { "p50": 146, "p95": 250 }
+          "latencyMs": { "p50": 309, "p95": 322 },
+          "firstDeltaMs": { "p50": 48, "p95": 50 }
         },
         "answer": {
           "replies": 16,
@@ -158,8 +158,8 @@
           "hitRate": { "count": 0, "total": 16 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 533, "p95": 736 },
-          "firstDeltaMs": { "p50": 116, "p95": 234 }
+          "latencyMs": { "p50": 400, "p95": 418 },
+          "firstDeltaMs": { "p50": 48, "p95": 52 }
         }
       },
       "baseline": {
@@ -182,8 +182,8 @@
           "hitRate": null,
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": { "count": 12, "total": 12 },
-          "latencyMs": { "p50": 437, "p95": 678 },
-          "firstDeltaMs": { "p50": 76, "p95": 291 }
+          "latencyMs": { "p50": 354, "p95": 363 },
+          "firstDeltaMs": { "p50": 48, "p95": 56 }
         },
         "comparison": {
           "replies": 12,
@@ -194,8 +194,8 @@
           "hitRate": { "count": 0, "total": 12 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 381, "p95": 510 },
-          "firstDeltaMs": { "p50": 94, "p95": 171 }
+          "latencyMs": { "p50": 308, "p95": 310 },
+          "firstDeltaMs": { "p50": 48, "p95": 49 }
         },
         "answer": {
           "replies": 12,
@@ -206,12 +206,12 @@
           "hitRate": { "count": 0, "total": 12 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 538, "p95": 711 },
-          "firstDeltaMs": { "p50": 130, "p95": 242 }
+          "latencyMs": { "p50": 399, "p95": 403 },
+          "firstDeltaMs": { "p50": 47, "p95": 48 }
         }
       },
       "baseline": {
-        "hitRate": { "count": 6, "total": 12 },
+        "hitRate": { "count": 5, "total": 12 },
         "clashRate": { "count": 0, "total": 12 }
       }
     }
@@ -236,8 +236,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 1219,
-      "firstDeltaMs": 637
+      "ms": 363,
+      "firstDeltaMs": 57
     },
     {
       "tune": "amazing-grace",
@@ -258,8 +258,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 584,
-      "firstDeltaMs": 211
+      "ms": 311,
+      "firstDeltaMs": 50
     },
     {
       "tune": "amazing-grace",
@@ -280,8 +280,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 805,
-      "firstDeltaMs": 386
+      "ms": 401,
+      "firstDeltaMs": 48
     },
     {
       "tune": "amazing-grace",
@@ -302,8 +302,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 755,
-      "firstDeltaMs": 296
+      "ms": 371,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -324,8 +324,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 501,
-      "firstDeltaMs": 109
+      "ms": 310,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -346,8 +346,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 513,
-      "firstDeltaMs": 83
+      "ms": 401,
+      "firstDeltaMs": 48
     },
     {
       "tune": "amazing-grace",
@@ -368,8 +368,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 533,
-      "firstDeltaMs": 201
+      "ms": 355,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -384,6 +384,160 @@
       "schemaValid": true,
       "score": {
         "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 308,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "answer",
+      "bar": 3,
+      "beat": 1,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 399,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "nudge",
+      "bar": 3,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 352,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "comparison",
+      "bar": 3,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 309,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "answer",
+      "bar": 3,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 403,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "nudge",
+      "bar": 4,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 355,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "comparison",
+      "bar": 4,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 309,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "answer",
+      "bar": 4,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
         "agreeing": 0,
         "onOnset": 0,
         "clashing": 0,
@@ -391,161 +545,7 @@
       },
       "withholds": null,
       "ms": 402,
-      "firstDeltaMs": 116
-    },
-    {
-      "tune": "amazing-grace",
-      "level": "answer",
-      "bar": 3,
-      "beat": 1,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 683,
-      "firstDeltaMs": 200
-    },
-    {
-      "tune": "amazing-grace",
-      "level": "nudge",
-      "bar": 3,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 618,
-      "firstDeltaMs": 188
-    },
-    {
-      "tune": "amazing-grace",
-      "level": "comparison",
-      "bar": 3,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 386,
-      "firstDeltaMs": 62
-    },
-    {
-      "tune": "amazing-grace",
-      "level": "answer",
-      "bar": 3,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 688,
-      "firstDeltaMs": 275
-    },
-    {
-      "tune": "amazing-grace",
-      "level": "nudge",
-      "bar": 4,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 504,
-      "firstDeltaMs": 165
-    },
-    {
-      "tune": "amazing-grace",
-      "level": "comparison",
-      "bar": 4,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 394,
-      "firstDeltaMs": 61
-    },
-    {
-      "tune": "amazing-grace",
-      "level": "answer",
-      "bar": 4,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 747,
-      "firstDeltaMs": 259
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -566,8 +566,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 619,
-      "firstDeltaMs": 238
+      "ms": 355,
+      "firstDeltaMs": 48
     },
     {
       "tune": "amazing-grace",
@@ -588,8 +588,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 450,
-      "firstDeltaMs": 82
+      "ms": 311,
+      "firstDeltaMs": 48
     },
     {
       "tune": "amazing-grace",
@@ -610,8 +610,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 630,
-      "firstDeltaMs": 174
+      "ms": 398,
+      "firstDeltaMs": 48
     },
     {
       "tune": "amazing-grace",
@@ -632,8 +632,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 831,
-      "firstDeltaMs": 396
+      "ms": 357,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -654,8 +654,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 612,
-      "firstDeltaMs": 334
+      "ms": 313,
+      "firstDeltaMs": 50
     },
     {
       "tune": "amazing-grace",
@@ -676,8 +676,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 525,
-      "firstDeltaMs": 108
+      "ms": 401,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -698,8 +698,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 769,
-      "firstDeltaMs": 219
+      "ms": 355,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -720,8 +720,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 608,
-      "firstDeltaMs": 187
+      "ms": 313,
+      "firstDeltaMs": 49
     },
     {
       "tune": "joyful-joyful",
@@ -742,8 +742,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 476,
-      "firstDeltaMs": 96
+      "ms": 400,
+      "firstDeltaMs": 49
     },
     {
       "tune": "joyful-joyful",
@@ -764,8 +764,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 533,
-      "firstDeltaMs": 113
+      "ms": 355,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -786,8 +786,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 547,
-      "firstDeltaMs": 245
+      "ms": 309,
+      "firstDeltaMs": 49
     },
     {
       "tune": "joyful-joyful",
@@ -808,8 +808,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 471,
-      "firstDeltaMs": 87
+      "ms": 403,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -830,8 +830,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 791,
-      "firstDeltaMs": 234
+      "ms": 358,
+      "firstDeltaMs": 51
     },
     {
       "tune": "joyful-joyful",
@@ -852,8 +852,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 659,
-      "firstDeltaMs": 230
+      "ms": 309,
+      "firstDeltaMs": 49
     },
     {
       "tune": "joyful-joyful",
@@ -874,8 +874,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 449,
-      "firstDeltaMs": 155
+      "ms": 401,
+      "firstDeltaMs": 49
     },
     {
       "tune": "joyful-joyful",
@@ -896,8 +896,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 396,
-      "firstDeltaMs": 59
+      "ms": 358,
+      "firstDeltaMs": 49
     },
     {
       "tune": "joyful-joyful",
@@ -918,8 +918,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 647,
-      "firstDeltaMs": 230
+      "ms": 311,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -940,8 +940,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 431,
-      "firstDeltaMs": 63
+      "ms": 402,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -962,8 +962,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 552,
-      "firstDeltaMs": 197
+      "ms": 355,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -984,8 +984,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 440,
-      "firstDeltaMs": 131
+      "ms": 307,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -1006,8 +1006,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 531,
-      "firstDeltaMs": 114
+      "ms": 402,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -1028,8 +1028,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 899,
-      "firstDeltaMs": 408
+      "ms": 353,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -1050,8 +1050,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 773,
-      "firstDeltaMs": 317
+      "ms": 308,
+      "firstDeltaMs": 47
     },
     {
       "tune": "joyful-joyful",
@@ -1072,8 +1072,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 654,
-      "firstDeltaMs": 196
+      "ms": 401,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1094,8 +1094,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 478,
-      "firstDeltaMs": 65
+      "ms": 354,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1116,7 +1116,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 320,
+      "ms": 310,
       "firstDeltaMs": 50
     },
     {
@@ -1138,8 +1138,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 479,
-      "firstDeltaMs": 133
+      "ms": 399,
+      "firstDeltaMs": 47
     },
     {
       "tune": "veni-emmanuel",
@@ -1160,8 +1160,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 430,
-      "firstDeltaMs": 62
+      "ms": 357,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1182,8 +1182,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 624,
-      "firstDeltaMs": 250
+      "ms": 309,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1204,8 +1204,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 515,
-      "firstDeltaMs": 66
+      "ms": 398,
+      "firstDeltaMs": 47
     },
     {
       "tune": "veni-emmanuel",
@@ -1226,8 +1226,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 380,
-      "firstDeltaMs": 51
+      "ms": 355,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1248,8 +1248,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 565,
-      "firstDeltaMs": 247
+      "ms": 310,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1270,8 +1270,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 443,
-      "firstDeltaMs": 61
+      "ms": 418,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1292,8 +1292,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 555,
-      "firstDeltaMs": 142
+      "ms": 355,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1314,8 +1314,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 370,
-      "firstDeltaMs": 67
+      "ms": 311,
+      "firstDeltaMs": 50
     },
     {
       "tune": "veni-emmanuel",
@@ -1336,8 +1336,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 565,
-      "firstDeltaMs": 205
+      "ms": 401,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1358,8 +1358,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 420,
-      "firstDeltaMs": 107
+      "ms": 353,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1380,8 +1380,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 438,
-      "firstDeltaMs": 86
+      "ms": 308,
+      "firstDeltaMs": 47
     },
     {
       "tune": "veni-emmanuel",
@@ -1402,8 +1402,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 533,
-      "firstDeltaMs": 110
+      "ms": 401,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1424,8 +1424,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 498,
-      "firstDeltaMs": 84
+      "ms": 355,
+      "firstDeltaMs": 47
     },
     {
       "tune": "veni-emmanuel",
@@ -1446,8 +1446,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 576,
-      "firstDeltaMs": 184
+      "ms": 309,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1468,40 +1468,40 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 515,
-      "firstDeltaMs": 77
+      "ms": 399,
+      "firstDeltaMs": 47
     },
     {
       "tune": "veni-emmanuel",
       "level": "nudge",
-      "bar": 2,
-      "beat": 4,
-      "reference": "D7",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 653,
-      "firstDeltaMs": 261
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
       "bar": 2,
       "beat": 4,
       "reference": "D7",
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 354,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 2,
+      "beat": 4,
+      "reference": "D7",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
       "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
       "schemaValid": true,
       "score": {
@@ -1512,8 +1512,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 404,
-      "firstDeltaMs": 72
+      "ms": 309,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1534,8 +1534,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 601,
-      "firstDeltaMs": 188
+      "ms": 403,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1556,763 +1556,37 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 532,
-      "firstDeltaMs": 166
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 3,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 525,
-      "firstDeltaMs": 146
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 3,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 508,
-      "firstDeltaMs": 86
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 3,
-      "beat": 4,
-      "reference": "D",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 502,
-      "firstDeltaMs": 163
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 3,
-      "beat": 4,
-      "reference": "D",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 489,
-      "firstDeltaMs": 160
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 3,
-      "beat": 4,
-      "reference": "D",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 550,
-      "firstDeltaMs": 185
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 4,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 428,
-      "firstDeltaMs": 98
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 4,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 475,
-      "firstDeltaMs": 207
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 4,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 507,
-      "firstDeltaMs": 116
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 4,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 560,
-      "firstDeltaMs": 181
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 4,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 503,
-      "firstDeltaMs": 174
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 4,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 519,
-      "firstDeltaMs": 122
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 4,
-      "beat": 4,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 577,
-      "firstDeltaMs": 204
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 4,
-      "beat": 4,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 366,
-      "firstDeltaMs": 70
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 4,
-      "beat": 4,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 564,
-      "firstDeltaMs": 131
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 5,
-      "beat": 1,
-      "reference": "Am",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 434,
-      "firstDeltaMs": 105
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 5,
-      "beat": 1,
-      "reference": "Am",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 329,
-      "firstDeltaMs": 61
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 5,
-      "beat": 1,
-      "reference": "Am",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 577,
-      "firstDeltaMs": 72
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 5,
-      "beat": 2,
-      "reference": "F#°",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 388,
-      "firstDeltaMs": 63
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 5,
-      "beat": 2,
-      "reference": "F#°",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 555,
-      "firstDeltaMs": 240
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 5,
-      "beat": 2,
-      "reference": "F#°",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 538,
-      "firstDeltaMs": 75
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 5,
-      "beat": 3,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 617,
-      "firstDeltaMs": 171
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 5,
-      "beat": 3,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 465,
-      "firstDeltaMs": 115
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 5,
-      "beat": 3,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 580,
-      "firstDeltaMs": 197
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 5,
-      "beat": 4,
-      "reference": "Bm",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 461,
-      "firstDeltaMs": 132
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 5,
-      "beat": 4,
-      "reference": "Bm",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 449,
-      "firstDeltaMs": 151
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 5,
-      "beat": 4,
-      "reference": "Bm",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 736,
-      "firstDeltaMs": 234
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "nudge",
-      "bar": 1,
-      "beat": 2,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 381,
-      "firstDeltaMs": 63
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 1,
-      "beat": 2,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 480,
-      "firstDeltaMs": 171
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "answer",
-      "bar": 1,
-      "beat": 2,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 676,
-      "firstDeltaMs": 218
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "nudge",
-      "bar": 1,
-      "beat": 3,
-      "reference": "B",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 414,
-      "firstDeltaMs": 95
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 1,
-      "beat": 3,
-      "reference": "B",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 434,
-      "firstDeltaMs": 98
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "answer",
-      "bar": 1,
-      "beat": 3,
-      "reference": "B",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 551,
-      "firstDeltaMs": 132
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "nudge",
-      "bar": 1,
-      "beat": 4,
-      "reference": "B7",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 491,
-      "firstDeltaMs": 157
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 1,
-      "beat": 4,
-      "reference": "B7",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 350,
+      "ms": 362,
       "firstDeltaMs": 56
     },
     {
-      "tune": "god-rest-ye",
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 3,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 322,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
       "level": "answer",
-      "bar": 1,
-      "beat": 4,
-      "reference": "B7",
+      "bar": 3,
+      "beat": 1,
+      "reference": "G",
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
@@ -2326,14 +1600,410 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 541,
-      "firstDeltaMs": 177
+      "ms": 401,
+      "firstDeltaMs": 48
     },
     {
-      "tune": "god-rest-ye",
+      "tune": "veni-emmanuel",
       "level": "nudge",
-      "bar": 2,
+      "bar": 3,
+      "beat": 4,
+      "reference": "D",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 354,
+      "firstDeltaMs": 50
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 3,
+      "beat": 4,
+      "reference": "D",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 309,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 3,
+      "beat": 4,
+      "reference": "D",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 399,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "nudge",
+      "bar": 4,
       "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 354,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 4,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 308,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 4,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 400,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "nudge",
+      "bar": 4,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 354,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 4,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 309,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 4,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 400,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "nudge",
+      "bar": 4,
+      "beat": 4,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 354,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 4,
+      "beat": 4,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 308,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 4,
+      "beat": 4,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 400,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "nudge",
+      "bar": 5,
+      "beat": 1,
+      "reference": "Am",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 355,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 5,
+      "beat": 1,
+      "reference": "Am",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 309,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 5,
+      "beat": 1,
+      "reference": "Am",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 400,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "nudge",
+      "bar": 5,
+      "beat": 2,
+      "reference": "F#°",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 354,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 5,
+      "beat": 2,
+      "reference": "F#°",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 310,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 5,
+      "beat": 2,
+      "reference": "F#°",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 407,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "nudge",
+      "bar": 5,
+      "beat": 3,
       "reference": "Em",
       "outcome": "ok",
       "code": null,
@@ -2348,389 +2018,59 @@
         "hit": false
       },
       "withholds": true,
+      "ms": 352,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 5,
+      "beat": 3,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 311,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 5,
+      "beat": 3,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
       "ms": 416,
-      "firstDeltaMs": 76
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 2,
-      "beat": 1,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 404,
-      "firstDeltaMs": 129
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "answer",
-      "bar": 2,
-      "beat": 1,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 429,
-      "firstDeltaMs": 63
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "nudge",
-      "bar": 2,
-      "beat": 2,
-      "reference": "Bm",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 508,
-      "firstDeltaMs": 149
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 2,
-      "beat": 2,
-      "reference": "Bm",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 460,
-      "firstDeltaMs": 106
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "answer",
-      "bar": 2,
-      "beat": 2,
-      "reference": "Bm",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 711,
-      "firstDeltaMs": 242
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "nudge",
-      "bar": 2,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 464,
-      "firstDeltaMs": 61
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 2,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 510,
-      "firstDeltaMs": 94
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "answer",
-      "bar": 2,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 700,
-      "firstDeltaMs": 161
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "nudge",
-      "bar": 2,
-      "beat": 4,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 678,
-      "firstDeltaMs": 291
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 2,
-      "beat": 4,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 344,
-      "firstDeltaMs": 66
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "answer",
-      "bar": 2,
-      "beat": 4,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 538,
-      "firstDeltaMs": 107
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "nudge",
-      "bar": 3,
-      "beat": 1,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 486,
-      "firstDeltaMs": 106
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 3,
-      "beat": 1,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 332,
-      "firstDeltaMs": 54
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "answer",
-      "bar": 3,
-      "beat": 1,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 501,
-      "firstDeltaMs": 108
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "nudge",
-      "bar": 3,
-      "beat": 2,
-      "reference": "B",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 437,
-      "firstDeltaMs": 59
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "comparison",
-      "bar": 3,
-      "beat": 2,
-      "reference": "B",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 381,
-      "firstDeltaMs": 111
-    },
-    {
-      "tune": "god-rest-ye",
-      "level": "answer",
-      "bar": 3,
-      "beat": 2,
-      "reference": "B",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 404,
       "firstDeltaMs": 52
     },
     {
-      "tune": "god-rest-ye",
+      "tune": "veni-emmanuel",
       "level": "nudge",
-      "bar": 3,
-      "beat": 3,
-      "reference": "Em",
+      "bar": 5,
+      "beat": 4,
+      "reference": "Bm",
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
@@ -2745,7 +2085,667 @@
       },
       "withholds": true,
       "ms": 365,
-      "firstDeltaMs": 54
+      "firstDeltaMs": 58
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 5,
+      "beat": 4,
+      "reference": "Bm",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 306,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 5,
+      "beat": 4,
+      "reference": "Bm",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 398,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 1,
+      "beat": 2,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 354,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 1,
+      "beat": 2,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 310,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 1,
+      "beat": 2,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 398,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 1,
+      "beat": 3,
+      "reference": "B",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 356,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 1,
+      "beat": 3,
+      "reference": "B",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 308,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 1,
+      "beat": 3,
+      "reference": "B",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 399,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 1,
+      "beat": 4,
+      "reference": "B7",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 355,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 1,
+      "beat": 4,
+      "reference": "B7",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 308,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 1,
+      "beat": 4,
+      "reference": "B7",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 400,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 2,
+      "beat": 1,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 355,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 2,
+      "beat": 1,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 307,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 2,
+      "beat": 1,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 403,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 2,
+      "beat": 2,
+      "reference": "Bm",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 363,
+      "firstDeltaMs": 56
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 2,
+      "beat": 2,
+      "reference": "Bm",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 309,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 2,
+      "beat": 2,
+      "reference": "Bm",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 400,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 2,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 353,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 2,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 306,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 2,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 398,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 2,
+      "beat": 4,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 354,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 2,
+      "beat": 4,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 308,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 2,
+      "beat": 4,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 401,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 3,
+      "beat": 1,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 357,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 3,
+      "beat": 1,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 310,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 3,
+      "beat": 1,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 398,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 3,
+      "beat": 2,
+      "reference": "B",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 352,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "comparison",
+      "bar": 3,
+      "beat": 2,
+      "reference": "B",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 308,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "answer",
+      "bar": 3,
+      "beat": 2,
+      "reference": "B",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 399,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "god-rest-ye",
+      "level": "nudge",
+      "bar": 3,
+      "beat": 3,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 353,
+      "firstDeltaMs": 47
     },
     {
       "tune": "god-rest-ye",
@@ -2766,8 +2766,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 321,
-      "firstDeltaMs": 54
+      "ms": 309,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2788,8 +2788,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 424,
-      "firstDeltaMs": 55
+      "ms": 400,
+      "firstDeltaMs": 47
     },
     {
       "tune": "god-rest-ye",
@@ -2810,8 +2810,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 513,
-      "firstDeltaMs": 160
+      "ms": 352,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2832,8 +2832,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 327,
-      "firstDeltaMs": 63
+      "ms": 308,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2854,8 +2854,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 547,
-      "firstDeltaMs": 130
+      "ms": 401,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2876,8 +2876,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 433,
-      "firstDeltaMs": 74
+      "ms": 355,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2898,8 +2898,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 491,
-      "firstDeltaMs": 161
+      "ms": 310,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2920,8 +2920,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 478,
-      "firstDeltaMs": 130
+      "ms": 397,
+      "firstDeltaMs": 48
     }
   ]
 }
