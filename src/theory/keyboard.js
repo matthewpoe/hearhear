@@ -14,19 +14,31 @@ const ROWS = [
 ];
 
 /**
+ * The numeric keypad plays as the number row: "Numpad5" reads as "Digit5".
+ * Keyed off the code, not the key, so a keypad with Num Lock off (which
+ * names its keys "End", "ArrowDown" and so on) still plays degrees. Every
+ * other code passes through unchanged.
+ * @param {string} code a KeyboardEvent.code
+ * @returns {string}
+ */
+export const numpadAsDigit = (code) => code.replace(/^Numpad([0-9])$/, "Digit$1");
+
+/**
  * Map a physical key (KeyboardEvent.code) and modifiers to a scale degree.
  * Number row = home octave, with 8 9 0 continuing to 1 2 3 above; Q–U = one
- * octave below; A–J = two below. Shift raises, Alt/Option lowers; both at
+ * octave below; A–J = two below. The keypad's digits play as the number
+ * row's (numpadAsDigit). Shift raises, Alt/Option lowers; both at
  * once cancel out.
  * @param {string} code e.g. "Digit5", "KeyU"
  * @param {{ shift: boolean, alt: boolean }} modifiers
  * @returns {ScaleDegree | null} null for keys that are not note keys
  */
 export function keyEventToDegree(code, { shift, alt }) {
-  const row = ROWS.find((r) => r.keys.includes(code));
+  const key = numpadAsDigit(code);
+  const row = ROWS.find((r) => r.keys.includes(key));
   if (!row) return null;
   return {
-    degree: /** @type {ScaleDegree["degree"]} */ (row.keys.indexOf(code) + 1),
+    degree: /** @type {ScaleDegree["degree"]} */ (row.keys.indexOf(key) + 1),
     accidental: shift === alt ? 0 : shift ? 1 : -1,
     octave: row.octave,
   };

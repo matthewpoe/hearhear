@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
-import { codeFromFragment, createAccess } from "../../src/tutor/access.js";
+import { asksForCode, codeFromFragment, createAccess } from "../../src/tutor/access.js";
 
 /**
  * A stand-in page at `url`, with a working sessionStorage unless `storage` replaces it.
@@ -126,5 +126,28 @@ describe("createAccess", () => {
     access.load();
     assert.equal(access.get(), "open");
     assert.equal(warn.mock.callCount(), 1);
+  });
+});
+
+describe("asksForCode", () => {
+  const quiet = { live: false, hasCode: false, changing: false, failure: "" };
+
+  it("asks up front when the server is live and no code is saved", () => {
+    assert.equal(asksForCode({ ...quiet, live: true }), true);
+  });
+
+  it("doesn't ask a live server's student who has a code, until they change it", () => {
+    assert.equal(asksForCode({ ...quiet, live: true, hasCode: true }), false);
+    assert.equal(asksForCode({ ...quiet, live: true, hasCode: true, changing: true }), true);
+  });
+
+  it("never asks up front in demo mode", () => {
+    assert.equal(asksForCode(quiet), false);
+  });
+
+  it("asks after a turned-away question in any mode, but not after a lockout", () => {
+    assert.equal(asksForCode({ ...quiet, failure: "access_required" }), true);
+    assert.equal(asksForCode({ ...quiet, hasCode: true, failure: "access_locked" }), false);
+    assert.equal(asksForCode({ ...quiet, failure: "network" }), false);
   });
 });
