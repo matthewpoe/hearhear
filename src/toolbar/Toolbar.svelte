@@ -58,7 +58,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<section class="toolbar" aria-label="Song tools">
+<section id="toolbar" class="toolbar" aria-label="Song tools">
   <div class="group" role="group" aria-label="History">
     <button
       type="button"
