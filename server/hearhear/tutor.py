@@ -6,11 +6,13 @@ hint level, so the app and tests run with no API key. Live mode is in live.py.
 
 import asyncio
 import json
+import re
 from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Final
 
+from hearhear.config import REPO_ROOT
 from hearhear.log import log_event
 from hearhear.models import HintLevel, TutorRequest
 
@@ -18,6 +20,11 @@ FIXTURE_NAMES = frozenset({"nudge", "comparison", "answer", "malformed", "over-b
 # `served_by` in fixture mode: no model served the reply. The eval harness
 # runs against live mode, so it never sees one.
 FIXTURE_SERVED_BY = "fixture"
+# Recorded lessons (content/lessons/README.md), named in X-Tutor-Fixture as
+# "lesson:<id>". Fixture mode only, like every fixture name.
+LESSONS_DIR = REPO_ROOT / "content" / "lessons" / "recorded"
+LESSON_PREFIX = "lesson:"
+_LESSON_ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 def sse(event: str, data: dict[str, Any]) -> str:
@@ -103,15 +110,27 @@ def suggestions_data(
     return data, clamp
 
 
+def fixture_path(request: TutorRequest, fixtures_dir: Path, name: str | None) -> Path:
+    if name and name.startswith(LESSON_PREFIX):
+        lesson = name.removeprefix(LESSON_PREFIX)
+        path = LESSONS_DIR / f"{lesson}.json"
+        # The id pattern keeps the header from naming any other file.
+        if _LESSON_ID.fullmatch(lesson) and path.is_file():
+            return path
+    chosen = name if name in FIXTURE_NAMES else request.hint_level
+    return fixtures_dir / f"{chosen}.json"
+
+
 async def replay_fixture(
     request: TutorRequest, fixtures_dir: Path, request_id: str, name: str | None = None
 ) -> AsyncIterator[str]:
     """Replay a fixture's events with their recorded pacing.
 
     `name` overrides the hint-level choice (tests use it for the failure fixtures).
+    "lesson:<id>" replays a recorded lesson; one not recorded yet falls back to
+    the hint level's shape fixture.
     """
-    chosen = name if name in FIXTURE_NAMES else request.hint_level
-    fixture = json.loads((fixtures_dir / f"{chosen}.json").read_text())
+    fixture = json.loads(fixture_path(request, fixtures_dir, name).read_text())
     for step in fixture["events"]:
         await asyncio.sleep(step["delayMs"] / 1000)
         data = step["data"]

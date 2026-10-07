@@ -23,6 +23,6 @@ The shape of `contracts/fixtures/tutor/*.json` (`name`, `song`, `description`, a
 
 The script saves only clean replies. A reply with `fallback: true`, an `error` event, an HTTP error, a suggestion that fails the content checks, or, when key labels are hidden, a message that names the key (the tonic as a note or chord name, or a phrase like "E minor") is reported and not saved, and the run moves on; a follow-up whose earlier exchange was not saved is skipped. A `401 access_required` or `429 access_locked` stops the run. `scripts/validate-content.js` (part of `make check`) applies the same checks to every saved file: each suggestion on a note onset, numeral and letter agreeing in the song's key, no error, no fallback, and no named key behind hidden labels.
 
-## Not wired in yet
+## Playing them back
 
-The app doesn't play recorded lessons yet: the guided-path runner that uses them is separate work. The hook is the fixture replay: `replay_fixture` in `server/hearhear/tutor.py` already sleeps each event's `delayMs` and plays the events in order, so it can serve a file from `content/lessons/recorded/` in place of a shape fixture.
+In fixture mode, `X-Tutor-Fixture: lesson:<id>` replays `recorded/<id>.json` with its recorded pacing (`replay_fixture` in `server/hearhear/tutor.py`); a lesson not recorded yet falls back to the hint level's shape fixture, and live mode ignores the header. The guided path (`content/guided-path.json`) names the lesson its tutor step asks; the tutor panel doesn't send the header yet.

@@ -265,3 +265,37 @@ def test_snapshot_rejects_midi_numbers_as_pitches() -> None:
     }
     with pytest.raises(ValidationError):
         Snapshot.model_validate(bad)
+
+
+def test_fixture_header_replays_a_recorded_lesson(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lessons = tmp_path / "recorded"
+    lessons.mkdir()
+    lesson = {
+        "name": "ode-ending",
+        "events": [
+            {"event": "message", "data": {"delta": "Recorded: it lands."}, "delayMs": 0},
+            {
+                "event": "suggestions",
+                "data": {"hint_level": "answer", "suggestions": [], "dropped": 0},
+                "delayMs": 0,
+            },
+            {"event": "done", "data": {}, "delayMs": 0},
+        ],
+    }
+    (lessons / "ode-ending.json").write_text(json.dumps(lesson))
+    (tmp_path / "secret.json").write_text(json.dumps(lesson))
+    monkeypatch.setattr(tutor, "LESSONS_DIR", lessons)
+
+    def reply(name: str) -> list[tuple[str, Any]]:
+        body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+        return events(client.post("/api/tutor", json=body, headers={"X-Tutor-Fixture": name}).text)
+
+    recorded = reply("lesson:ode-ending")
+    assert recorded[0] == ("message", {"delta": "Recorded: it lands."})
+    assert dict(recorded)["suggestions"]["served_by"] == "fixture"
+    # Not recorded yet, or not a lesson id: the hint level's shape fixture, as today.
+    nudge = reply("nudge")
+    for name in ("lesson:ode-unfinished", "lesson:../secret", "ode-ending"):
+        assert reply(name) == nudge, name
