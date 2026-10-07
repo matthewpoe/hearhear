@@ -54,6 +54,100 @@ test("an eighth pair swings long-short, 2:1", () => {
   assert.deepEqual([fromTick, toTick], [0, 48]);
 });
 
+/**
+ * Swung [tick, dur] of each melody cue for a 4/4 song at ratio 2.
+ * @param {[number, number][]} notes [start, dur] in ticks
+ */
+function swungTimes(notes) {
+  const song = {
+    ...pair,
+    notes: notes.map(([start, dur], i) => ({ id: `n${i + 1}`, midi: 60 + i, start, dur })),
+  };
+  const range = { fromTick: 0, toTick: 48 };
+  return swingPassage({ cues: melodyCues(song, range), ...range }, song).cues.map((c) => [
+    c.tick,
+    c.dur,
+  ]);
+}
+
+test("eighth triplets stay even under swing", () => {
+  assert.deepEqual(
+    swungTimes([
+      [0, 4],
+      [4, 4],
+      [8, 4],
+    ]),
+    [
+      [0, 4],
+      [4, 4],
+      [8, 4],
+    ],
+  );
+});
+
+test("quarter triplets stay even under swing", () => {
+  assert.deepEqual(
+    swungTimes([
+      [0, 8],
+      [8, 8],
+      [16, 8],
+    ]),
+    [
+      [0, 8],
+      [8, 8],
+      [16, 8],
+    ],
+  );
+});
+
+test("a dotted eighth and sixteenth plays like the swung pair, 8/4", () => {
+  assert.deepEqual(
+    swungTimes([
+      [0, 9],
+      [9, 3],
+      [12, 12],
+    ]),
+    [
+      [0, 8],
+      [8, 4],
+      [12, 12],
+    ],
+  );
+});
+
+test("a run of sixteenths swings in order, every note keeping some length", () => {
+  const run = swungTimes([
+    [0, 3],
+    [3, 3],
+    [6, 3],
+    [9, 3],
+  ]);
+  assert.deepEqual(run, [
+    [0, 4],
+    [4, 4],
+    [8, 2],
+    [10, 2],
+  ]);
+});
+
+test("the swing map never runs backwards", () => {
+  for (const dotted of [false, true]) {
+    let last = -Infinity;
+    for (let tick = 0; tick <= 48; tick++) {
+      const swung = swingTick(tick, FOUR, 2, { dotted });
+      assert.ok(swung >= last, `tick ${tick} (dotted ${dotted})`);
+      last = swung;
+    }
+  }
+});
+
+test("clicks are left where they are", () => {
+  const range = { fromTick: 0, toTick: 24 };
+  const click = { kind: /** @type {const} */ ("click"), accent: true, tick: 6, dur: 1, tones: [] };
+  const { cues } = swingPassage({ cues: [click], ...range }, pair);
+  assert.equal(cues[0], click);
+});
+
 test("on-beat ticks never move; the grid counts from the first downbeat", () => {
   const pickup = { ...FOUR, pickupTicks: 6 };
   assert.equal(swingTick(6, pickup, 2), 6);
