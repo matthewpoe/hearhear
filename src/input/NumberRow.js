@@ -109,7 +109,7 @@ function currentChordRowAction() {
  * action is "assign". An assigned chord sounds under its note, with the note
  * on top; a live one sounds under home.
  * @param {string} code a chord-row key
- * @param {"assign" | "play"} action
+ * @param {"assign" | "play" | "none"} action
  * @returns {{ midi: number[], fn: import("../types.js").HarmonicFunction }}
  */
 function chordRowPress(code, action) {
@@ -173,6 +173,8 @@ export function listenToNumberRow(target) {
     if (action !== "notes") {
       // Shift and Alt change nothing on the chord row; claim the key either way.
       event.preventDefault();
+      // A hidden key: the chord row waits for home (chordRowAction).
+      if (action === "none") return;
       if (event.repeat || held.has(event.code)) return;
       const chord = chordRowPress(event.code, action);
       const pitches = chord.midi.filter(onPiano);

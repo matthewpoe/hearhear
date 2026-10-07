@@ -24,7 +24,7 @@
     clampWindow,
     keyBindings,
   } from "./keyBindings.js";
-  import { chordForCode, chordKeyLabel } from "./chordRow.js";
+  import { chordForCode, chordKeyLabel, chordRowHelp } from "./chordRow.js";
   import { heldNotes, press, release } from "./liveNotes.js";
   import { flatArmed, heldChord, listenToNumberRow } from "./NumberRow.js";
   import Tip from "../toolbar/Tip.svelte";
@@ -252,10 +252,7 @@
       </Tip>
     </div>
     {#if chordsOnBottomRow}
-      <p class="help">
-        Bottom row keys play chords: the A key is the home chord (1), F is 4, G is 5. With a note's
-        chord picker open, a letter key places that chord.
-      </p>
+      <p class="help" id="chord-row-help">{chordRowHelp(mode)}</p>
     {/if}
     {#if $audioStatus === "failed"}
       <p class="sound" role="alert">
@@ -304,7 +301,10 @@
             {#if inChord && chord && mode !== "hidden"}
               <FunctionMark fn={chord.fn} outline={mode === "tentative"} />
             {/if}
-            {#if chordKey}
+            {#if chordKey && mode === "hidden"}
+              <!-- The chord row waits for home: its keys show as unavailable. -->
+              <kbd class="off">{chordKey.key}</kbd>
+            {:else if chordKey}
               <span class="chord-name">{chordKey.name}</span>
               <kbd>{chordKey.key}</kbd>
             {:else if degree}

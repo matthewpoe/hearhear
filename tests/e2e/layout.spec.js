@@ -43,6 +43,18 @@ for (const [width, height] of [
     const dock = await page.locator(".keyboard-dock").boundingBox();
     expect(staff && dock && staff.y < 80 && staff.y + staff.height <= dock.y).toBe(true);
 
+    // Before the demo's key is guessed, the chord row waits: A plays no chord
+    // (the placeholder key isn't home), while the number row still plays.
+    await expect(page.locator("#chord-row-help")).toHaveText(
+      "Chords follow the key you choose. Find home first.",
+    );
+    await page.keyboard.down("KeyA");
+    await expect(page.locator("#piano .key.held")).toHaveCount(0);
+    await page.keyboard.up("KeyA");
+    await page.keyboard.down("Digit1");
+    await expect(page.locator("#piano .key.held")).toHaveCount(1);
+    await page.keyboard.up("Digit1");
+
     // The step path: the key is current, rhythm settled from the meter.
     const steps = page.getByRole("list", { name: "Steps" });
     await expect(steps.locator('[aria-current="step"]')).toContainText("Key");
