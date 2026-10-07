@@ -43,7 +43,7 @@ test("a swung take reads as Swing, and as dotted rhythm when Straight; Undo rest
     .getByRole("group", { name: "Home note" })
     .getByRole("button", { name: "C", exact: true })
     .click();
-  await question.getByRole("button", { name: "Done: on to chords" }).click();
+  await question.getByRole("button", { name: "Next: check the rhythm" }).click();
 
   const rhythm = page.getByRole("group", { name: "Does this rhythm sound right?" });
   const feel = rhythm.getByRole("group", { name: /^Feel/ });
