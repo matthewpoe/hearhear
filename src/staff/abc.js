@@ -19,10 +19,11 @@
 
 import {
   TICKS_PER_QUARTER,
-  midiToDegree,
+  melodyDegree,
   spell,
+  spellMelody,
+  pulseTicks,
   ticksPerBar,
-  ticksPerBeat,
 } from "../theory/index.js";
 import { chordView } from "../chords/chordView.js";
 
@@ -77,7 +78,7 @@ export function songToAbc(song, { mode, labelStyle, showDegrees, showWords = tru
   const fifths = hidden ? null : keyFifths(key);
   const signature = fifths === null ? new Map() : keySignature(fifths);
   const barTicks = ticksPerBar(meter);
-  const beamTicks = beamGroupTicks(meter);
+  const beamTicks = pulseTicks(meter);
   const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
   const writeWords = showWords && hasLyrics(song);
 
@@ -142,16 +143,19 @@ export function songToAbc(song, { mode, labelStyle, showDegrees, showWords = tru
     }
   };
 
+  const spelled = spellMelody(song.notes, key);
   let cursor = 0;
-  for (const note of song.notes) {
+  for (const [i, note] of song.notes.entries()) {
     segment(cursor, note.start, (start, ticks) => append(`z${ticks}`, start, ticks));
     const chord = chordByNote.get(note.id) ?? null;
-    const pitch = parseSpelling(spell(note.midi, key));
+    const pitch = parseSpelling(spelled[i]);
     segment(note.start, note.start + note.dur, (start, ticks, isFirst, isLast) => {
       const labels = isFirst && chord ? `"${chordSymbol(chord, key, { mode, labelStyle })}"` : "";
       const tie = isLast ? "" : "-";
       append(labels + abcPitch(pitch, signature, inForce) + ticks + tie, start, ticks);
-      bar.syllables.push(isFirst && showDegrees && !hidden ? degreeLabel(note.midi, key) : "*");
+      bar.syllables.push(
+        isFirst && showDegrees && !hidden ? degreeLabel(note.midi, spelled[i], key) : "*",
+      );
       bar.words.push(isFirst && note.lyric ? abcSyllable(note.lyric) : "*");
       pieces.push({ noteId: note.id, chordId: isFirst && chord ? chord.id : null });
     });
@@ -184,17 +188,6 @@ export function songToAbc(song, { mode, labelStyle, showDegrees, showWords = tru
     if (writeWords) lines.push(`w:${words.join(" ")}`);
   }
   return { abc: [...header, ...lines].join("\n") + "\n", pieces };
-}
-
-/**
- * Ticks in one beam group: a beat in simple meter, and three eighths (a
- * dotted quarter) in compound meter (3/8, 6/8, 9/8, 12/8), so 6/8 beams in
- * two groups of three rather than one flag per eighth.
- * @param {import("../types.js").Meter} meter
- */
-export function beamGroupTicks(meter) {
-  const compound = meter.beatUnit === 8 && meter.beatsPerBar % 3 === 0;
-  return compound ? ticksPerBeat(meter) * 3 : ticksPerBeat(meter);
 }
 
 /**
@@ -307,12 +300,20 @@ export function chordSymbol(chord, key, { mode, labelStyle }) {
  * @param {import("../types.js").ChordSpec | null} chord
  * @param {Key} key
  * @param {StaffView} view
+ * @param {string} [spelled] the note as spellMelody spelled it in its melody,
+ *   so the name matches the staff; defaults to the context-free spelling
  */
-export function describeNote(note, chord, key, { mode, labelStyle, showDegrees }) {
-  const pitch = parseSpelling(spell(note.midi, key));
+export function describeNote(
+  note,
+  chord,
+  key,
+  { mode, labelStyle, showDegrees },
+  spelled = spell(note.midi, key),
+) {
+  const pitch = parseSpelling(spelled);
   const parts = [`${pitch.letter}${SPOKEN_ACCIDENTAL[pitch.accidental]} ${pitch.octave}`];
   if (mode !== "hidden" && showDegrees) {
-    const { degree, accidental, octave } = midiToDegree(note.midi, key);
+    const { degree, accidental, octave } = melodyDegree(note.midi, spelled, key);
     const octaves = Math.abs(octave);
     const where =
       octave === 0
@@ -331,10 +332,11 @@ export function describeNote(note, chord, key, { mode, labelStyle, showDegrees }
  * A melody degree in jianpu style: accidental, number, and one dot per octave
  * above (over the number) or below (under it) the home octave.
  * @param {number} midi
+ * @param {string} spelled
  * @param {Key} key
  */
-function degreeLabel(midi, key) {
-  const { degree, accidental, octave } = midiToDegree(midi, key);
+function degreeLabel(midi, spelled, key) {
+  const { degree, accidental, octave } = melodyDegree(midi, spelled, key);
   const dots = (octave > 0 ? DOT_ABOVE : DOT_BELOW).repeat(Math.abs(octave));
   return DEGREE_ACCIDENTAL[accidental] + degree + dots;
 }

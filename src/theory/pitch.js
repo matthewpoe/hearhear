@@ -101,8 +101,133 @@ export function degreeOf(pitchClass, key) {
  * @returns {string}
  */
 export function spell(midi, key) {
-  const pitchClass = spellPitchClass(mod(midi, 12), key);
   // B# and Cb sit across the octave boundary from their MIDI octave.
+  return withOctave(spellPitchClass(mod(midi, 12), key), midi);
+}
+
+/**
+ * Spell a melody, note by note, in the context of a key and of its
+ * neighbours. Diatonic notes spell as `spell` does. A chromatic note can be
+ * named from the letter below (a sharp) or above (a flat); it takes whichever
+ * name makes fewer augmented or diminished intervals with the notes before
+ * and after it; on a tie, the name that leads cleanly into the next note, and
+ * then today's `spell` name. Tritones don't count against a name: they
+ * are augmented 4ths or diminished 5ths either way. So a chromatic note that
+ * rises a half step is a sharp (G# to A, not Ab to A), one that falls a half
+ * step is a flat (Ab to G), and the G# of an E7 bar in G major stays G# among
+ * its E and B neighbours.
+ *
+ * One definition for the staff and the tutor snapshot. `spell(midi, key)`
+ * stays context-free for single pitches (a piano key, a chord root).
+ * @param {{ midi: number }[]} notes the melody, in order
+ * @param {Key} key
+ * @returns {string[]} one spelled pitch per note, e.g. "G#4"
+ */
+export function spellMelody(notes, key) {
+  const plain = notes.map((note) => spell(note.midi, key));
+  let spelled = plain;
+  // A chromatic run's names depend on each other: each pass reads the next
+  // note as the last pass spelled it, until nothing changes.
+  for (let pass = 0; pass < 4; pass++) {
+    const next = respell(notes, key, plain, spelled);
+    if (next.every((name, i) => name === spelled[i])) break;
+    spelled = next;
+  }
+  return spelled;
+}
+
+/**
+ * One left-to-right pass of spellMelody.
+ * @param {{ midi: number }[]} notes
+ * @param {Key} key
+ * @param {string[]} plain each note's context-free spelling
+ * @param {string[]} last the previous pass, for the note after each one
+ * @returns {string[]}
+ */
+function respell(notes, key, plain, last) {
+  /** @type {string[]} */
+  const out = [];
+  notes.forEach((note, i) => {
+    const semis = mod(note.midi - chromaOf(key.tonic), 12);
+    // Diatonic notes, and naturals (E stays E, never Fb), keep spell's name.
+    if (SCALES[key.mode].includes(semis) || !/[#b]/.test(plain[i])) {
+      out.push(plain[i]);
+      return;
+    }
+    const before = out[i - 1];
+    const after = last[i + 1];
+    /** @param {string} name @param {string | undefined} other */
+    const clash = (name, other) => (other && isAugmentedOrDiminished(name, other) ? 1 : 0);
+    // Fewest clashes; on a tie, the one that leads cleanly into the next note.
+    /** @param {string} name */
+    const cost = (name) => 2 * (clash(name, before) + clash(name, after)) + clash(name, after);
+    const best = [plain[i], ...enharmonics(note.midi).filter((name) => /[#b]/.test(name))]
+      .filter((name, at, all) => all.indexOf(name) === at)
+      .reduce((a, b) => (cost(b) < cost(a) ? b : a));
+    out.push(best);
+  });
+  return out;
+}
+
+/**
+ * A melody note's degree as `spellMelody` spelled it: by the key's
+ * convention (midiToDegree) when the spelling is `spell`'s, and by its letter
+ * when context chose the other name, so G# in G major reads #1, not b2.
+ * @param {number} midi
+ * @param {string} spelled from spellMelody, e.g. "G#4"
+ * @param {Key} key
+ * @returns {ScaleDegree}
+ */
+export function melodyDegree(midi, spelled, key) {
+  const conventional = midiToDegree(midi, key);
+  if (spelled === spell(midi, key)) return conventional;
+  const { degree, accidental } = degreeOf(spelled.replace(/-?\d+$/, ""), key);
+  return {
+    ...conventional,
+    degree,
+    accidental: /** @type {ScaleDegree["accidental"]} */ (accidental),
+  };
+}
+
+/**
+ * The sharp and flat names of a MIDI pitch, with octave: from the letter
+ * below (raised) and the letter above (lowered). A natural pitch has its own
+ * name among them.
+ * @param {number} midi
+ * @returns {string[]}
+ */
+function enharmonics(midi) {
+  const names = [];
+  for (const letter of LETTERS) {
+    const accidental = mod(midi - chromaOf(letter) + 6, 12) - 6;
+    if (Math.abs(accidental) > 1) continue;
+    const pitchClass = letter + (accidental === 1 ? "#" : accidental === -1 ? "b" : "");
+    names.push(withOctave(pitchClass, midi));
+  }
+  return names;
+}
+
+/**
+ * Whether the interval between two spelled pitches is augmented or
+ * diminished, not counting the tritone.
+ * @param {string} a
+ * @param {string} b
+ */
+function isAugmentedOrDiminished(a, b) {
+  const interval = Interval.get(Interval.distance(a, b));
+  const quality = interval.q ?? "";
+  if (!/^(A+|d+)$/.test(quality)) return false;
+  const simple = Math.abs(Number(interval.simple));
+  const tritone = (simple === 4 && quality === "A") || (simple === 5 && quality === "d");
+  return !tritone;
+}
+
+/**
+ * A pitch class with the octave that makes it sound at `midi` (B#3 is C4).
+ * @param {string} pitchClass
+ * @param {number} midi
+ */
+function withOctave(pitchClass, midi) {
   let octave = Math.floor(midi / 12) - 1;
   const at = (/** @type {number} */ o) => /** @type {number} */ (TNote.midi(pitchClass + o));
   if (at(octave) > midi) octave--;

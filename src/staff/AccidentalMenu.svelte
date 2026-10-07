@@ -10,7 +10,7 @@
   import { tick } from "svelte";
   import { song } from "../store/song.js";
   import { noteOff, noteOn } from "../audio/index.js";
-  import { spell } from "../theory/index.js";
+  import { spellMelody } from "../theory/index.js";
   import { placeOn, sideFor } from "../chords/placement.js";
   import { spokenNote } from "../theory/noteDisplay.js";
   import { accidentalChoices, pretty } from "./accidentals.js";
@@ -39,8 +39,12 @@
   let anchor = { top: 0, bottom: 0, left: 0 };
 
   const note = $derived(request ? $song.notes.find((n) => n.id === request.noteId) : undefined);
-  const menu = $derived(note ? accidentalChoices(note.midi, $song.key) : null);
-  const title = $derived(note ? pretty(spell(note.midi, $song.key)) : "");
+  // Spelled as the staff spells it, in melodic context (spellMelody).
+  const index = $derived(note ? $song.notes.indexOf(note) : -1);
+  const menu = $derived(
+    note ? accidentalChoices(note.midi, $song.key, { notes: $song.notes, index }) : null,
+  );
+  const title = $derived(note ? pretty(spellMelody($song.notes, $song.key)[index]) : "");
 
   // Open: place below the note (or above), then focus the current choice.
   $effect(() => {
@@ -110,7 +114,9 @@
     setTimeout(() => noteOff(choice.midi), NOTE_MS);
     // Announced (the staff's status line is for screen readers): spelled out.
     const named = spokenNote(choice.label + menu.octave);
-    const shown = spokenNote(spell(choice.midi, song.get().key));
+    const after = song.get();
+    const at = after.notes.findIndex((n) => n.id === request.noteId);
+    const shown = spokenNote(spellMelody(after.notes, after.key)[at] ?? "");
     onannounce(choice.shownAs ? `${named}, shown as ${shown}` : named);
     onclose(true);
   }

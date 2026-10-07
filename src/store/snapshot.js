@@ -9,12 +9,12 @@
 
 import {
   letterOf,
-  midiToDegree,
+  melodyDegree,
   nashvilleOf,
   numeralOf,
   positionOf,
   rebar,
-  spell,
+  spellMelody,
   ticksPerBeat,
 } from "../theory/index.js";
 // The song's title bound, which the request contract shares
@@ -43,6 +43,9 @@ export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
     .join("");
   const beatTicks = ticksPerBeat(meter);
   const notesById = new Map(song.notes.map((n) => [n.id, n]));
+  // Spelled in melodic context, as the staff spells them.
+  const spelled = spellMelody(song.notes, key);
+  const spellingById = new Map(song.notes.map((n, i) => [n.id, spelled[i]]));
   const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
 
   const bars = rebar(song, meter).map(({ index, noteIds }) => {
@@ -52,10 +55,11 @@ export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
     return {
       bar: index,
       notes: notes.map((n) => {
-        const { degree, accidental } = midiToDegree(n.midi, key);
+        const pitch = /** @type {string} */ (spellingById.get(n.id));
+        const { degree, accidental } = melodyDegree(n.midi, pitch, key);
         return {
           beat: round(positionOf(n.start, meter).beat),
-          pitch: spell(n.midi, key),
+          pitch,
           degree: `${ACCIDENTAL[accidental]}${degree}`,
           beats: round(n.dur / beatTicks),
         };
