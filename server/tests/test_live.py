@@ -3,6 +3,7 @@ over a mock transport. No network calls."""
 
 import asyncio
 import json
+import logging
 from collections.abc import AsyncIterator
 from pathlib import Path
 from types import SimpleNamespace
@@ -853,3 +854,26 @@ def test_live_mode_still_gates_a_shape_fixture_name(
     )
     assert response.status_code == 401
     assert fake.calls == []
+
+
+def test_a_refused_request_logs_the_apis_error_type_and_message(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+    body = {"type": "error", "error": {"type": "invalid_request_error", "message": "bad param"}}
+    refused = anthropic.BadRequestError(
+        "bad param", response=httpx2.Response(400, request=request), body=body
+    )
+    use_fake(monkeypatch, FakeClient([], error=refused))
+    stream = events(ask(live_mode).text)
+    assert stream[-2][1]["code"] == "upstream"
+    upstream = [fields for event, fields in logged if event == "tutor_upstream_error"]
+    assert upstream == [
+        {
+            "level": logging.ERROR,
+            "request_id": upstream[0]["request_id"],
+            "status": 400,
+            "error": {"type": "invalid_request_error", "message": "bad param"},
+        }
+    ]

@@ -227,9 +227,8 @@ def test_ends_every_reply_with_numbered_listening_steps() -> None:
     )
     assert "tie the steps to the suggestion buttons" in prompt
     assert "a control the app has today" in prompt
-    assert (
-        'play bar N (click a note in bar N, choose "This bar", then press "Play bar N")' in prompt
-    )
+    assert "which plays the bar around that note" in prompt
+    assert "This bar" not in prompt
     assert "turning on Drone on home and playing the phrase" in prompt
     assert "drone test, only while the key is still being found" in prompt
     assert "There is no way to play a single bar" not in prompt
@@ -282,7 +281,7 @@ def test_too_neat_challenge_does_not_name_chords_in_a_nudge() -> None:
 def test_every_control_the_prompt_names_is_in_controls_json() -> None:
     controls = load_controls()
     named = set(CONTROL_TOKEN.findall(SYSTEM_PROMPT_TEMPLATE))
-    assert {"play", "thisBar", "playBar", "drone"} <= named
+    assert {"play", "drone"} <= named
     assert named <= controls.keys()
     assert "{control:" not in SYSTEM_PROMPT
     for key in named:

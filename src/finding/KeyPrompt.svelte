@@ -23,7 +23,8 @@
   import GuessResult from "./GuessResult.svelte";
   import Transpose from "./Transpose.svelte";
   import DroneSwitch from "../staff/DroneSwitch.svelte";
-  import DegreesSwitch from "../toolbar/DegreesSwitch.svelte";
+  import { HINT_COUNT, keyHints } from "../steps/keyHints.js";
+  import { mark } from "../staff/staffEvents.js";
   import { CONTROLS } from "../lib/controls.js";
 
   /**
@@ -74,6 +75,20 @@
 
   $effect(() => {
     if (autofocus) heading?.focus();
+  });
+
+  /**
+   * "Give me a hint": one clue per press (keyHints.js), shown while home is
+   * still open. Each clue marks its notes on the staff (a mark stays through
+   * redraws), and the marks come off once a home is chosen.
+   */
+  let hintPresses = $state(0);
+  const hints = $derived($song.key.provisional ? keyHints($song, hintPresses) : []);
+  $effect(() => {
+    const ids = hints.flatMap((h) => h.noteIds);
+    if (ids.length === 0) return;
+    mark("is-hint", ids);
+    return () => mark("is-hint", []);
   });
 
   // An undo (or anything outside this card) that takes the key back leaves no
@@ -182,6 +197,11 @@
         <span class="eyebrow">By eye</span>
         <strong>Read music?</strong>
         <span class="clue">The staff's sharps and flats, and the note phrases rest on.</span>
+        {#if hintPresses < HINT_COUNT}
+          <button type="button" class="hint-button" onclick={() => hintPresses++}>
+            {hintPresses === 0 ? "Give me a hint" : "Another hint"}
+          </button>
+        {/if}
       </li>
       <li class="way ear">
         <span class="eyebrow">By ear</span>
@@ -199,6 +219,12 @@
       </li>
     </ul>
   {/if}
+
+  <ol class="hints" aria-label="Hints" aria-live="polite">
+    {#each hints as hint (hint.id)}
+      <li>{hint.text}</li>
+    {/each}
+  </ol>
 
   <!-- The decision: mode and home, together in one picker. -->
   <div class="picker">
@@ -274,7 +300,6 @@
   <div class="secondary">
     <div class="settings" role="group" aria-label="Hear it from home">
       <DroneSwitch />
-      <DegreesSwitch />
     </div>
     {#if !$song.key.provisional}
       <Transpose />
@@ -332,6 +357,39 @@
   }
   .clue {
     color: var(--ink-muted);
+  }
+  .hints {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding-left: var(--space-4);
+    color: var(--ink);
+  }
+  .hints:empty {
+    display: none;
+  }
+  .hints li::marker {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  button.hint-button {
+    margin-top: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  button.hint-button:hover {
+    background: var(--accent-soft);
+  }
+  /* A clue's notes on the staff: an accent ring around each notehead. */
+  :global(#staff .is-hint .abcjs-notehead) {
+    stroke: var(--accent);
+    stroke-width: 7px;
+    paint-order: stroke;
   }
   .picker {
     display: grid;

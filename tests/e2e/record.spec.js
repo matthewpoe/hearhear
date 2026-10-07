@@ -119,9 +119,7 @@ test("record a tune, name it, and find it on the staff, in the picker, and after
 
   // 8. Discard goes back to the welcome; Undo brings the tune back.
   await bar.getByRole("button", { name: "Discard tune" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Hear a tune. Find where home is." }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pick a song" })).toBeVisible();
   await expect(bar).toContainText("Discarded “Porch song, take 2”.");
   await axe(page);
   await bar.getByRole("button", { name: "Undo" }).click();

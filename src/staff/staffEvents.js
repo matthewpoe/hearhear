@@ -39,6 +39,24 @@ export function emitNoteClick(click) {
  */
 export function registerNoteElements(map) {
   elementsByNote = map;
+  for (const [className, ids] of marks) highlight(ids, className);
+}
+
+/** Marks that outlast a redraw: class name to note ids. */
+const marks = new Map();
+
+/**
+ * Mark notes with a class that stays through redraws (a resize, a font load,
+ * an edit) until it's marked again or cleared with an empty list: the key
+ * step's hints and the chords step's start note.
+ * @param {string} className
+ * @param {string[]} noteIds
+ */
+export function mark(className, noteIds) {
+  clearHighlight(className);
+  if (noteIds.length === 0) marks.delete(className);
+  else marks.set(className, noteIds);
+  highlight(noteIds, className);
 }
 
 /**

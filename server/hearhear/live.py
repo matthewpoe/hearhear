@@ -17,7 +17,7 @@ import logging
 import time
 from collections.abc import AsyncIterator, Iterable
 from dataclasses import dataclass
-from typing import Final
+from typing import Any, Final
 
 import anthropic
 from anthropic import AsyncAnthropic
@@ -92,6 +92,18 @@ def _attempts_total(iterations: Iterable[BetaIterationsUsageItem]) -> int:
         + i.output_tokens
         for i in iterations
     )
+
+
+def _api_error(exc: anthropic.APIStatusError) -> dict[str, str]:
+    """The API's error type and message from a refused request, capped."""
+    body: Any = exc.body if isinstance(exc.body, dict) else {}
+    error: Any = body.get("error")
+    if not isinstance(error, dict):
+        error = {}
+    return {
+        "type": str(error.get("type", "unknown"))[:80],
+        "message": str(error.get("message", ""))[:300],
+    }
 
 
 async def stream_live(
@@ -181,6 +193,16 @@ async def stream_live(
         # Any of those must still end the stream with `error` and `done`.
         except anthropic.APIStatusError as exc:
             upstream_failure = f"upstream_{exc.status_code}"
+            # The API's own error type and message say which parameter or
+            # account limit refused the request. They describe the request's
+            # shape, never the student's text, so they are safe to log.
+            log_event(
+                "tutor_upstream_error",
+                level=logging.ERROR,
+                request_id=request_id,
+                status=exc.status_code,
+                error=_api_error(exc),
+            )
         except anthropic.APIConnectionError as exc:
             upstream_failure = f"upstream_{type(exc).__name__}"
         except Exception as exc:
