@@ -11,6 +11,17 @@ export function ticksPerBeat(meter) {
   return (TICKS_PER_QUARTER * 4) / meter.beatUnit;
 }
 
+/**
+ * Ticks in one felt pulse: the beat in simple meter, and three of them (a
+ * dotted quarter) in compound meter (3/8, 6/8, 9/8, 12/8), where eighths
+ * group in threes. The click track ticks on it and the staff beams by it.
+ * @param {Meter} meter
+ */
+export function pulseTicks(meter) {
+  const compound = meter.beatUnit === 8 && meter.beatsPerBar % 3 === 0;
+  return compound ? ticksPerBeat(meter) * 3 : ticksPerBeat(meter);
+}
+
 /** @param {Meter} meter */
 export function ticksPerBar(meter) {
   return ticksPerBeat(meter) * meter.beatsPerBar;

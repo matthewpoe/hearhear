@@ -2,6 +2,38 @@
 
 For Matthew. One section per tune: where it came from, what I chose, and what to listen for. Open each from the landing's song cards, press Play, and compare with the edition. Syllables are named by position only, never quoted. Provenance is in `content/songs/SOURCES.md`, and the reasoning behind each choice is in `docs/decisions/more-songs.md`.
 
+## When the Saints Go Marching In (check this one first)
+
+- **Source:** none printed. This is the traditional refrain as commonly sung, your exception to the edition rule (Oct 7). No pre-1931 print carries this tune: the 1896 Black/Purvis song is a different tune, and Winsett's 1927 gospel version has these words only as a bass echo. The only cross-check is the Wikimedia Commons MIDI "When The Saints.mid" (in G), transposed down a whole step. The encoding matches it note for note, so if it sounds wrong to you, trust your ear over the MIDI.
+- **Key, meter, tempo:** F major, 4/4, quarter = 104. A three-beat pickup (F, A, B-flat), then 15 bars, ending on a whole-note F.
+- **Judgment calls:**
+  - Each call ("1 3 4" then a held 5) holds the C for three beats with a beat of rest, so the next pickup lands cleanly, as the MIDI has it.
+  - Bar 8 (the start of the second half) is G, A, G after a rest.
+  - Bar 11 is C (one beat), then B-flat (two beats), then a rest. This is the spot most likely to differ from how you sing it.
+  - The last line is B-flat, A, B-flat into C, A, F, G, F.
+- **Listen for:**
+  - The 1-3-4-5 call, three times. On the third, 5 falls through 3 to 1 and stops on 2 (G), an open, waiting sound.
+  - The second half, after a rest: 2-3-2, then 1 held, 1, then 3 up to 5, 5 down to 4. The last call is 4-3-4, 5, 3, 1, 2, 1.
+  - The last bar should feel completely settled on F.
+
+## Sweet Georgia Brown
+
+- **Source:** Bernie, Pinkard and Casey, "Sweet Georgia Brown" (Jerome H. Remick & Co., copyright MCMXXV, as printed on the first music page), from the scans at UNL's History Harvest. The vocal line of the chorus, pp. 4–5.
+- **Key, meter, tempo:** G major as printed. The cut time is written as 4/4 with the same rhythm, quarter = 144. The full 32-bar chorus with the 2nd ending, no pickup.
+- **Judgment calls:**
+  - Bars 15–16 have two notes marked "spoken ad lib". They're left out, so bar 16 is silent.
+  - Bars 25–30 carry two verses with different ties. The first verse's attacks are kept.
+  - The last note is the 2nd ending's long G: tied from bar 31's last eighth through a half note to an eighth on beat 4, then the printed eighth rest under the fermata. It stops half a beat before the bar line, as printed.
+  - Bars 1–16 aren't shortened. A 15-bar cut ended on B (degree 3), with home never sounded as a last note.
+- **The key finder can't find this one, by design:**
+  - Pitch counts rank E major first and G major seventh, because the chorus sits on E7, A7 and D7 for twelve bars before G arrives.
+  - The ear finder still offers G (it always offers the home on a tune's last note). So does the home-note chip.
+  - It is exempt from the "top two" key test, with that reason written beside the exemption.
+- **Listen for:**
+  - The chain: four bars that want to go somewhere (E7, with a G sharp), then four bars a step closer (A7, with a C sharp), then four on the dominant (D7). Bar 13 arrives on G and the tune finally relaxes.
+  - G sharp (bars 1–3) pulling up toward A, and C sharp (bars 2, 6, 7) pulling up toward D. The staff now spells these as sharps, since spelling follows where each note goes.
+  - The second half: the same chain again, a turn through E minor and B7, and then E7, A7, D7, G at the end, the whole lesson in four bars.
+
 ## Amazing Grace
 
 - **Source:** E. O. Excell, _Make His Praise Glorious_ (Chicago, 1900), No. 235, "E. O. E. Arr.", on the Internet Archive ([leaf 225](https://archive.org/details/makehispraiseglo00exce/page/n225/mode/1up), continued on leaf 226). The soprano line of verse 1.

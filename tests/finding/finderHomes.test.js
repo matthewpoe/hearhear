@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import stJames from "../../content/songs/st-james-infirmary.json" with { type: "json" };
+import amazingGrace from "../../content/songs/amazing-grace.json" with { type: "json" };
+import greensleeves from "../../content/songs/greensleeves.json" with { type: "json" };
+import saints from "../../content/songs/when-the-saints.json" with { type: "json" };
+import sweetGeorgia from "../../content/songs/sweet-georgia-brown.json" with { type: "json" };
 import { FINDER_SIZE, finderHomes, shuffled } from "../../src/finding/finderHomes.js";
 import { sameHome } from "../../src/finding/keys.js";
 import { rankKeys, transposeSong } from "../../src/theory/index.js";
@@ -97,6 +101,40 @@ describe("finderHomes", () => {
   it("wraps around after the last set", () => {
     const ranked = rankKeys(ode.notes);
     assert.deepEqual(finderHomes(ranked, ode.id, 8), finderHomes(ranked, ode.id, 0));
+  });
+
+  describe("the home on the last note", () => {
+    const last = (/** @type {{ notes: { midi: number }[] }} */ tune) => tune.notes.at(-1)?.midi;
+
+    it("is offered for Sweet Georgia Brown, whose G major ranks seventh", () => {
+      const ranked = rankKeys(sweetGeorgia.notes);
+      const at = ranked.findIndex((r) => sameHome(r.key, sweetGeorgia.key));
+      assert.ok(at >= FINDER_SIZE, "the ranking alone wouldn't offer it");
+      const homes = finderHomes(ranked, sweetGeorgia.id, 0, null, last(sweetGeorgia));
+      assert.ok(homes.some((home) => sameHome(home, { tonic: "G", mode: "major" })));
+      // It replaces the third choice; the top two stay.
+      const topTwo = ranked.slice(0, 2).map((r) => name(r.key));
+      for (const top of topTwo) assert.ok(homes.map(name).includes(top));
+    });
+
+    for (const tune of [ode, stJames, amazingGrace, greensleeves, saints]) {
+      it(`changes nothing for ${tune.title}, which ends on a home already offered`, () => {
+        const ranked = rankKeys(tune.notes);
+        for (const known of [null, tune.key]) {
+          assert.deepEqual(
+            finderHomes(ranked, tune.id, 0, known, last(tune)),
+            finderHomes(ranked, tune.id, 0, known),
+          );
+        }
+      });
+    }
+
+    it("keeps a demo's known home ahead of the last-note home", () => {
+      const ranked = rankKeys(ode.notes);
+      // A made-up last note on G#: no top-three key has that tonic.
+      const homes = finderHomes(ranked, ode.id, 0, ode.key, 68);
+      assert.ok(homes.some((home) => sameHome(home, ode.key)));
+    });
   });
 });
 

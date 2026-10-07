@@ -4,6 +4,12 @@
  * home isn't always chord 1 yet stays put across visits to the same tune.
  * The provisional C shows up only when the ranking genuinely puts it there.
  *
+ * The first three always include a home on the tune's last note: a tune
+ * that wanders far from home (Sweet Georgia Brown sits on E7, A7, D7 for
+ * twelve bars) can rank its home low, but where it stops is strong evidence.
+ * If none of the top three has the last note as its tonic, the best-ranked
+ * key that does replaces the third. This picks candidates, not scores.
+ *
  * For a demo, whose home is known, the first three always include it, and a
  * set holding it never leads with its dominant (the chord a fifth above
  * home), which a first-timer easily hears as home.
@@ -25,11 +31,15 @@ export const FINDER_SIZE = 3;
  * @param {string} seed the song id
  * @param {number} set 0 for the first three, 1 for the next three, ...
  * @param {Home | null} [known] the demo's home, when the tune has one
+ * @param {number | null} [lastMidi] the tune's last note, if it has notes
  * @returns {Home[]}
  */
-export function finderHomes(ranked, seed, set, known = null) {
+export function finderHomes(ranked, seed, set, known = null, lastMidi = null) {
   const ordered = withKnownUpFront(
-    ranked.map(({ key }) => ({ tonic: key.tonic, mode: key.mode })),
+    withLastNoteHome(
+      ranked.map(({ key }) => ({ tonic: key.tonic, mode: key.mode })),
+      lastMidi,
+    ),
     known,
   );
   const sets = Math.ceil(ordered.length / FINDER_SIZE);
@@ -41,6 +51,26 @@ export function finderHomes(ranked, seed, set, known = null) {
     index === 0 ? seed : `${seed}:${index}`,
   );
   return known ? notLeadingWithDominant(homes, known) : homes;
+}
+
+/**
+ * The ranking with the best-ranked home whose tonic is the last note moved up
+ * to third place, if none of the first three has it; everything else keeps
+ * its order. A known home still takes third place after this (it outranks
+ * the last-note evidence).
+ * @param {Home[]} homes best first
+ * @param {number | null} lastMidi
+ * @returns {Home[]}
+ */
+function withLastNoteHome(homes, lastMidi) {
+  if (lastMidi === null) return homes;
+  /** @param {Home} home */
+  const onLast = (home) => pitchClass(home) === ((lastMidi % 12) + 12) % 12;
+  if (homes.slice(0, FINDER_SIZE).some(onLast)) return homes;
+  const at = homes.findIndex(onLast);
+  if (at < 0) return homes;
+  const rest = homes.filter((_, i) => i !== at);
+  return [...rest.slice(0, FINDER_SIZE - 1), homes[at], ...rest.slice(FINDER_SIZE - 1)];
 }
 
 /**
