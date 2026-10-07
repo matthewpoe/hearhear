@@ -121,7 +121,7 @@ def test_hidden_key_withholds_fixture_suggestions_too(
     logged = clamp_logs(monkeypatch)
     suggestions = fixture_reply(client, "comparison", "comparison", key_hidden=True)
     assert suggestions["suggestions"] == []
-    assert suggestions["dropped"] == 2
+    assert (suggestions["dropped"], suggestions["withheld"]) == (0, 2), "withheld, not dropped"
     (entry,) = logged
     assert len(entry["request_id"]) == 32
     assert counts(entry) == {
@@ -139,7 +139,7 @@ def test_provisional_key_withholds_fixture_suggestions(
     key = {**SNAPSHOT["key"], "provisional": True}
     suggestions = fixture_reply(client, "comparison", "comparison", key=key)
     assert suggestions["suggestions"] == []
-    assert suggestions["dropped"] == 2
+    assert (suggestions["dropped"], suggestions["withheld"]) == (0, 2), "withheld, not dropped"
     (entry,) = logged
     assert counts(entry) == {
         "withheld_hidden": 0,
@@ -156,7 +156,7 @@ def test_a_nudge_withholds_fixture_suggestions_and_reports_a_nudge(
     suggestions = fixture_reply(client, "answer", "nudge")
     assert suggestions["hint_level"] == "nudge"
     assert suggestions["suggestions"] == []
-    assert suggestions["dropped"] == 3
+    assert (suggestions["dropped"], suggestions["withheld"]) == (0, 3), "withheld, not dropped"
     (entry,) = logged
     assert counts(entry) == {
         "withheld_hidden": 0,
@@ -173,7 +173,7 @@ def test_a_fixture_claiming_more_than_was_asked_reports_the_requested_level(
     suggestions = fixture_reply(client, "answer", "comparison")
     assert suggestions["hint_level"] == "comparison"
     assert len(suggestions["suggestions"]) == 3
-    assert suggestions["dropped"] == 0
+    assert (suggestions["dropped"], suggestions["withheld"]) == (0, 0)
     (entry,) = logged
     assert counts(entry)["hint_clamped"] == 1
     assert counts(entry)["withheld_nudge"] == 0

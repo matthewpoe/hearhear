@@ -17,6 +17,7 @@ const record = (overrides) => ({
   servedBy: "m",
   message: "",
   dropped: 0,
+  withheld: 0,
   schemaValid: true,
   score: { suggestions: 2, agreeing: 2, onOnset: 2, clashing: 0, hit: false },
   withholds: null,
@@ -55,12 +56,13 @@ test("summarize scores pedagogy on nudges only, and hit rate never on them", () 
 
 test("summarize counts the nudges the server had to clamp", () => {
   const s = summarize([
-    record({ level: "nudge", withholds: true, dropped: 0 }),
-    record({ level: "nudge", withholds: false, dropped: 2 }),
+    record({ level: "nudge", withholds: true }),
+    record({ level: "nudge", withholds: false, withheld: 2 }),
+    record({ level: "nudge", withholds: false, withheld: 1 }),
     record({ level: "nudge", withholds: false, dropped: 1 }),
-    record({ level: "comparison", dropped: 3 }),
+    record({ level: "comparison", withheld: 3 }),
   ]);
-  assert.deepEqual(s.nudgesClamped, { count: 2, total: 3 }, "only nudges count");
+  assert.deepEqual(s.nudgesClamped, { count: 2, total: 4 }, "withheld nudges only");
   assert.equal(summarize([record({})]).nudgesClamped, null, "no nudges");
 });
 

@@ -92,12 +92,17 @@ test("chordNamesIn lets ordinary prose, notes, degrees, and bars through", () =>
 });
 
 test("a nudge withholds when the model offered nothing to strip and names no chord", () => {
-  assert.ok(nudgeWithholds({ message: "Listen to bar 4.", dropped: 0 }));
-  assert.equal(nudgeWithholds({ message: "Try IV.", dropped: 0 }), false);
+  assert.ok(nudgeWithholds({ message: "Listen to bar 4.", dropped: 0, withheld: 0 }));
+  assert.equal(nudgeWithholds({ message: "Try IV.", dropped: 0, withheld: 0 }), false);
   assert.equal(
-    nudgeWithholds({ message: "Listen.", dropped: 1 }),
+    nudgeWithholds({ message: "Listen.", dropped: 0, withheld: 1 }),
     false,
-    "the server stripped a suggestion the model offered",
+    "the server held back a suggestion the model offered",
+  );
+  assert.equal(
+    nudgeWithholds({ message: "Listen.", dropped: 1, withheld: 0 }),
+    false,
+    "an invalid suggestion was still an offer",
   );
 });
 

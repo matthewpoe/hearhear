@@ -6,49 +6,154 @@
     {
       "event": "message",
       "data": {
-        "delta": "Before I say anything about chords, "
+        "delta": "Before we talk about chords, listen "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "listen to the end of bar 4. Does "
+        "delta": "to the end of bar 4. The tune climbs "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "the melody feel finished there, "
+        "delta": "3-4-5 in bar 1, falls back down "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "or like it's holding its breath? "
+        "delta": "in bar 2, starts again from home "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "Try the chord you picked, then "
+        "delta": "in bar 3, and then stops on a long "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "hold just the 5 underneath and "
+        "delta": "2 at beat 3 of bar 4, one step above "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "compare. What does your ear say? "
+        "delta": "home. Does the phrase feel finished "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "there, or like it's holding its "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "breath, waiting for the second half "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "to answer? Compare bar 8, where "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "the same line steps down from 2 "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "to 1 and lands on home.\n\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "1. Hover any chord under bar 4, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "beat 3 so that bar plays, and keep "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "its long last note in your ear.\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "2. Hover any chord under bar 8, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "beat 3 so the last bar plays, and "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "see whether that ending settles "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "in a way bar 4 doesn't.\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "3. Hum the long note of bar 4, then "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "hum the 1, and notice how much it "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "wants to move."
       },
       "delayMs": 45
     },

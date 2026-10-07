@@ -85,7 +85,7 @@ def suggestions_data(
     eval harness excludes those replies on this flag, not by comparing ids.
 
     Withholding by default is enforced here, not only by the system prompt:
-    every suggestion is withheld, and counted in `dropped`, when the request
+    every suggestion is withheld, and counted in `withheld`, when the request
     asked for a nudge, the key is provisional, or the key is hidden (a
     letter-name chord gives a hidden key away). A reply that claims a higher
     hint level than the request asked for is reported at the requested level.
@@ -95,7 +95,8 @@ def suggestions_data(
         "hint_level": request.hint_level if clamp.hint_clamped else hint_level,
         "suggestions": [] if clamp.withheld else suggestions,
         "snapshot_version": request.snapshot.version,
-        "dropped": dropped + clamp.withheld,
+        "dropped": dropped,
+        "withheld": clamp.withheld,
         "served_by": served_by,
         "fallback": fallback,
     }

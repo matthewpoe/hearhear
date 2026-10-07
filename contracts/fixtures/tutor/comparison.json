@@ -6,42 +6,161 @@
     {
       "event": "message",
       "data": {
-        "delta": "Here are two to try under the "
+        "delta": "Here are two to try under the long "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "long E in bar 4. Play each one "
+        "delta": "2 in bar 4, beat 3. Under V, that "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "and notice whether the phrase "
+        "delta": "2 is the chord's fifth, and the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "wants to keep going or come to "
+        "delta": "phrase pauses on tension that wants "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "rest. I have a guess, but your "
+        "delta": "to go home: a half cadence, a question "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "ear is the judge here."
+        "delta": "the second phrase answers. Under "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "ii, the 2 is the root, so the melody "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "sits more solidly, but the chord "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "steps away from home without pulling "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "back as hard. Tunes built from two "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "matching phrases, like this one, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "often pause on V at the halfway "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "point so the second line can answer "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "it. I have a guess, but your ear "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "is the judge here.\n\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "1. Try the V suggestion under bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "4, beat 3, and listen to the bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "it plays.\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "2. Try the ii suggestion in the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "same spot.\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "3. See whether one of them makes "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "the long 2 want to keep going into "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "bar 5."
       },
       "delayMs": 45
     },
