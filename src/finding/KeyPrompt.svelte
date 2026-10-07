@@ -84,7 +84,7 @@
 </script>
 
 <div id="key-prompt" class="prompt" role="group" aria-labelledby="key-prompt-title">
-  <h3 id="key-prompt-title" bind:this={heading} tabindex="-1">What key is this tune in?</h3>
+  <h2 id="key-prompt-title" bind:this={heading} tabindex="-1">What key is this tune in?</h2>
 
   <ul class="paths">
     <li>
@@ -157,7 +157,7 @@
     gap: var(--space-2);
     justify-items: start;
   }
-  h3 {
+  h2 {
     margin: 0;
     font-size: var(--text-lg);
     font-weight: 500;

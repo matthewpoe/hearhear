@@ -68,7 +68,7 @@
   bind:this={root}
 >
   <div class="top">
-    <h4 id="key-finder-title" bind:this={heading} tabindex="-1">{title}</h4>
+    <h3 id="key-finder-title" bind:this={heading} tabindex="-1">{title}</h3>
     <button type="button" class="close" onclick={onclose}>
       Close <span class="visually-hidden">the key finder</span>
     </button>
@@ -114,7 +114,7 @@
     justify-content: space-between;
     gap: var(--space-2);
   }
-  h4 {
+  h3 {
     margin: 0;
     font-size: var(--text-md);
     font-weight: 500;
