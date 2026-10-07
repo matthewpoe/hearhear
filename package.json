@@ -1,0 +1,41 @@
+{
+  "name": "hearhear",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Ear-training tutor: think in relationships, not pitches.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test 'tests/**/*.test.js'",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "validate-content": "node scripts/validate-content.js",
+    "smoke": "playwright test"
+  },
+  "dependencies": {
+    "abcjs": "6.7.1",
+    "svelte": "5.57.2",
+    "tonal": "6.5.0",
+    "tone": "15.1.22"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "eslint": "10.12.0",
+    "eslint-plugin-svelte": "3.23.0",
+    "globals": "17.13.0",
+    "prettier": "3.9.9",
+    "prettier-plugin-svelte": "4.1.1",
+    "vite": "8.3.3"
+  }
+}
