@@ -9,9 +9,15 @@ import {
   MAX_TAKE_NOTES,
   cleanTitle,
   isUserTune,
+  livePhrases,
   monophonic,
   newTuneId,
   nextTitle,
+  packPhrases,
+  phraseRoom,
+  phraseStart,
+  phrasesOf,
+  readPhrases,
   recordedSong,
   takeNotes,
   tempoFor,
@@ -259,6 +265,69 @@ describe("recordedSong", () => {
     assert.ok(
       ajv.validate(requestSchema, { snapshot, history: [], question: "Hi", hint_level: "nudge" }),
       JSON.stringify(ajv.errors),
+    );
+  });
+});
+
+describe("phrases", () => {
+  const FOUR = {
+    beatsPerBar: 4,
+    beatUnit: /** @type {4} */ (4),
+    pickupTicks: 0,
+    provisional: true,
+  };
+
+  it("starts a phrase on the bar line at or after the last note's end", () => {
+    assert.equal(phraseStart([], FOUR), 0);
+    assert.equal(phraseStart([{ start: 0, dur: 36 }], FOUR), 48);
+    assert.equal(phraseStart([{ start: 0, dur: 48 }], FOUR), 48, "already on a bar line");
+    assert.equal(phraseStart([{ start: 40, dur: 9 }], FOUR), 96);
+    // With a one-beat pickup the bar lines fall at 12, 60, 108…
+    assert.equal(phraseStart([{ start: 0, dur: 30 }], { ...FOUR, pickupTicks: 12 }), 60);
+  });
+
+  it("gives a phrase only the room the tune's note limit leaves", () => {
+    assert.equal(phraseRoom(0), MAX_TAKE_NOTES);
+    assert.equal(phraseRoom(MAX_TAKE_NOTES - 3), 3);
+    assert.equal(phraseRoom(MAX_TAKE_NOTES), 0);
+  });
+
+  it("packs phrases into the stored take and back; one phrase is the old shape", () => {
+    const one = { presses: [{ midi: 60, downMs: 0 }], endMs: 500, ids: ["n1"] };
+    const two = { presses: [{ midi: 62, downMs: 0 }], endMs: 400, ids: ["n2"] };
+    assert.deepEqual(packPhrases([one]), one);
+    assert.deepEqual(phrasesOf(packPhrases([one, two])), [one, two]);
+  });
+
+  it("knows a phrase is gone once none of its notes are left, and a pre-phrase take owns all", () => {
+    const one = { presses: [], endMs: 0, ids: ["n1", "n2"] };
+    const two = { presses: [], endMs: 0, ids: ["n3"] };
+    const song = { notes: [{ id: "n1" }, { id: "n2" }] };
+    assert.deepEqual(
+      livePhrases([one, two], song).map((l) => l.ids),
+      [["n1", "n2"]],
+    );
+    assert.deepEqual(livePhrases([{ presses: [], endMs: 0 }], song)[0].ids, ["n1", "n2"]);
+  });
+
+  it("reads later phrases against the first one's beat, each from the next bar line", () => {
+    const tap = (/** @type {number[]} */ downs) =>
+      downs.map((d, i) => ({ midi: 60 + i, downMs: d, upMs: d + 100 }));
+    const { notes, tempo } = readPhrases(
+      [
+        { presses: tap([0, 500, 1000]), endMs: 1500 },
+        // A slow phrase: on its own it would read as quarters at 60 BPM.
+        { presses: tap([0, 1000]), endMs: 2000 },
+      ],
+      { feel: "auto", meter: FOUR },
+    );
+    assert.equal(tempo, 120);
+    assert.deepEqual(
+      notes[1].map((n) => [n.start, n.dur]),
+      [
+        [48, 24],
+        [72, 24],
+      ],
     );
   });
 });

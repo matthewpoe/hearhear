@@ -10,6 +10,7 @@ import { onNoteEvent } from "../input/liveNotes.js";
 import { stop } from "../audio/index.js";
 import { createShelf } from "./shelf.js";
 import { createRecorder } from "./recorder.js";
+import { DEMO_TUNES } from "../finding/demoTunes.js";
 
 /** The user's recorded tunes. */
 export const shelf = createShelf(songStorage);
@@ -23,4 +24,6 @@ export const recorder = createRecorder({
   onNoteEvent,
   open: (tune) => song.open(tune),
   stopAudio: stop,
+  // Discard with nothing else to go back to opens the first demo, not an empty staff.
+  fallback: () => DEMO_TUNES[0]?.song ?? null,
 });
