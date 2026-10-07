@@ -47,20 +47,40 @@ export class TutorError extends Error {
 }
 
 /**
- * Read a non-stream error body: `{ error: { code, message } }`.
+ * The code for an HTTP error whose body has no `{ error: { code } }` envelope:
+ * an edge proxy's HTML page, or a rate limiter's own body. Over budget is a
+ * 503 too, but only the envelope can say so; any other 5xx means the tutor
+ * couldn't be reached, never that its answer was garbled.
+ * @param {number} status
+ */
+function codeFromStatus(status) {
+  if (status === 413) return "too_large";
+  if (status === 422) return "invalid_request";
+  if (status === 429) return "rate_limited";
+  if (status >= 500) return "network";
+  return "protocol";
+}
+
+/**
+ * Read a non-stream error. The body's `{ error: { code, message } }` envelope
+ * comes first; without one, the HTTP status decides.
  * @param {Response} response
  */
 async function errorFromResponse(response) {
-  const fallback = new TutorError("protocol", `The tutor answered ${response.status}.`);
-  let body;
+  let body = null;
   try {
     body = await response.json();
-  } catch (error) {
-    console.error("Tutor error body was not JSON", error);
-    return fallback;
+  } catch {
+    // Not JSON (an HTML error page, an empty body): the status decides.
   }
-  const { code, message } = body?.error ?? {};
-  return typeof code === "string" ? new TutorError(code, String(message ?? "")) : fallback;
+  const envelope = body?.error;
+  if (envelope && typeof envelope === "object" && typeof envelope.code === "string") {
+    return new TutorError(envelope.code, String(envelope.message ?? ""));
+  }
+  return new TutorError(
+    codeFromStatus(response.status),
+    `The tutor answered ${response.status} without an error code.`,
+  );
 }
 
 /**
@@ -102,6 +122,13 @@ export async function askTutor(request, { onDelta, signal }) {
       failure ??= new TutorError("protocol", "The tutor's reply was garbled.");
       return;
     }
+    // Every event's data is an object (`data: {}` for done); `null` or a bare
+    // value would throw below and be misreported as a broken connection.
+    if (data === null || typeof data !== "object" || Array.isArray(data)) {
+      console.error(`Tutor sent ${event} data that isn't an object`, raw);
+      failure ??= new TutorError("protocol", "The tutor's reply was garbled.");
+      return;
+    }
     if (event === "message" && typeof data.delta === "string") onDelta(data.delta);
     else if (event === "suggestions") result = data;
     else if (event === "error") failure ??= new TutorError(String(data.code), String(data.message));
@@ -115,6 +142,7 @@ export async function askTutor(request, { onDelta, signal }) {
       if (ended) break;
       parser.push(value);
     }
+    parser.end();
   } catch (error) {
     if (signal?.aborted) throw error;
     throw new TutorError("network", "The tutor's reply was cut off.");

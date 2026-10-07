@@ -12,7 +12,7 @@ const TEXT = {
   invalid_request: "The tutor couldn't read this request.",
   upstream: "The tutor didn't finish its answer.",
   invalid_output: "The tutor's answer came back garbled.",
-  network: "Couldn't reach the tutor. Check your connection.",
+  network: "Couldn't reach the tutor. Check your connection, or try again in a minute.",
   protocol: "The tutor's answer came back garbled.",
 };
 
