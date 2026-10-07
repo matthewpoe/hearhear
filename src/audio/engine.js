@@ -11,7 +11,7 @@
  * @typedef {{ live: import("tone").Sampler, phrase: import("tone").Sampler }} Pianos
  * @typedef {{
  *   Tone: ToneModule,
- *   drone: import("tone").Synth,
+ *   drone: import("tone").PolySynth,
  *   click: import("tone").Synth,
  *   pianos: Pianos | null,
  * }} Engine
@@ -74,10 +74,13 @@ export function loadEngine() {
   loadingTone ??= import("tone").then(
     (Tone) => {
       Tone.getContext().lookAhead = TRANSPORT_LOOK_AHEAD;
-      const drone = new Tone.Synth({
+      // A soft pad for the key finder's held chord: a slow swell and a long
+      // release, quiet enough per voice that three of them sit under the
+      // piano melody rather than on top of it.
+      const drone = new Tone.PolySynth(Tone.Synth, {
         oscillator: { type: "triangle" },
-        envelope: { attack: 0.4, decay: 0.2, sustain: 0.9, release: 1.2 },
-        volume: -14,
+        envelope: { attack: 0.6, decay: 0.3, sustain: 0.85, release: 1.5 },
+        volume: -22,
       }).toDestination();
       const click = new Tone.Synth({
         oscillator: { type: "square" },
