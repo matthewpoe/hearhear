@@ -138,6 +138,9 @@
       if (!(error instanceof TutorError)) console.error("Tutor exchange failed", error);
       failureCode = error instanceof TutorError ? error.code : "unknown";
       status = "failed";
+      // A locked-out code stops being sent too: after the wait, the student
+      // retypes it (or reopens their link) instead of tripping the limit again.
+      if (failureCode === "access_locked") access.forget();
       if (failureCode === "access_required") {
         codeRejected = Boolean(accessCode);
         access.forget();

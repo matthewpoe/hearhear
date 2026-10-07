@@ -97,7 +97,9 @@ async function errorFromResponse(response) {
 export async function askTutor(request, { onDelta, signal, accessCode = "" }) {
   /** @type {Record<string, string>} */
   const headers = { "Content-Type": "application/json", Accept: "text/event-stream" };
-  if (accessCode) headers["X-Tutor-Access"] = accessCode;
+  // Percent-encoded: header values must be Latin-1, and a passphrase may not
+  // be. The server decodes it and applies the one normalization rule.
+  if (accessCode) headers["X-Tutor-Access"] = encodeURIComponent(accessCode);
   let response;
   try {
     response = await fetch("/api/tutor", {

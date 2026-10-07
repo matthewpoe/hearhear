@@ -106,9 +106,15 @@ describe("askTutor", () => {
       return /** @type {any} */ (fetch.mock.calls[0].arguments[1]).headers;
     }
 
+    it("percent-encodes a passphrase beyond Latin-1, so fetch never throws on the header", async () => {
+      const headers = await sentHeaders({ accessCode: "♪ ピアノ" });
+      assert.equal(decodeURIComponent(headers["X-Tutor-Access"]), "♪ ピアノ");
+      assert.match(headers["X-Tutor-Access"], /^[\x21-\x7e]+$/);
+    });
+
     it("travels as the X-Tutor-Access header", async () => {
       const headers = await sentHeaders({ accessCode: "open sesame" });
-      assert.equal(headers["X-Tutor-Access"], "open sesame");
+      assert.equal(headers["X-Tutor-Access"], "open%20sesame");
     });
 
     it("sends no header when there is no code", async () => {
