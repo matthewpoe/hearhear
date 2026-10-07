@@ -19,17 +19,33 @@ import { createReadable } from "../lib/readable.js";
  *   showDegrees: boolean,
  *   demoAwaitingGuess: boolean,
  *   keyboardLights: KeyboardLights,
+ *   auditionVoicing: AuditionVoicing,
  *   calloutsOn: boolean,
  * }} UiState
  */
 
 /**
+ * How the chords around an auditioned candidate are voiced (decision D4).
+ * "as-song": they hold still, voiced exactly as in the song, so only the
+ * candidate changes: the cleanest test of fit, and the default.
+ * "from-candidate": they flow from the candidate, the way a pianist would
+ * play it. The toggle lives in the chord dropdown with a beginner explainer
+ * (content/explainers.json). After a commit the phrase replays with natural
+ * voice leading either way.
+ * @typedef {"as-song" | "from-candidate"} AuditionVoicing
+ */
+
+/**
  * Keys to light on the on-screen piano (Stream D1 renders them). Chord tones
- * glow in their function color; melody notes in a neutral highlight. Written
- * by the chord dropdown on hover (D2), by the transport during playback (C),
- * and by the key-finding tests, e.g. the drone (D3). D1 lights its own
- * pressed keys itself.
+ * glow in their function color; melody notes in a neutral highlight. D1
+ * lights its own pressed keys itself.
+ *
+ * `source` says who owns the lights. Playback (playWithVisuals, which also
+ * drives the key-finding tests) outranks hover: the chord dropdown writes only
+ * while `source` isn't "playback", and every writer clears the lights only
+ * when `source` is still its own.
  * @typedef {{
+ *   source: "playback" | "hover" | null,
  *   chord: { midi: number[], fn: HarmonicFunction } | null,
  *   melody: number[],
  * }} KeyboardLights
@@ -72,7 +88,8 @@ export function initialUi() {
     labelStyle: "roman",
     showDegrees: true,
     demoAwaitingGuess: false,
-    keyboardLights: { chord: null, melody: [] },
+    keyboardLights: { source: null, chord: null, melody: [] },
+    auditionVoicing: "as-song",
     calloutsOn: true,
   };
 }
