@@ -114,15 +114,17 @@
     flex-wrap: wrap;
     gap: var(--space-2);
   }
+  /* Play is the sound control: filled --sound (tokens.css). */
   .control {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--ink);
+    border: 1px solid var(--sound);
     border-radius: var(--radius-lg);
-    background: var(--surface);
-    color: var(--ink);
+    background: var(--sound);
+    color: var(--sound-ink);
+    font-weight: 500;
     cursor: pointer;
   }
   .small {
@@ -137,6 +139,7 @@
   .control:disabled,
   .small:disabled {
     border-color: var(--rule);
+    background: var(--surface);
     color: var(--ink-muted);
     cursor: not-allowed;
   }

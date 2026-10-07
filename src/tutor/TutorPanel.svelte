@@ -385,11 +385,13 @@
     gap: var(--space-3);
     padding: var(--space-4);
     border: 1px solid var(--rule);
+    border-top: var(--band) solid var(--accent);
     border-radius: var(--radius-md);
     background: var(--surface);
   }
   h2 {
     margin: 0;
+    color: var(--accent);
     font-size: var(--text-lg);
     font-weight: 500;
   }
@@ -536,9 +538,9 @@
     cursor: pointer;
   }
   .primary {
-    border: 1px solid var(--ink);
-    background: var(--ink);
-    color: var(--paper);
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .secondary {
     border: 1px solid var(--rule);
