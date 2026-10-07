@@ -24,7 +24,7 @@ test("a swung take reads as Swing, and as dotted rhythm when Straight; Undo rest
   page.on("pageerror", (error) => problems.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
   await page.getByRole("button", { name: /^Record a tune/ }).click();
   const bar = page.getByRole("region", { name: "Your tune" });
   for (const [i, beats] of LINE.entries()) {
