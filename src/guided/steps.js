@@ -1,7 +1,7 @@
 /**
  * The guided path's pure logic (Stream G): what each step's condition reads
- * from the song, which note a bar and beat names, when a step advances on its
- * own, and the progress a viewer leaves and resumes. No DOM or store imports;
+ * from the song (a step advances once its condition holds), which note a bar
+ * and beat names, and the progress a viewer leaves and resumes. No DOM or store imports;
  * the component passes in the app state it read.
  *
  * @import { Song, Note } from "../types.js"
@@ -10,7 +10,7 @@
 import { numeralOf, positionOf } from "../theory/index.js";
 
 /**
- * When a step is done (content/guided-path.json).
+ * When a step is done (content/guided-path.json): what its action produces.
  * @typedef {{ type: "songLoaded", song: string }
  *   | { type: "keyChosen", tonic: string, mode: "major" | "minor" }
  *   | { type: "keyCommitted" }
@@ -18,7 +18,8 @@ import { numeralOf, positionOf } from "../theory/index.js";
  *   | { type: "played" }
  *   | { type: "tutorReplied" }} Condition
  *
- * A step's "Try this" button. `label` is the button's text.
+ * A step's button in the strip: it does the step's action, or opens what
+ * the action needs. `label` is the button's text.
  * @typedef {({ type: "loadSong", song: string }
  *   | { type: "press", within: string, name: string }
  *   | { type: "openChords", bar: number, beat: number }
@@ -29,7 +30,6 @@ import { numeralOf, positionOf } from "../theory/index.js";
  *   id: string,
  *   title: string,
  *   line: string,
- *   text: string,
  *   done: Condition,
  *   hint?: { when: Condition, text: string },
  *   action?: Action,
@@ -109,17 +109,6 @@ export function conditionMet(condition, { song, played, tutorReplies }) {
 export function hintFor(step, state) {
   if (!step.hint || conditionMet(step.done, state)) return null;
   return conditionMet(step.hint.when, state) ? step.hint.text : null;
-}
-
-/**
- * A step advances on its own when its condition becomes true while it's
- * showing. One already true when the viewer arrives shows as done and waits
- * for Next, so stepping Back never bounces forward again.
- * @param {boolean} wasMet
- * @param {boolean} isMet
- */
-export function shouldAdvance(wasMet, isMet) {
-  return !wasMet && isMet;
 }
 
 /**

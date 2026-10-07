@@ -15,7 +15,6 @@ import {
   noteAt,
   numeralAt,
   saveProgress,
-  shouldAdvance,
   stepTarget,
 } from "../../src/guided/steps.js";
 
@@ -72,10 +71,10 @@ describe("the guided path's content", () => {
     );
   });
 
-  it("has unique step ids, a title, a one-line instruction and text on each, and a label on each action", () => {
+  it("has unique step ids, a title and a one-line instruction on each, and a label on each action", () => {
     assert.equal(new Set(steps.map((s) => s.id)).size, steps.length);
     for (const step of steps) {
-      assert.ok(step.title && step.line && step.text, step.id);
+      assert.ok(step.title && step.line, step.id);
       if (step.action) assert.ok(step.action.label, step.id);
     }
   });
@@ -168,15 +167,6 @@ describe("hintFor", () => {
     assert.match(hintFor(home, state(store.get())) ?? "", /Check it by ear/);
     store.rekey({ tonic: "D", mode: "major", provisional: false });
     assert.equal(hintFor(home, state(store.get())), null);
-  });
-});
-
-describe("shouldAdvance", () => {
-  it("advances only when a condition becomes true", () => {
-    assert.equal(shouldAdvance(false, true), true);
-    assert.equal(shouldAdvance(true, true), false, "already done on arrival: wait for Next");
-    assert.equal(shouldAdvance(false, false), false);
-    assert.equal(shouldAdvance(true, false), false);
   });
 });
 

@@ -3,11 +3,13 @@
   // read from content/guided-path.json, run in a slim strip docked to the top
   // of the keyboard dock. Being part of the dock, it never covers the page:
   // the dock's measured height (--dock-height, the page's scroll padding)
-  // includes it. It shows the step's one-line instruction (More opens the
-  // full text), Try this, Back, Next or Finish, Fold, and Leave. It never
-  // blocks the app: every step can also be done by hand, a step advances on
-  // its own when the app reaches its condition, and the viewer can leave at
-  // any time and resume later from the masthead (GuidedEntry.svelte). It
+  // includes it. It shows the step's one-line instruction, the step's button
+  // (which does the step's action or opens what it needs), and Leave tour.
+  // There is no Next or Back: a step advances only when the app shows its
+  // action done, and a step already done when the tour reaches it is
+  // skipped. It never blocks the app: every step can also be done by hand,
+  // and the viewer can leave at any time and resume later from the masthead
+  // (GuidedEntry.svelte). It
   // drives the app only through public behavior: the song and ui stores,
   // element ids, buttons by accessible name, and the tutor's ask requests.
   // Beginner tips stay quiet while it runs (ui.guidedActive, set by tour.js).
@@ -21,14 +23,7 @@
   import { DEMO_TUNES } from "../finding/demoTunes.js";
   import { chordFromNumeral } from "../theory/index.js";
   import { requestAsk } from "../tutor/requests.js";
-  import {
-    conditionMet,
-    hintFor,
-    lessonExchange,
-    noteAt,
-    shouldAdvance,
-    stepTarget,
-  } from "./steps.js";
+  import { conditionMet, hintFor, lessonExchange, noteAt, stepTarget } from "./steps.js";
   import { tour, goTo, leaveTour, finishTour } from "./tour.js";
 
   /** @import { Action, GuidedPath } from "./steps.js" */
@@ -43,17 +38,12 @@
     ),
   );
 
-  let folded = $state(false);
-  /** A "Try this" press waiting for the piano: the step it was made on, else -1. */
+  /** A step-button press waiting for the piano: the step it was made on, else -1. */
   let waitingAt = $state(-1);
-  let more = $state(false);
   /** Replies in the tutor's conversation, counted from its log. */
   let tutorReplies = $state(0);
   /** Play was pressed (the playhead moved) since this song was loaded. */
   let played = $state(false);
-  /** The step whose arrival was last seen, and whether its condition held then or since. */
-  let arrivedAt = -1;
-  let wasMet = false;
 
   const index = $derived($tour.index);
   const step = $derived(steps[index]);
@@ -62,20 +52,13 @@
   const hint = $derived(hintFor(step, appState));
   const last = $derived(index === steps.length - 1);
 
-  // A step advances on its own when the app reaches its condition while it's
-  // showing; one already met on arrival waits for Next.
+  // Doing a step's action is the only way forward: the step advances once
+  // the app shows it done, and one already done when the tour reaches it
+  // (a tune already loaded, a key already chosen) is skipped. The last step
+  // stays, marked done, until Finish.
   $effect(() => {
     const at = index;
-    const now = met;
-    const on = $tour.running;
-    untrack(() => {
-      if (at !== arrivedAt) {
-        arrivedAt = at;
-        wasMet = now;
-        more = false;
-      } else if (on && !last && shouldAdvance(wasMet, now)) goTo(at + 1);
-      else wasMet = now;
-    });
+    if ($tour.running && met && !last) untrack(() => goTo(at + 1));
   });
 
   // Focus follows the tour in and out: to the step when it starts, back to
@@ -86,7 +69,6 @@
     untrack(async () => {
       if (on === wasRunning) return;
       wasRunning = on;
-      if (on) folded = false;
       await tick();
       document.getElementById(on ? "guided-step-title" : "guided-entry")?.focus();
     });
@@ -154,8 +136,10 @@
     }
   });
 
+  // Only a new song resets it (the song store changes on every edit).
+  const songId = $derived($song.id);
   $effect(() => {
-    void $song.id;
+    void songId;
     played = false;
   });
   $effect(() => {
@@ -183,13 +167,6 @@
 
   // Leaving the page mid-tour still gives the tips back.
   $effect(() => () => ui.update({ guidedActive: false }));
-
-  /** @param {boolean} fold */
-  async function setFolded(fold) {
-    folded = fold;
-    await tick();
-    document.getElementById("guided-fold")?.focus();
-  }
 
   /**
    * A button by its accessible name (aria-label or text) inside an element.
@@ -260,57 +237,34 @@
 </script>
 
 {#if $tour.running}
-  <section class="strip" class:folded aria-label="Guided tour">
+  <section class="strip" aria-label="Guided tour">
     <div class="row">
       <span class="count">Guided tour · step {index + 1}/{steps.length}</span>
       <span class="badge" title={path.status}>Draft</span>
-      <p class="line" class:open={more && !folded} aria-live="polite">
+      <span class="visually-hidden">({path.status})</span>
+      <p class="line" aria-live="polite">
         <strong id="guided-step-title" tabindex="-1">{step.title}:</strong>
         {step.line}
         {#if met}<span class="done">Done.</span>{/if}
       </p>
-      {#if !folded}
+      {#if step.action && !met}
+        {@const action = step.action}
+        {@const waiting = waitingAt === index}
         <button
           type="button"
-          class="link"
-          aria-expanded={more}
-          aria-controls="guided-more"
-          onclick={() => (more = !more)}>{more ? "Less" : "More"}</button
+          class="primary"
+          aria-disabled={waiting}
+          onclick={() => !waiting && tryIt(action)}
+          >{waiting ? "Loading the piano…" : action.label}</button
         >
-        {#if step.action}
-          {@const action = step.action}
-          {@const waiting = waitingAt === index}
-          <button
-            type="button"
-            class="primary"
-            aria-disabled={waiting}
-            onclick={() => !waiting && tryIt(action)}
-            >{waiting ? "Loading the piano…" : action.label}</button
-          >
-        {/if}
-        <button type="button" disabled={index === 0} onclick={() => goTo(index - 1)}>Back</button>
-        {#if last}
-          <button type="button" onclick={finishTour}>Finish</button>
-        {:else}
-          <button type="button" onclick={() => goTo(index + 1)}>Next</button>
-        {/if}
       {/if}
-      <button
-        id="guided-fold"
-        type="button"
-        class="link"
-        aria-expanded={!folded}
-        onclick={() => setFolded(!folded)}>{folded ? "Show" : "Fold"}</button
-      >
-      <button type="button" class="link" onclick={leaveTour}>Leave</button>
+      {#if last && met}
+        <button type="button" class="primary" onclick={finishTour}>Finish</button>
+      {:else}
+        <button type="button" class="link" onclick={leaveTour}>Leave tour</button>
+      {/if}
     </div>
-    {#if !folded && hint}<p class="hint">{hint}</p>{/if}
-    {#if !folded && more}
-      <div id="guided-more" class="more">
-        <p>{step.text}</p>
-        <p class="status">{path.status}.</p>
-      </div>
-    {/if}
+    {#if hint}<p class="hint">{hint}</p>{/if}
   </section>
 {/if}
 
@@ -343,16 +297,13 @@
   p {
     margin: 0;
   }
-  /* One line; More shows the whole of it and the step's full text. */
+  /* One line: the instruction is kept short enough to fit. */
   .line {
     flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .line.open {
-    white-space: normal;
   }
   strong {
     font-weight: 500;
@@ -370,11 +321,6 @@
     font: inherit;
     cursor: pointer;
   }
-  button:disabled {
-    border-color: var(--rule);
-    color: var(--ink-muted);
-    cursor: default;
-  }
   .primary {
     background: var(--ink);
     color: var(--paper);
@@ -387,17 +333,6 @@
     background: none;
     text-decoration: underline;
     padding-inline: var(--space-1);
-  }
-  .more {
-    display: grid;
-    gap: var(--space-1);
-    max-width: 60rem;
-  }
-  .status {
-    color: var(--ink-muted);
-  }
-  .status::first-letter {
-    text-transform: uppercase;
   }
   @media (max-width: 40rem) {
     .row {
