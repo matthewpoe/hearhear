@@ -1,7 +1,7 @@
 /**
  * The bundled demo tunes and how a demo starts (contracts/README.md, "Starting
  * a demo"): the tune loads on the provisional C with key labels hidden, and
- * its true key stays here, in the content file, for the drone test's follow-up.
+ * its true key stays in the content file, for the guided path's hints.
  *
  * @import { Key, Song } from "../types.js"
  */
@@ -38,15 +38,6 @@ export function loadDemo(tune) {
     demoAwaitingGuess: true,
     selectedNoteId: null,
     playheadNoteId: null,
-    keyboardLights: { chord: null, melody: [] },
+    keyboardLights: { source: null, chord: null, melody: [] },
   });
-}
-
-/**
- * The true key of a bundled tune, or null for anything else (free play).
- * @param {string} songId
- * @returns {Key | null}
- */
-export function trueKeyOf(songId) {
-  return DEMO_TUNES.find((t) => t.song.id === songId)?.song.key ?? null;
 }

@@ -1,18 +1,16 @@
 <script>
   /**
    * After a guess commits. The labels reveal around it (keyLabelMode turns
-   * confirmed) and follow the guess, right or wrong. A wrong guess in a demo
-   * gets no buzzer and no correction: the next step is the drone test, so the
-   * user's ear finds the itch.
+   * confirmed) and follow the guess, right or wrong. Every guess gets the same
+   * next step, checking it by ear with the drone (decision D14): no buzzer, no
+   * correction, and no "correct" either. The colors carry the consequence.
    * @import { Key } from "../types.js"
    */
-  import { keyName, sameHome } from "./keys.js";
+  import { keyName } from "./keys.js";
   import ListenButton from "./ListenButton.svelte";
 
-  /** @type {{ guess: Key, trueKey: Key | null, onchange: () => void }} */
-  let { guess, trueKey, onchange } = $props();
-
-  const offHome = $derived(trueKey !== null && !sameHome(guess, trueKey));
+  /** @type {{ guess: Key, onchange: () => void }} */
+  let { guess, onchange } = $props();
 
   /** @type {HTMLElement | undefined} */
   let heading = $state();
@@ -22,16 +20,12 @@
 <div class="result" role="group" aria-labelledby="guess-title">
   <h3 id="guess-title" bind:this={heading} tabindex="-1">Home is {keyName(guess)}.</h3>
   <p>The number row starts on {guess.tonic} now, and the colors follow your guess.</p>
-  {#if offHome}
-    <p>
-      Want to check it by ear? Hold this note underneath. Does the melody settle or itch? If it
-      itches, home may be somewhere else.
-    </p>
-  {:else}
-    <p>Next, click a note on the staff and try a chord under it.</p>
-  {/if}
+  <p>
+    Check it by ear: hold {guess.tonic} underneath the tune. Does the melody settle or itch? If it itches,
+    home may be somewhere else.
+  </p>
   <div class="actions">
-    <ListenButton label="Hold {guess.tonic} underneath" droneKey={guess} />
+    <ListenButton label="Check it by ear" droneKey={guess} />
     <button type="button" onclick={onchange}>Try another home</button>
   </div>
 </div>

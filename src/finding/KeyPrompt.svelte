@@ -1,7 +1,8 @@
 <script>
   /**
-   * "Is 1 really home?" The user names a key (major or minor, on any of the
-   * twelve homes) or asks for help, which offers candidates to test by ear.
+   * "Is 1 really home?" The direct question comes first: the user names a key
+   * (major or minor, on any of the twelve homes). "Not sure, help me find it"
+   * opens the easy mode (KeyCandidates), a drone comparison by ear.
    * Starts on the current hypothesis, so "yes, 1 is home" is one click.
    * @import { Key } from "../types.js"
    */
