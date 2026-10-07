@@ -85,4 +85,61 @@ describe("dropdown placement", () => {
       }
     }
   });
+
+  /** Page-pixel bounds for a viewport scrolled to `scrollY` with a dock on top of its bottom. */
+  const view = (
+    /** @type {number} */ scrollY,
+    /** @type {number} */ height,
+    /** @type {number} */ dock,
+  ) => ({
+    viewTop: scrollY + 16,
+    viewBottom: scrollY + height - dock - 16,
+  });
+
+  it("puts a tall list under an anchor near the top, capped to the room above the dock", () => {
+    const input = {
+      ...at({ anchorTop: 300, anchorBottom: 330, height: 1200 }),
+      ...view(248, 1000, 200),
+    };
+    assert.equal(sideFor(input), "below");
+    const { top, maxHeight } = placeOn(input, "below");
+    assert.equal(top, 338);
+    assert.equal(top + maxHeight, 248 + 1000 - 200 - 16);
+  });
+
+  it("flips a tall list above an anchor near the bottom, ending just above the note", () => {
+    const input = {
+      ...at({ anchorTop: 980, anchorBottom: 1010, height: 1200 }),
+      ...view(248, 1000, 200),
+    };
+    assert.equal(sideFor(input), "above");
+    const { top, maxHeight } = placeOn(input, "above");
+    // Capped at 700, it ends just above the note and starts inside the view.
+    assert.equal(maxHeight, 700);
+    assert.equal(top + maxHeight, 980 - 8);
+    assert.ok(top >= 248 + 16);
+  });
+
+  it("fits a short viewport (390x844 phone, 200px dock) on the roomier side", () => {
+    const bounds = view(248, 844, 200);
+    const input = {
+      ...at({ anchorTop: 600, anchorBottom: 690, height: 565, cap: 844 * 0.7 }),
+      ...bounds,
+    };
+    const { top, maxHeight } = placeOn(input, sideFor(input));
+    assert.ok(top >= bounds.viewTop);
+    assert.ok(top + Math.min(565, maxHeight) <= bounds.viewBottom);
+    assert.ok(maxHeight < 565, "scrolls inside");
+  });
+
+  it("subtracts the dock: the same anchor flips once a dock takes the room below", () => {
+    const anchor = { anchorTop: 800, anchorBottom: 830, height: 300 };
+    const noDock = { ...at(anchor), ...view(248, 1000, 0) };
+    const withDock = { ...at(anchor), ...view(248, 1000, 200) };
+    assert.equal(sideFor(noDock), "below");
+    assert.equal(sideFor(withDock), "above");
+    const { top } = placeOn(withDock, "above");
+    assert.equal(top + 300, 800 - 8);
+    assert.ok(top + 300 <= withDock.viewBottom);
+  });
 });
