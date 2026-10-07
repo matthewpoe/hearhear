@@ -15,6 +15,16 @@ node evals/run.js --limit 3    # smoke run: first 3 requests, prints a summary, 
 - `TUTOR_ACCESS_CODE`, when set, is sent as `X-Tutor-Access` (the live tutor's passphrase), percent-encoded as the app sends it. Fixture mode needs none. If the live tutor answers `401 access_required` (code missing or wrong) or `429 access_locked` (too many wrong codes), the harness says so and stops at once, without retrying.
 - The model reported in the results is the `served_by` of the replies the server's own model served, so the harness needs no setting for it.
 
+### A live run
+
+```sh
+export ANTHROPIC_API_KEY=… TUTOR_ACCESS_CODE=…   # in your shell; never in a file
+make eval-live                                   # 3-request smoke run, then asks
+make eval-live CONFIRM=1                         # the same, without the question
+```
+
+`make eval-live` (`scripts/eval-live.sh`) starts a local server on a free port with `TUTOR_MODE=live`, `TUTOR_RATE_LIMIT="60/minute;1000/day"`, and `TUTOR_DAILY_TOKEN_BUDGET=2000000`, taking the key and the access code from the caller's environment only (it fails fast if either is unset, never prints them, and never reads `.env`). It waits for `/api/health` to report live mode, sends `--limit 3`, and prints how to check that smoke run's cost in the Anthropic Console before asking whether to send the full 123 requests. With no terminal to ask, it stops unless `CONFIRM=1` is set. The server stops when the target exits.
+
 One run is 123 requests (41 change points × 3 levels). The server's default limit is 10 a minute and 100 a day per IP, so run against a local server with `TUTOR_RATE_LIMIT` raised. The harness waits out a `rate_limited` 429's `Retry-After` (at most 120 s; 60 s if the header is missing or not a number of seconds) and retries, up to three times. Try a live server with `--limit` first.
 
 The harness asks `/api/health` which mode the server is in. In fixture mode the server replays its canned replies (about Ode to Joy, not these tunes), so a fixture run measures the plumbing, not the model, and the results say so.
