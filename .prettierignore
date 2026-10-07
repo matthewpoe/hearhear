@@ -8,3 +8,4 @@ docs/PRD.md
 contracts/tutor-*.schema.json
 test-results/
 playwright-report/
+TIMELOG.md
