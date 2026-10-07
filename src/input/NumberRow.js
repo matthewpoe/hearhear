@@ -1,6 +1,7 @@
 /**
  * Noodle mode: the computer keyboard is the instrument. The number row plays
- * scale degrees in the current key (Q–U one octave below, A–J two below),
+ * scale degrees in the current key (Q–U one octave below, A–J two below; the
+ * numeric keypad's digits play as the number row's),
  * Shift raises, Alt/Option lowers, and the up and down arrows move the whole
  * window an octave, as far as keeps every key on the C2–C6 piano (see
  * windowBounds). Keys are read by physical position (KeyboardEvent.code),
@@ -9,7 +10,9 @@
  * With ui.bottomRow set to "chords" (the default), the A–J row plays the
  * diatonic chord on each degree instead (see chordRow.js), held while the key
  * is held. With a staff note selected and the key confirmed, it also places
- * that chord on the note, and Backspace or Delete clears it.
+ * that chord on the note, and Backspace or Delete clears it. With Shift they
+ * delete the note instead, and the staff handles that (Staff.svelte): kept
+ * apart so pressing Backspace again after clearing a chord never deletes.
  *
  * Another handler that consumes a key (the chord dropdown auditioning by
  * degree, say) calls preventDefault, and the number row leaves it alone.
@@ -20,6 +23,7 @@ import { createReadable } from "../lib/readable.js";
 import { song } from "../store/song.js";
 import { keyLabelMode, ui } from "../store/ui.js";
 import { degreeToMidi, keyEventToDegree, voice } from "../theory/index.js";
+import { numpadAsDigit } from "../theory/keyboard.js";
 import { CHORD_CODES, chordForCode, chordRowAction, clearsChord, liveVoicing } from "./chordRow.js";
 import { clampWindow, onPiano } from "./keyBindings.js";
 import { press, release } from "./liveNotes.js";
@@ -132,56 +136,59 @@ export function listenToNumberRow(target) {
     ) {
       return;
     }
-    if (event.code === "ArrowUp" || event.code === "ArrowDown") {
+    // The keypad's digits are the number row's (numpadAsDigit).
+    const code = numpadAsDigit(event.code);
+    if (code === "ArrowUp" || code === "ArrowDown") {
       event.preventDefault();
-      if (!event.repeat) shiftWindow(event.code === "ArrowUp" ? 1 : -1);
+      if (!event.repeat) shiftWindow(code === "ArrowUp" ? 1 : -1);
       return;
     }
-    if (ONE_SHOT_FLAT_FALLBACK && event.code === ONE_SHOT_FLAT_CODE) {
+    if (ONE_SHOT_FLAT_FALLBACK && code === ONE_SHOT_FLAT_CODE) {
       event.preventDefault();
       if (!event.repeat) armed.set(!armed.get());
       return;
     }
-    if (event.code === "Escape" && armed.get()) {
+    if (code === "Escape" && armed.get()) {
       // One Escape does one thing: record mode leaves an armed flat's Escape alone.
       event.preventDefault();
       armed.set(false);
       return;
     }
-    if (event.code === "Backspace" || event.code === "Delete") {
+    // Shift+Backspace deletes the note: the staff's (see the header).
+    if ((code === "Backspace" || code === "Delete") && !event.shiftKey) {
       if (clearSelectedChord()) event.preventDefault();
       return;
     }
 
-    const action = CHORD_CODES.includes(event.code) ? currentChordRowAction() : "notes";
+    const action = CHORD_CODES.includes(code) ? currentChordRowAction() : "notes";
     if (action !== "notes") {
       // Shift and Alt change nothing on the chord row; claim the key either way.
       event.preventDefault();
       // A hidden key: the chord row waits for home (chordRowAction).
       if (action === "none") return;
-      if (event.repeat || held.has(event.code)) return;
-      const chord = chordRowPress(event.code, action);
+      if (event.repeat || held.has(code)) return;
+      const chord = chordRowPress(code, action);
       const pitches = chord.midi.filter(onPiano);
-      held.set(event.code, { pitches, source: chordSource(event.code) });
-      for (const midi of pitches) press(midi, chordSource(event.code));
-      lastChord.set({ code: event.code, midi: pitches, fn: chord.fn });
+      held.set(code, { pitches, source: chordSource(code) });
+      for (const midi of pitches) press(midi, chordSource(code));
+      lastChord.set({ code, midi: pitches, fn: chord.fn });
       return;
     }
 
     const alt = event.altKey || armed.get();
-    const degree = keyEventToDegree(event.code, { shift: event.shiftKey, alt });
+    const degree = keyEventToDegree(code, { shift: event.shiftKey, alt });
     if (!degree) return;
     // Option on a Mac types a symbol and Alt on Windows reaches for the menu bar.
     event.preventDefault();
-    if (event.repeat || held.has(event.code)) return;
+    if (event.repeat || held.has(code)) return;
 
     armed.set(false);
     const { key } = song.get();
     const midi = degreeToMidi(degree, key, clampWindow(key, ui.get().windowOctave));
     // Off the piano there is no key to light and no sample to play.
     if (!onPiano(midi)) return;
-    held.set(event.code, { pitches: [midi], source: source(event.code) });
-    press(midi, source(event.code));
+    held.set(code, { pitches: [midi], source: source(code) });
+    press(midi, source(code));
   }
 
   /** @param {string} code */
@@ -195,7 +202,7 @@ export function listenToNumberRow(target) {
 
   /** @param {KeyboardEvent} event */
   function onKeyUp(event) {
-    releaseKey(event.code);
+    releaseKey(numpadAsDigit(event.code));
   }
 
   // Key-ups never arrive after the window loses focus, so let go of everything.
