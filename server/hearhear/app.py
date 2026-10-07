@@ -4,6 +4,7 @@ Same-origin serving, so there is no CORS middleware; in development the Vite
 dev server proxies /api here.
 """
 
+import os
 import uuid
 from functools import cache
 from typing import Annotated
@@ -33,15 +34,29 @@ app = FastAPI(title="Hear Hear", docs_url=None, redoc_url=None, openapi_url=None
 app.state.limiter = limiter
 
 
+def _api_key() -> str:
+    """ANTHROPIC_API_KEY, required in live mode. Never logged or echoed.
+
+    AsyncAnthropic() builds fine without a key and fails only on the first
+    request, so live mode checks for it here instead: a deploy with no key
+    fails at startup, not on a student's first question.
+    """
+    key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not key:
+        raise RuntimeError("TUTOR_MODE=live needs ANTHROPIC_API_KEY, which is unset or empty.")
+    return key
+
+
 @cache
 def anthropic_client() -> AsyncAnthropic:
-    """One shared client. The SDK reads ANTHROPIC_API_KEY itself. One retry,
-    and a read timeout well inside Railway's 5-minute idle cutoff."""
-    return AsyncAnthropic(max_retries=1, timeout=Timeout(120.0, connect=5.0))
+    """One shared client, given the key explicitly so it never falls back to
+    another credential source. One retry, and a read timeout well inside
+    Railway's 5-minute idle cutoff."""
+    return AsyncAnthropic(api_key=_api_key(), max_retries=1, timeout=Timeout(120.0, connect=5.0))
 
 
 if settings.tutor_mode == "live":
-    anthropic_client()  # A client that can't be built fails the deploy, not a question.
+    anthropic_client()  # Fails at import, before uvicorn serves /api/health.
 
 
 # The one <style> element abcjs 6.7.1 inserts into every staff it draws:

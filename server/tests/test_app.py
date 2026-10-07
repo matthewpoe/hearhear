@@ -1,6 +1,9 @@
 import base64
 import hashlib
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -92,6 +95,39 @@ def test_hidden_key_withholds_fixture_suggestions_too(client: TestClient) -> Non
     suggestions = dict(events(client.post("/api/tutor", json=body).text))["suggestions"]
     assert suggestions["suggestions"] == []
     assert suggestions["dropped"] == 2
+
+
+def import_app(**env: str) -> subprocess.CompletedProcess[str]:
+    """Import the app in a fresh interpreter, as uvicorn does at startup."""
+    clean = {k: v for k, v in os.environ.items() if not k.startswith(("ANTHROPIC_", "TUTOR_"))}
+    return subprocess.run(
+        [sys.executable, "-c", "import hearhear.app"],
+        cwd=REPO_ROOT / "server",
+        env={**clean, **env},
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+
+
+@pytest.mark.parametrize("key", [None, "", "   "], ids=["unset", "empty", "blank"])
+def test_live_mode_without_an_api_key_fails_at_startup(key: str | None) -> None:
+    env = {"TUTOR_MODE": "live"} | ({} if key is None else {"ANTHROPIC_API_KEY": key})
+    result = import_app(**env)
+    assert result.returncode != 0
+    assert "RuntimeError" in result.stderr
+    assert "ANTHROPIC_API_KEY" in result.stderr
+
+
+def test_live_mode_with_an_api_key_starts_without_echoing_it() -> None:
+    result = import_app(TUTOR_MODE="live", ANTHROPIC_API_KEY="sk-ant-test-not-a-real-key")
+    assert result.returncode == 0, result.stderr
+    assert "sk-ant-test" not in result.stdout + result.stderr
+
+
+def test_fixture_mode_needs_no_api_key() -> None:
+    assert import_app(TUTOR_MODE="fixture").returncode == 0
 
 
 def test_tutor_over_budget_fixture(client: TestClient) -> None:

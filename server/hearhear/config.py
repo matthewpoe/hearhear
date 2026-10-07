@@ -1,5 +1,6 @@
-"""Settings from the environment. Never logged: ANTHROPIC_API_KEY, which the
-Anthropic SDK reads itself, so it never passes through these settings."""
+"""Settings from the environment. ANTHROPIC_API_KEY is not one of them: only
+`anthropic_client()` in app.py reads it, straight into the SDK client, so it is
+never stored, logged, or echoed."""
 
 import os
 from dataclasses import dataclass
