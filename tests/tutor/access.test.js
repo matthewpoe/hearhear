@@ -65,14 +65,43 @@ describe("createAccess", () => {
     assert.equal(refreshed.get(), "open sesame");
   });
 
-  it("keeps a typed code in memory only", () => {
+  it("keeps a typed code for this tab, so a reload still has it", () => {
     const tab = page("/");
     const access = createAccess(tab);
     access.load();
     access.set("  typed  ");
     assert.equal(access.get(), "typed");
-    assert.equal(tab.sessionStorage.getItem("hearhear.tutorAccess"), null);
+    assert.equal(tab.sessionStorage.getItem("hearhear.tutorAccess"), "typed");
     assert.deepEqual(tab.replaced, []);
+
+    const reloaded = createAccess(tab);
+    reloaded.load();
+    assert.equal(reloaded.get(), "typed");
+  });
+
+  it("forgets a rejected typed code for a reload too", () => {
+    const tab = page("/");
+    const access = createAccess(tab);
+    access.load();
+    access.set("wrong");
+    access.forget();
+    const reloaded = createAccess(tab);
+    reloaded.load();
+    assert.equal(reloaded.get(), "");
+  });
+
+  it("still uses a typed code when storage is blocked", () => {
+    const warn = mock.method(console, "warn", () => {});
+    const blocked = () => {
+      throw new DOMException("blocked", "SecurityError");
+    };
+    const access = createAccess(
+      page("/", { getItem: blocked, setItem: blocked, removeItem: blocked }),
+    );
+    access.load();
+    access.set("open");
+    assert.equal(access.get(), "open");
+    assert.equal(warn.mock.callCount(), 2);
   });
 
   it("forgets a rejected code, in memory and for a refresh", () => {
