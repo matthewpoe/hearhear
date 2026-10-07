@@ -155,6 +155,11 @@ test("the beginner tour walks from the welcome to the tutor without covering a c
   seen.push(await checkTip(page));
   expect(seen.at(-1)).toBe("Don't read music? Use your ear.");
 
+  // A curious click on a note before choosing the key opens "Choose the key
+  // first"; it must not use up the chord tip that comes after the key.
+  await clickNote(page, heldE.id);
+  await page.keyboard.press("Escape");
+
   // Choose D: that finishes both key tips.
   await page
     .locator("#key-prompt")

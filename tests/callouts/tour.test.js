@@ -101,6 +101,21 @@ describe("actedOn", () => {
   });
 });
 
+describe("actedOn with a moment", () => {
+  const audition = {
+    id: "audition",
+    anchor: "staff",
+    text: "A",
+    when: { keyChosen: true, dropdownOpen: false },
+    doneWhen: /** @type {const} */ ("dropdownOpen"),
+  };
+  it("doesn't count opening the dropdown before a key is chosen", () => {
+    const early = { ...START, songLoaded: true, dropdownOpen: true };
+    assert.deepEqual(actedOn([audition], early), []);
+    assert.deepEqual(actedOn([audition], { ...early, keyChosen: true }), ["audition"]);
+  });
+});
+
 describe("countAction", () => {
   it("lets actions on the tip's subject pass freely", () => {
     assert.deepEqual(countAction(0, true), { elsewhere: 0, fold: false });

@@ -85,13 +85,23 @@ export function nextCallout(callouts, { dismissed, hasAnchor, labelsHidden, fact
 
 /**
  * Ids of the callouts the user has already acted on: their `doneWhen` fact
- * holds (a song loaded, a key chosen, the dropdown opened).
+ * holds (a song loaded, a key chosen, the dropdown opened) while the rest of
+ * their moment does too. Opening the dropdown before choosing a key doesn't
+ * use up the tip about hearing chords, which only makes sense after one.
  * @param {Callout[]} callouts
  * @param {TourFacts} facts
  * @returns {string[]}
  */
 export function actedOn(callouts, facts) {
-  return callouts.filter((c) => c.doneWhen && facts[c.doneWhen]).map((c) => c.id);
+  return callouts
+    .filter((c) => {
+      if (!c.doneWhen || !facts[c.doneWhen]) return false;
+      const rest = Object.entries(c.when ?? {}).filter(([fact]) => fact !== c.doneWhen);
+      return rest.every(
+        ([fact, wanted]) => facts[/** @type {keyof TourFacts} */ (fact)] === wanted,
+      );
+    })
+    .map((c) => c.id);
 }
 
 /**
