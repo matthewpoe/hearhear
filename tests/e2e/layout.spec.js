@@ -71,6 +71,15 @@ for (const [width, height] of [
     await expect(question).toHaveCount(0);
     await expect(steps.locator('[aria-current="step"]')).toContainText("Chords");
     await expect(steps).toContainText("D major");
+    // Focus lands on the collapsed row, and the drone and degrees stay there.
+    await expect(steps.getByRole("button", { name: "Change the key" })).toBeFocused();
+    const drone = steps.getByRole("switch", { name: "Drone on home" });
+    await expect(drone).toHaveAttribute("aria-checked", "false");
+    await drone.click();
+    await expect(drone).toHaveAttribute("aria-checked", "true");
+    await drone.click();
+    await expect(drone).toHaveAttribute("aria-checked", "false");
+    await expect(steps.getByRole("switch", { name: "Scale degrees" })).toBeVisible();
     await steps.getByRole("button", { name: "Change the key" }).click();
     await expect(question).toBeVisible();
 

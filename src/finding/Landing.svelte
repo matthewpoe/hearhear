@@ -12,7 +12,7 @@
    * another key (say, a note click on a demo before the key guess).
    * @import { Key } from "../types.js"
    */
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import { song } from "../store/song.js";
   import { ui } from "../store/ui.js";
   import { audioStatus, preload, resume, unlock } from "../audio/index.js";
@@ -20,6 +20,8 @@
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
   import { nextStep } from "../steps/nextStep.js";
+  import DroneSwitch from "../staff/DroneSwitch.svelte";
+  import DegreesSwitch from "../toolbar/DegreesSwitch.svelte";
 
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
@@ -97,6 +99,16 @@
     intent = "ask";
   });
 
+  /** @type {HTMLButtonElement | undefined} */
+  let reopenButton = $state();
+
+  /** "Done" or "Not now": collapse the key step, keeping focus on its row. */
+  async function collapseKey() {
+    intent = "dismissed";
+    await tick();
+    reopenButton?.focus();
+  }
+
   /**
    * Commit a guess, or take one back (a provisional key). The demo flag stays
    * set until the user leaves the demo (D18), so taking back or undoing a
@@ -142,9 +154,20 @@
           <span class="name">{step.label}</span>
           <span class="summary">{step.summary}</span>
           {#if step.id === "key" && view !== "prompt"}
-            <button type="button" class="reopen" onclick={() => (intent = "reopened")}>
+            <button
+              type="button"
+              class="reopen"
+              bind:this={reopenButton}
+              onclick={() => (intent = "reopened")}
+            >
               {$song.key.provisional ? "Find the key" : "Change the key"}
             </button>
+            <!-- The settings that count from home stay reachable with the key
+                 collapsed: a drone left on keeps sounding. -->
+            <span class="key-tools" role="group" aria-label="Hear it from home">
+              <DroneSwitch />
+              <DegreesSwitch />
+            </span>
           {/if}
         </li>
       {/each}
@@ -156,7 +179,7 @@
     {#key $song.id}
       <KeyPrompt
         onkey={rekey}
-        ondismiss={canDismiss ? () => (intent = "dismissed") : undefined}
+        ondismiss={canDismiss ? collapseKey : undefined}
         autofocus={(demo && $song.key.provisional && intent === "ask") || intent === "reopened"}
       />
     {/key}
@@ -235,6 +258,11 @@
     .path li + li::before {
       display: none;
     }
+  }
+  .key-tools {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
   }
   .reopen {
     padding: 0 var(--space-1);
