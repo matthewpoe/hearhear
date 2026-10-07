@@ -15,8 +15,17 @@
 
 import { createReadable } from "../lib/readable.js";
 import { rekeySong, transposeSong, ticksPerBar } from "../theory/index.js";
+import {
+  DEFAULT_TEMPO,
+  MAX_LYRIC_CHARS,
+  MAX_NOTES,
+  MAX_SWING,
+  MAX_TITLE_CHARS,
+  MIN_SWING,
+  charCount,
+  isTitle,
+} from "./songLimits.js";
 
-const MAX_NOTES = 400;
 /** The piano's range, A0 to C8: every note's MIDI lies within it. */
 export const MIN_MIDI = 21;
 export const MAX_MIDI = 108;
@@ -30,22 +39,19 @@ export function emptySong() {
     title: "Untitled",
     key: { tonic: "C", mode: "major", provisional: true },
     meter: { beatsPerBar: 4, beatUnit: 4, pickupTicks: 0, provisional: true },
-    tempo: 96,
+    tempo: DEFAULT_TEMPO,
     version: 0,
     notes: [],
     chords: [],
   };
 }
 
-/** The schema's bound on a note's `lyric` syllable. */
-export const MAX_LYRIC_CHARS = 40;
-
 /**
  * A note's optional syllable: a non-empty string within the schema's bound.
  * @param {unknown} lyric
  */
 export function isLyric(lyric) {
-  return typeof lyric === "string" && lyric.length >= 1 && lyric.length <= MAX_LYRIC_CHARS;
+  return typeof lyric === "string" && lyric.length >= 1 && charCount(lyric) <= MAX_LYRIC_CHARS;
 }
 
 /**
@@ -53,7 +59,9 @@ export function isLyric(lyric) {
  * @param {unknown} swing
  */
 export function isSwing(swing) {
-  return typeof swing === "number" && Number.isFinite(swing) && swing >= 1 && swing <= 3;
+  return (
+    typeof swing === "number" && Number.isFinite(swing) && swing >= MIN_SWING && swing <= MAX_SWING
+  );
 }
 
 /**
@@ -113,17 +121,20 @@ function ripple(notes, afterTick, delta) {
 }
 
 /**
- * How open() reaches this tab's saved songs. src/store/persist.js installs
- * them at startup; until then open() is load().
+ * How open() and forget() reach this tab's saved songs. src/store/persist.js
+ * installs them at startup; until then open() is load() and forget() does
+ * nothing.
  * @typedef {{
  *   recall: (id: string) => { song: Song, restore: () => void } | null,
  *   fresh: (tune: Song) => void,
+ *   forget?: (id: string) => void,
  * }} OpenHooks
  * - recall: this tab's saved copy of a song, already validated, plus a
  *   function that restores the view state saved with it (the demo flag). Null
  *   when there is none. Never throws.
  * - fresh: set up a tune with no saved copy (for a demo: provisional C, labels
  *   hidden; see loadDemo in src/finding/demoTunes.js).
+ * - forget: drop a song's saved copy, and any save of it still pending.
  */
 
 /** @param {Note[]} notes */
@@ -221,8 +232,17 @@ export function createSongStore(initial = emptySong()) {
     },
 
     /**
+     * Forget this tab's saved copy of a song (a re-take's draft), including a
+     * save of it that hasn't run yet.
+     * @param {string} id
+     */
+    forget(id) {
+      openHooks.forget?.(id);
+    },
+
+    /**
      * Persistence hook: install how open() recalls saved songs and starts
-     * fresh ones. Called once, by src/store/persist.js.
+     * fresh ones, and how forget() drops them. Called once, by src/store/persist.js.
      * @param {OpenHooks} hooks
      */
     setOpenHooks(hooks) {
@@ -353,13 +373,12 @@ export function createSongStore(initial = emptySong()) {
 
     /**
      * Rename the song (a recorded tune's title). Refuses a blank title or one
-     * over the schema's 120 characters.
+     * over the schema's MAX_TITLE_CHARS.
      * @param {string} title
      */
     rename(title) {
-      const length = Array.from(title).length;
-      if (title.trim() !== title || length < 1 || length > 120) {
-        throw new RangeError("A title is 1 to 120 characters, trimmed");
+      if (title.trim() !== title || !isTitle(title)) {
+        throw new RangeError(`A title is 1 to ${MAX_TITLE_CHARS} characters, trimmed`);
       }
       if (title === store.get().title) return;
       commit((s) => ({ ...s, title }));

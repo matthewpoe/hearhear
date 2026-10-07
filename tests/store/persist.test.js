@@ -62,7 +62,10 @@ describe("song memory", () => {
     assert.deepEqual(song.get().key, ODE.key);
   });
 
-  afterEach(() => mock.restoreAll());
+  afterEach(() => {
+    mock.restoreAll();
+    mock.timers.reset();
+  });
 
   it("opens a tune fresh when nothing is saved", () => {
     const { song, ui } = boot(fakeStorage());
@@ -131,6 +134,35 @@ describe("song memory", () => {
     assert.deepEqual(song.get().key, G_MAJOR);
     const stored = JSON.parse(tab.items.get(`hearhear.song.${ODE.id}`));
     assert.deepEqual(stored.song.key, G_MAJOR);
+  });
+
+  it("forget() drops a song's saved copy and cancels its pending save", () => {
+    mock.timers.enable({ apis: ["setTimeout"] });
+    const tab = fakeStorage();
+    const removable = { ...tab, removeItem: (/** @type {string} */ key) => tab.items.delete(key) };
+    const { song, memory } = boot(removable);
+    const key = `hearhear.song.${ODE.id}`;
+    song.open(ODE);
+    memory.flush();
+    assert.ok(tab.items.has(key), "an earlier copy was saved");
+    song.rekey(G_MAJOR);
+    // Within the debounce window: the edit's save is still pending.
+    song.forget(ODE.id);
+    assert.equal(tab.items.has(key), false);
+    mock.timers.tick(10_000);
+    memory.flush();
+    assert.equal(tab.items.has(key), false, "the pending save never lands");
+  });
+
+  it("forget() leaves another song's pending save alone", () => {
+    mock.timers.enable({ apis: ["setTimeout"] });
+    const tab = fakeStorage();
+    const { song, memory } = boot(tab);
+    song.open(ODE);
+    song.rekey(G_MAJOR);
+    memory.forget(ST_JAMES.id);
+    mock.timers.tick(10_000);
+    assert.deepEqual(JSON.parse(tab.items.get(`hearhear.song.${ODE.id}`)).song.key, G_MAJOR);
   });
 
   it("round-trips a song through storage", () => {

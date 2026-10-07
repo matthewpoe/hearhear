@@ -3,7 +3,16 @@
  * user fixes it by ear.
  */
 
+import songSchema from "../../contracts/song.schema.json" with { type: "json" };
 import { TICKS_PER_QUARTER } from "./meter.js";
+
+/**
+ * A song's tempo when nothing sets one, in BPM: the song schema's default.
+ * src/store/songLimits.js shares it with the rest of the app; it is read here
+ * because the theory core imports no store.
+ * @type {number}
+ */
+export const DEFAULT_TEMPO = songSchema.properties.tempo.default;
 
 /** Gap lengths a guess can snap to, in beats. */
 const GRID = [0.5, 1, 1.5, 2, 3, 4];
@@ -18,8 +27,8 @@ const SAME_GAP = 0.2;
  */
 const DUPLICATE_ONSET = 0.2;
 
-/** The beat when there is no gap to measure (a single note): 96 BPM. */
-const DEFAULT_BEAT_MS = 625;
+/** The beat when there is no gap to measure (a single note): the default tempo's. */
+const DEFAULT_BEAT_MS = 60000 / DEFAULT_TEMPO;
 
 /**
  * The tempos a beat is read in. A most common gap faster than FASTEST_BPM is

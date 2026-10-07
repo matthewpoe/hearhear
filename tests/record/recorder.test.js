@@ -262,7 +262,7 @@ describe("recorder", () => {
     assert.equal(second.song.get().notes.length, 2);
   });
 
-  it("a re-take cut short by another song leaves the saved tune and its chords as they were", async () => {
+  it("a re-take cut short by another song leaves the saved tune and its chords as they were", () => {
     const { song, ui, storage, recorder, tap } = setup({ initial: ODE });
     const memory = installPersistence({
       song,
@@ -284,7 +284,6 @@ describe("recorder", () => {
     tap(65);
     // The guided tour's "Try it" opens a demo mid-take.
     song.open(ODE);
-    await new Promise((resolve) => setImmediate(resolve));
     memory.flush();
     assert.equal(recorder.get().status, "idle");
 
@@ -305,7 +304,7 @@ describe("recorder", () => {
     assert.equal(song.get().chords.length, 1);
   });
 
-  it("a finished re-take saves over the tune and forgets its draft", async () => {
+  it("a finished re-take saves over the tune and forgets its draft", () => {
     const { song, ui, storage, recorder, tap } = setup();
     const memory = installPersistence({
       song,
@@ -323,7 +322,6 @@ describe("recorder", () => {
     tap(67);
     tap(65);
     recorder.stop();
-    await new Promise((resolve) => setImmediate(resolve));
     memory.flush();
     const saved = createSongMemory(() => storage);
     assert.deepEqual(
