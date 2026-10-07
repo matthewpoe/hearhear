@@ -154,6 +154,24 @@ describe("guessRhythm", () => {
     assert.equal(swing, true);
   });
 
+  it("hears swing at a slow tempo, where the long note is the most common gap", () => {
+    // At 900 ms, the 600 ms long notes are the most common gap and a plausible beat.
+    const onsets = [0, 1, 1 + 2 / 3, 2, 2 + 2 / 3, 3, 3 + 2 / 3, 4];
+    for (const feel of /** @type {const} */ (["auto", "straight"])) {
+      const { notes, beatMs, swing } = guessRhythm(tapAt(onsets, 900), {
+        endMs: 1000 + 5 * 900,
+        feel,
+      });
+      assert.ok(Math.abs(beatMs - 900) < 25, `${feel}: ${beatMs}`);
+      assert.equal(swing, feel === "auto", feel);
+      assert.deepEqual(
+        notes.map((n) => n.dur),
+        feel === "auto" ? [12, 6, 6, 6, 6, 6, 6, 12] : [12, 9, 3, 9, 3, 9, 3, 12],
+        feel,
+      );
+    }
+  });
+
   it("reads one swung take straight or swung, as the player says", () => {
     const beatMs = 600;
     // Quarter, then three 2:1 pairs, then a quarter.

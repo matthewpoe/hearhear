@@ -102,6 +102,13 @@ function duplicateOnsets(events) {
  * @typedef {"auto" | "swing" | "straight"} Feel
  */
 
+/**
+ * A swing beat is read only when it is under this many straight beats:
+ * between a swung pair over its long note (at most 1.67, at 3:2) and a
+ * dotted figure over its beat (2).
+ */
+const SWING_SPAN_MAX = 1.8;
+
 const SWING_MIN = 1.25;
 const SWING_MAX = 3.6;
 
@@ -184,7 +191,9 @@ function readSwing(gaps, feel = "auto") {
       if (explained(swingBeat) >= explained(straightBeat)) beatMs = swingBeat;
     } else if (
       !dotted &&
-      swingBeat < 1.5 * straightBeat &&
+      // A swung pair is 1.33 to 1.67 times its long gap (3:1 to 3:2), which
+      // is often the most common gap; a dotted figure over two beats is 2.
+      swingBeat < SWING_SPAN_MAX * straightBeat &&
       explained(swingBeat) > explained(straightBeat)
     ) {
       beatMs = swingBeat;

@@ -7,8 +7,11 @@
 import { test, expect } from "@playwright/test";
 import { axe } from "./axe.js";
 
-/** A 600 ms beat: a quarter, three 2:1 swung pairs, then a quarter. */
-const BEAT_MS = 600;
+/**
+ * A slow 900 ms beat (about 67 BPM), so browser timing under load can't blur
+ * a 2:1 pair: a quarter, three swung pairs, then a quarter.
+ */
+const BEAT_MS = 900;
 const HOLD_MS = 90;
 const LINE = [1, 2 / 3, 1 / 3, 2 / 3, 1 / 3, 2 / 3, 1 / 3, 1];
 const KEYS = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit4", "Digit3", "Digit2"];
@@ -59,7 +62,9 @@ test("a swung take reads as Swing, and as dotted rhythm when Straight; Undo rest
   const EVEN = "12 6 6 6 6 6 6 12";
   const DOTTED = "12 9 3 9 3 9 3 12";
 
-  // The guess heard swing: even eighths, marked Swing.
+  // Swing (the guess here, unless the browser's timing blurred it): even
+  // eighths, marked Swing. The guess itself is unit-tested; this checks the choice.
+  await feel.locator("label", { hasText: "Swing" }).click();
   await expect(swing).toBeChecked();
   await expect(marking).toContainText("Swing");
   await expect.poll(durations).toBe(EVEN);
