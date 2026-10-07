@@ -63,21 +63,38 @@ test("right-click a note to change its accidental, by mouse and keyboard", async
     "Click for chords · right-click to change the accidental",
   );
 
+  /** The menu sits just below or just above the note, never over it. */
+  const besideNote = async () => {
+    const noteBox = await note.boundingBox();
+    const menuBox = await page.locator(".accidentals").boundingBox();
+    if (!noteBox || !menuBox) throw new Error("note or menu has no box");
+    const below = menuBox.y - (noteBox.y + noteBox.height);
+    const above = noteBox.y - (menuBox.y + menuBox.height);
+    expect(below >= 0 || above >= 0, "the menu overlaps its note").toBe(true);
+    expect(Math.min(Math.abs(below), Math.abs(above))).toBeLessThan(16);
+  };
+  /** Wheel-scroll the page 60px, up if it can go up, else down. */
+  const scrollAway = async () => {
+    const before = await page.evaluate(() => window.scrollY);
+    const dy = before >= 60 ? -60 : 60;
+    // Wheel over the page's corner, away from the menu (which keeps its own scroll).
+    await page.mouse.move(4, 4);
+    await page.mouse.wheel(0, dy);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before + dy);
+  };
+
   // 1. Right-click: the menu lists G with each accidental, natural checked.
+  // It stays beside the note as the page scrolls (it once drifted by the
+  // scroll distance, onto the note).
   const { head, position } = await noteHead(page, G);
   await head.click({ button: "right", position });
   const menu = page.getByRole("menu", { name: "Change G4" });
   await expect(menu).toBeVisible();
   await expect(menu).toBeInViewport();
-  // Anchored to the note: just below it (or just above), not drifted away.
-  const noteBox = await note.boundingBox();
-  const menuBox = await page.locator(".accidentals").boundingBox();
-  if (!noteBox || !menuBox) throw new Error("note or menu has no box");
-  const gap = Math.min(
-    Math.abs(menuBox.y - (noteBox.y + noteBox.height)),
-    Math.abs(noteBox.y - (menuBox.y + menuBox.height)),
-  );
-  expect(gap).toBeLessThan(16);
+  await besideNote();
+  await scrollAway();
+  await expect(menu).toBeVisible();
+  await besideNote();
   const items = menu.getByRole("menuitemradio");
   await expect(items).toHaveText(["G♯", /^G♭\s*Shows as F♯ in this key$/, "G♮", /^G𝄪/, /^G𝄫/]);
   await expect(menu.getByRole("menuitemradio", { checked: true })).toHaveAccessibleName(

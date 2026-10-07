@@ -34,6 +34,8 @@
   let place = $state({ top: 0, left: 0, maxHeight: /** @type {number | null} */ (null) });
   /** @type {Side | null} */
   let side = null;
+  /** The note's box in page coordinates, fixed at open: refits on scroll reuse it. */
+  let anchor = { top: 0, bottom: 0, left: 0 };
 
   const note = $derived(request ? $song.notes.find((n) => n.id === request.noteId) : undefined);
   const menu = $derived(note ? accidentalChoices(note.midi, $song.key) : null);
@@ -44,9 +46,14 @@
     if (!request) return;
     const { rect } = request;
     side = null;
+    anchor = {
+      top: rect.top + window.scrollY,
+      bottom: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+    };
     place = {
-      top: rect.bottom + window.scrollY + GUTTER_PX / 2,
-      left: Math.max(window.scrollX + GUTTER_PX, rect.left + window.scrollX),
+      top: anchor.bottom + GUTTER_PX / 2,
+      left: Math.max(window.scrollX + GUTTER_PX, anchor.left),
       maxHeight: null,
     };
     void tick().then(async () => {
@@ -67,13 +74,12 @@
   /** @param {{ reside?: boolean }} [options] */
   function fit({ reside = false } = {}) {
     if (!request || !popup) return;
-    const { rect } = request;
     const dockTop = document.querySelector(DOCK_SELECTOR)?.getBoundingClientRect().top;
     const visibleBottom = Math.min(window.innerHeight, dockTop ?? Infinity);
     /** @type {PlacementInput} */
     const at = {
-      anchorTop: rect.top + window.scrollY,
-      anchorBottom: rect.bottom + window.scrollY,
+      anchorTop: anchor.top,
+      anchorBottom: anchor.bottom,
       height: popup.scrollHeight + popup.offsetHeight - popup.clientHeight,
       viewTop: window.scrollY + GUTTER_PX,
       viewBottom: window.scrollY + visibleBottom - GUTTER_PX,
@@ -86,7 +92,7 @@
     place = {
       top,
       maxHeight,
-      left: Math.max(window.scrollX + GUTTER_PX, Math.min(rect.left + window.scrollX, maxLeft)),
+      left: Math.max(window.scrollX + GUTTER_PX, Math.min(anchor.left, maxLeft)),
     };
   }
 
