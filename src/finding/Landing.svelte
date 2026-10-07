@@ -19,6 +19,7 @@
   import SongPicker from "../toolbar/SongPicker.svelte";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
+  import { nextStep } from "../steps/nextStep.js";
 
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
@@ -52,11 +53,14 @@
     return $song.notes.length >= PHRASE_NOTES ? "prompt" : "none";
   });
 
-  const soundNote = $derived(
-    $audioStatus === "loading" || $audioStatus === "failed" || soundBlocked,
-  );
-  /** Nothing to show: no card, so the step column starts with the chords. */
-  const quiet = $derived(!empty && view === "none" && !soundNote);
+  /** The step path: Key, Rhythm, Chords, with the key current while its question shows. */
+  const path = $derived(nextStep($song, { keyOpen: view === "prompt" }));
+
+  /** A recorded tune's rhythm guess, taken as it is (the 3-vs-4 question is parked). */
+  function confirmRhythm() {
+    const now = song.get();
+    song.rebar({ ...now.meter, provisional: false });
+  }
 
   /** A demo's prompt waits for its guess; anywhere else the user can put it off. */
   const canDismiss = $derived(!($song.key.provisional && demo));
@@ -106,7 +110,7 @@
   }
 </script>
 
-<section id="landing" class:empty class:quiet aria-label="Welcome">
+<section id="landing" class:empty aria-label={empty ? "Welcome" : "Next step"}>
   {#if empty}
     <h2>Hear a tune. Find where home is.</h2>
     <p class="invite">
@@ -128,6 +132,25 @@
     {/if}
   </div>
 
+  {#if !empty}
+    <!-- The next big-picture question. The current step opens below; a done
+         step is one line, and the key's can be reopened. -->
+    <ol class="path" aria-label="Steps">
+      {#each path.steps as step, i (step.id)}
+        <li class={step.status} aria-current={step.status === "current" ? "step" : undefined}>
+          <span class="num" aria-hidden="true">{i + 1}</span>
+          <span class="name">{step.label}</span>
+          <span class="summary">{step.summary}</span>
+          {#if step.id === "key" && view !== "prompt"}
+            <button type="button" class="reopen" onclick={() => (intent = "reopened")}>
+              {$song.key.provisional ? "Find the key" : "Change the key"}
+            </button>
+          {/if}
+        </li>
+      {/each}
+    </ol>
+  {/if}
+
   {#if view === "prompt"}
     <!-- Remount per song, so easy mode ranks the homes of the tune now loaded. -->
     {#key $song.id}
@@ -137,11 +160,14 @@
         autofocus={(demo && $song.key.provisional && intent === "ask") || intent === "reopened"}
       />
     {/key}
-  {:else if view === "find"}
-    <div class="find">
-      <button type="button" onclick={() => (intent = "reopened")}>
-        {$song.key.provisional ? "Find the key" : "Change the key"}
-      </button>
+  {:else if path.current === "rhythm"}
+    <div class="rhythm" role="group" aria-labelledby="rhythm-title">
+      <h2 id="rhythm-title">Does this rhythm sound right?</h2>
+      <p>
+        The recording reads as {$song.meter.beatsPerBar}/{$song.meter.beatUnit} at {$song.tempo} beats
+        a minute. Press Play and tap along: do the bar lines fall where the beat feels strongest?
+      </p>
+      <button type="button" onclick={confirmRhythm}>Sounds right</button>
     </div>
   {/if}
 </section>
@@ -155,8 +181,69 @@
     border-radius: var(--radius-md);
     background: var(--surface);
   }
-  .quiet {
-    display: none;
+  .path {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+  .path li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--ink-muted);
+  }
+  .path li + li::before {
+    content: "→";
+    margin-right: var(--space-1);
+    color: var(--ink-muted);
+  }
+  .num {
+    display: inline-grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .path .current {
+    color: var(--ink);
+  }
+  .current .num {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .name {
+    font-weight: 600;
+  }
+  .done .name,
+  .current .name {
+    color: var(--ink);
+  }
+  /* On phones the steps stack, one per line. */
+  @media (max-width: 40rem) {
+    .path {
+      flex-direction: column;
+    }
+    .path li + li::before {
+      display: none;
+    }
+  }
+  .reopen {
+    padding: 0 var(--space-1);
+    border: none;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
   }
   h2 {
     margin: 0;
@@ -181,8 +268,21 @@
     margin: 0;
     color: var(--ink-muted);
   }
+  .rhythm {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+  .rhythm h2 {
+    font-size: var(--text-lg);
+  }
+  .rhythm p {
+    max-width: 40rem;
+    margin: 0;
+    color: var(--ink-muted);
+  }
   .sound button,
-  .find button {
+  .rhythm button {
     padding: var(--space-1) var(--space-3);
     border: 1px solid var(--ink);
     border-radius: var(--radius-lg);
