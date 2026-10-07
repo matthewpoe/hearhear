@@ -14,6 +14,6 @@ Format: **date — decision.** Why. _Rejected:_ alternatives.
 
 ## Known gaps
 
-- `Landing.svelte` still calls `loadDemo` directly; stream U1's song chooser is to call `song.open(tune)`. Until then, choosing a demo starts it fresh rather than bringing back its saved copy, although reload restores the last song.
-- The landing's local `intent` (whether the guess result is showing) isn't remembered, so a reload after a guess shows the song without the "Home is G major" result card.
+- ~~The chooser calls `loadDemo` directly.~~ Resolved at integration: U1's `SongPicker.svelte` (masthead and welcome cards) calls `song.open(tune)`.
+- ~~A reload after a guess loses the result card.~~ Resolved at integration: Landing shows the key question, with the chosen chip pressed and the result under it, whenever a demo is open with its guess committed, without taking focus.
 - If something clears `ui.demoAwaitingGuess` just before replacing the song, the song being left is saved with the cleared flag. Nothing does that today.

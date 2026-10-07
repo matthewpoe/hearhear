@@ -39,7 +39,8 @@ import { createReadable } from "../lib/readable.js";
  * "as-song": they hold still, voiced exactly as in the song, so only the
  * candidate changes: the cleanest test of fit, and the default.
  * "from-candidate": they flow from the candidate, the way a pianist would
- * play it. The toggle lives in the chord dropdown with a beginner explainer
+ * play it. The toggle is the staff header's "Voice leading" switch
+ * (src/toolbar/VoiceLeading.svelte), with a beginner explainer
  * (content/explainers.json). After a commit the phrase replays with natural
  * voice leading either way.
  * @typedef {"as-song" | "from-candidate"} AuditionVoicing

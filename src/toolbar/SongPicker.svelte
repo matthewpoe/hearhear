@@ -6,23 +6,20 @@
    * @import { Song } from "../types.js"
    */
   import { song } from "../store/song.js";
-  import { DEMO_TUNES, loadDemo } from "../finding/demoTunes.js";
+  import { DEMO_TUNES } from "../finding/demoTunes.js";
 
   /** @type {{ hero?: boolean }} */
   let { hero = false } = $props();
 
   /**
-   * Opens a tune. When the song store gains `song.open` (per-song memory),
-   * this is the one line to switch.
-   * @type {(tune: Song) => void}
+   * Opens a tune through `song.open`: this tab's saved copy (its key guess and
+   * chords) if there is one, otherwise a fresh demo via its `fresh` hook.
+   * @param {Song} tune
    */
-  const openTune = loadDemo;
-
-  /** @param {Song} tune */
   function choose(tune) {
     // The tune on the staff is already open; a click never wipes its edits.
     if (!hero && tune.id === $song.id) return;
-    openTune(tune);
+    song.open(tune);
   }
 </script>
 

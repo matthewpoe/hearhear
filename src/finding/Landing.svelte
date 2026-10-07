@@ -43,6 +43,9 @@
     if ($song.key.provisional && demo) return "prompt";
     if (intent === "dismissed") return "find";
     if (intent !== "ask") return "prompt";
+    // A demo reopened with its guess committed (switching back, or a reload)
+    // shows the question as the guess left it: the chosen chip and the result.
+    if (demo) return "prompt";
     if (!$song.key.provisional) return "none";
     return $song.notes.length >= PHRASE_NOTES ? "prompt" : "none";
   });
@@ -128,7 +131,7 @@
       <KeyPrompt
         onkey={rekey}
         ondismiss={canDismiss ? () => (intent = "dismissed") : undefined}
-        autofocus={(demo && intent === "ask") || intent === "reopened"}
+        autofocus={(demo && $song.key.provisional && intent === "ask") || intent === "reopened"}
       />
     {/key}
   {:else if view === "find"}
