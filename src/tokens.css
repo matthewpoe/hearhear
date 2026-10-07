@@ -2,8 +2,10 @@
  * Design tokens: the only place colors are defined. Every color conveys an
  * idea: the three function colors are Kandinsky's 1923 Bauhaus pairing
  * (tonic blue circle, subdominant yellow triangle, dominant red square).
- * Keyboard and staff stay monochrome: the staff draws in --ink, so it reads
- * light-on-dark in the dark theme; piano keys keep their ivory and black.
+ * Keyboard and staff stay monochrome: the staff draws in --staff-ink, which
+ * is --ink on the light page; in the dark theme it sits on its own panel
+ * (slate or paper, below) rather than bright on near-black. Piano keys keep
+ * their ivory and black.
  *
  * Two themes. Light is the default; the dark theme applies when <html> has
  * data-theme="dark" (src/theme.js sets it and remembers the choice). Print is
@@ -110,6 +112,23 @@
   --drone-tint-white-key: #d3ecdd;
   --drone-tint-black-key: #1f4a35;
 
+  /* The staff panel. In the light theme (and always in print) the staff draws
+     straight on the page in --ink, so these just pass the page tokens
+     through. The dark theme gives the staff its own panel: see below. */
+  --staff-panel: transparent;
+  --staff-panel-edge: transparent;
+  --staff-ink: var(--ink);
+  --staff-ink-muted: var(--ink-muted);
+  --staff-line: var(--ink);
+  --staff-line-strong: var(--ink);
+  --staff-playhead: var(--melody);
+  --staff-hover: var(--key-glow-melody);
+  --staff-focus: var(--focus);
+  --staff-fn-tonic: var(--fn-tonic);
+  --staff-fn-subdominant-edge: var(--fn-subdominant-edge);
+  --staff-fn-dominant: var(--fn-dominant);
+  --staff-fn-other: var(--fn-other);
+
   color-scheme: light;
 
   /* Type */
@@ -200,7 +219,52 @@
     --melody-soft: #ead39a;
     --melody-glow: #e0ac4ab3;
 
+    /* The staff panel, slate by default: a deep aubergine from the violet,
+       warm off-white notes, faint lines, so the staff isn't bright ink on
+       near-black (an x-ray). Lines recede and notes lead. The playhead halo
+       is --melody gold on both panels, like the sounding key on the piano.
+       Contrast on slate #2b2135: notes 12.2, staff lines 3.3, bar lines 4.2,
+       degrees and words 7.9, tonic 7.1, subdominant 9.3, dominant 6.7,
+       other 6.2, playhead 5.0, hover ring 4.2, focus and the lesson's
+       spotlight ring (--staff-focus) 7.2. */
+    --staff-panel: #2b2135;
+    --staff-panel-edge: transparent;
+    --staff-ink: #eee4d4;
+    --staff-ink-muted: #c2b6cc;
+    --staff-line: #7d6d91;
+    --staff-line-strong: #918199;
+    --staff-hover: #918199;
+    --staff-focus: #d29cf5;
+    --staff-fn-tonic: #8db1f7;
+    --staff-fn-subdominant-edge: #f4c430;
+    --staff-fn-dominant: #f68f86;
+    --staff-fn-other: #a8a3b3;
+
     color-scheme: dark;
+  }
+
+  /* The paper staff panel, the dark theme's other choice (data-staff-panel,
+     set by the masthead's Staff control): a muted cream card, well below
+     white, like sheet music on a dark music stand, in warm dark ink with the
+     light theme's function colors deepened a step for the cream.
+     Contrast on paper #e9e1cf: notes 11.6, staff lines 3.0, bar lines 4.4,
+     degrees and words 6.1, tonic 6.9, subdominant 5.6, dominant 5.7,
+     other 5.2, hover ring 4.4, focus and the lesson's spotlight ring 6.1. The gold playhead halo is 2.3 on the cream (as
+     on the light page, 3.0 on white) but 5.0 against the dark notehead it
+     rings, so the playing note still stands out. */
+  :root[data-theme="dark"][data-staff-panel="paper"] {
+    --staff-panel: #e9e1cf;
+    --staff-panel-edge: #d6ccb6;
+    --staff-ink: #2b2520;
+    --staff-ink-muted: #5a5045;
+    --staff-line: #8a7f6c;
+    --staff-line-strong: #6f6555;
+    --staff-hover: #6f6555;
+    --staff-focus: #7a2a9e;
+    --staff-fn-tonic: #1d4596;
+    --staff-fn-subdominant-edge: #6e5300;
+    --staff-fn-dominant: #a3261c;
+    --staff-fn-other: #5a5a63;
   }
 }
 

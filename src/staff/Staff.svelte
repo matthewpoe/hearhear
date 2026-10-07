@@ -424,12 +424,44 @@
     cursor: pointer;
   }
 
-  /* abcjs draws with currentColor, so the staff is --ink in both themes. */
+  /* abcjs draws with currentColor, so the staff is --ink. The frame maps the
+     page tokens to the staff panel's (tokens.css): the same on the light page,
+     a panel of its own in the dark theme, so every rule below follows. */
   /* Capped so the drawing doesn't scale up past two systems' worth of
      height on wide screens: the step panel and keyboard share the fold. */
   .frame {
+    --ink: var(--staff-ink);
+    --ink-muted: var(--staff-ink-muted);
+    --focus: var(--staff-focus);
+    /* The guided lesson's spotlight ring is --accent: on the panel it takes
+       the focus violet, which is tuned for the panel. */
+    --accent: var(--staff-focus);
+    --key-glow-melody: var(--staff-hover);
+    --fn-tonic: var(--staff-fn-tonic);
+    --fn-subdominant-edge: var(--staff-fn-subdominant-edge);
+    --fn-dominant: var(--staff-fn-dominant);
+    --fn-other: var(--staff-fn-other);
     max-width: 56rem;
     margin-inline: auto;
+    background: var(--staff-panel);
+  }
+  /* The dark theme's panel gets room around the music. Print stays light. */
+  @media screen {
+    :global(:root[data-theme="dark"]) .frame {
+      margin-top: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      box-shadow: inset 0 0 0 1px var(--staff-panel-edge);
+    }
+  }
+  /* Staff and ledger lines recede behind the notes; bar lines a step less. */
+  .notation :global(:is(.abcjs-staff, .abcjs-ledger)) {
+    fill: var(--staff-line);
+    stroke: var(--staff-line);
+  }
+  .notation :global(.abcjs-bar) {
+    fill: var(--staff-line-strong);
+    stroke: var(--staff-line-strong);
   }
   .notation {
     color: var(--ink);
@@ -493,7 +525,7 @@
   }
   /* The note sounding now glows gold, like its key on the piano. */
   .notation :global(.is-playing .abcjs-notehead) {
-    stroke: var(--melody);
+    stroke: var(--staff-playhead);
     stroke-width: 6px;
     paint-order: stroke;
   }
