@@ -154,6 +154,127 @@ describe("guessRhythm", () => {
     assert.equal(swing, true);
   });
 
+  it("never hears a half note before a dotted quarter as swing (h q. e e e q, h q. e q q)", () => {
+    const figures = [
+      { onsets: [0, 2, 3.5, 4, 4.5, 5, 6], durs: [24, 18, 6, 6, 6, 12, 12] },
+      { onsets: [0, 2, 3.5, 4, 5, 6], durs: [24, 18, 6, 12, 12, 12] },
+    ];
+    for (const { onsets, durs } of figures) {
+      for (const bpm of [100, 120]) {
+        const beatMs = 60000 / bpm;
+        const endMs = 1000 + (onsets.at(-1) + 1) * beatMs;
+        for (const feel of /** @type {const} */ (["auto", "straight"])) {
+          const {
+            notes,
+            beatMs: detected,
+            swing,
+          } = guessRhythm(tapAt(onsets, beatMs), {
+            endMs,
+            feel,
+          });
+          const label = `${durs.join(" ")} @${bpm} ${feel}`;
+          assert.equal(swing, false, label);
+          assert.ok(Math.abs(60000 / detected - bpm) < 4, `${label}: ${60000 / detected} BPM`);
+          assert.deepEqual(
+            notes.map((n) => n.dur),
+            durs,
+            label,
+          );
+        }
+      }
+    }
+  });
+
+  it("keeps a dotted line dotted at 60, 70, 100 and 130 BPM", () => {
+    const onsets = [0, 1.5, 2, 3.5, 4, 5.5, 6, 7, 8];
+    for (const bpm of [60, 70, 100, 130]) {
+      const beatMs = 60000 / bpm;
+      const {
+        notes,
+        beatMs: detected,
+        swing,
+      } = guessRhythm(tapAt(onsets, beatMs), {
+        endMs: 1000 + 9 * beatMs,
+      });
+      assert.equal(swing, false, `@${bpm}`);
+      assert.ok(Math.abs(60000 / detected - bpm) < 4, `@${bpm}: ${60000 / detected} BPM`);
+      assert.deepEqual(
+        notes.map((n) => n.dur),
+        [18, 6, 18, 6, 18, 6, 12, 12, 12],
+        `@${bpm}`,
+      );
+    }
+  });
+
+  it("hears swing at a slow tempo, where the long note is the most common gap", () => {
+    // At 900 ms, the 600 ms long notes are the most common gap and a plausible beat.
+    const onsets = [0, 1, 1 + 2 / 3, 2, 2 + 2 / 3, 3, 3 + 2 / 3, 4];
+    for (const feel of /** @type {const} */ (["auto", "straight"])) {
+      const { notes, beatMs, swing } = guessRhythm(tapAt(onsets, 900), {
+        endMs: 1000 + 5 * 900,
+        feel,
+      });
+      assert.ok(Math.abs(beatMs - 900) < 25, `${feel}: ${beatMs}`);
+      assert.equal(swing, feel === "auto", feel);
+      assert.deepEqual(
+        notes.map((n) => n.dur),
+        feel === "auto" ? [12, 6, 6, 6, 6, 6, 6, 12] : [12, 9, 3, 9, 3, 9, 3, 12],
+        feel,
+      );
+    }
+  });
+
+  it("reads one swung take straight or swung, as the player says", () => {
+    const beatMs = 600;
+    // Quarter, then three 2:1 pairs, then a quarter.
+    const onsets = [0, 1, 1 + 2 / 3, 2, 2 + 2 / 3, 3, 3 + 2 / 3, 4];
+    const events = tapAt(onsets, beatMs);
+    const endMs = 1000 + 5 * beatMs;
+
+    const swung = guessRhythm(events, { endMs, feel: "swing" });
+    assert.equal(swung.swing, true);
+    assert.deepEqual(
+      swung.notes.map((n) => n.dur),
+      [12, 6, 6, 6, 6, 6, 6, 12],
+    );
+
+    const straight = guessRhythm(events, { endMs, feel: "straight" });
+    assert.equal(straight.swing, false);
+    assert.deepEqual(
+      straight.notes.map((n) => n.dur),
+      [12, 9, 3, 9, 3, 9, 3, 12],
+    );
+    assert.deepEqual(
+      straight.notes.map((n) => n.start),
+      [0, 12, 21, 24, 33, 36, 45, 48],
+    );
+    // The same tempo either way: the feel changes the values, not the beat.
+    assert.equal(straight.beatMs, swung.beatMs);
+  });
+
+  it("evens dotted-looking pairs when the player says it swings", () => {
+    const onsets = [0, 1.5, 2, 3.5, 4, 5.5, 6, 7, 8];
+    const events = tapAt(onsets, 600);
+    const endMs = 1000 + 9 * 600;
+    // Left to the guess, these are dotted quarters and eighths, not swing.
+    assert.equal(guessRhythm(events, { endMs }).swing, false);
+    const swung = guessRhythm(events, { endMs, feel: "swing" });
+    assert.equal(swung.swing, true);
+    assert.deepEqual(
+      swung.notes.slice(0, 6).map((n) => n.dur),
+      Array(6).fill(6),
+    );
+  });
+
+  it("a gentle 3:2 pair read straight is two eighths", () => {
+    const onsets = [0, 1, 1.6, 2, 3];
+    const { notes } = guessRhythm(tapAt(onsets, 600), { endMs: 1000 + 4 * 600, feel: "straight" });
+    assert.deepEqual(
+      notes.map((n) => n.dur),
+      [12, 6, 6, 12, 12],
+    );
+  });
+
   it("reads swung pairs from 3:2 to 3:1 among quarter notes as straight eighths", () => {
     for (const ratio of [1.5, 2, 3]) {
       // Quarter, swung pair, quarter, swung pair, quarter, quarter.

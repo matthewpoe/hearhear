@@ -346,6 +346,59 @@ describe("recorder", () => {
     assert.equal(song.get().id, "ode-to-joy", "not the empty welcome");
   });
 
+  it("reads the same take again as Straight or Swing, one undoable step each", () => {
+    const { song, recorder, tap, shelf } = setup();
+    recorder.record();
+    // A quarter, three swung pairs at 2:1, then a last note.
+    const beats = [1, 2 / 3, 1 / 3, 2 / 3, 1 / 3, 2 / 3, 1 / 3, 1];
+    beats.forEach((b, i) => tap(60 + i, b));
+    recorder.stop();
+    recorder.name("Swingy");
+    const id = song.get().id;
+    assert.ok(shelf.take(id), "the raw take is kept beside the tune");
+    assert.equal(song.get().swing, 2, "the guess heard swing");
+    assert.deepEqual(
+      song.get().notes.map((n) => n.dur),
+      [12, 6, 6, 6, 6, 6, 6, 12],
+    );
+
+    assert.equal(recorder.reread("straight"), true);
+    assert.equal("swing" in song.get(), false);
+    assert.deepEqual(
+      song.get().notes.map((n) => n.dur),
+      [12, 9, 3, 9, 3, 9, 3, 12],
+    );
+    assert.deepEqual(
+      song.get().notes.map((n) => n.midi),
+      [60, 61, 62, 63, 64, 65, 66, 67],
+    );
+
+    song.undo();
+    assert.equal(song.get().swing, 2);
+    assert.deepEqual(
+      song.get().notes.map((n) => n.dur),
+      [12, 6, 6, 6, 6, 6, 6, 12],
+    );
+
+    recorder.reread("swing");
+    assert.equal(song.get().swing, 2);
+  });
+
+  it("keeps the raw take through Discard and Undo, and has none for a demo", () => {
+    const { song, recorder, tap, shelf } = setup({ initial: ODE });
+    assert.equal(recorder.reread("straight"), false);
+    recorder.record();
+    tap(60);
+    tap(62);
+    recorder.stop();
+    recorder.name("Back");
+    const id = song.get().id;
+    recorder.discard();
+    assert.equal(shelf.take(id), null);
+    recorder.undoDiscard();
+    assert.ok(shelf.take(id));
+  });
+
   it("a second tune is offered the next free title", () => {
     const { recorder, tap, shelf } = setup();
     for (let take = 0; take < 2; take++) {

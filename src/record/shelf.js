@@ -10,7 +10,7 @@
  * shelf working for this page, and it is empty again after a reload.
  *
  * @import { Song } from "../types.js"
- * @import { StorageAccess } from "../store/persist.js"
+ * @import { RawTake, StorageAccess } from "../store/persist.js"
  */
 
 import { createReadable } from "../lib/readable.js";
@@ -30,6 +30,12 @@ export function createShelf(storage) {
   const list = createReadable(/** @type {ShelfEntry[]} */ ([]));
 
   const writeIndex = () => memory.setMySongs([...copies.keys()]);
+  /**
+   * Raw takes read so far, by id (null: none), so a view asking on every
+   * song change reads storage once per tune. Every write goes through here.
+   * @type {Map<string, RawTake | null>}
+   */
+  const takes = new Map();
 
   function publish() {
     list.set([...copies.values()].map(({ id, title }) => ({ id, title })));
@@ -52,11 +58,39 @@ export function createShelf(storage) {
     has: (id) => copies.has(id),
 
     /**
-     * Put a new tune on the shelf, or back where it was (`at`, an undone discard).
+     * A tune's raw take (its key timings), kept beside it so it can be read
+     * again with another feel. Null for a tune with none.
+     * @param {string} id
+     * @returns {RawTake | null}
+     */
+    take(id) {
+      if (!copies.has(id)) return null;
+      if (!takes.has(id)) takes.set(id, memory.recallTake(id));
+      return takes.get(id) ?? null;
+    },
+
+    /**
+     * Keep a tune's raw take beside it.
+     * @param {string} id
+     * @param {RawTake} take
+     */
+    saveTake(id, take) {
+      memory.saveTake(id, take);
+      takes.set(id, take);
+    },
+
+    /**
+     * Put a new tune on the shelf, or back where it was (`at`, an undone
+     * discard, with its raw take).
      * @param {Song} song
      * @param {number} [at]
+     * @param {RawTake | null} [take]
      */
-    add(song, at = copies.size) {
+    add(song, at = copies.size, take = null) {
+      if (take) {
+        memory.saveTake(song.id, take);
+        takes.set(song.id, take);
+      }
       const entries = [...copies.entries()].filter(([id]) => id !== song.id);
       entries.splice(Math.min(at, entries.length), 0, [song.id, song]);
       copies.clear();
@@ -80,17 +114,21 @@ export function createShelf(storage) {
     /**
      * Take a tune off the shelf and forget its saved copy.
      * @param {string} id
-     * @returns {{ song: Song, at: number } | null} what was removed, for undo
+     * @returns {{ song: Song, at: number, take: RawTake | null } | null} what
+     *   was removed, for undo
      */
     remove(id) {
       const song = copies.get(id);
       if (!song) return null;
       const at = [...copies.keys()].indexOf(id);
+      const take = takes.get(id) ?? memory.recallTake(id);
       copies.delete(id);
       writeIndex();
       memory.forget(id);
+      memory.forgetTake(id);
+      takes.delete(id);
       publish();
-      return { song, at };
+      return { song, at, take };
     },
   };
 }

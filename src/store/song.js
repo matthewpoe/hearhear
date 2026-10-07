@@ -415,22 +415,28 @@ export function createSongStore(initial = emptySong()) {
      * syllables go too; a take is new notes, so they carry no syllables.
      * @param {string[]} noteIds notes to remove
      * @param {{ midi: number, start: number, dur: number }[]} notes notes to add
-     * @param {{ tempo?: number }} [options] `tempo`: the take's tempo, set in
-     *   the same step (a re-recorded tune)
+     * @param {{ tempo?: number, swing?: number | null }} [options] set in the
+     *   same step: `tempo`, the take's tempo (a re-recorded tune); `swing`,
+     *   its swing ratio, or null for none (a take re-read with another feel)
      * @returns {string[]} the new notes' ids
      */
-    replaceTake(noteIds, notes, { tempo } = {}) {
+    replaceTake(noteIds, notes, { tempo, swing } = {}) {
       const removed = new Set(noteIds);
       const ids = notes.map(() => newId("n"));
-      commit((s) => ({
-        ...s,
-        tempo: tempo ?? s.tempo,
-        notes: byStart([
-          ...s.notes.filter((n) => !removed.has(n.id)),
-          ...notes.map(({ midi, start, dur }, i) => ({ id: ids[i], midi, start, dur })),
-        ]),
-        chords: s.chords.filter((c) => !removed.has(c.noteId)),
-      }));
+      commit((s) => {
+        const kept = { ...s };
+        if (swing === null) delete kept.swing;
+        else if (swing !== undefined) kept.swing = swing;
+        return {
+          ...kept,
+          tempo: tempo ?? s.tempo,
+          notes: byStart([
+            ...s.notes.filter((n) => !removed.has(n.id)),
+            ...notes.map(({ midi, start, dur }, i) => ({ id: ids[i], midi, start, dur })),
+          ]),
+          chords: s.chords.filter((c) => !removed.has(c.noteId)),
+        };
+      });
       return ids;
     },
 
