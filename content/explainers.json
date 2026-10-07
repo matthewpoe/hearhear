@@ -1,0 +1,13 @@
+{
+  "$comment": "Beginner explainers shown in the app. Matthew owns this wording and edits it here; streams render it, never rewrite it. Drafts by Claude, Oct 7, 2026.",
+  "keyFinding": {
+    "title": "What's a key?",
+    "body": "A key is a family of notes that all lean toward one home note. Hold the right home underneath and the melody sits comfortably on top of it; hold the wrong one and some notes rub against it, and that rub is the itch you'll hear."
+  },
+  "voiceLeading": {
+    "title": "What's voice leading?",
+    "body": "Voice leading is how a pianist moves from one chord to the next with as little hand movement as possible: notes the two chords share stay put, often the home note, and the others step to the nearest key.",
+    "off": "Off: the chords around your choice hold still, so the only thing that changes is the chord you're testing. This is the clearest way to hear whether it fits.",
+    "on": "On: everything flows the way a pianist would play it. That can make a good choice sound even better, but it can also smooth over a weak one, so listen to the melody note: does it still sit comfortably on the chord?"
+  }
+}
