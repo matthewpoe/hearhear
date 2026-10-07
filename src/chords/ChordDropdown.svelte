@@ -32,7 +32,7 @@
   import { chordView } from "./chordView.js";
   import { whereOf } from "./where.js";
   import { containingAncestor } from "./containingBlock.js";
-  import { chordOptions, degreeOf, describeOption } from "./options.js";
+  import { chordOptions, degreeOf, describeOption, ideaLetter } from "./options.js";
   import { passageAround, voicingIn } from "./passage.js";
   import { placeOn, sideFor } from "./placement.js";
   import { NO_TAP, activate } from "./tap.js";
@@ -93,13 +93,15 @@
   const homeTones = $derived($homeDrone);
   const likely = $derived(note ? chordOptions($song, note) : []);
   const more = $derived(note && extended ? chordOptions($song, note, { extended: true }) : []);
+  // The tutor's ideas for this note are the A/B/C to audition: each is its
+  // own option, lettered in the tutor's order, with its reason beside it.
   const ideas = $derived(
     note
       ? $suggestions.items
           .filter((s) => s.noteId === note.id)
-          .map((s) => ({
+          .map((s, i) => ({
             option: describeOption($song, note, s.chord, `tutor:${s.id}`),
-            detail: `Tutor, ${s.confidence} confidence: ${s.reason}`,
+            detail: `${ideaLetter(i)}: ${s.reason} (tutor, ${s.confidence} confidence)`,
           }))
       : [],
   );
@@ -535,7 +537,7 @@
           </ul>
 
           {#if ideas.length > 0}
-            <h4>From the tutor</h4>
+            <h4>From the tutor: try {ideas.map((_, i) => ideaLetter(i)).join(", ")}</h4>
             {#if stale}
               <p class="help">Suggested before your last edit.</p>
             {/if}
