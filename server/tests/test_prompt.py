@@ -101,6 +101,13 @@ def test_a_hidden_key_never_reaches_claude() -> None:
     assert "Key hidden: yes" in text
 
 
+def test_a_hidden_key_drops_the_title_too() -> None:
+    titled = {**HIDDEN_KEY_SNAPSHOT, "title": "St. James Infirmary"}
+    text = message_for(snapshot=titled)
+    assert "title" not in tag(text, "snapshot")
+    assert "St. James" not in text
+
+
 def test_a_visible_key_reaches_claude_unchanged() -> None:
     visible = {**HIDDEN_KEY_SNAPSHOT, "key_hidden": False}
     text = message_for(snapshot=visible)

@@ -151,10 +151,12 @@ eight).
 def _without_the_key(data: dict[str, Any]) -> dict[str, Any]:
     """A dumped snapshot with everything that spells the key taken out: the
     whole key (tonic and mode; provisional is stated outside the data), every
-    spelled pitch, and every letter-name chord, with the label style set to
-    roman. Degrees, numerals, and Nashville numbers are relative to a tonic
+    spelled pitch, every letter-name chord, and the song's title (a famous
+    tune's usual key can be recalled from its name), with the label style set
+    to roman. Degrees, numerals, and Nashville numbers are relative to a tonic
     Claude is not told, so they stay."""
     del data["key"]
+    data.pop("title", None)
     data["label_style"] = "roman"
     for bar in data["bars"]:
         for note in bar["notes"]:
