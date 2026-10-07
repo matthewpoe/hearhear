@@ -1,9 +1,7 @@
 <script>
-  // One big Play/Pause/Resume and a small Stop, and beside them a segmented
-  // choice of what Play plays:
-  // from the top, or this bar, the bar of the note the user last clicked or
-  // focused (Play then reads "Play bar 4", the name the tutor's listening
-  // steps use; names come from content/controls.json). The visuals (the
+  // One big Play/Pause/Resume and a small Stop. Play plays from the top, as
+  // Space does; a single bar is heard by auditioning a chord under one of
+  // its notes (names come from content/controls.json). The visuals (the
   // staff playhead, the keyboard lights) come from playWithVisuals, the one
   // playback driver with visuals (decision D10); this component only starts
   // and stops it. It also owns the app-wide keys (transportKeys.js): Space
@@ -12,15 +10,14 @@
   import { song } from "../store/song.js";
   import { ui } from "../store/ui.js";
   import { audioStatus, preload, stop } from "../audio/index.js";
-  import { clearHighlight, highlight, onNoteClick } from "./staffEvents.js";
-  import { barName, barPlace, barRange, songEnd } from "./bars.js";
+  import { clearHighlight, highlight } from "./staffEvents.js";
+  import { barRange, songEnd } from "./bars.js";
   import { focusKind, transportAction } from "./transportKeys.js";
   import { fieldOwnsKey } from "../lib/fieldOwnsKey.js";
   import { recorder } from "../record/tunes.js";
   import { playWithVisuals } from "./playback.js";
-  import Segmented from "../toolbar/Segmented.svelte";
   import Tip from "../toolbar/Tip.svelte";
-  import { CONTROLS, withBar } from "../lib/controls.js";
+  import { CONTROLS } from "../lib/controls.js";
   import explainers from "../../content/explainers.json" with { type: "json" };
 
   const GLOSS = explainers.options;
@@ -29,8 +26,6 @@
 
   let playing = $state(false);
   let failed = $state(false);
-  /** The note last clicked or focused on the staff, which outlasts the dropdown's selection. */
-  let lastNoteId = $state(/** @type {string | null} */ (null));
   /** What the last press played, for "Try again". */
   let lastRange = /** @type {TickRange | null} */ (null);
   /** Bumped by every press, so an earlier playback ending leaves `playing` alone. */
@@ -49,53 +44,12 @@
   let focusByKeyboard = false;
   const loading = $derived($audioStatus === "loading");
   const samplesFailed = $derived($audioStatus === "failed");
-  // With no place (or its note deleted), Play plays it all.
-  const place = $derived(barPlace($song, $ui.selectedNoteId ?? lastNoteId));
-  const where = $derived(place ? barName(place.number) : "");
   const songId = $derived($song.id);
-
-  /** What Play plays: the whole tune, or the place's bar alone. */
-  let scope = $state(/** @type {"whole" | "bar"} */ ("whole"));
-  const playsBar = $derived(scope === "bar" && place !== null);
-  /** "Play", or "Play bar 4" while this bar is chosen (the name the tutor uses). */
-  const playLabel = $derived(playsBar ? withBar(CONTROLS.playBar, where) : CONTROLS.play);
-  const scopes = $derived([
-    { value: "whole", label: CONTROLS.fromTop, tip: GLOSS.fromTop },
-    {
-      value: "bar",
-      label: CONTROLS.thisBar,
-      tip: place ? `${GLOSS.thisBar} Now: ${where}.` : GLOSS.thisBar,
-      disabled: place === null,
-    },
-  ]);
-
-  $effect(() => onNoteClick(({ noteId }) => (lastNoteId = noteId)));
 
   // Another song (or the same one reopened) starts from the top again.
   $effect(() => {
     void songId;
-    lastNoteId = null;
-    scope = "whole";
     paused = null;
-  });
-
-  // With no place left (its note deleted, the song switched), "This bar" has
-  // nothing to point at: back to the top, so a later note click never turns
-  // Play into "Play bar N" unasked.
-  $effect(() => {
-    if (place === null) scope = "whole";
-  });
-
-  // Arrowing along the staff's notes moves the place too.
-  $effect(() => {
-    /** @param {FocusEvent} event */
-    const onFocus = (event) => {
-      const target = event.target instanceof Element ? event.target : null;
-      const noteId = target?.closest("#staff [data-note-id]")?.getAttribute("data-note-id");
-      if (noteId) lastNoteId = noteId;
-    };
-    document.addEventListener("focusin", onFocus);
-    return () => document.removeEventListener("focusin", onFocus);
   });
 
   /** @param {TickRange | null} [range] the whole song when omitted */
@@ -213,11 +167,9 @@
     if (playing) stop();
   }
 
-  /** The big button: Play (or "Play bar 4"), Pause while playing, Resume while paused. */
-  const mainLabel = $derived(playing ? "Pause" : paused ? "Resume" : playLabel);
-  const mainTip = $derived(
-    playing ? GLOSS.pause : paused ? GLOSS.resume : playsBar ? GLOSS.thisBar : GLOSS.fromTop,
-  );
+  /** The big button: Play, Pause while playing, Resume while paused. */
+  const mainLabel = $derived(playing ? "Pause" : paused ? "Resume" : CONTROLS.play);
+  const mainTip = $derived(playing ? GLOSS.pause : paused ? GLOSS.resume : GLOSS.fromTop);
   const onFocusIn = () => (focusByKeyboard = lastInputKeyboard);
 
   $effect(() => {
@@ -243,7 +195,7 @@
       type="button"
       class="control"
       aria-describedby="play-tip"
-      onclick={playing ? pause : paused ? resume : () => play(playsBar ? place?.bar : undefined)}
+      onclick={playing ? pause : paused ? resume : () => play()}
       disabled={!playing && (loading || samplesFailed || $song.notes.length === 0)}
     >
       <span class="icon" class:play={!playing} class:pause={playing} aria-hidden="true"
@@ -262,14 +214,6 @@
       <span class="square" aria-hidden="true"></span>
     </button>
   </Tip>
-  <Segmented
-    name="play-scope"
-    legend="What Play plays"
-    options={scopes}
-    value={playsBar ? "bar" : "whole"}
-    onchange={(value) => (scope = value === "bar" ? "bar" : "whole")}
-  />
-
   <!-- "Paused." is announced; on screen the button reads Resume. -->
   <p class="status" class:shown={loading || samplesFailed || failed} role="status">
     {#if paused}
@@ -292,7 +236,7 @@
     align-items: center;
     gap: var(--space-2);
   }
-  /* On phones the scope toggle may take the next line. */
+  /* On phones a status may take the next line. */
   @media (max-width: 60rem) {
     .transport {
       flex-wrap: wrap;

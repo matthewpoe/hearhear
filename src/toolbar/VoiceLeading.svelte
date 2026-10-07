@@ -1,5 +1,5 @@
 <script>
-  // The audition voicing switch (decision D4), with the Chords step. "as-song"
+  // The audition voicing switch (decision D4), in the chord dropdown. "as-song"
   // is off: only the tested chord changes. Its newcomer gloss is the switch's
   // tooltip, like every other option's.
   import explainers from "../../content/explainers.json" with { type: "json" };

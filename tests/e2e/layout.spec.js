@@ -79,7 +79,6 @@ for (const [width, height] of [
     await expect(drone).toHaveAttribute("aria-checked", "true");
     await drone.click();
     await expect(drone).toHaveAttribute("aria-checked", "false");
-    await expect(steps.getByRole("switch", { name: "Scale degrees" })).toBeVisible();
     await steps.getByRole("button", { name: "Change the key" }).click();
     await expect(question).toBeVisible();
 

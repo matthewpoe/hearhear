@@ -28,6 +28,7 @@
   import { holdHome, homeDrone, releaseHome } from "../staff/homeDrone.js";
   import { functionOf } from "../theory/index.js";
   import ChordChipRow from "./ChordChipRow.svelte";
+  import VoiceLeading from "../toolbar/VoiceLeading.svelte";
   import ChordOption from "./ChordOption.svelte";
   import { chordView } from "./chordView.js";
   import { whereOf } from "./where.js";
@@ -517,6 +518,9 @@
             degree; Enter, a click, or a second tap chooses; Escape closes.
           </p>
           <p class="visually-hidden" role="status">{tapHint}</p>
+          <!-- How the chords around a tested one are voiced (decision D4): off,
+               only the tested chord changes. -->
+          <div class="voicing"><VoiceLeading /></div>
 
           <ul aria-label="Likely chords">
             {#each likely as option (option.key)}
@@ -650,6 +654,9 @@
   h4 {
     color: var(--ink-muted);
     font-size: var(--text-sm);
+  }
+  .voicing {
+    margin-bottom: var(--space-2);
   }
   .help,
   .status {
