@@ -39,4 +39,6 @@ The tutor proxy reads these from the environment (Railway variables in productio
 
 ## License
 
+Piano samples: Salamander Grand Piano by Alexander Holm, [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) (details in `public/samples/piano/SOURCES.md`).
+
 MIT. Jost is under the SIL Open Font License (`public/fonts/jost/OFL.txt`).
