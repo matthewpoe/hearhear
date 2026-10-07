@@ -31,6 +31,18 @@ describe("song store", () => {
     assert.equal(store.get().version, before + 2);
   });
 
+  it("never reissues a deleted note's id", () => {
+    const store = createSongStore();
+    const first = store.addNote({ midi: 60, start: 0, dur: 12 });
+    store.deleteNote(first);
+    const second = store.addNote({ midi: 62, start: 0, dur: 12 });
+    assert.notEqual(second, first);
+    store.undo();
+    store.undo();
+    store.redo();
+    assert.notEqual(store.addNote({ midi: 64, start: 12, dur: 12 }), first);
+  });
+
   it("load clears undo history", () => {
     const store = createSongStore();
     store.addNote({ midi: 60, start: 0, dur: 12 });

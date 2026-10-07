@@ -8,7 +8,7 @@ Phase 0 froze these interfaces so the Phase 1 streams can build in parallel. **A
 | --------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------- |
 | `song.schema.json`          | The song model: absolute pitches in ticks (12 per quarter), plus key and meter hypotheses | This file                                                         | store, content validation, evals  |
 | `tutor-request.schema.json` | `POST /api/tutor` body: a readable snapshot with no MIDI, the question, and history       | **Generated** from `server/hearhear/models.py` (`make contracts`) | tutor panel, evals                |
-| `tutor-tool.schema.json`    | The forced `tutor_reply` tool's `input_schema`                                            | **Generated** from `server/hearhear/models.py`                    | proxy, tutor panel, evals         |
+| `tutor-reply.schema.json`   | The tutor's reply, sent as the structured-output schema (`output_config.format`)          | **Generated** from `server/hearhear/models.py`                    | proxy, tutor panel, evals         |
 | `tutor-sse.md`              | The streaming protocol and error codes                                                    | This file                                                         | proxy, tutor panel, evals         |
 | `functions.json`            | Harmonic function per numeral and mode, with its color token and shape                    | This file                                                         | `functionOf` only                 |
 | `fixtures/tutor/*.json`     | SSE shape fixtures for fixture mode and tests                                             | This directory                                                    | proxy (fixture mode), tutor panel |
@@ -27,3 +27,10 @@ These modules are the contract: their exported names, parameters, and return sha
 | `src/store/song.js`        | Phase 0 (implemented) | song store and actions (see file)                                                                                                                                                                                                                               |
 | `src/store/ui.js`          | Phase 0 (implemented) | UI-state store; never bumps the song version                                                                                                                                                                                                                    |
 | `src/store/snapshot.js`    | Phase 0 (implemented) | toTutorSnapshot                                                                                                                                                                                                                                                 |
+| `src/store/suggestions.js` | Phase 0 (implemented) | suggestions store, isStale                                                                                                                                                                                                                                      |
+
+## Shared surfaces: who writes, who reads
+
+- **Tutor suggestions:** Stream F validates each reply client-side and writes `suggestions`. Stream D2 reads it and offers each suggestion as an alternative to audition. Nothing applies a suggestion to the song except the user choosing it in D2's dropdown.
+- **Chord chip row** (the chords under the staff, colored by function): Stream D2 owns it. Stream C renders letter names in the abcjs lead sheet, and must not draw a second chip row.
+- **Audition:** D2 calls `auditionChord(voicing, range, { atTick })`. Stream B plays the melody and every other placed chord exactly as in the song, so A/B comparisons differ only in the candidate's harmony.

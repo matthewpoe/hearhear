@@ -7,7 +7,10 @@
  * contracts/README.md). Bodies marked STUB(B) are Phase 0 placeholders that
  * log and resolve so other streams can build against them without sound.
  *
- * @import { Chord } from "../types.js"
+ * Melody notes and placed chords come from the song store; callers pass only
+ * tick ranges and what differs from the song.
+ *
+ * @import { Chord, Meter } from "../types.js"
  */
 
 import { createReadable } from "../lib/readable.js";
@@ -66,7 +69,9 @@ export function noteOff(midi) {
 /**
  * Play part of the song on the Transport. `onEvent` fires through Tone.Draw,
  * in sync with the sound, so the staff and keyboard can light each note.
- * Resolves when playback ends or is stopped.
+ * Resolves when playback ends or is stopped. `chords` replaces the song's
+ * chords for this playback only (the cadence test plays V-I in a candidate
+ * key); omit it to play the song as written.
  * @param {TickRange} range
  * @param {{ chords?: { chord: Chord, voicing: number[] }[], onEvent?: (event: PlaybackEvent) => void }} [options]
  * @returns {Promise<void>}
@@ -77,14 +82,18 @@ export async function playPhrase(range, { onEvent } = {}) {
 }
 
 /**
- * Play the bar around a note with a candidate chord voiced underneath,
- * melody included. Stops any audition already playing.
- * @param {number[]} voicing MIDI, from theory's voice()
+ * Play a passage (usually the bar around a note) with a candidate chord in
+ * place of whatever chord sits at `atTick`. The melody and every other placed
+ * chord play exactly as in the song, with the same voicing rule, so two
+ * auditions differ only in the candidate's harmony. Stops any audition
+ * already playing.
+ * @param {number[]} voicing the candidate, MIDI, from theory's voice()
  * @param {TickRange} range
+ * @param {{ atTick: number }} placement the onset of the note the candidate sits on
  * @returns {Promise<void>}
  */
-export async function auditionChord(voicing, range) {
-  stub("auditionChord", voicing, range); // STUB(B)
+export async function auditionChord(voicing, range, placement) {
+  stub("auditionChord", voicing, range, placement); // STUB(B)
 }
 
 /**
@@ -92,9 +101,10 @@ export async function auditionChord(voicing, range) {
  * dropdown sounds only where the pointer rests.
  * @param {number[]} voicing
  * @param {TickRange} range
+ * @param {{ atTick: number }} placement
  */
-export function auditionDebounced(voicing, range) {
-  stub("auditionDebounced", voicing, range); // STUB(B)
+export function auditionDebounced(voicing, range, placement) {
+  stub("auditionDebounced", voicing, range, placement); // STUB(B)
 }
 
 /**
@@ -106,13 +116,15 @@ export function drone(midi) {
 }
 
 /**
- * Play the melody over an accented click (the meter test: "lilt in 3 or march in 4?").
+ * Play the melody over a click accented on each downbeat of a candidate meter
+ * (the meter test: "lilt in 3 or march in 4?"). The meter carries the pickup
+ * and beat unit, so the accent lands right in 6/8 and after an anacrusis.
  * @param {TickRange} range
- * @param {number} beatsPerBar
+ * @param {Meter} meter the hypothesis to test, not necessarily the song's
  * @returns {Promise<void>}
  */
-export async function playWithClick(range, beatsPerBar) {
-  stub("playWithClick", range, beatsPerBar); // STUB(B)
+export async function playWithClick(range, meter) {
+  stub("playWithClick", range, meter); // STUB(B)
 }
 
 /** Stop all playback, audition, drone, and click. */

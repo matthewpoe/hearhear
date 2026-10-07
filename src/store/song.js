@@ -63,14 +63,15 @@ export function validateSong(song) {
 }
 
 /**
- * Next unused id with a prefix, e.g. "n1a". Ids are base-36 counters so they
- * stay short and deterministic in tests.
- * @param {"n" | "c"} prefix
- * @param {{ id: string }[]} existing
+ * The highest id counter in a song. Ids are a prefix plus a base-36 counter
+ * ("n1a", "c3") so they stay short and deterministic in tests.
+ * @param {Song} song
  */
-function nextId(prefix, existing) {
-  const max = existing.reduce((m, { id }) => Math.max(m, parseInt(id.slice(1), 36) || 0), 0);
-  return prefix + (max + 1).toString(36);
+function highestId(song) {
+  return [...song.notes, ...song.chords].reduce(
+    (max, { id }) => Math.max(max, parseInt(id.slice(1), 36) || 0),
+    0,
+  );
 }
 
 /**
@@ -99,6 +100,10 @@ export function createSongStore(initial = emptySong()) {
   let past = [];
   /** @type {Song[]} */
   let future = [];
+  // Monotonic, so a deleted note's id is never reissued: selection and open
+  // dropdowns anchor by id and must not jump to a different note.
+  let lastId = highestId(initial);
+  const newId = (/** @type {"n" | "c"} */ prefix) => prefix + (++lastId).toString(36);
 
   const publishHistory = () =>
     history.set({ canUndo: past.length > 0, canRedo: future.length > 0 });
@@ -140,6 +145,7 @@ export function createSongStore(initial = emptySong()) {
     load(song) {
       const next = { ...song, version: store.get().version + 1 };
       validateSong(next);
+      lastId = Math.max(lastId, highestId(next));
       past = [];
       future = [];
       store.set(next);
@@ -152,7 +158,7 @@ export function createSongStore(initial = emptySong()) {
      * @returns {string} the new note's id
      */
     addNote({ midi, start, dur }) {
-      const id = nextId("n", store.get().notes);
+      const id = newId("n");
       commit((s) => ({ ...s, notes: byStart([...s.notes, { id, midi, start, dur }]) }));
       return id;
     },
@@ -227,7 +233,7 @@ export function createSongStore(initial = emptySong()) {
         const others = s.chords.filter((c) => c.noteId !== noteId);
         if (!chord) return { ...s, chords: others };
         const existing = s.chords.find((c) => c.noteId === noteId);
-        const id = existing?.id ?? nextId("c", s.chords);
+        const id = existing?.id ?? newId("c");
         return { ...s, chords: [...others, { id, noteId, root: chord.root, type: chord.type }] };
       });
     },
@@ -266,21 +272,15 @@ export function createSongStore(initial = emptySong()) {
      */
     replaceTake(noteIds, notes) {
       const removed = new Set(noteIds);
-      /** @type {string[]} */
-      const ids = [];
-      commit((s) => {
-        const kept = s.notes.filter((n) => !removed.has(n.id));
-        const added = notes.map((n) => {
-          const id = nextId("n", [...s.notes, ...ids.map((i) => ({ id: i }))]);
-          ids.push(id);
-          return { id, ...n };
-        });
-        return {
-          ...s,
-          notes: byStart([...kept, ...added]),
-          chords: s.chords.filter((c) => !removed.has(c.noteId)),
-        };
-      });
+      const ids = notes.map(() => newId("n"));
+      commit((s) => ({
+        ...s,
+        notes: byStart([
+          ...s.notes.filter((n) => !removed.has(n.id)),
+          ...notes.map((n, i) => ({ id: ids[i], ...n })),
+        ]),
+        chords: s.chords.filter((c) => !removed.has(c.noteId)),
+      }));
       return ids;
     },
 
