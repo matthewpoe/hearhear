@@ -179,11 +179,66 @@ export function saveProgress(index, storage) {
 }
 
 /**
- * The question a recorded lesson asks, from content/lessons/plan.json.
- * @param {{ exchanges: { id: string, question: string }[] }} plan
+ * The exchange a lesson names in content/lessons/plan.json: its question and
+ * hint level.
+ * @param {{ exchanges: { id: string, question: string, hint_level: string }[] }} plan
  * @param {string} lesson
- * @returns {string | null}
+ * @returns {{ question: string, level: "nudge" | "comparison" | "answer" } | null}
  */
-export function lessonQuestion(plan, lesson) {
-  return plan.exchanges.find((exchange) => exchange.id === lesson)?.question ?? null;
+export function lessonExchange(plan, lesson) {
+  const exchange = plan.exchanges.find((e) => e.id === lesson);
+  if (!exchange) return null;
+  const level = ["nudge", "comparison", "answer"].includes(exchange.hint_level)
+    ? /** @type {"nudge" | "comparison" | "answer"} */ (exchange.hint_level)
+    : "nudge";
+  return { question: exchange.question, level };
+}
+
+/** @typedef {{ top: number, left: number, bottom: number, right: number }} Rect */
+
+const GAP = 12;
+
+/**
+ * Where the docked panel sits, in viewport pixels: above the keyboard dock at
+ * the right edge of the workspace, unless that covers a control in `avoid`
+ * (the tutor's question box and replies, the open chord dropdown, the key
+ * question's buttons); then lifted just above `lift` (the tutor's question
+ * box), then above the dock at the left edge. The first spot that covers
+ * nothing wins; if every spot covers something, the one that covers least.
+ * @param {{ width: number, height: number }} size
+ * @param {{ left: number, right: number, bottom: number }} area the workspace's
+ *   edges and the top of the dock
+ * @param {Rect[]} avoid
+ * @param {Rect | null} [lift]
+ * @returns {{ top: number, left: number }}
+ */
+export function placePanel(size, area, avoid, lift = null) {
+  const top = area.bottom - GAP - size.height;
+  const right = { top, left: area.right - size.width };
+  const spots = [right];
+  if (lift) spots.push({ top: lift.top - GAP - size.height, left: right.left });
+  spots.push({ top, left: area.left });
+  const visible = spots.filter((spot) => spot.top >= GAP);
+  /** @param {{ top: number, left: number }} spot */
+  const covered = (spot) => {
+    const box = {
+      top: spot.top,
+      left: spot.left,
+      bottom: spot.top + size.height,
+      right: spot.left + size.width,
+    };
+    return avoid.reduce((sum, rect) => sum + overlap(box, rect), 0);
+  };
+  const candidates = visible.length ? visible : [right];
+  return candidates.reduce((best, spot) => (covered(spot) < covered(best) ? spot : best));
+}
+
+/**
+ * @param {Rect} a
+ * @param {Rect} b
+ */
+function overlap(a, b) {
+  const width = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+  const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+  return width > 0 && height > 0 ? width * height : 0;
 }

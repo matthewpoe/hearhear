@@ -2,12 +2,14 @@
   // The guided demo path (PRD section 8, Stream G): a short, skippable story
   // read from content/guided-path.json. Placed in the masthead, it renders the
   // "Take the guided tour" entry there, a "Show me how" invitation across the
-  // top of the empty landing, and, while it runs, the current step as a strip
-  // under the masthead. It never blocks the app: every step can also be done
-  // by hand, a step advances on its own when the app reaches its condition,
-  // and the viewer can leave at any time and resume later. It drives the app
-  // only through public behavior: the song and ui stores, element ids, and
-  // buttons by accessible name. Beginner tips stay quiet while it runs.
+  // top of the empty landing, and, while it runs, the current step in a
+  // compact panel docked above the keyboard, clear of the tutor's controls
+  // and the chord dropdown, that folds to a chip. It never blocks the app:
+  // every step can also be done by hand, a step advances on its own when the
+  // app reaches its condition, and the viewer can leave at any time and
+  // resume later. It drives the app only through public behavior: the song
+  // and ui stores, element ids, buttons by accessible name, and the tutor's
+  // ask requests. Beginner tips stay quiet while it runs (ui.guidedActive).
   import { tick, untrack } from "svelte";
   import content from "../../content/guided-path.json";
   import plan from "../../content/lessons/plan.json";
@@ -17,13 +19,15 @@
   import { passageAround, voicingIn } from "../chords/passage.js";
   import { DEMO_TUNES } from "../finding/demoTunes.js";
   import { chordFromNumeral } from "../theory/index.js";
+  import { requestAsk } from "../tutor/requests.js";
   import {
     clampStep,
     conditionMet,
     hintFor,
-    lessonQuestion,
+    lessonExchange,
     loadProgress,
     noteAt,
+    placePanel,
     saveProgress,
     shouldAdvance,
   } from "./steps.js";
@@ -33,18 +37,37 @@
   const path = /** @type {GuidedPath} */ (content);
   const steps = path.steps;
 
+  /** Lessons recorded by `make capture-lessons`: only these are asked for by name. */
+  const RECORDED = new Set(
+    Object.keys(import.meta.glob("../../content/lessons/recorded/*.json")).map((file) =>
+      file.replace(/^.*\/|\.json$/g, ""),
+    ),
+  );
+
+  /** What the docked panel must never cover. */
+  const AVOID = [
+    "#tutor .ask",
+    "#tutor .log",
+    "#chords [role='dialog']",
+    "#key-prompt button",
+    "#key-finder button",
+    "#staff [aria-label='Playback']",
+  ].join(",");
+
   let running = $state(false);
+  let folded = $state(false);
   let index = $state(loadProgress(steps.length));
   /** Replies in the tutor's conversation, counted from its log. */
   let tutorReplies = $state(0);
   /** Whether the current step's condition held last time it was read. */
   let wasMet = false;
-  /** Tips were on when the tour started, so leaving turns them back on. */
-  let tipsWereOn = false;
   /** @type {HTMLButtonElement | undefined} */
   let entry = $state();
   /** @type {HTMLElement | undefined} */
   let heading = $state();
+  /** @type {HTMLElement | undefined} */
+  let dock = $state();
+  let position = $state({ top: 0, left: 0 });
 
   const appState = $derived({ song: $song, tutorReplies });
   const step = $derived(steps[index]);
@@ -84,10 +107,55 @@
     return () => observer.disconnect();
   });
 
-  // Leaving the page mid-tour still gives the tips back.
-  $effect(() => () => {
-    if (running) restoreTips();
+  // Keep the docked panel clear of the controls it must not cover, as the
+  // page scrolls, resizes, and changes (the dropdown opening, a reply
+  // arriving). Coalesced to one placement per frame.
+  $effect(() => {
+    if (!dock) return;
+    const panel = dock;
+    let frame = 0;
+    const place = () => {
+      frame = 0;
+      const columns = document.querySelector(".workspace .columns")?.getBoundingClientRect();
+      const bottom =
+        document.querySelector(".keyboard-dock")?.getBoundingClientRect().top ?? innerHeight;
+      const size = panel.getBoundingClientRect();
+      const avoid = [...document.querySelectorAll(AVOID)]
+        .map((el) => el.getBoundingClientRect())
+        .filter((r) => r.width > 0 && r.height > 0);
+      const ask = document.querySelector("#tutor .ask")?.getBoundingClientRect() ?? null;
+      position = placePanel(
+        size,
+        {
+          left: Math.max(16, columns?.left ?? 16),
+          right: Math.min(innerWidth - 16, columns?.right ?? innerWidth - 16),
+          bottom: Math.min(bottom, innerHeight),
+        },
+        avoid,
+        ask && ask.height > 0 ? ask : null,
+      );
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(place);
+    };
+    place();
+    const mutations = new MutationObserver(schedule);
+    mutations.observe(document.body, { childList: true, subtree: true });
+    const sizes = new ResizeObserver(schedule);
+    sizes.observe(panel);
+    window.addEventListener("scroll", schedule, { capture: true, passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      mutations.disconnect();
+      sizes.disconnect();
+      window.removeEventListener("scroll", schedule, { capture: true });
+      window.removeEventListener("resize", schedule);
+    };
   });
+
+  // Leaving the page mid-tour still gives the tips back.
+  $effect(() => () => ui.update({ guidedActive: false }));
 
   /** @param {number} next */
   function go(next) {
@@ -97,22 +165,17 @@
   }
 
   async function start() {
-    tipsWereOn = ui.get().calloutsOn;
-    // In memory only: the viewer's saved tips setting stays as they left it.
-    if (tipsWereOn) ui.update({ calloutsOn: false });
     go(index);
+    folded = false;
     running = true;
+    ui.update({ guidedActive: true });
     await tick();
     heading?.focus();
   }
 
-  function restoreTips() {
-    if (tipsWereOn && !ui.get().calloutsOn) ui.update({ calloutsOn: true });
-  }
-
   async function leave() {
     running = false;
-    restoreTips();
+    ui.update({ guidedActive: false });
     await tick();
     entry?.focus();
   }
@@ -120,6 +183,14 @@
   async function finish() {
     go(0);
     await leave();
+  }
+
+  /** @param {boolean} fold */
+  async function setFolded(fold) {
+    folded = fold;
+    await tick();
+    if (fold) dock?.querySelector("button")?.focus();
+    else heading?.focus();
   }
 
   /** @param {Action} action */
@@ -167,18 +238,13 @@
         break;
       }
       case "askTutor": {
-        const question = lessonQuestion(plan, action.lesson);
-        const box = document.getElementById("tutor-question");
-        const tutor = document.getElementById("tutor");
-        if (!question || !(box instanceof HTMLTextAreaElement) || !tutor) break;
-        // The tutor panel binds its text box to input events.
-        box.value = question;
-        box.dispatchEvent(new Event("input", { bubbles: true }));
-        const ask = [...tutor.querySelectorAll("button")].find(
-          (b) => b.textContent?.trim() === "Ask",
-        );
-        ask?.click();
-        tutor.scrollIntoView({ block: "nearest" });
+        const exchange = lessonExchange(plan, action.lesson);
+        if (!exchange) break;
+        // A recorded lesson replays with no passphrase; one not recorded yet
+        // is asked like any question.
+        const fixture = RECORDED.has(action.lesson) ? `lesson:${action.lesson}` : "";
+        requestAsk({ question: exchange.question, level: exchange.level, fixture });
+        document.getElementById("tutor")?.scrollIntoView({ block: "nearest" });
         break;
       }
     }
@@ -190,39 +256,60 @@
     {resuming ? "Resume the guided tour" : "Take the guided tour"}
   </button>
   {#if empty}
-    <div class="strip invite" role="group" aria-label="Guided tour invitation">
+    <div class="invite" role="group" aria-label="Guided tour invitation">
       <p>New here? In about two minutes, hear a tune, find its home, and hear a chord land.</p>
       <button type="button" class="primary" onclick={start}>Show me how</button>
     </div>
   {/if}
 {:else}
-  <section class="strip tour" aria-labelledby="guided-step-title">
-    <div class="meta">
-      <span class="count">Guided tour · Step {index + 1} of {steps.length}</span>
-      <span class="badge" title={path.status}>Draft</span>
-      <button type="button" class="link" onclick={leave}>Leave the tour</button>
-    </div>
-    <div aria-live="polite">
-      <h2 id="guided-step-title" tabindex="-1" bind:this={heading}>{step.title}</h2>
-      <p>{step.text}</p>
-      {#if hint}<p class="hint">{hint}</p>{/if}
-      {#if met}<p class="done">Done. {last ? "That's the tour." : "On to the next step."}</p>{/if}
-    </div>
-    <div class="actions">
-      {#if step.action}
-        {@const action = step.action}
-        <button type="button" class="primary" onclick={() => tryIt(action)}>{action.label}</button>
-      {/if}
-      <span class="nav">
-        <button type="button" disabled={index === 0} onclick={() => go(index - 1)}>Back</button>
-        {#if last}
-          <button type="button" onclick={finish}>Finish</button>
-        {:else}
-          <button type="button" onclick={() => go(index + 1)}>Next</button>
+  <section
+    bind:this={dock}
+    class="dock"
+    class:folded
+    style:top="{position.top}px"
+    style:left="{position.left}px"
+    aria-label="Guided tour"
+  >
+    {#if folded}
+      <button type="button" class="chip" aria-expanded="false" onclick={() => setFolded(false)}>
+        Guided tour · {index + 1}/{steps.length}
+      </button>
+    {:else}
+      <div class="meta">
+        <span class="count">Step {index + 1} of {steps.length}</span>
+        <span class="badge" title={path.status}>Draft</span>
+        <span class="tools">
+          <button type="button" class="link" aria-expanded="true" onclick={() => setFolded(true)}
+            >Fold</button
+          >
+          <button type="button" class="link" onclick={leave}>Leave the tour</button>
+        </span>
+      </div>
+      <div aria-live="polite">
+        <h2 id="guided-step-title" tabindex="-1" bind:this={heading}>{step.title}</h2>
+        <p>{step.text}</p>
+        {#if hint}<p class="hint">{hint}</p>{/if}
+        {#if met}<p class="done">
+            Done. {last ? "That's the tour." : "On to the next step."}
+          </p>{/if}
+      </div>
+      <div class="actions">
+        {#if step.action}
+          {@const action = step.action}
+          <button type="button" class="primary" onclick={() => tryIt(action)}>{action.label}</button
+          >
         {/if}
-      </span>
-    </div>
-    <p class="status">{path.status}.</p>
+        <span class="nav">
+          <button type="button" disabled={index === 0} onclick={() => go(index - 1)}>Back</button>
+          {#if last}
+            <button type="button" onclick={finish}>Finish</button>
+          {:else}
+            <button type="button" onclick={() => go(index + 1)}>Next</button>
+          {/if}
+        </span>
+      </div>
+      <p class="status">{path.status}.</p>
+    {/if}
   </section>
 {/if}
 
@@ -251,24 +338,50 @@
     text-decoration: underline;
     padding-inline: var(--space-1);
   }
-  /* The strips take a line of their own in the masthead's wrapping row. */
-  .strip {
+  /* The invitation takes a line of its own in the masthead's wrapping row. */
+  .invite {
     flex: 1 0 100%;
-    display: grid;
-    gap: var(--space-2);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
     padding: var(--space-3) var(--space-4);
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
     background: var(--surface);
   }
-  .invite {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2) var(--space-3);
+  /* Above the chord dropdown and the tips (z-index 10), placed clear of them. */
+  .dock {
+    position: fixed;
+    z-index: 11;
+    display: grid;
+    gap: var(--space-2);
+    width: min(22rem, calc(100vw - 32px));
+    padding: var(--space-3);
+    border: 2px solid var(--ink);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+  }
+  .dock.folded {
+    width: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+  .chip {
+    border-width: 2px;
+    background: var(--surface);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
   }
   p {
     margin: 0;
+    font-size: var(--text-sm);
+  }
+  .invite p {
+    font-size: var(--text-md);
   }
   .meta {
     display: flex;
@@ -278,26 +391,24 @@
     font-size: var(--text-sm);
     color: var(--ink-muted);
   }
-  .meta .link {
+  .tools {
+    display: flex;
     margin-left: auto;
-    color: var(--ink);
   }
   .badge {
     padding: 0 var(--space-2);
     border: 1px solid var(--ink-muted);
     border-radius: var(--radius-sm);
     color: var(--ink);
-    font-size: var(--text-sm);
   }
   h2 {
     margin: 0 0 var(--space-1);
-    font-size: var(--text-lg);
+    font-size: var(--text-md);
     font-weight: 500;
   }
   .hint,
   .done {
     margin-top: var(--space-1);
-    font-size: var(--text-sm);
   }
   .done {
     font-weight: 500;
@@ -313,11 +424,10 @@
     gap: var(--space-2);
     margin-left: auto;
   }
+  .status {
+    color: var(--ink-muted);
+  }
   .status::first-letter {
     text-transform: uppercase;
-  }
-  .status {
-    font-size: var(--text-sm);
-    color: var(--ink-muted);
   }
 </style>

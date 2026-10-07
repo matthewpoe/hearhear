@@ -10,10 +10,11 @@ import {
   clampStep,
   conditionMet,
   hintFor,
-  lessonQuestion,
+  lessonExchange,
   loadProgress,
   noteAt,
   numeralAt,
+  placePanel,
   saveProgress,
   shouldAdvance,
 } from "../../src/guided/steps.js";
@@ -82,7 +83,7 @@ describe("the guided path's content", () => {
   it("asks the tutor with a question from the lesson plan", () => {
     const asks = steps.flatMap((s) => (s.action?.type === "askTutor" ? [s.action.lesson] : []));
     assert.notEqual(asks.length, 0);
-    for (const lesson of asks) assert.ok(lessonQuestion(plan, lesson), lesson);
+    for (const lesson of asks) assert.ok(lessonExchange(plan, lesson), lesson);
   });
 
   it("is completed, step by step, by playing the story through the song store", () => {
@@ -208,5 +209,43 @@ describe("progress", () => {
     assert.equal(clampStep(9, 5), 4);
     assert.equal(clampStep(1.5, 5), 0);
     assert.equal(clampStep(2, 0), 0);
+  });
+});
+
+describe("lessonExchange", () => {
+  it("gives the plan's question and hint level", () => {
+    const ending = plan.exchanges.find((e) => e.id === "ode-ending");
+    assert.deepEqual(lessonExchange(plan, "ode-ending"), {
+      question: ending?.question,
+      level: "answer",
+    });
+    assert.equal(lessonExchange(plan, "nope"), null);
+  });
+});
+
+describe("placePanel", () => {
+  const size = { width: 300, height: 150 };
+  const area = { left: 80, right: 1360, bottom: 750 };
+  const right = { top: 588, left: 1060 };
+
+  it("sits above the dock at the workspace's right edge when that's clear", () => {
+    assert.deepEqual(placePanel(size, area, []), right);
+  });
+
+  it("lifts above the tutor's question box when it would cover it", () => {
+    const ask = { top: 640, left: 900, bottom: 740, right: 1340 };
+    assert.deepEqual(placePanel(size, area, [ask], ask), { top: 478, left: 1060 });
+  });
+
+  it("moves to the left edge when the right is covered twice over", () => {
+    const ask = { top: 640, left: 900, bottom: 740, right: 1340 };
+    const log = { top: 300, left: 900, bottom: 630, right: 1340 };
+    assert.deepEqual(placePanel(size, area, [ask, log], ask), { top: 588, left: 80 });
+  });
+
+  it("takes the spot that covers least when none is clear", () => {
+    const everywhere = { top: 0, left: 0, bottom: 900, right: 1440 };
+    const corner = { top: 700, left: 1300, bottom: 750, right: 1360 };
+    assert.deepEqual(placePanel(size, area, [everywhere, corner]), { top: 588, left: 80 });
   });
 });
