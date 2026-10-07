@@ -4,6 +4,19 @@
     "title": "What's a key?",
     "body": "A key is a family of notes that all lean toward one home note. Hold the right home underneath and the melody sits comfortably on top of it; hold the wrong one and some notes rub against it, and that rub is the itch you'll hear."
   },
+  "keyGuess": {
+    "$comment": "What the key question says after a guess. {key} becomes the guess, like 'D major'. A demo tune knows its home, so its guesses get match or mismatch lines; other tunes get only 'chose'. Never name the tune's home.",
+    "chose": "You chose {key} as home.",
+    "match": "That's the home most ears hear in this tune.",
+    "mismatch": "Most ears hear home somewhere else in this tune. Listen to the last note over your home chord: does it settle, or hang?",
+    "otherMode": "You're close: most ears hear this same home note, but hear the tune a little differently. Try it bright and dark, and listen to the last note: does it settle, or hang?",
+    "check": "Check it by ear",
+    "keep": "Keep my choice",
+    "kept": "Keeping {key} as home.",
+    "finderFirst": "Your pick is now home.",
+    "finderSame": "Same as your choice.",
+    "finderDifferent": "Different from your earlier choice; your pick is now home."
+  },
   "voiceLeading": {
     "title": "What's voice leading?",
     "body": "Voice leading is how a pianist moves from one chord to the next with as little hand movement as possible: notes the two chords share stay put, often the home note, and the others step to the nearest key.",
