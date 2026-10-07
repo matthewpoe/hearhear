@@ -3,7 +3,9 @@ import svelte from "eslint-plugin-svelte";
 import globals from "globals";
 
 export default [
-  { ignores: ["dist/", "media/", "node_modules/", ".venv/", "test-results/", "playwright-report/"] },
+  {
+    ignores: ["dist/", "media/", "node_modules/", ".venv/", "test-results/", "playwright-report/"],
+  },
   js.configs.recommended,
   ...svelte.configs.recommended,
   {
@@ -23,8 +25,14 @@ export default [
         "error",
         {
           patterns: [
-            { group: ["**/audio/**", "**/store/**", "**/staff/**", "**/*.svelte"], message: "src/theory is pure functions." },
-            { group: ["svelte", "svelte/*", "tone", "abcjs"], message: "src/theory is pure functions." },
+            {
+              group: ["**/audio/**", "**/store/**", "**/staff/**", "**/*.svelte"],
+              message: "src/theory is pure functions.",
+            },
+            {
+              group: ["svelte", "svelte/*", "tone", "abcjs"],
+              message: "src/theory is pure functions.",
+            },
           ],
         },
       ],
