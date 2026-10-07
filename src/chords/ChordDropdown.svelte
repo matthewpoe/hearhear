@@ -25,6 +25,7 @@
     stopAudition,
   } from "../audio/index.js";
   import { playWithVisuals } from "../staff/playback.js";
+  import { holdHome, homeDrone, releaseHome } from "../staff/homeDrone.js";
   import { functionOf } from "../theory/index.js";
   import ChordChipRow from "./ChordChipRow.svelte";
   import ChordOption from "./ChordOption.svelte";
@@ -77,7 +78,9 @@
   // Plain values, not state: they record what this component has touched so
   // closing undoes only its own audition and lights.
   let auditioned = false;
-  /** @type {{ lights: KeyboardLights, option: Option, passage: Passage } | null} */
+  /** This dropdown's hold on "Drone on home", from its first audition to its close. */
+  const droneHolder = {};
+  /** @type {{ lights: KeyboardLights, option: Option, passage: Passage, drone: number[] } | null} */
   let written = null;
 
   const labelMode = $derived(keyLabelMode($song, $ui));
@@ -86,6 +89,8 @@
   const where = $derived(note ? whereOf(note, $song.meter) : "");
   // Tracked so hover lights come back when playback releases the keyboard.
   const lightsSource = $derived($ui.keyboardLights.source);
+  // "Drone on home" sounds under auditions too, and lights as playback lights it.
+  const homeTones = $derived($homeDrone);
   const likely = $derived(note ? chordOptions($song, note) : []);
   const more = $derived(note && extended ? chordOptions($song, note, { extended: true }) : []);
   const ideas = $derived(
@@ -127,6 +132,8 @@
     return () => observer.disconnect();
   });
 
+  $effect(() => () => releaseHome(droneHolder));
+
   // The note was deleted or the song replaced while the dropdown was open.
   $effect(() => {
     if (open && !note) close(false);
@@ -141,6 +148,7 @@
     const option = hovered ?? focused;
     const source = lightsSource;
     const at = passage;
+    const drone = homeTones;
     untrack(() => {
       if (source === "playback") {
         written = null;
@@ -148,7 +156,12 @@
       }
       if (option && at) {
         const current = ui.get().keyboardLights;
-        if (written?.lights === current && written.option === option && written.passage === at)
+        if (
+          written?.lights === current &&
+          written.option === option &&
+          written.passage === at &&
+          written.drone === drone
+        )
           return;
         const hidden = keyLabelMode(song.get(), ui.get()) === "hidden";
         /** @type {KeyboardLights} */
@@ -158,9 +171,9 @@
             midi: voicingIn(at, option.chord),
             fn: hidden ? "other" : functionOf(option.numeral, song.get().key.mode),
           },
-          melody: [at.note.midi],
+          melody: [...drone, at.note.midi],
         };
-        written = { lights, option, passage: at };
+        written = { lights, option, passage: at, drone };
         ui.update({ keyboardLights: lights });
       } else if (written) {
         if (source === "hover") ui.update({ keyboardLights: NO_LIGHTS });
@@ -282,6 +295,7 @@
     const opener = open?.opener;
     const noteId = open?.noteId;
     open = null;
+    releaseHome(droneHolder);
     ui.update({ selectedNoteId: null });
     hovered = null;
     focused = null;
@@ -316,6 +330,7 @@
    * @param {ChordSpec} chord
    */
   function auditionSoon(at, chord) {
+    holdHome(droneHolder);
     auditionDebounced(voicingIn(at, chord), at.range, {
       atTick: at.note.start,
       neighbors: $ui.auditionVoicing,
@@ -332,6 +347,7 @@
     const at = passageAround($song, noteId);
     if (!at) return;
     auditioned = true;
+    holdHome(droneHolder);
     // A failed audition already shows through audioStatus.
     auditionChord(voicingIn(at, chord), at.range, {
       atTick: at.note.start,

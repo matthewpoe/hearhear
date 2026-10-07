@@ -7,7 +7,8 @@
  * @import { TickRange } from "../audio/index.js"
  */
 
-import { passageBelow, rebar, ticksPerBar, voice } from "../theory/index.js";
+import { barRange } from "../staff/bars.js";
+import { passageBelow, voice } from "../theory/index.js";
 
 /**
  * @typedef {{
@@ -29,7 +30,7 @@ import { passageBelow, rebar, ticksPerBar, voice } from "../theory/index.js";
 export function passageAround(song, noteId) {
   const note = song.notes.find((n) => n.id === noteId);
   if (!note) return null;
-  const range = barRange(song, note);
+  const { range } = barRange(song, note);
   // The audio stream voices the passage's other chords under the same note.
   const below = passageBelow(song, range);
   const before = song.chords
@@ -48,19 +49,4 @@ export function passageAround(song, noteId) {
  */
 export function voicingIn(passage, chord) {
   return voice(chord, passage.previous, { below: passage.below });
-}
-
-/**
- * The bar a note starts in, stretched to the note's end if it is held across
- * the bar line. Bar 0 is the pickup.
- * @param {Song} song
- * @param {Note} note
- * @returns {TickRange}
- */
-function barRange(song, note) {
-  const bar = rebar(song, song.meter).find((b) => b.noteIds.includes(note.id));
-  const noteEnd = note.start + note.dur;
-  if (!bar) return { fromTick: note.start, toTick: noteEnd };
-  const barEnd = bar.index === 0 ? song.meter.pickupTicks : bar.startTick + ticksPerBar(song.meter);
-  return { fromTick: bar.startTick, toTick: Math.max(barEnd, noteEnd) };
 }

@@ -39,7 +39,6 @@ The musician and non-musician walkthroughs on the deployed app found these. The 
 - **A grey shape instead of "?"** for a chord outside the key, so it still has a shape and a label.
 - **A stronger playback highlight** on the staff.
 - **Collapse the jargon in beginner mode.**
-- **Play from a bar,** and **a drone on home** once the key is chosen. With both, the tutor's listening steps could say "play bar N" and "hold the drone on 1 and play the phrase", Matthew's original examples (see DECISIONS, "Listening steps name only controls the app has today").
 - **The dropdown ranks ii above V at Ode to Joy's bar 8 beat 1** (0.95 to 0.92), because the D passing on beat 2½ clashes a little with A major. If a guided step asks for the chord before the landing, the top suggestion won't be V (`docs/overnight/ear-check.md`).
 
 ## Extensions from the PRD
