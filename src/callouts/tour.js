@@ -51,23 +51,26 @@ export function dismiss(dismissed, id) {
 
 /**
  * Where to put a callout of `size` next to an anchor, in viewport pixels:
- * below the anchor if it fits, else above it, else just inside its top edge
- * (for anchors taller than the screen). Always kept inside the viewport, so a
- * callout whose anchor is scrolled away waits at the nearest edge.
+ * below the anchor if it fits, else above it, else at the bottom of the
+ * visible area, so a panel too tall to sit beside keeps its heading and first
+ * controls readable. The visible area ends at `viewport.bottom` (the top of
+ * the keyboard dock) when given. Always kept inside that area, so a callout
+ * whose anchor is scrolled away waits at the nearest edge.
  * @param {Rect} anchor
  * @param {{ width: number, height: number }} size
- * @param {{ width: number, height: number }} viewport
+ * @param {{ width: number, height: number, bottom?: number }} viewport
  * @param {number} [gap] space between anchor and callout
  * @param {number} [margin] space kept from the viewport edge
  * @returns {{ top: number, left: number }}
  */
 export function placeCallout(anchor, size, viewport, gap = 12, margin = 8) {
+  const floor = Math.min(viewport.bottom ?? viewport.height, viewport.height) - margin;
   let top;
-  if (anchor.bottom + gap + size.height <= viewport.height - margin) top = anchor.bottom + gap;
+  if (anchor.bottom + gap + size.height <= floor) top = anchor.bottom + gap;
   else if (anchor.top - gap - size.height >= margin) top = anchor.top - gap - size.height;
-  else top = anchor.top + gap;
+  else top = floor - size.height;
   return {
-    top: clamp(top, margin, viewport.height - size.height - margin),
+    top: clamp(top, margin, floor - size.height),
     left: clamp(anchor.left, margin, viewport.width - size.width - margin),
   };
 }

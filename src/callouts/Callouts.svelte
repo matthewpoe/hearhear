@@ -80,6 +80,7 @@
       position = placeCallout(anchor.getBoundingClientRect(), callout.getBoundingClientRect(), {
         width: window.innerWidth,
         height: window.innerHeight,
+        bottom: document.querySelector(".keyboard-dock")?.getBoundingClientRect().top,
       });
     };
     place();

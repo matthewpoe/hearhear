@@ -63,8 +63,17 @@ describe("placeCallout", () => {
     assert.deepEqual(placeCallout(rect(600, 750), size, viewport), { top: 488, left: 100 });
   });
 
-  it("sits inside the top edge of an anchor taller than the screen", () => {
-    assert.deepEqual(placeCallout(rect(50, 790), size, viewport), { top: 62, left: 100 });
+  it("sits at the bottom of the screen when neither side of a tall anchor has room", () => {
+    assert.deepEqual(placeCallout(rect(50, 790), size, viewport), { top: 692, left: 100 });
+  });
+
+  it("treats the keyboard dock as the bottom of the screen", () => {
+    const docked = { ...viewport, bottom: 600 };
+    // Room below the anchor in the viewport, but not above the dock: flips above.
+    assert.equal(placeCallout(rect(400, 500), size, docked).top, 288);
+    // No room on either side: waits just above the dock, never under it.
+    assert.equal(placeCallout(rect(50, 590), size, docked).top, 492);
+    assert.equal(placeCallout(rect(900, 1000), size, docked).top, 492);
   });
 
   it("stays inside the viewport horizontally", () => {

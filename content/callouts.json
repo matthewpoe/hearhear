@@ -3,7 +3,7 @@
   "callouts": [
     {
       "id": "welcome",
-      "anchor": "landing",
+      "anchor": "song-chooser",
       "title": "Start here",
       "text": "Turn your sound on and pick a tune. Every sound also shows on screen, so you can follow along with it off."
     },
@@ -43,7 +43,7 @@
       "id": "toolbar",
       "anchor": "toolbar",
       "title": "Your controls",
-      "text": "Play and stop the tune, and choose how chords are named. Transpose moves the whole tune higher or lower: the sound changes, but the numbers stay the same, because they count from home."
+      "text": "Undo a change, and choose how chords are named. Transpose moves the whole tune higher or lower: the sound changes, but the numbers stay the same, because they count from home."
     },
     {
       "id": "tutor",
