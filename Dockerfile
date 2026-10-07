@@ -8,6 +8,7 @@ COPY public ./public
 COPY src ./src
 COPY contracts ./contracts
 COPY content ./content
+COPY evals/results ./evals/results
 RUN npm run build
 
 # Stage 2: the API, serving the built frontend.

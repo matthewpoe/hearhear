@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "id": "veni-emmanuel",
+  "title": "O Come, O Come, Emmanuel (Veni Emmanuel)",
+  "key": {
+    "tonic": "E",
+    "mode": "minor",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 4,
+    "beatUnit": 4,
+    "pickupTicks": 12,
+    "provisional": false
+  },
+  "tempo": 130,
+  "version": 1,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 64,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 67,
+      "start": 12,
+      "dur": 12
+    },
+    {
+      "id": "n3",
+      "midi": 71,
+      "start": 24,
+      "dur": 12
+    },
+    {
+      "id": "n4",
+      "midi": 71,
+      "start": 36,
+      "dur": 12
+    },
+    {
+      "id": "n5",
+      "midi": 71,
+      "start": 48,
+      "dur": 12
+    },
+    {
+      "id": "n6",
+      "midi": 69,
+      "start": 60,
+      "dur": 12
+    },
+    {
+      "id": "n7",
+      "midi": 72,
+      "start": 72,
+      "dur": 12
+    },
+    {
+      "id": "n8",
+      "midi": 71,
+      "start": 84,
+      "dur": 12
+    },
+    {
+      "id": "n9",
+      "midi": 69,
+      "start": 96,
+      "dur": 12
+    },
+    {
+      "id": "na",
+      "midi": 67,
+      "start": 108,
+      "dur": 36
+    },
+    {
+      "id": "nb",
+      "midi": 69,
+      "start": 144,
+      "dur": 12
+    },
+    {
+      "id": "nc",
+      "midi": 71,
+      "start": 156,
+      "dur": 12
+    },
+    {
+      "id": "nd",
+      "midi": 67,
+      "start": 168,
+      "dur": 12
+    },
+    {
+      "id": "ne",
+      "midi": 64,
+      "start": 180,
+      "dur": 12
+    },
+    {
+      "id": "nf",
+      "midi": 67,
+      "start": 192,
+      "dur": 12
+    },
+    {
+      "id": "ng",
+      "midi": 69,
+      "start": 204,
+      "dur": 12
+    },
+    {
+      "id": "nh",
+      "midi": 66,
+      "start": 216,
+      "dur": 12
+    },
+    {
+      "id": "ni",
+      "midi": 64,
+      "start": 228,
+      "dur": 12
+    },
+    {
+      "id": "nj",
+      "midi": 62,
+      "start": 240,
+      "dur": 12
+    }
+  ],
+  "chords": [
+    {
+      "id": "c1",
+      "noteId": "n2",
+      "root": "E",
+      "type": "m"
+    },
+    {
+      "id": "c2",
+      "noteId": "n3",
+      "root": "B",
+      "type": "m"
+    },
+    {
+      "id": "c3",
+      "noteId": "n4",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c4",
+      "noteId": "n6",
+      "root": "C",
+      "type": "6"
+    },
+    {
+      "id": "c5",
+      "noteId": "n7",
+      "root": "A",
+      "type": "m7"
+    },
+    {
+      "id": "c6",
+      "noteId": "n8",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c7",
+      "noteId": "n9",
+      "root": "D",
+      "type": "7"
+    },
+    {
+      "id": "c8",
+      "noteId": "na",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c9",
+      "noteId": "nb",
+      "root": "D",
+      "type": "M"
+    },
+    {
+      "id": "ca",
+      "noteId": "nc",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "cb",
+      "noteId": "ne",
+      "root": "C",
+      "type": "M"
+    },
+    {
+      "id": "cc",
+      "noteId": "nf",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "cd",
+      "noteId": "ng",
+      "root": "A",
+      "type": "m"
+    },
+    {
+      "id": "ce",
+      "noteId": "nh",
+      "root": "F#",
+      "type": "dim"
+    },
+    {
+      "id": "cf",
+      "noteId": "ni",
+      "root": "E",
+      "type": "m"
+    },
+    {
+      "id": "cg",
+      "noteId": "nj",
+      "root": "B",
+      "type": "m"
+    }
+  ]
+}

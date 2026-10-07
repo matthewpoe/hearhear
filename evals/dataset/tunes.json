@@ -1,0 +1,42 @@
+[
+  {
+    "id": "amazing-grace",
+    "title": "Amazing Grace (New Britain)",
+    "source": "Amazing_Grace-New_Britain.abc",
+    "url": "http://openhymnal.org/Abc/Amazing_Grace-New_Britain.abc",
+    "setting": "Edwin Othello Excell, 1900, as printed in \"Joy to the World\" (ed. Excell, 1915), hymn 209",
+    "key": { "tonic": "G", "mode": "major" },
+    "bars": 8,
+    "case": "Waltz time (3/4) with a pickup."
+  },
+  {
+    "id": "joyful-joyful",
+    "title": "Joyful, Joyful, We Adore Thee (Hymn to Joy)",
+    "source": "Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
+    "url": "http://openhymnal.org/Abc/Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
+    "setting": "\"The Methodist Hymnal\", 1905, hymn 160 (Beethoven, adapted by Edward Hodges)",
+    "key": { "tonic": "G", "mode": "major" },
+    "bars": 4,
+    "case": "The demo tune's melody in a hymnal harmonization: the easy case."
+  },
+  {
+    "id": "veni-emmanuel",
+    "title": "O Come, O Come, Emmanuel (Veni Emmanuel)",
+    "source": "O_Come_O_Come_Emmanuel-Veni_Emmanuel.abc",
+    "url": "http://openhymnal.org/Abc/O_Come_O_Come_Emmanuel-Veni_Emmanuel.abc",
+    "setting": "\"Common Service Book\" (ULCA), 1917, hymn 1",
+    "key": { "tonic": "E", "mode": "minor" },
+    "bars": 5,
+    "case": "Relative-key ambiguity: an E minor melody whose setting leans on G major."
+  },
+  {
+    "id": "god-rest-ye",
+    "title": "God Rest Ye Merry, Gentlemen",
+    "source": "God_Rest_Ye_Merry_Gentlemen.abc",
+    "url": "http://openhymnal.org/Abc/God_Rest_Ye_Merry_Gentlemen-God_Rest_Ye_Merry_Gentlemen.abc",
+    "setting": "\"Carols Old and Carols New\", 1918, carol 722",
+    "key": { "tonic": "E", "mode": "minor" },
+    "bars": 4,
+    "case": "Minor key with a raised leading tone (D#) in the half cadence."
+  }
+]
