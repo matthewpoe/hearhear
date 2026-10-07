@@ -115,6 +115,19 @@ describe("number row", () => {
     up("Digit3");
   });
 
+  it("plays the numeric keypad as the number row, with the same modifiers", () => {
+    down("Numpad1");
+    const event = down("Numpad3", { altKey: true });
+    assert.equal(event.defaultPrevented, true);
+    down("Numpad4", { shiftKey: true });
+    // Num Lock off: the key is "ArrowUp", the code still Numpad8.
+    down("Numpad8", { key: "ArrowUp" });
+    assert.deepEqual(held(), [60, 63, 66, 72]);
+    for (const code of ["Numpad1", "Numpad3", "Numpad4", "Numpad8"]) up(code);
+    assert.deepEqual(held(), []);
+    assert.equal(ui.get().windowOctave, 0);
+  });
+
   it("ignores auto-repeat", () => {
     down("Digit5");
     down("Digit5", { repeat: true });
@@ -296,6 +309,18 @@ describe("chord row", () => {
       const event = down(code);
       assert.equal(event.defaultPrevented, true);
       assert.deepEqual(song.get().chords, []);
+    }
+  });
+
+  it("leaves Shift+Backspace to the staff: the chord and the note stay", () => {
+    loadSong(false);
+    ui.update({ selectedNoteId: "n1" });
+    down("KeyA");
+    up("KeyA");
+    for (const code of ["Backspace", "Delete"]) {
+      assert.equal(down(code, { shiftKey: true }).defaultPrevented, false);
+      assert.equal(song.get().chords.length, 1);
+      assert.ok(song.get().notes.some((n) => n.id === "n1"));
     }
   });
 
