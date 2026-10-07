@@ -310,8 +310,17 @@
     color: var(--ink);
     cursor: pointer;
   }
+  /* Tertiary, like the app's other text buttons: an underlined link. */
   button.quiet {
+    justify-self: start;
+    padding-inline: var(--space-1);
     border-color: transparent;
+    background: none;
     color: var(--ink-muted);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  button.quiet:hover {
+    color: var(--ink);
   }
 </style>
