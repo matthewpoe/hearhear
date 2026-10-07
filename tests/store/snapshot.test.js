@@ -63,6 +63,14 @@ describe("toTutorSnapshot", () => {
       },
     );
     assert.equal(long.title, "x".repeat(120));
+    const astral = toTutorSnapshot(
+      { ...song, title: `${"x".repeat(119)}🎹🎹` },
+      {
+        labelStyle: "nashville",
+      },
+    );
+    assert.equal(astral.title, `${"x".repeat(119)}🎹`, "cut by code point, never mid-character");
+    assert.doesNotMatch(/** @type {string} */ (astral.title), /[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
     const blank = toTutorSnapshot({ ...song, title: "   " }, { labelStyle: "nashville" });
     assert.equal("title" in blank, false);
   });

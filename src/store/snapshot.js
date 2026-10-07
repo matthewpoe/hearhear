@@ -35,7 +35,10 @@ const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
  */
 export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
   const { key, meter } = song;
-  const title = song.title?.trim().slice(0, MAX_TITLE_CHARS);
+  // By code point, so a cut never splits an astral character into a lone surrogate.
+  const title = Array.from(song.title?.trim() ?? "")
+    .slice(0, MAX_TITLE_CHARS)
+    .join("");
   const beatTicks = ticksPerBeat(meter);
   const notesById = new Map(song.notes.map((n) => [n.id, n]));
   const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
