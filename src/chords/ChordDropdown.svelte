@@ -10,6 +10,7 @@
   /** @import { KeyboardLights } from "../store/ui.js" */
   /** @import { ChordOption as Option } from "./options.js" */
   /** @import { Passage } from "./passage.js" */
+  /** @import { PlacementInput, Side } from "./placement.js" */
   import { tick, untrack } from "svelte";
   import explainers from "../../content/explainers.json" with { type: "json" };
   import { onNoteClick } from "../staff/staffEvents.js";
@@ -31,10 +32,13 @@
   import { containingAncestor } from "./containingBlock.js";
   import { chordOptions, degreeOf, describeOption } from "./options.js";
   import { passageAround, voicingIn } from "./passage.js";
+  import { placeOn, sideFor } from "./placement.js";
   import { NO_TAP, activate } from "./tap.js";
 
   const WIDTH_PX = 352;
   const GUTTER_PX = 16;
+  /** The tallest the dropdown grows, as a share of the viewport. */
+  const CAP_VH = 0.7;
   /** @type {KeyboardLights} */
   const NO_LIGHTS = { source: null, chord: null, melody: [] };
   /** The sticky on-screen piano (App.svelte); the dropdown never covers it. */
@@ -44,6 +48,9 @@
   /**
    * @type {{
    *   noteId: string,
+   *   anchorTop: number,
+   *   anchorBottom: number,
+   *   side: Side | null,
    *   top: number,
    *   left: number,
    *   maxHeight: number | null,
@@ -55,6 +62,8 @@
   let explainerOpen = $state(false);
   /** @type {HTMLElement | undefined} */
   let dialog = $state();
+  /** @type {HTMLElement | undefined} */
+  let content = $state();
   /** @type {Option | null} */
   let hovered = $state(null);
   /** @type {Option | null} */
@@ -109,6 +118,15 @@
     }),
   );
 
+  // Refit whenever the content changes size (the extended list, the
+  // explainer, tutor ideas arriving), so growth never pushes it off screen.
+  $effect(() => {
+    if (!content) return;
+    const observer = new ResizeObserver(() => fit());
+    observer.observe(content);
+    return () => observer.disconnect();
+  });
+
   // The note was deleted or the song replaced while the dropdown was open.
   $effect(() => {
     if (open && !note) close(false);
@@ -161,6 +179,9 @@
     const maxLeft = window.scrollX + window.innerWidth - WIDTH_PX - GUTTER_PX;
     open = {
       noteId,
+      anchorTop: rect.top + window.scrollY,
+      anchorBottom: rect.bottom + window.scrollY,
+      side: null,
       top: rect.bottom + window.scrollY + GUTTER_PX / 2,
       left: Math.max(window.scrollX + GUTTER_PX, Math.min(rect.left + window.scrollX, maxLeft)),
       maxHeight: null,
@@ -174,8 +195,11 @@
     tapHint = "";
     await tick();
     warnIfContained();
-    fitAboveDock(rect);
-    dialog?.focus();
+    fit();
+    // Focus only once the fitted position is in the DOM, and never let it
+    // scroll the page: that would move the view out from under the fit.
+    await tick();
+    dialog?.focus({ preventScroll: true });
   }
 
   /**
@@ -196,27 +220,31 @@
   }
 
   /**
-   * Keep the dropdown clear of the sticky keyboard dock, which shows the keys
-   * a hover lights: below the anchor if it fits, else above it, else on the
-   * roomier side with its own scroll.
-   * @param {DOMRect} rect the anchor, viewport coordinates
+   * Keep the dropdown inside the visible area, between the top of the
+   * viewport and the sticky keyboard dock (which shows the keys a hover
+   * lights): below the anchor if it fits, else above it, else on the roomier
+   * side with its own scroll. The side is chosen once per open; later refits
+   * keep it, so growing content scrolls inside rather than flipping.
    */
-  function fitAboveDock(rect) {
+  function fit() {
     if (!open || !dialog) return;
-    const dock = document.querySelector(DOCK_SELECTOR)?.getBoundingClientRect().height ?? 0;
-    const roomTop = window.scrollY + GUTTER_PX;
-    const roomBottom = window.scrollY + window.innerHeight - dock - GUTTER_PX;
-    const anchorTop = rect.top + window.scrollY - GUTTER_PX / 2;
-    const height = dialog.offsetHeight;
-    if (open.top + height <= roomBottom) return;
-    if (anchorTop - height >= roomTop) {
-      open.top = anchorTop - height;
-      return;
-    }
-    const spaceBelow = roomBottom - open.top;
-    const spaceAbove = anchorTop - roomTop;
-    if (spaceAbove > spaceBelow) open.top = roomTop;
-    open.maxHeight = Math.max(spaceAbove, spaceBelow);
+    const dockTop = document.querySelector(DOCK_SELECTOR)?.getBoundingClientRect().top;
+    const visibleBottom = Math.min(window.innerHeight, dockTop ?? Infinity);
+    /** @type {PlacementInput} */
+    const at = {
+      anchorTop: open.anchorTop,
+      anchorBottom: open.anchorBottom,
+      // scrollHeight is the content's full height even while max-height clips it.
+      height: dialog.scrollHeight + dialog.offsetHeight - dialog.clientHeight,
+      viewTop: window.scrollY + GUTTER_PX,
+      viewBottom: window.scrollY + visibleBottom - GUTTER_PX,
+      gap: GUTTER_PX / 2,
+      cap: window.innerHeight * CAP_VH,
+    };
+    open.side ??= sideFor(at);
+    const { top, maxHeight } = placeOn(at, open.side);
+    open.top = top;
+    open.maxHeight = maxHeight;
   }
 
   /** @param {boolean} restoreFocus */
@@ -385,7 +413,7 @@
   }
 </script>
 
-<svelte:window onpointerdown={onWindowPointerDown} />
+<svelte:window onpointerdown={onWindowPointerDown} onresize={fit} />
 
 <section id="chords" class="chords" aria-label="Chords">
   <h2>Chords</h2>
@@ -409,119 +437,121 @@
       {onkeydown}
       {onfocusout}
     >
-      <h3 id="chord-dropdown-title">Chord at {where}</h3>
-      <p id="chord-dropdown-help" class="help">
-        Hover, focus, or tap a chord to hear it under the tune. Number keys play chords by degree;
-        Enter, a click, or a second tap chooses; Escape closes.
-      </p>
-      <p class="visually-hidden" role="status">{tapHint}</p>
+      <div class="content" bind:this={content}>
+        <h3 id="chord-dropdown-title">Chord at {where}</h3>
+        <p id="chord-dropdown-help" class="help">
+          Hover, focus, or tap a chord to hear it under the tune. Number keys play chords by degree;
+          Enter, a click, or a second tap chooses; Escape closes.
+        </p>
+        <p class="visually-hidden" role="status">{tapHint}</p>
 
-      <ul aria-label="Likely chords">
-        {#each likely as option (option.key)}
-          <li>
-            <ChordOption
-              {option}
-              view={viewOf(option.chord)}
-              current={isPlaced(option.chord)}
-              onpreview={preview}
-              onunpreview={unpreview}
-              tapped={tap.previewed === option.key}
-              {onactivate}
-            />
-          </li>
-        {/each}
-      </ul>
+        <ul aria-label="Likely chords">
+          {#each likely as option (option.key)}
+            <li>
+              <ChordOption
+                {option}
+                view={viewOf(option.chord)}
+                current={isPlaced(option.chord)}
+                onpreview={preview}
+                onunpreview={unpreview}
+                tapped={tap.previewed === option.key}
+                {onactivate}
+              />
+            </li>
+          {/each}
+        </ul>
 
-      {#if ideas.length > 0}
-        <h4>From the tutor</h4>
-        {#if stale}
-          <p class="help">Suggested before your last edit.</p>
+        {#if ideas.length > 0}
+          <h4>From the tutor</h4>
+          {#if stale}
+            <p class="help">Suggested before your last edit.</p>
+          {/if}
+          <ul aria-label="Tutor's ideas">
+            {#each ideas as { option, detail } (option.key)}
+              <li>
+                <ChordOption
+                  {option}
+                  {detail}
+                  view={viewOf(option.chord)}
+                  current={isPlaced(option.chord)}
+                  onpreview={preview}
+                  onunpreview={unpreview}
+                  tapped={tap.previewed === option.key}
+                  {onactivate}
+                />
+              </li>
+            {/each}
+          </ul>
         {/if}
-        <ul aria-label="Tutor's ideas">
-          {#each ideas as { option, detail } (option.key)}
-            <li>
-              <ChordOption
-                {option}
-                {detail}
-                view={viewOf(option.chord)}
-                current={isPlaced(option.chord)}
-                onpreview={preview}
-                onunpreview={unpreview}
-                tapped={tap.previewed === option.key}
-                {onactivate}
-              />
-            </li>
-          {/each}
-        </ul>
-      {/if}
 
-      <button
-        type="button"
-        class="more"
-        aria-expanded={extended}
-        aria-controls="chord-dropdown-more"
-        onclick={() => (extended = !extended)}
-      >
-        Something else…
-      </button>
-      {#if extended}
-        <ul id="chord-dropdown-more" aria-label="More chords">
-          {#each more as option (option.key)}
-            <li>
-              <ChordOption
-                {option}
-                view={viewOf(option.chord)}
-                current={isPlaced(option.chord)}
-                onpreview={preview}
-                onunpreview={unpreview}
-                tapped={tap.previewed === option.key}
-                {onactivate}
-              />
-            </li>
-          {/each}
-        </ul>
-      {/if}
-
-      <div class="voicing">
         <button
           type="button"
           class="more"
-          role="switch"
-          aria-checked={fromCandidate}
-          onclick={toggleVoiceLeading}
+          aria-expanded={extended}
+          aria-controls="chord-dropdown-more"
+          onclick={() => (extended = !extended)}
         >
-          Voice leading: {fromCandidate ? "on" : "off"}
+          Something else…
         </button>
-        <button
-          type="button"
-          class="link"
-          aria-expanded={explainerOpen}
-          aria-controls="chord-dropdown-voice-leading"
-          onclick={() => (explainerOpen = !explainerOpen)}
-        >
-          {voiceLeading.title}
-        </button>
-      </div>
-      {#if explainerOpen}
-        <div id="chord-dropdown-voice-leading" class="explainer">
-          <p>{voiceLeading.body}</p>
-          <p>{voiceLeading.off}</p>
-          <p>{voiceLeading.on}</p>
+        {#if extended}
+          <ul id="chord-dropdown-more" aria-label="More chords">
+            {#each more as option (option.key)}
+              <li>
+                <ChordOption
+                  {option}
+                  view={viewOf(option.chord)}
+                  current={isPlaced(option.chord)}
+                  onpreview={preview}
+                  onunpreview={unpreview}
+                  tapped={tap.previewed === option.key}
+                  {onactivate}
+                />
+              </li>
+            {/each}
+          </ul>
+        {/if}
+
+        <div class="voicing">
+          <button
+            type="button"
+            class="more"
+            role="switch"
+            aria-checked={fromCandidate}
+            onclick={toggleVoiceLeading}
+          >
+            Voice leading: {fromCandidate ? "on" : "off"}
+          </button>
+          <button
+            type="button"
+            class="link"
+            aria-expanded={explainerOpen}
+            aria-controls="chord-dropdown-voice-leading"
+            onclick={() => (explainerOpen = !explainerOpen)}
+          >
+            {voiceLeading.title}
+          </button>
         </div>
-      {/if}
+        {#if explainerOpen}
+          <div id="chord-dropdown-voice-leading" class="explainer">
+            <p>{voiceLeading.body}</p>
+            <p>{voiceLeading.off}</p>
+            <p>{voiceLeading.on}</p>
+          </div>
+        {/if}
 
-      {#if placed}
-        <button type="button" class="more" onclick={() => commit(null)}>No chord here</button>
-      {/if}
+        {#if placed}
+          <button type="button" class="more" onclick={() => commit(null)}>No chord here</button>
+        {/if}
 
-      {#if $audioStatus === "loading"}
-        <p class="status" role="status">Loading piano sounds…</p>
-      {:else if $audioStatus === "failed" || audioError}
-        <p class="status" role="alert">
-          The piano sounds didn't load{audioError ? ` (${audioError})` : ""}.
-          <button type="button" onclick={retrySounds}>Try again</button>
-        </p>
-      {/if}
+        {#if $audioStatus === "loading"}
+          <p class="status" role="status">Loading piano sounds…</p>
+        {:else if $audioStatus === "failed" || audioError}
+          <p class="status" role="alert">
+            The piano sounds didn't load{audioError ? ` (${audioError})` : ""}.
+            <button type="button" onclick={retrySounds}>Try again</button>
+          </p>
+        {/if}
+      </div>
     </div>
   {/if}
 </section>
@@ -541,8 +571,6 @@
   .dropdown {
     position: absolute;
     z-index: 10;
-    display: grid;
-    gap: var(--space-2);
     max-width: calc(100vw - 2rem);
     max-height: 70vh;
     overflow-y: auto;
@@ -553,6 +581,10 @@
     color: var(--ink);
     box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--ink) 18%, transparent);
     animation: drop var(--dur-fast) var(--ease);
+  }
+  .content {
+    display: grid;
+    gap: var(--space-2);
   }
   h3,
   h4 {
