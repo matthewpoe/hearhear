@@ -13,6 +13,7 @@
   import ThemeToggle from "./ThemeToggle.svelte";
   import SongPicker from "./toolbar/SongPicker.svelte";
   import Callouts from "./callouts/Callouts.svelte";
+  import GuidedPath from "./guided/GuidedPath.svelte";
   import { song } from "./store/song.js";
 
   /** @type {HTMLElement | undefined} */
@@ -45,6 +46,7 @@
     <Callouts />
     <ThemeToggle />
   </div>
+  <GuidedPath />
 </header>
 
 <main class="workspace">
