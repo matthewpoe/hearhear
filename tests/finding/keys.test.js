@@ -2,33 +2,38 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import stJames from "../../content/songs/st-james-infirmary.json" with { type: "json" };
-import { LOWEST_MIDI, droneMidi, easyModeHomes, sameHome } from "../../src/finding/keys.js";
+import { LOWEST_MIDI, droneChord, sameHome, tonicIn } from "../../src/finding/keys.js";
 
 /** @param {{ notes: { midi: number }[] }} song */
 const lowestOf = (song) => Math.min(...song.notes.map((n) => n.midi));
 
-describe("droneMidi", () => {
+describe("droneChord", () => {
   for (const tune of [ode, stJames]) {
-    it(`sits within an octave below the lowest note of ${tune.title}`, () => {
+    it(`sits wholly below the lowest note of ${tune.title}, within an octave`, () => {
       const lowest = lowestOf(tune);
-      for (const key of [tune.key, { tonic: "C", mode: "major" }]) {
-        const midi = droneMidi(key, tune.notes);
-        assert.ok(midi < lowest, `${key.tonic}: ${midi} not below ${lowest}`);
-        assert.ok(midi >= lowest - 12, `${key.tonic}: ${midi} more than an octave below`);
+      for (const key of [tune.key, { tonic: "C", mode: "major" }, { tonic: "B", mode: "minor" }]) {
+        const chord = droneChord(key, tune.notes);
+        const top = Math.max(...chord);
+        assert.ok(top < lowest, `${key.tonic}: top ${top} not below ${lowest}`);
+        assert.ok(top >= lowest - 12, `${key.tonic}: top ${top} more than an octave below`);
       }
     });
   }
 
-  it("puts the true key's tonic on its own pitch class", () => {
-    assert.equal(droneMidi(ode.key, ode.notes) % 12, 2); // D
-    assert.equal(droneMidi(stJames.key, stJames.notes) % 12, 4); // E
+  it("is the root-position tonic triad of the key's mode", () => {
+    const [root, third, fifth] = droneChord(ode.key, ode.notes);
+    assert.equal(root % 12, 2); // D
+    assert.deepEqual([third - root, fifth - root], [4, 7]);
+    const minor = droneChord(stJames.key, stJames.notes);
+    assert.equal(minor[0] % 12, 4); // E
+    assert.deepEqual([minor[1] - minor[0], minor[2] - minor[0]], [3, 7]);
   });
 
-  it("never goes below C2, sharing the register when the melody reaches it", () => {
+  it("never puts the root below C2, sharing the register when the melody reaches it", () => {
     assert.equal(LOWEST_MIDI, 36);
-    assert.equal(droneMidi({ tonic: "C", mode: "major" }, [{ midi: 36 }]), 36);
-    assert.equal(droneMidi({ tonic: "D", mode: "major" }, [{ midi: 37 }]), 38);
-    assert.equal(droneMidi({ tonic: "B", mode: "minor" }, [{ midi: 40 }]), 47);
+    assert.deepEqual(droneChord({ tonic: "C", mode: "major" }, [{ midi: 36 }]), [36, 40, 43]);
+    assert.deepEqual(droneChord({ tonic: "D", mode: "major" }, [{ midi: 40 }]), [38, 42, 45]);
+    assert.deepEqual(droneChord({ tonic: "A", mode: "minor" }, [{ midi: 60 }]), [45, 48, 52]);
   });
 });
 
@@ -44,18 +49,10 @@ describe("sameHome", () => {
   });
 });
 
-describe("easyModeHomes", () => {
-  const C = { tonic: "C", mode: "major" };
-  /** @param {string} tonic @param {"major" | "minor"} mode */
-  const ranked = (tonic, mode) => ({ key: { tonic, mode, provisional: false }, score: 0 });
-
-  it("puts the current home first, then the top candidates", () => {
-    const homes = easyModeHomes(C, [ranked("D", "major"), ranked("A", "major")], 3);
-    assert.deepEqual(homes, [C, { tonic: "D", mode: "major" }, { tonic: "A", mode: "major" }]);
-  });
-
-  it("skips a candidate that is the current home, so the first comparison differs", () => {
-    const homes = easyModeHomes(C, [ranked("C", "major"), ranked("G", "major")], 1);
-    assert.deepEqual(homes, [C, { tonic: "G", mode: "major" }]);
+describe("tonicIn", () => {
+  it("spells a home as that mode's chips do", () => {
+    assert.equal(tonicIn("minor", { tonic: "Db", mode: "major" }), "C#");
+    assert.equal(tonicIn("major", { tonic: "C#", mode: "minor" }), "Db");
+    assert.equal(tonicIn("minor", { tonic: "D#", mode: "minor" }), "Eb");
   });
 });
