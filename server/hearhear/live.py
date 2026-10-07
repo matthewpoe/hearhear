@@ -1,0 +1,220 @@
+"""Live mode: stream Claude's structured reply as SSE (protocol: contracts/tutor-sse.md).
+
+Claude Opus 5.5 rejects forced tool use, so the reply is constrained with
+structured outputs (`output_config.format`) instead. The schema comes from the
+same Pydantic model as `contracts/tutor-reply.schema.json`, through the SDK's
+`transform_schema`, which moves the bounds the API doesn't enforce (lengths,
+ranges, patterns) into descriptions. Pydantic enforces them on the full reply.
+
+Requests opt into the server-side refusal fallback (`fallbacks: "default"`),
+so a policy decline is retried on Anthropic's recommended fallback model inside
+the same stream. The model that served the reply is reported as `served_by`,
+so the eval harness can exclude replies a fallback model wrote.
+"""
+
+import logging
+import time
+from collections.abc import AsyncIterator, Iterable
+from dataclasses import dataclass
+from typing import Final
+
+import anthropic
+from anthropic import AsyncAnthropic
+from anthropic.types.beta import BetaMessageParam, BetaOutputConfigParam
+from anthropic.types.beta.beta_iterations_usage import BetaIterationsUsageItem
+
+from hearhear.budget import TokenBudget
+from hearhear.log import log_event
+from hearhear.models import TutorReply, TutorRequest
+from hearhear.prompt import SYSTEM_PROMPT, user_message
+from hearhear.reply_stream import InvalidReply, MessageDeltas, validate_reply
+from hearhear.tutor import sse, suggestions_data
+
+# Adaptive thinking counts against max_tokens. A full reply (4,000-character
+# message, eight suggestions) is about 2,500 tokens; the rest is thinking room.
+MAX_TOKENS = 8000
+OUTPUT_CONFIG: BetaOutputConfigParam = {
+    "effort": "medium",
+    "format": {"type": "json_schema", "schema": anthropic.transform_schema(TutorReply)},
+}
+# The scalar `"default"` form of `fallbacks` routes by refusal category, so no
+# fallback model is pinned here. It requires exactly this beta header (the
+# array form uses `server-side-fallback-2026-06-01`; mixing them is a 400).
+FALLBACKS: Final = "default"
+FALLBACK_BETA: Final = "server-side-fallback-2026-07-01"
+
+UPSTREAM_MESSAGE = "The live tutor couldn't be reached. Try again, or use the recorded lessons."
+INVALID_MESSAGE = "The tutor's reply came back garbled. Try asking again."
+
+
+@dataclass
+class Usage:
+    """Tokens to charge for one turn, from what the API reported so far."""
+
+    input_tokens: int = 0
+    output_tokens: int = 0
+    # With a fallback, top-level usage covers only the attempt that served the
+    # reply; `usage.iterations` on `message_delta` covers every attempt.
+    all_attempts: int | None = None
+
+    @property
+    def total(self) -> int:
+        if self.all_attempts is not None:
+            return self.all_attempts
+        return self.input_tokens + self.output_tokens
+
+
+def _input_total(uncached: int | None, cache_write: int | None, cache_read: int | None) -> int:
+    """Cache writes and reads count as input."""
+    return (uncached or 0) + (cache_write or 0) + (cache_read or 0)
+
+
+def _attempts_total(iterations: Iterable[BetaIterationsUsageItem]) -> int:
+    return sum(
+        _input_total(i.input_tokens, i.cache_creation_input_tokens, i.cache_read_input_tokens)
+        + i.output_tokens
+        for i in iterations
+    )
+
+
+async def stream_live(
+    request: TutorRequest,
+    *,
+    client: AsyncAnthropic,
+    model: str,
+    budget: TokenBudget,
+    request_id: str,
+) -> AsyncIterator[str]:
+    """Yield SSE events for one tutor turn: message deltas, then exactly one
+    `suggestions` or `error`, then `done`.
+
+    Usage is charged to the budget even when the stream fails or the client
+    disconnects, from what the API reported before it stopped.
+    """
+    usage = Usage()
+    outcome = "disconnected"  # Replaced on every path that reaches the end.
+    dropped = 0
+    withheld = 0
+    served_by: str | None = None
+    fallback = False
+    started = time.monotonic()
+    messages: list[BetaMessageParam] = [{"role": "user", "content": user_message(request)}]
+    try:
+        deltas = MessageDeltas()
+        stop_reason: str | None = None
+        upstream_failure: str | None = None
+        try:
+            async with client.beta.messages.stream(
+                model=model,
+                max_tokens=MAX_TOKENS,
+                system=SYSTEM_PROMPT,
+                messages=messages,
+                output_config=OUTPUT_CONFIG,
+                fallbacks=FALLBACKS,
+                betas=[FALLBACK_BETA],
+            ) as stream:
+                async for event in stream:
+                    if event.type == "message_start":
+                        # Names the fallback model when the decline came before
+                        # any output, or when the conversation is sticky-routed.
+                        served_by = event.message.model
+                        reported = event.message.usage
+                        usage.input_tokens = _input_total(
+                            reported.input_tokens,
+                            reported.cache_creation_input_tokens,
+                            reported.cache_read_input_tokens,
+                        )
+                        usage.output_tokens = reported.output_tokens
+                    elif event.type == "content_block_start":
+                        if event.content_block.type == "fallback":
+                            # A mid-stream decline: the text so far stays, and
+                            # the fallback model continues from it.
+                            served_by = event.content_block.to.model
+                            fallback = True
+                    elif event.type == "message_delta":
+                        reported_delta = event.usage
+                        usage.output_tokens = reported_delta.output_tokens
+                        if reported_delta.input_tokens is not None:
+                            usage.input_tokens = _input_total(
+                                reported_delta.input_tokens,
+                                reported_delta.cache_creation_input_tokens,
+                                reported_delta.cache_read_input_tokens,
+                            )
+                        if reported_delta.iterations:
+                            usage.all_attempts = _attempts_total(reported_delta.iterations)
+                            for iteration in reported_delta.iterations:
+                                # The documented served-by signal; it also
+                                # covers sticky turns, which carry no block.
+                                if iteration.type == "fallback_message":
+                                    served_by = iteration.model
+                                    fallback = True
+                        stop_reason = event.delta.stop_reason
+                    elif event.type == "content_block_delta" and event.delta.type == "text_delta":
+                        delta = deltas.feed(event.delta.text)
+                        if delta:
+                            yield sse("message", {"delta": delta})
+        # Most specific first. The SDK wraps HTTP failures in these two, but
+        # not errors raised while the stream is read: transport errors mid-body
+        # (httpx2.ReadError, RemoteProtocolError), unexpected event order or
+        # shape, or a client with no credentials (a TypeError at request time).
+        # Any of those must still end the stream with `error` and `done`.
+        except anthropic.APIStatusError as exc:
+            upstream_failure = f"upstream_{exc.status_code}"
+        except anthropic.APIConnectionError as exc:
+            upstream_failure = f"upstream_{type(exc).__name__}"
+        except Exception as exc:
+            upstream_failure = f"internal_{type(exc).__name__}"
+            # The type name only: str(exc) can carry response text.
+            log_event(
+                "tutor_stream_failed",
+                level=logging.ERROR,
+                request_id=request_id,
+                error=type(exc).__name__,
+            )
+
+        if upstream_failure:
+            outcome = upstream_failure
+            yield sse("error", {"code": "upstream", "message": UPSTREAM_MESSAGE})
+        elif stop_reason != "end_turn":
+            outcome = f"stop_{stop_reason}"
+            yield sse("error", {"code": "invalid_output", "message": INVALID_MESSAGE})
+        else:
+            try:
+                reply, dropped = validate_reply(deltas.text)
+            except InvalidReply as exc:
+                outcome = "invalid_output"
+                log_event("tutor_invalid_reply", request_id=request_id, reason=str(exc))
+                yield sse("error", {"code": "invalid_output", "message": INVALID_MESSAGE})
+            else:
+                outcome = "ok"
+                data, withheld = suggestions_data(
+                    request,
+                    hint_level=reply.hint_level,
+                    suggestions=[s.model_dump() for s in reply.suggestions],
+                    dropped=dropped,
+                    # The SDK refuses a stream without message_start, so this is
+                    # set; "unknown" is never mistaken for TUTOR_MODEL if not.
+                    served_by=served_by or "unknown",
+                )
+                dropped = data["dropped"]
+                yield sse("suggestions", data)
+        yield sse("done", {})
+    finally:
+        budget.spend(usage.total)
+        log_event(
+            "tutor_live",
+            request_id=request_id,
+            model=model,
+            served_by=served_by,
+            fallback=fallback,
+            hint_level=request.hint_level,
+            key_hidden=request.snapshot.key_hidden,
+            outcome=outcome,
+            dropped=dropped,
+            withheld_hidden=withheld,
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            charged_tokens=usage.total,
+            budget_spent=budget.spent,
+            duration_ms=round((time.monotonic() - started) * 1000),
+        )
