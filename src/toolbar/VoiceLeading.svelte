@@ -33,8 +33,9 @@
     >
   </span>
   {#if explainerOpen}
+    <!-- The staff has no h2, so a heading here would skip a level: the title is bold text. -->
     <div id="voice-leading-explainer" class="explainer">
-      <h3>{copy.title}</h3>
+      <p class="title"><strong>{copy.title}</strong></p>
       <p>{copy.body}</p>
       <p>{copy.off}</p>
       <p>{copy.on}</p>
@@ -99,12 +100,10 @@
     background: var(--paper);
     font-size: var(--text-sm);
   }
-  h3 {
-    margin: 0;
-    font-size: var(--text-sm);
-    font-weight: 500;
-  }
   p {
     margin: 0;
+  }
+  .title strong {
+    font-weight: 500;
   }
 </style>
