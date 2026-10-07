@@ -46,6 +46,8 @@ An earlier pass at c6296e4 found eight problems. PR #35 fixed five of them, and 
 - **The dropdown's "More below" fade overlapped an option.** The fade has no text now (`*-4-chord-dropdown.png`).
 - **The tour strip covered the home chips at 1280x800.** Step 3 now scrolls the key card above the strip. The first row of chips is clear, and the B♭/B row sits just above the strip (`1280x800-*-7-guided-tour.png`).
 
+- **A mouse press on a keyboard-dock button scrolled the page.** Dock buttons now take focus without scrolling. The masthead cut described below has a different cause.
+
 **Still present:**
 
 - **The masthead's top edge is cut off in the V and I shots.** The cause is not Play or a dock click. Picking a chord from the dropdown at bar 8 scrolls the page by 17 px, and clicking the Roman label scrolls it by 62 px (all `*-5-v-i-drone-play.png`).
