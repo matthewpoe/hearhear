@@ -1,8 +1,10 @@
 /**
  * The user's recorded tunes: which ones exist, in the order they were made,
  * and the latest copy of each. The songs themselves are saved by per-song
- * memory (src/store/persist.js), like any other song; the shelf adds the list
- * of ids, so the song picker can offer them after a reload.
+ * memory (src/store/persist.js), like any other song, and persist.js keeps the
+ * one "my songs" index of their ids, so the song picker can offer them after
+ * a reload. The shelf reads and writes that index and keeps the latest copy
+ * of each tune for the picker.
  *
  * Storage is a convenience here too: blocked or full storage leaves the
  * shelf working for this page, and it is empty again after a reload.
@@ -13,9 +15,6 @@
 
 import { createReadable } from "../lib/readable.js";
 import { createSongMemory } from "../store/persist.js";
-import { isUserTune } from "./take.js";
-
-const INDEX_KEY = "hearhear.myTunes";
 
 /**
  * @typedef {{ id: string, title: string }} ShelfEntry
@@ -30,30 +29,13 @@ export function createShelf(storage) {
   const copies = new Map();
   const list = createReadable(/** @type {ShelfEntry[]} */ ([]));
 
-  /** @returns {string[]} */
-  function readIndex() {
-    try {
-      const ids = JSON.parse(storage().getItem(INDEX_KEY) ?? "[]");
-      return Array.isArray(ids) ? ids.filter((id) => typeof id === "string" && isUserTune(id)) : [];
-    } catch {
-      // Blocked storage or a corrupt index: no tunes to bring back.
-      return [];
-    }
-  }
-
-  function writeIndex() {
-    try {
-      storage().setItem(INDEX_KEY, JSON.stringify([...copies.keys()]));
-    } catch {
-      // persist.js already warns once about blocked storage.
-    }
-  }
+  const writeIndex = () => memory.setMySongs([...copies.keys()]);
 
   function publish() {
     list.set([...copies.values()].map(({ id, title }) => ({ id, title })));
   }
 
-  for (const id of readIndex()) {
+  for (const id of memory.mySongs()) {
     const saved = memory.recall(id);
     if (saved) copies.set(id, saved.song);
   }

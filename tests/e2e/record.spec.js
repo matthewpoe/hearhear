@@ -64,7 +64,7 @@ test("record a tune, name it, and find it on the staff, in the picker, and after
   await page.keyboard.press("Escape");
   const title = bar.getByLabel("Name your tune");
   await expect(title).toBeFocused();
-  await expect(title).toHaveValue("My tune");
+  await expect(title).toHaveValue("My tune 1");
   // The tempo follows the presses; under load the browser's timing drifts, so no exact BPM.
   await expect(bar).toContainText(/5\s+notes at \d+ BPM in 4\/4/);
   await expect(staffNotes(page)).toHaveCount(5);
@@ -146,7 +146,7 @@ test("the masthead's Record button starts a new tune beside a demo, and the bar 
   await expect(staffNotes(page)).toHaveCount(3);
   await page.keyboard.press("Escape");
   await bar.getByLabel("Name your tune").press("Enter");
-  await expect(bar.getByRole("button", { name: "Rename My tune" })).toBeVisible();
+  await expect(bar.getByRole("button", { name: "Rename My tune 1" })).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );

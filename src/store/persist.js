@@ -21,6 +21,10 @@ import { validateSong } from "./song.js";
 export const STORE_VERSION = 1;
 const SONG_PREFIX = "hearhear.song.";
 const OPEN_KEY = "hearhear.openSong";
+/** The user's own songs (recorded tunes): one index of ids, oldest first. */
+const MY_SONGS_KEY = "hearhear.mySongs";
+/** A user song's id: "mine-" and a base-36 counter, within the song id pattern. */
+const MY_SONG_ID = /^mine-[a-z0-9]{1,58}$/;
 /** Wait this long after the last change before saving. */
 const SAVE_DELAY_MS = 300;
 
@@ -178,6 +182,28 @@ export function createSongMemory(storage) {
      */
     forget(id) {
       guard(() => storage().removeItem?.(SONG_PREFIX + id), undefined);
+    },
+
+    /**
+     * The "my songs" index: the ids of the user's own songs, oldest first.
+     * Anything that isn't a list of user-song ids reads as empty.
+     * @returns {string[]}
+     */
+    mySongs() {
+      const raw = guard(() => storage().getItem(MY_SONGS_KEY), null);
+      try {
+        const ids = JSON.parse(raw ?? "[]");
+        return Array.isArray(ids)
+          ? ids.filter((id) => typeof id === "string" && MY_SONG_ID.test(id))
+          : [];
+      } catch {
+        return [];
+      }
+    },
+
+    /** @param {string[]} ids the user's own songs, oldest first */
+    setMySongs(ids) {
+      guard(() => storage().setItem(MY_SONGS_KEY, JSON.stringify(ids)), undefined);
     },
 
     /** @returns {string | null} the id of the song open in this tab */

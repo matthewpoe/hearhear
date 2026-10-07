@@ -148,10 +148,10 @@ describe("tempoFor", () => {
 });
 
 describe("titles and ids", () => {
-  it("offers My tune, then the next number free", () => {
-    assert.equal(nextTitle([]), "My tune");
-    assert.equal(nextTitle(["My tune"]), "My tune 2");
-    assert.equal(nextTitle(["my tune", "My tune 2", "Lullaby"]), "My tune 3");
+  it("offers My tune 1, then the next number free", () => {
+    assert.equal(nextTitle([]), "My tune 1");
+    assert.equal(nextTitle(["My tune 1"]), "My tune 2");
+    assert.equal(nextTitle(["my tune 1", "My tune 2", "Lullaby"]), "My tune 3");
   });
 
   it("cleans a typed title, keeping the fallback when blank", () => {

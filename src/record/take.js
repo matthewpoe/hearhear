@@ -47,14 +47,13 @@ export function newTuneId(nowMs, taken = []) {
 }
 
 /**
- * The title a new take is offered: "My tune", then "My tune 2", and so on,
+ * The title a new take is offered: "My tune 1", "My tune 2", and so on,
  * skipping any the user already has.
  * @param {Iterable<string>} titles the user's tunes' titles
  */
 export function nextTitle(titles) {
   const used = new Set([...titles].map((t) => t.trim().toLowerCase()));
-  if (!used.has("my tune")) return "My tune";
-  let n = 2;
+  let n = 1;
   while (used.has(`my tune ${n}`)) n++;
   return `My tune ${n}`;
 }

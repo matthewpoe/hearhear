@@ -90,7 +90,7 @@ describe("recorder", () => {
     assert.equal(recorder.get().notes, 3);
     assert.deepEqual(
       shelf.list.get().map((t) => t.title),
-      ["My tune"],
+      ["My tune 1"],
     );
   });
 
@@ -125,7 +125,7 @@ describe("recorder", () => {
     tap(60);
     recorder.stop();
     recorder.name("   ");
-    assert.equal(song.get().title, "My tune");
+    assert.equal(song.get().title, "My tune 1");
   });
 
   it("leaves chord-row chords out of the melody", () => {
@@ -252,6 +252,8 @@ describe("recorder", () => {
       `hearhear.song.${tune.id}`,
       JSON.stringify({ schemaVersion: 1, song: tune, demoAwaitingGuess: false }),
     );
+    // One "my songs" index, kept by persist.js, lists the user's songs.
+    assert.deepEqual(JSON.parse(items.get("hearhear.mySongs")), [tune.id]);
     const second = setup({ items });
     assert.deepEqual(second.shelf.list.get(), [{ id: tune.id, title: "Keeper" }]);
     second.recorder.openTune(tune.id);
@@ -269,7 +271,7 @@ describe("recorder", () => {
     }
     assert.deepEqual(
       shelf.list.get().map((t) => t.title),
-      ["My tune", "My tune 2"],
+      ["My tune 1", "My tune 2"],
     );
   });
 });
