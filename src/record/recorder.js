@@ -119,11 +119,13 @@ export function createRecorder({
   const draftId = (tune) => `${tune.id}-take`;
 
   /**
-   * Forget a re-take's draft once this change has been saved, so a save of
-   * the draft that runs after it doesn't bring it back.
+   * Forget a re-take's draft, and any save of it still pending, so it can't
+   * come back. A tune on the shelf is never a draft and is left alone.
    * @param {string} id
    */
-  const forgetDraft = (id) => queueMicrotask(() => shelf.forget(id));
+  const forgetDraft = (id) => {
+    if (!shelf.has(id)) song.forget(id);
+  };
 
   /** Clear a view left by the last song: the same reset a fresh demo gets. */
   function resetView() {

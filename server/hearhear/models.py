@@ -95,6 +95,18 @@ class Snapshot(Strict):
         ]
         | None
     ) = None
+    swing: (
+        Annotated[
+            float,
+            Field(
+                ge=1,
+                le=3,
+                description="The song's swing feel: the long:short ratio of an eighth-note "
+                "pair (2 is triplet swing). Optional; absent plays straight.",
+            ),
+        ]
+        | None
+    ) = None
     # True while the app hides key labels (a demo before the student's guess).
     # The tutor must not name or hint at the key, and the server withholds
     # every suggestion, since a letter-name chord gives the key away.

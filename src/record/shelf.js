@@ -78,14 +78,6 @@ export function createShelf(storage) {
     },
 
     /**
-     * Forget a saved song that isn't on the shelf (a re-take's draft).
-     * @param {string} id
-     */
-    forget(id) {
-      if (!copies.has(id)) memory.forget(id);
-    },
-
-    /**
      * Take a tune off the shelf and forget its saved copy.
      * @param {string} id
      * @returns {{ song: Song, at: number } | null} what was removed, for undo
