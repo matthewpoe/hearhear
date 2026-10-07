@@ -9,43 +9,93 @@
  * - songLoaded: a tune is on the staff.
  * - keyChosen: the user has committed a home (the key isn't provisional).
  * - playing: the tune is playing (a playhead is lit).
- * - finderOpen: the ear finder ("Help me find it") is open.
+ * - notePlaying: a single note is held down on the piano or the number row.
+ * - chordKeyHeld: a chord is held down on the A–J row.
+ * - chordRow: the A–J row plays chords (the Chords/Notes switch).
  * - dropdownOpen: the chord dropdown is open on a note.
  * - chordPlaced: the song has at least one chord.
+ * Plus one fact per name in content's `pageFacts` (see `pageFacts`), true
+ * while an element matching its selector is on the page.
  * @typedef {{
  *   songLoaded: boolean,
  *   keyChosen: boolean,
  *   playing: boolean,
- *   finderOpen: boolean,
+ *   notePlaying: boolean,
+ *   chordKeyHeld: boolean,
+ *   chordRow: boolean,
  *   dropdownOpen: boolean,
  *   chordPlaced: boolean,
+ *   [pageFact: string]: boolean,
  * }} TourFacts
  */
 
-/** @typedef {keyof TourFacts} Fact */
+/** @typedef {string} Fact */
+
+/** The facts read from the stores, as opposed to the page. */
+export const STORE_FACTS = /** @type {const} */ ([
+  "songLoaded",
+  "keyChosen",
+  "playing",
+  "notePlaying",
+  "chordKeyHeld",
+  "chordRow",
+  "dropdownOpen",
+  "chordPlaced",
+]);
 
 /**
- * One beginner callout from content/callouts.json.
+ * One beginner tip from content/callouts.json. Every tip asks for one action
+ * and waits for it: there is no Next.
  * - anchor: the id of the element it sits beside.
  * - part: a selector for a smaller target inside the anchor (the "Help me
  *   find it" button inside the key question). The anchor still counts as the tip's subject.
  * - when: the facts that must hold for it to show, so it shows only while
  *   its subject is on screen and makes sense.
- * - doneWhen: the fact that means the user did what it asks; once that holds,
- *   the tip counts as seen.
- * - noNext: no Next button; the tip waits for its doneWhen action.
+ * - doneWhen: the fact the tip's action produces; once it holds, the tip is
+ *   done.
  * @typedef {{
  *   id: string,
  *   anchor: string,
  *   part?: string,
- *   title?: string,
+ *   title: string,
  *   text: string,
  *   needsKeyLabels?: boolean,
  *   when?: Partial<TourFacts>,
- *   doneWhen?: Fact,
- *   noNext?: boolean,
+ *   doneWhen: Fact,
  * }} Callout
  */
+
+/**
+ * The page facts content names (`pageFacts`: fact name to CSS selector),
+ * each true while something on the page matches its selector. A new tip
+ * whose action shows on the page (a recording under way, a panel open) needs
+ * only a selector here, no code.
+ * @param {Record<string, string>} selectors
+ * @param {(selector: string) => boolean} present
+ * @returns {Record<string, boolean>}
+ */
+export function pageFacts(selectors, present) {
+  return Object.fromEntries(
+    Object.entries(selectors).map(([fact, selector]) => [fact, present(selector)]),
+  );
+}
+
+/**
+ * Attributes whose changes can flip a page fact, so the tips re-check when
+ * one changes. Classes are left out on purpose: the playhead toggles them on
+ * every note.
+ */
+export const WATCHED_ATTRIBUTES = [
+  "id",
+  "open",
+  "hidden",
+  "disabled",
+  "aria-pressed",
+  "aria-expanded",
+  "aria-selected",
+  "aria-checked",
+  "aria-busy",
+];
 
 /**
  * Whether the app is in the state a callout's `when` asks for.
@@ -53,9 +103,7 @@
  * @param {TourFacts} facts
  */
 export function isDue(callout, facts) {
-  return Object.entries(callout.when ?? {}).every(
-    ([fact, wanted]) => facts[/** @type {Fact} */ (fact)] === wanted,
-  );
+  return Object.entries(callout.when ?? {}).every(([fact, wanted]) => facts[fact] === wanted);
 }
 
 /**
@@ -86,7 +134,8 @@ export function nextCallout(callouts, { dismissed, hasAnchor, labelsHidden, fact
 /**
  * Ids of the callouts the user has already acted on: their `doneWhen` fact
  * holds (a song loaded, a key chosen, the dropdown opened) while the rest of
- * their moment does too. Opening the dropdown before choosing a key doesn't
+ * their moment does too. This is the only way a tip is done, so doing what a
+ * tip asks is the only way forward. Opening the dropdown before choosing a key doesn't
  * use up the tip about hearing chords, which only makes sense after one.
  * @param {Callout[]} callouts
  * @param {TourFacts} facts
@@ -95,11 +144,9 @@ export function nextCallout(callouts, { dismissed, hasAnchor, labelsHidden, fact
 export function actedOn(callouts, facts) {
   return callouts
     .filter((c) => {
-      if (!c.doneWhen || !facts[c.doneWhen]) return false;
+      if (!facts[c.doneWhen]) return false;
       const rest = Object.entries(c.when ?? {}).filter(([fact]) => fact !== c.doneWhen);
-      return rest.every(
-        ([fact, wanted]) => facts[/** @type {keyof TourFacts} */ (fact)] === wanted,
-      );
+      return rest.every(([fact, wanted]) => facts[fact] === wanted);
     })
     .map((c) => c.id);
 }
@@ -247,36 +294,6 @@ export function placeCallout(anchor, size, viewport, { avoid = [], inDock = fals
     ]),
   ];
   return candidates.reduce((best, at) => (covered(at) < covered(best) ? at : best));
-}
-
-/**
- * How far to scroll the page (positive is down) to show the next tip's anchor.
- * Like scrollIntoView's `block: "nearest"`: no scroll if the anchor is already
- * in the visible area, else the least scroll that brings it in (its top, if
- * it's taller than the area). If the tip would then still have to cover a
- * control, it scrolls the anchor to the top instead, which leaves room below
- * it. `room` is how far the page can scroll each way (`up` is zero or
- * negative), since a scroll past the page's ends doesn't happen.
- * @param {Rect} anchor
- * @param {{ width: number, height: number }} size
- * @param {{ width: number, height: number, bottom?: number }} viewport
- * @param {{ avoid?: Rect[], room: { up: number, down: number } }} options
- * @returns {number}
- */
-export function scrollForTip(anchor, size, viewport, { avoid = [], room }) {
-  const floor = Math.min(viewport.bottom ?? viewport.height, viewport.height) - MARGIN;
-  let nearest = 0;
-  if (anchor.bottom - anchor.top > floor - MARGIN || anchor.top < MARGIN) {
-    nearest = anchor.top - MARGIN;
-  } else if (anchor.bottom > floor) nearest = anchor.bottom - floor;
-  const choices = [nearest, anchor.top - MARGIN].map((d) => clamp(d, room.up, room.down));
-  const coveredAfter = (/** @type {number} */ d) => {
-    const shift = (/** @type {Rect} */ r) => ({ ...r, top: r.top - d, bottom: r.bottom - d });
-    const moved = avoid.map(shift);
-    const at = placeCallout(shift(anchor), size, viewport, { avoid: moved });
-    return coverage(at, size, moved);
-  };
-  return choices.find((d) => coveredAfter(d) === 0) ?? choices[0];
 }
 
 /**
