@@ -1,0 +1,143 @@
+/*
+ * Design tokens: the only place colors are defined. Every color conveys an
+ * idea: the three function colors are Kandinsky's 1923 Bauhaus pairing
+ * (tonic blue circle, subdominant yellow triangle, dominant red square).
+ * Keyboard and staff stay monochrome: the staff draws in --ink, so it reads
+ * light-on-dark in the dark theme; piano keys keep their ivory and black.
+ *
+ * Two themes. Light is the default; the dark theme applies when <html> has
+ * data-theme="dark" (src/theme.js sets it and remembers the choice). Print is
+ * always light. Text on a function fill uses that function's -ink token.
+ *
+ * Contrast, light theme, on --paper (WCAG AA text needs 4.5:1): --fn-tonic 7.5,
+ * --fn-dominant 5.0, --fn-other 4.8, --ink-muted 7.1. Chip text: tonic 7.8,
+ * dominant 5.3, other 5.0, subdominant 11.0. --fn-subdominant is 1.6 as text,
+ * so yellow chips also get a --fn-subdominant-edge outline (4.9; non-text
+ * needs 3:1).
+ *
+ * Contrast, dark theme, on --paper / --surface: --ink 15.1 / 13.9,
+ * --ink-muted 7.7 / 7.1, --fn-tonic 7.3 / 6.7, --fn-dominant 7.1 / 6.6,
+ * --fn-subdominant 11.0 / 10.1, --fn-other 6.7 / 6.2. Chip text: tonic 7.6,
+ * dominant 7.4, subdominant 11.5, other 7.0. Black keys are 1.1 against the
+ * page, so keys get a --key-edge outline.
+ */
+
+@font-face {
+  font-family: "Jost";
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/jost/jost-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Jost";
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/jost/jost-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Jost";
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/jost/jost-700.woff2") format("woff2");
+}
+
+:root {
+  /* Surfaces and ink */
+  --paper: #fbfaf7;
+  --surface: #ffffff;
+  --ink: #16161a;
+  --ink-muted: #55555e;
+  --rule: #d9d6cf;
+  --focus: #16161a;
+
+  /* Harmonic function: fill, text on that fill, soft background */
+  --fn-tonic: #1d4fa3;
+  --fn-tonic-ink: #ffffff;
+  --fn-tonic-soft: #dce6f6;
+  --fn-subdominant: #f4c430;
+  --fn-subdominant-ink: #16161a;
+  --fn-subdominant-soft: #fdf3d2;
+  --fn-subdominant-edge: #8a6a00;
+  --fn-dominant: #c7362b;
+  --fn-dominant-ink: #ffffff;
+  --fn-dominant-soft: #f8dedb;
+  --fn-other: #6e6e78;
+  --fn-other-ink: #ffffff;
+  --fn-other-soft: #ececef;
+
+  /* Keyboard and staff (monochrome by design) */
+  --key-white: #ffffff;
+  --key-black: #1b1b1f;
+  --key-edge: #b9b6ae;
+  --key-glow-melody: #b9b9c2;
+
+  color-scheme: light;
+
+  /* Type */
+  --font: "Jost", "Futura", "Avenir Next", system-ui, sans-serif;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+
+  /* Space and shape */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* Tentative labels (free play before a key is confirmed): function shapes
+     drawn as outlines in their color, with no fill, at reduced opacity. */
+  --tentative-opacity: 0.6;
+  --tentative-stroke: 2px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-land: 400ms;
+  --dur-reveal: 700ms;
+}
+
+@media screen {
+  :root[data-theme="dark"] {
+    --paper: #16161b;
+    --surface: #1e1e25;
+    --ink: #ecebe6;
+    --ink-muted: #a9a8b2;
+    --rule: #3a3a44;
+    --focus: #ecebe6;
+
+    --fn-tonic: #7aa5f5;
+    --fn-tonic-ink: #111117;
+    --fn-tonic-soft: #1f2d4a;
+    --fn-subdominant: #f4c430;
+    --fn-subdominant-ink: #111117;
+    --fn-subdominant-soft: #3a3218;
+    --fn-subdominant-edge: #f4c430;
+    --fn-dominant: #f2837a;
+    --fn-dominant-ink: #111117;
+    --fn-dominant-soft: #3d2220;
+    --fn-other: #9d9da8;
+    --fn-other-ink: #111117;
+    --fn-other-soft: #2a2a32;
+
+    --key-white: #e8e5dc;
+    --key-black: #0b0b0e;
+    --key-edge: #4a4a55;
+    --key-glow-melody: #8a8a96;
+
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-land: 0ms;
+    --dur-reveal: 0ms;
+  }
+}

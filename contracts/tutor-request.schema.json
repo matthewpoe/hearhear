@@ -1,0 +1,292 @@
+{
+  "$defs": {
+    "Snapshot": {
+      "additionalProperties": false,
+      "description": "Readable bar-by-bar view built by `toTutorSnapshot` in src/store/snapshot.js.",
+      "properties": {
+        "version": {
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        },
+        "key": {
+          "$ref": "#/$defs/SnapshotKey"
+        },
+        "meter": {
+          "$ref": "#/$defs/SnapshotMeter"
+        },
+        "tempo": {
+          "maximum": 240,
+          "minimum": 30,
+          "title": "Tempo",
+          "type": "integer"
+        },
+        "label_style": {
+          "enum": [
+            "roman",
+            "nashville",
+            "letters",
+            "roman+letters"
+          ],
+          "title": "Label Style",
+          "type": "string"
+        },
+        "bars": {
+          "items": {
+            "$ref": "#/$defs/SnapshotBar"
+          },
+          "maxItems": 400,
+          "title": "Bars",
+          "type": "array"
+        }
+      },
+      "required": [
+        "version",
+        "key",
+        "meter",
+        "tempo",
+        "label_style",
+        "bars"
+      ],
+      "title": "Snapshot",
+      "type": "object"
+    },
+    "SnapshotBar": {
+      "additionalProperties": false,
+      "description": "Bar 0 is the pickup, when there is one.",
+      "properties": {
+        "bar": {
+          "maximum": 999,
+          "minimum": 0,
+          "title": "Bar",
+          "type": "integer"
+        },
+        "notes": {
+          "items": {
+            "$ref": "#/$defs/SnapshotNote"
+          },
+          "maxItems": 48,
+          "title": "Notes",
+          "type": "array"
+        },
+        "chords": {
+          "items": {
+            "$ref": "#/$defs/SnapshotChord"
+          },
+          "maxItems": 48,
+          "title": "Chords",
+          "type": "array"
+        }
+      },
+      "required": [
+        "bar",
+        "notes",
+        "chords"
+      ],
+      "title": "SnapshotBar",
+      "type": "object"
+    },
+    "SnapshotChord": {
+      "additionalProperties": false,
+      "properties": {
+        "beat": {
+          "maximum": 13,
+          "minimum": 1,
+          "title": "Beat",
+          "type": "number"
+        },
+        "numeral": {
+          "pattern": "^[A-Za-z0-9#°ø+/()?]{1,24}$",
+          "title": "Numeral",
+          "type": "string"
+        },
+        "nashville": {
+          "pattern": "^[A-Za-z0-9#°ø+/()?]{1,24}$",
+          "title": "Nashville",
+          "type": "string"
+        },
+        "letter": {
+          "pattern": "^[A-Za-z0-9#°ø+/()?]{1,24}$",
+          "title": "Letter",
+          "type": "string"
+        }
+      },
+      "required": [
+        "beat",
+        "numeral",
+        "nashville",
+        "letter"
+      ],
+      "title": "SnapshotChord",
+      "type": "object"
+    },
+    "SnapshotKey": {
+      "additionalProperties": false,
+      "properties": {
+        "tonic": {
+          "pattern": "^[A-G](#|b)?$",
+          "title": "Tonic",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "major",
+            "minor"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "provisional": {
+          "title": "Provisional",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "tonic",
+        "mode",
+        "provisional"
+      ],
+      "title": "SnapshotKey",
+      "type": "object"
+    },
+    "SnapshotMeter": {
+      "additionalProperties": false,
+      "properties": {
+        "beats_per_bar": {
+          "maximum": 12,
+          "minimum": 2,
+          "title": "Beats Per Bar",
+          "type": "integer"
+        },
+        "beat_unit": {
+          "enum": [
+            4,
+            8
+          ],
+          "title": "Beat Unit",
+          "type": "integer"
+        },
+        "pickup_beats": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Pickup Beats",
+          "type": "number"
+        },
+        "provisional": {
+          "title": "Provisional",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "beats_per_bar",
+        "beat_unit",
+        "pickup_beats",
+        "provisional"
+      ],
+      "title": "SnapshotMeter",
+      "type": "object"
+    },
+    "SnapshotNote": {
+      "additionalProperties": false,
+      "properties": {
+        "beat": {
+          "maximum": 13,
+          "minimum": 1,
+          "title": "Beat",
+          "type": "number"
+        },
+        "pitch": {
+          "pattern": "^[A-G](##|bb|#|b)?[0-8]$",
+          "title": "Pitch",
+          "type": "string"
+        },
+        "degree": {
+          "pattern": "^(##|bb|#|b)?[1-7]$",
+          "title": "Degree",
+          "type": "string"
+        },
+        "beats": {
+          "exclusiveMinimum": 0,
+          "maximum": 96,
+          "title": "Beats",
+          "type": "number"
+        }
+      },
+      "required": [
+        "beat",
+        "pitch",
+        "degree",
+        "beats"
+      ],
+      "title": "SnapshotNote",
+      "type": "object"
+    },
+    "Turn": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "student",
+            "tutor"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 4000,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "text"
+      ],
+      "title": "Turn",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "snapshot": {
+      "$ref": "#/$defs/Snapshot"
+    },
+    "hint_level": {
+      "default": "nudge",
+      "enum": [
+        "nudge",
+        "comparison",
+        "answer"
+      ],
+      "title": "Hint Level",
+      "type": "string"
+    },
+    "question": {
+      "anyOf": [
+        {
+          "maxLength": 1000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Question"
+    },
+    "history": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Turn"
+      },
+      "maxItems": 12,
+      "title": "History",
+      "type": "array"
+    }
+  },
+  "required": [
+    "snapshot"
+  ],
+  "title": "TutorRequest",
+  "type": "object"
+}

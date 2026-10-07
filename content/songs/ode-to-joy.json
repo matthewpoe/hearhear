@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "id": "ode-to-joy",
+  "title": "Ode to Joy",
+  "key": {
+    "tonic": "D",
+    "mode": "major",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 4,
+    "beatUnit": 4,
+    "pickupTicks": 0,
+    "provisional": false
+  },
+  "tempo": 108,
+  "version": 0,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 66,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 66,
+      "start": 12,
+      "dur": 12
+    },
+    {
+      "id": "n3",
+      "midi": 67,
+      "start": 24,
+      "dur": 12
+    },
+    {
+      "id": "n4",
+      "midi": 69,
+      "start": 36,
+      "dur": 12
+    },
+    {
+      "id": "n5",
+      "midi": 69,
+      "start": 48,
+      "dur": 12
+    },
+    {
+      "id": "n6",
+      "midi": 67,
+      "start": 60,
+      "dur": 12
+    },
+    {
+      "id": "n7",
+      "midi": 66,
+      "start": 72,
+      "dur": 12
+    },
+    {
+      "id": "n8",
+      "midi": 64,
+      "start": 84,
+      "dur": 12
+    },
+    {
+      "id": "n9",
+      "midi": 62,
+      "start": 96,
+      "dur": 12
+    },
+    {
+      "id": "na",
+      "midi": 62,
+      "start": 108,
+      "dur": 12
+    },
+    {
+      "id": "nb",
+      "midi": 64,
+      "start": 120,
+      "dur": 12
+    },
+    {
+      "id": "nc",
+      "midi": 66,
+      "start": 132,
+      "dur": 12
+    },
+    {
+      "id": "nd",
+      "midi": 66,
+      "start": 144,
+      "dur": 18
+    },
+    {
+      "id": "ne",
+      "midi": 64,
+      "start": 162,
+      "dur": 6
+    },
+    {
+      "id": "nf",
+      "midi": 64,
+      "start": 168,
+      "dur": 24
+    },
+    {
+      "id": "n10",
+      "midi": 66,
+      "start": 192,
+      "dur": 12
+    },
+    {
+      "id": "n11",
+      "midi": 66,
+      "start": 204,
+      "dur": 12
+    },
+    {
+      "id": "n12",
+      "midi": 67,
+      "start": 216,
+      "dur": 12
+    },
+    {
+      "id": "n13",
+      "midi": 69,
+      "start": 228,
+      "dur": 12
+    },
+    {
+      "id": "n14",
+      "midi": 69,
+      "start": 240,
+      "dur": 12
+    },
+    {
+      "id": "n15",
+      "midi": 67,
+      "start": 252,
+      "dur": 12
+    },
+    {
+      "id": "n16",
+      "midi": 66,
+      "start": 264,
+      "dur": 12
+    },
+    {
+      "id": "n17",
+      "midi": 64,
+      "start": 276,
+      "dur": 12
+    },
+    {
+      "id": "n18",
+      "midi": 62,
+      "start": 288,
+      "dur": 12
+    },
+    {
+      "id": "n19",
+      "midi": 62,
+      "start": 300,
+      "dur": 12
+    },
+    {
+      "id": "n1a",
+      "midi": 64,
+      "start": 312,
+      "dur": 12
+    },
+    {
+      "id": "n1b",
+      "midi": 66,
+      "start": 324,
+      "dur": 12
+    },
+    {
+      "id": "n1c",
+      "midi": 64,
+      "start": 336,
+      "dur": 18
+    },
+    {
+      "id": "n1d",
+      "midi": 62,
+      "start": 354,
+      "dur": 6
+    },
+    {
+      "id": "n1e",
+      "midi": 62,
+      "start": 360,
+      "dur": 24
+    }
+  ],
+  "chords": []
+}

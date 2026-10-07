@@ -1,0 +1,20 @@
+{
+  "name": "over-budget",
+  "song": "ode-to-joy",
+  "description": "Daily budget spent mid-session: the stream ends with an error; the client falls back to cached lessons.",
+  "events": [
+    {
+      "event": "error",
+      "data": {
+        "code": "over_budget",
+        "message": "The live tutor is out of budget for today; the recorded lessons still work."
+      },
+      "delayMs": 0
+    },
+    {
+      "event": "done",
+      "data": {},
+      "delayMs": 0
+    }
+  ]
+}

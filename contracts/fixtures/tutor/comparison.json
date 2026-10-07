@@ -1,0 +1,81 @@
+{
+  "name": "comparison",
+  "song": "ode-to-joy",
+  "description": "Hint level comparison: two candidates to audition, no verdict.",
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "delta": "Here are two to try under the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "long E in bar 4. Play each one "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "and notice whether the phrase "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "wants to keep going or come to "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "rest. I have a guess, but your "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "ear is the judge here."
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "suggestions",
+      "data": {
+        "hint_level": "comparison",
+        "snapshot_version": 3,
+        "dropped": 0,
+        "suggestions": [
+          {
+            "bar": 4,
+            "beat": 3,
+            "numeral": "V",
+            "letter": "A",
+            "confidence": "medium",
+            "reason": "The held E is the 5th of A: a half cadence that leaves the phrase open."
+          },
+          {
+            "bar": 4,
+            "beat": 3,
+            "numeral": "ii",
+            "letter": "Em",
+            "confidence": "low",
+            "reason": "The held E is the root of Em: a gentler pause that moves away from home instead of pulling back to it."
+          }
+        ]
+      },
+      "delayMs": 30
+    },
+    {
+      "event": "done",
+      "data": {},
+      "delayMs": 0
+    }
+  ]
+}

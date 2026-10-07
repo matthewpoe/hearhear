@@ -23,13 +23,14 @@ Raw material for the written rationale and the video talk track, organized under
 - **Pivoted to teaching after rereading the brief.** The brief values depth over breadth and requires reviewers to evaluate it without domain expertise. A notation-centered tool fails that test; an audible, guided one passes.
 - **Suggestions are auditioned, not applied.** The chord dropdown plays each candidate under the melody on hover, with fixed-register voice leading so A and B differ only in harmony. That voicing rule comes directly from a failed A/B test in one of my sessions.
 - **Key and meter finding are activities, not settings.** I noodle first; after a phrase, the app asks "Is 1 really home?" and offers playable tests (drone, last note, cadence; a 3-vs-4 click for meter). Algorithmic key ranking offers candidates, never verdicts, because it's wrong in exactly the interesting cases, like blue notes in a major-key folk tune.
-- **Number row over an on-screen keyboard or letter keys.** Mousing a melody is slow and doesn't feel like a piano; letter keys tie input to a key. The number row does neither. Octaves go to the nearest note by default, 8, 9, and 0 continue upward, and holding an arrow forces direction.
-- **Quarter notes first, fix rhythm by hand.** Real-time rhythm capture with swing handling is appealing but risky in the time box; it's a stretch goal.
+- **Number row over an on-screen keyboard or letter keys.** Mousing a melody is slow and doesn't feel like a piano; letter keys tie input to a key. The number row does neither. Octaves are fixed rows, like a piano: the number row is home (8, 9, 0 continue upward), Q–U is the octave below, A–J two below, and the arrows shift the whole window. Nearest-note placement was rejected because the same key played different notes depending on context, so no muscle memory could form.
+- **Rhythm is guessed, then fixed by hand.** Record mode takes the most common gap between notes as the beat and snaps the rest; the guess is shown, never trusted, and one key reverts to quarter notes. Plain quarter-note entry was rejected as too slow; real-time swing capture stays a stretch goal.
+- **Duration edits ripple** like a text editor, so halving never leaves a stray rest and doubling never overlaps (Phase 0 decision).
 - **Minor keys:** the number row plays natural minor, with the raised seventh on Shift+7, because folk and blues melodies move in natural minor and the raised seventh mostly appears at cadences. Nashville numbers count from the minor tonic (1m, not 6m) so chord 1 and melody degree 1 are always the same note.
 - **Color and shape carry meaning.** Bauhaus primaries map to harmonic function (blue circle tonic, yellow triangle subdominant, red square dominant, after Kandinsky's 1923 Bauhaus survey). Nothing is colorful without a reason; color is always paired with a shape and a label.
 - **Stack:** FastAPI on Railway (my familiar deploy) serving a Svelte frontend; all music theory runs in the browser so audition never waits on the network. Rejected HTMX because the client must own the song model, and plain JS modules because one model drives many views.
-- **Claude Opus 5.5 for the tutor**, the model I'd use for this conversation outside the product. Tool use with a schema, streamed explanations, server-side key and system prompt, a forced tool call, rate limits, and a hard spend cap.
-- **Demo tunes are public domain:** Ode to Joy (major, I and V, the golden path) and St. James Infirmary (a minor-key New Orleans dirge, published 1929, now public domain). No copyrighted songs, including the ones from my own sessions.
+- **Claude Opus 5.5 for the tutor**, the model I'd use for this conversation outside the product. Structured outputs with a schema (every reply is playable data), streamed explanations, server-side key and system prompt, rate limits, and a hard spend cap. The PRD planned a forced tool call; Opus 5.5 rejects forced `tool_choice`, so Phase 0 switched to structured outputs, which give the same guarantee.
+- **Demo tunes are public domain:** Ode to Joy (major, I and V, the golden path) and St. James Infirmary (a minor-key New Orleans dirge, from the 1930 Gotham Music edition, public domain in the US since Jan 1, 2026). No copyrighted songs, including the ones from my own sessions.
 - **Process:** parallel workstreams in Claude Code workflows against agreed contracts, Fable adversarial reviews at each checkpoint, and a decision log that records every time I overrule Claude or a reviewer.
 
 ## Extensions (cut for depth over breadth)
@@ -41,6 +42,7 @@ Raw material for the written rationale and the video talk track, organized under
 - Intermediate and advanced experience levels
 - More demo tunes ("When the Saints Go Marching In" was next)
 - Persistence
+- Lyrics under the staff (the lyric line carries scale degrees in the alpha)
 
 ## Time spent
 

@@ -1,0 +1,40 @@
+# Hooks run the same pinned tools as CI (from package-lock.json and uv.lock).
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: prettier
+        name: prettier
+        entry: npx prettier --write --ignore-unknown
+        language: system
+        types_or: [javascript, json, css, markdown, yaml, svelte]
+      - id: eslint
+        name: eslint
+        entry: npx eslint --fix
+        language: system
+        files: \.(js|svelte)$
+      - id: contracts-drift
+        name: tutor contracts match Pydantic models
+        entry: uv run python scripts/export_contracts.py --check
+        language: system
+        files: ^(server/hearhear/models\.py|contracts/tutor-.*\.json)$
+        pass_filenames: false

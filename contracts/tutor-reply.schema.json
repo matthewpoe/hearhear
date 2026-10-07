@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "Suggestion": {
+      "additionalProperties": false,
+      "description": "One audition-able chord at a position. The client re-derives `letter` from\n`numeral` and the key, and drops the suggestion if they disagree.",
+      "properties": {
+        "bar": {
+          "maximum": 999,
+          "minimum": 0,
+          "title": "Bar",
+          "type": "integer"
+        },
+        "beat": {
+          "maximum": 13,
+          "minimum": 1,
+          "title": "Beat",
+          "type": "number"
+        },
+        "numeral": {
+          "description": "Canonical Roman numeral, e.g. 'V7', 'ii', 'bVII', 'vii°', 'V7/IV'.",
+          "pattern": "^[A-Za-z0-9#°ø+/()?]{1,24}$",
+          "title": "Numeral",
+          "type": "string"
+        },
+        "letter": {
+          "description": "Letter-name symbol, e.g. 'A7', 'Em'.",
+          "pattern": "^[A-Za-z0-9#°ø+/()?]{1,24}$",
+          "title": "Letter",
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Confidence",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 400,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "bar",
+        "beat",
+        "numeral",
+        "letter",
+        "confidence",
+        "reason"
+      ],
+      "title": "Suggestion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "What Claude returns, constrained by structured outputs.",
+  "properties": {
+    "hint_level": {
+      "enum": [
+        "nudge",
+        "comparison",
+        "answer"
+      ],
+      "title": "Hint Level",
+      "type": "string"
+    },
+    "message": {
+      "description": "What the tutor says, in the student's chord-label style.",
+      "maxLength": 4000,
+      "title": "Message",
+      "type": "string"
+    },
+    "suggestions": {
+      "items": {
+        "$ref": "#/$defs/Suggestion"
+      },
+      "maxItems": 8,
+      "title": "Suggestions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "hint_level",
+    "message",
+    "suggestions"
+  ],
+  "title": "TutorReply",
+  "type": "object"
+}

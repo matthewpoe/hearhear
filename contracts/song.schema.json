@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hearhear.app/contracts/song.schema.json",
+  "title": "Song",
+  "description": "The single source of truth for staff, audio, lead sheet, and tutor snapshot. Pitches and chords are absolute; numerals, degrees, and colors are derived from the key hypothesis. Time is in integer ticks, 12 per quarter note, so triplets are exact. Rests are gaps between notes. Invariants not expressible here (notes sorted by start and non-overlapping; each chord's noteId exists; at most one chord per note) are enforced by validateSong() in src/store/song.js.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "title",
+    "key",
+    "meter",
+    "tempo",
+    "version",
+    "notes",
+    "chords"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9-]{1,64}$" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "key": { "$ref": "#/$defs/key" },
+    "meter": { "$ref": "#/$defs/meter" },
+    "tempo": {
+      "description": "Quarter-note beats per minute.",
+      "type": "integer",
+      "minimum": 30,
+      "maximum": 240
+    },
+    "version": {
+      "description": "Bumped by every store action. Tutor suggestions are tied to the version they were made against.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "notes": { "type": "array", "maxItems": 400, "items": { "$ref": "#/$defs/note" } },
+    "chords": { "type": "array", "maxItems": 400, "items": { "$ref": "#/$defs/chord" } }
+  },
+  "$defs": {
+    "pitchClassName": { "type": "string", "pattern": "^[A-G](##|bb|#|b)?$" },
+    "key": {
+      "description": "The key hypothesis. Starts as C major, provisional, until the user confirms one.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tonic", "mode", "provisional"],
+      "properties": {
+        "tonic": { "type": "string", "pattern": "^[A-G](#|b)?$" },
+        "mode": { "enum": ["major", "minor"] },
+        "provisional": { "type": "boolean" }
+      }
+    },
+    "meter": {
+      "description": "The meter hypothesis. Changing it re-bars: bar lines move, notes do not.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["beatsPerBar", "beatUnit", "pickupTicks", "provisional"],
+      "properties": {
+        "beatsPerBar": { "type": "integer", "minimum": 2, "maximum": 12 },
+        "beatUnit": { "enum": [4, 8] },
+        "pickupTicks": {
+          "description": "Length of the anacrusis before bar 1's downbeat, in ticks.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 144
+        },
+        "provisional": { "type": "boolean" }
+      }
+    },
+    "note": {
+      "description": "One melody note (right hand, monophonic).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "midi", "start", "dur"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^n[0-9a-z]{1,16}$" },
+        "midi": { "type": "integer", "minimum": 21, "maximum": 108 },
+        "start": { "type": "integer", "minimum": 0 },
+        "dur": { "type": "integer", "minimum": 1, "maximum": 576 }
+      }
+    },
+    "chord": {
+      "description": "A left-hand chord sitting on the onset of a melody note.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "noteId", "root", "type"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^c[0-9a-z]{1,16}$" },
+        "noteId": { "type": "string", "pattern": "^n[0-9a-z]{1,16}$" },
+        "root": { "$ref": "#/$defs/pitchClassName" },
+        "type": {
+          "description": "Tonal chord-type symbol. The theory core owns the vocabulary; this list is the alpha's.",
+          "enum": [
+            "M",
+            "m",
+            "7",
+            "maj7",
+            "m7",
+            "dim",
+            "dim7",
+            "m7b5",
+            "aug",
+            "sus2",
+            "sus4",
+            "6",
+            "m6"
+          ]
+        }
+      }
+    }
+  }
+}

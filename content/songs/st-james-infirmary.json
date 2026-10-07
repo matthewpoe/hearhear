@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "id": "st-james-infirmary",
+  "title": "St. James Infirmary",
+  "key": {
+    "tonic": "E",
+    "mode": "minor",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 4,
+    "beatUnit": 4,
+    "pickupTicks": 12,
+    "provisional": false
+  },
+  "tempo": 76,
+  "version": 0,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 71,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 71,
+      "start": 12,
+      "dur": 12
+    },
+    {
+      "id": "n3",
+      "midi": 71,
+      "start": 24,
+      "dur": 6
+    },
+    {
+      "id": "n4",
+      "midi": 71,
+      "start": 30,
+      "dur": 6
+    },
+    {
+      "id": "n5",
+      "midi": 69,
+      "start": 36,
+      "dur": 12
+    },
+    {
+      "id": "n6",
+      "midi": 71,
+      "start": 48,
+      "dur": 6
+    },
+    {
+      "id": "n7",
+      "midi": 71,
+      "start": 54,
+      "dur": 6
+    },
+    {
+      "id": "n8",
+      "midi": 67,
+      "start": 60,
+      "dur": 6
+    },
+    {
+      "id": "n9",
+      "midi": 64,
+      "start": 66,
+      "dur": 42
+    },
+    {
+      "id": "na",
+      "midi": 71,
+      "start": 108,
+      "dur": 12
+    },
+    {
+      "id": "nb",
+      "midi": 71,
+      "start": 120,
+      "dur": 12
+    },
+    {
+      "id": "nc",
+      "midi": 76,
+      "start": 132,
+      "dur": 18
+    },
+    {
+      "id": "nd",
+      "midi": 72,
+      "start": 150,
+      "dur": 6
+    },
+    {
+      "id": "ne",
+      "midi": 71,
+      "start": 156,
+      "dur": 48
+    },
+    {
+      "id": "nf",
+      "midi": 71,
+      "start": 204,
+      "dur": 12
+    },
+    {
+      "id": "n10",
+      "midi": 71,
+      "start": 216,
+      "dur": 6
+    },
+    {
+      "id": "n11",
+      "midi": 71,
+      "start": 222,
+      "dur": 6
+    },
+    {
+      "id": "n12",
+      "midi": 69,
+      "start": 228,
+      "dur": 12
+    },
+    {
+      "id": "n13",
+      "midi": 71,
+      "start": 240,
+      "dur": 12
+    },
+    {
+      "id": "n14",
+      "midi": 67,
+      "start": 252,
+      "dur": 6
+    },
+    {
+      "id": "n15",
+      "midi": 64,
+      "start": 258,
+      "dur": 36
+    },
+    {
+      "id": "n16",
+      "midi": 64,
+      "start": 294,
+      "dur": 6
+    },
+    {
+      "id": "n17",
+      "midi": 67,
+      "start": 300,
+      "dur": 18
+    },
+    {
+      "id": "n18",
+      "midi": 67,
+      "start": 318,
+      "dur": 6
+    },
+    {
+      "id": "n19",
+      "midi": 67,
+      "start": 324,
+      "dur": 12
+    },
+    {
+      "id": "n1a",
+      "midi": 66,
+      "start": 336,
+      "dur": 12
+    },
+    {
+      "id": "n1b",
+      "midi": 64,
+      "start": 348,
+      "dur": 36
+    }
+  ],
+  "chords": []
+}

@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, types, tests, build, audits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+      - run: npm ci
+      - run: uv sync --frozen
+      - name: Lint and format check (ESLint, Prettier, Ruff)
+        run: make lint
+      - name: Type check (mypy strict)
+        run: make typecheck
+      - name: Unit and backend tests, content validation
+        run: make test
+      - name: Tutor contracts match the Pydantic models
+        run: uv run python scripts/export_contracts.py --check
+      - name: Build
+        run: npm run build
+      - name: Dependency audits
+        run: |
+          npm audit --audit-level=high
+          uv run pip-audit --skip-editable
+
+  smoke:
+    name: Smoke test (golden path + axe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+      - run: npm ci
+      - run: uv sync --frozen
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npx playwright test
+        env:
+          CI: "true"
+      - if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: playwright-report
+          path: test-results/
+
+  docker:
+    name: Production image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: docker build -t hearhear:ci .
+      - name: Container serves health and the app
+        run: |
+          docker run -d --name app -p 8000:8000 hearhear:ci
+          for i in $(seq 1 30); do curl -fs localhost:8000/api/health && break; sleep 1; done
+          curl -fs localhost:8000/ | grep -q "<title>Hear Hear</title>"
+          docker rm -f app
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    # On pull_request runs the action lists the PR's commits
+    # (GET /pulls/{n}/commits), which needs pull-requests: read.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

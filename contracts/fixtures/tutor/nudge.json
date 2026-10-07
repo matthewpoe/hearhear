@@ -1,0 +1,71 @@
+{
+  "name": "nudge",
+  "song": "ode-to-joy",
+  "description": "Hint level nudge: points at where to listen, no suggestions.",
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "delta": "Before I say anything about chords, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "listen to the end of bar 4. Does "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "the melody feel finished there, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "or like it's holding its breath? "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "Try the chord you picked, then "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "hold just the 5 underneath and "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "compare. What does your ear say? "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "suggestions",
+      "data": {
+        "hint_level": "nudge",
+        "suggestions": [],
+        "snapshot_version": 3,
+        "dropped": 0
+      },
+      "delayMs": 30
+    },
+    {
+      "event": "done",
+      "data": {},
+      "delayMs": 0
+    }
+  ]
+}

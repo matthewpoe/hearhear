@@ -1,0 +1,11 @@
+dist/
+media/
+package-lock.json
+uv.lock
+.venv/
+.remember/
+docs/PRD.md
+contracts/tutor-*.schema.json
+test-results/
+playwright-report/
+TIMELOG.md
