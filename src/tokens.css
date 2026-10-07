@@ -242,30 +242,6 @@
 
     color-scheme: dark;
   }
-
-  /* The paper staff panel, the dark theme's other choice (data-staff-panel,
-     set by the masthead's Staff control): a muted cream card, well below
-     white, like sheet music on a dark music stand, in warm dark ink with the
-     light theme's function colors deepened a step for the cream.
-     Contrast on paper #e9e1cf: notes 11.6, staff lines 3.0, bar lines 4.4,
-     degrees and words 6.1, tonic 6.9, subdominant 5.6, dominant 5.7,
-     other 5.2, hover ring 4.4, focus and the lesson's spotlight ring 6.1. The gold playhead halo is 2.3 on the cream (as
-     on the light page, 3.0 on white) but 5.0 against the dark notehead it
-     rings, so the playing note still stands out. */
-  :root[data-theme="dark"][data-staff-panel="paper"] {
-    --staff-panel: #e9e1cf;
-    --staff-panel-edge: #d6ccb6;
-    --staff-ink: #2b2520;
-    --staff-ink-muted: #5a5045;
-    --staff-line: #8a7f6c;
-    --staff-line-strong: #6f6555;
-    --staff-hover: #6f6555;
-    --staff-focus: #7a2a9e;
-    --staff-fn-tonic: #1d4596;
-    --staff-fn-subdominant-edge: #6e5300;
-    --staff-fn-dominant: #a3261c;
-    --staff-fn-other: #5a5a63;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

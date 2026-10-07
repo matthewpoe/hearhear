@@ -18,8 +18,6 @@
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
   import WordsSwitch from "./WordsSwitch.svelte";
-  import SwingSwitch from "./SwingSwitch.svelte";
-  import VoiceLeading from "../toolbar/VoiceLeading.svelte";
   import MoreMenu from "../toolbar/MoreMenu.svelte";
   import AccidentalMenu from "./AccidentalMenu.svelte";
   import History from "../toolbar/History.svelte";
@@ -382,11 +380,12 @@
 <svelte:window onkeydown={onWindowKeydown} />
 
 <section id="staff" class="staff" aria-label="Staff">
-  <!-- One row of controls over the music: Play and what it plays | the
-       chord-label choice | the switches for how it sounds and reads (Words,
-       Swing, Voice leading) | Undo/Redo and "More" (Print). Drone and degrees sit with
-       the key, the bottom row in the keyboard dock. It wraps only on narrow
-       screens. -->
+  <!-- One short row of controls over the music: Play/Pause and Stop | the
+       chord-label choice | Words (when the song has words) | Undo/Redo and
+       "More" (Print). Swing is the song's own (set on a demo that swings, or
+       by a recording's Feel); Voice leading lives in the chord dropdown;
+       degrees show once the key is chosen; the drone sits with the key. It
+       wraps only on narrow screens. -->
   <div class="header">
     <Transport />
     <span class="divider" aria-hidden="true"></span>
@@ -394,8 +393,6 @@
     <span class="divider" aria-hidden="true"></span>
     <div class="switches" role="group" aria-label="Sound and staff">
       <WordsSwitch />
-      <SwingSwitch />
-      <VoiceLeading />
     </div>
     <div class="end">
       <History />
