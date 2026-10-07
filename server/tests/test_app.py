@@ -87,7 +87,9 @@ def test_csp_hash_is_pinned_to_the_locked_abcjs() -> None:
 
 def test_fixture_reports_it_was_served_by_no_model(client: TestClient) -> None:
     response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "hint_level": "comparison"})
-    assert dict(events(response.text))["suggestions"]["served_by"] == "fixture"
+    suggestions = dict(events(response.text))["suggestions"]
+    assert suggestions["served_by"] == "fixture"
+    assert suggestions["fallback"] is False
 
 
 def test_hidden_key_withholds_fixture_suggestions_too(client: TestClient) -> None:

@@ -157,6 +157,7 @@ def test_live_stream_follows_the_protocol(
         "snapshot_version": 7,
         "dropped": 1,
         "served_by": "claude-opus-5-5",
+        "fallback": False,
     }
 
 
@@ -428,6 +429,7 @@ def test_a_fallback_served_reply_says_so_and_charges_every_attempt(
     message = "".join(data["delta"] for name, data in stream if name == "message")
     assert message == REPLY["message"], "the partial text stays and the fallback continues it"
     assert dict(stream)["suggestions"]["served_by"] == "claude-opus-4-8"
+    assert dict(stream)["suggestions"]["fallback"] is True
     assert app_module.budget.spent == (1250 + 100) + (1300 + 300)
     entry = dict(logged)["tutor_live"]
     assert entry["fallback"] is True
@@ -534,4 +536,5 @@ def test_the_real_sdk_sends_the_fallback_beta_and_reports_the_serving_model(
     message = "".join(data["delta"] for name, data in stream if name == "message")
     assert message == REPLY["message"]
     assert dict(stream)["suggestions"]["served_by"] == "claude-opus-4-8"
+    assert dict(stream)["suggestions"]["fallback"] is True
     assert app_module.budget.spent == (1000 + 20) + (1100 + 200)
