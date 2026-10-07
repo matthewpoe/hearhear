@@ -20,6 +20,7 @@ import { drone as holdDrone, playPhrase, stop } from "../audio/index.js";
 import { song } from "../store/song.js";
 import { keyLabelMode, ui } from "../store/ui.js";
 import { chordFunctions } from "./chordChips.js";
+import { homeDrone, holdHome, releaseHome } from "./homeDrone.js";
 import { clearHighlight, highlight } from "./staffEvents.js";
 
 const PLAYING = "is-playing";
@@ -42,11 +43,18 @@ let owner = null;
  *   drone?: number | number[] | null,
  * }} [options] chords replaces the song's chords for this playback (an empty
  *   array plays none); drone holds and lights that MIDI note, or every note
- *   of a chord, underneath until the end.
+ *   of a chord, underneath until the end. With neither, the song plays as
+ *   written, and "Drone on home" (homeDrone.js) holds and lights the home
+ *   chord under it while the switch is on, from the moment it is turned on.
  * @returns {Promise<void>}
  */
 export async function playWithVisuals(range, { chords, drone = null } = {}) {
-  if (owner) stop();
+  if (owner) {
+    // Let go of the earlier run's home drone now, before this run's own drone
+    // starts: released later, from its finally, it would silence this one.
+    releaseHome(owner);
+    stop();
+  }
   const run = {};
   owner = run;
   const owns = () => owner === run;
@@ -58,7 +66,12 @@ export async function playWithVisuals(range, { chords, drone = null } = {}) {
   /** @type {Map<string, HarmonicFunction>} computed once per play */
   const functions = hidden ? new Map() : chordFunctions({ ...played, chords: playedChords });
   const midiById = new Map(played.notes.map((n) => [n.id, n.midi]));
-  const droneLight = drone === null ? [] : [].concat(drone);
+  // Only the song as written plays over home: a test's own chords or drone
+  // would clash with it.
+  const overHome = !chords && drone === null;
+  let droneLight = drone === null ? [] : [].concat(drone);
+  /** @type {number[]} */
+  let melody = [];
 
   /** @type {KeyboardLights} */
   let lights = { source: "playback", chord: null, melody: droneLight };
@@ -73,7 +86,8 @@ export async function playWithVisuals(range, { chords, drone = null } = {}) {
       if (midi === undefined) return;
       clearHighlight(PLAYING);
       highlight([event.noteId], PLAYING);
-      lights = { ...lights, melody: [...droneLight, midi] };
+      melody = [midi];
+      lights = { ...lights, melody: [...droneLight, ...melody] };
       ui.update({ playheadNoteId: event.noteId, keyboardLights: lights });
     } else if (event.type === "chord" && event.chordId !== undefined && event.tones) {
       const fn = functions.get(event.chordId) ?? "other";
@@ -83,9 +97,21 @@ export async function playWithVisuals(range, { chords, drone = null } = {}) {
   };
 
   if (drone !== null) holdDrone(drone);
+  // The home drone's lights follow the switch while this plays.
+  const unwatch = overHome
+    ? homeDrone.subscribe((tones) => {
+        if (!owns() || tones === droneLight) return;
+        droneLight = tones;
+        lights = { ...lights, melody: [...droneLight, ...melody] };
+        if (ui.get().keyboardLights.source === "playback") ui.update({ keyboardLights: lights });
+      })
+    : () => {};
+  if (overHome) holdHome(run);
   try {
     await playPhrase(range, { ...(chords ? { chords } : {}), onEvent: show });
   } finally {
+    unwatch();
+    releaseHome(run); // a no-op if a newer run released it already
     if (owns()) {
       owner = null;
       if (drone !== null) holdDrone(null);

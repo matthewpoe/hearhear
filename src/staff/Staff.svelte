@@ -14,6 +14,7 @@
   import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
+  import DroneSwitch from "./DroneSwitch.svelte";
   import AccidentalMenu from "./AccidentalMenu.svelte";
   import History from "../toolbar/History.svelte";
   import LabelControls from "../toolbar/LabelControls.svelte";
@@ -306,6 +307,7 @@
   <!-- One compact row of controls over the music; it wraps on phones. -->
   <div class="header">
     <Transport />
+    <DroneSwitch />
     <History />
     <LabelControls />
     <VoiceLeading />

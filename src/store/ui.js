@@ -23,7 +23,15 @@ import { createReadable } from "../lib/readable.js";
  *   calloutsOn: boolean,
  *   guidedActive: boolean,
  *   bottomRow: BottomRow,
+ *   droneOn: boolean,
  * }} UiState
+ */
+
+/**
+ * droneOn is the staff header's "Drone on home" switch: while it is on and
+ * the key is confirmed, playing the song as written (Play, a bar, a chord
+ * audition) holds the home chord underneath (src/staff/homeDrone.js). Off by
+ * default.
  */
 
 /**
@@ -105,6 +113,7 @@ export function initialUi() {
     calloutsOn: true,
     guidedActive: false,
     bottomRow: "chords",
+    droneOn: false,
   };
 }
 

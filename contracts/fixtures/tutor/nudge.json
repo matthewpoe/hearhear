@@ -90,49 +90,49 @@
     {
       "event": "message",
       "data": {
-        "delta": "1. Hover any chord under bar 4, "
+        "delta": "1. Click a note in bar 4, then "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "beat 3 so that bar plays, and keep "
+        "delta": "press \"Play bar 4\", and keep its "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "its long last note in your ear.\n"
+        "delta": "long last note in your ear.\n"
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "2. Hover any chord under bar 8, "
+        "delta": "2. Turn on Drone on home, then play "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "beat 3 so the last bar plays, and "
+        "delta": "bar 4 and bar 8 the same way: see "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "see whether that ending settles "
+        "delta": "whether bar 8's ending settles "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "in a way bar 4 doesn't.\n"
+        "delta": "over home in a way bar 4's doesn't.\n"
       },
       "delayMs": 45
     },
