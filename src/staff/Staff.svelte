@@ -15,6 +15,7 @@
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
   import DroneSwitch from "./DroneSwitch.svelte";
+  import WordsSwitch from "./WordsSwitch.svelte";
   import AccidentalMenu from "./AccidentalMenu.svelte";
   import History from "../toolbar/History.svelte";
   import LabelControls from "../toolbar/LabelControls.svelte";
@@ -40,7 +41,8 @@
   const mode = $derived(keyLabelMode($song, $ui));
   const labelStyle = $derived($ui.labelStyle);
   const showDegrees = $derived($ui.showDegrees);
-  const notation = $derived(songToAbc($song, { mode, labelStyle, showDegrees }));
+  const showWords = $derived($ui.showWords);
+  const notation = $derived(songToAbc($song, { mode, labelStyle, showDegrees, showWords }));
 
   /** Note groups in reading order; one per note (its first glyph). */
   let noteButtons = /** @type {Element[]} */ ([]);
@@ -70,7 +72,7 @@
   $effect(() => {
     const current = $song;
     const { abc, pieces } = notation;
-    const view = { mode, labelStyle, showDegrees };
+    const view = { mode, labelStyle, showDegrees, showWords };
     const library = abcjs;
     void fontLoads;
     if (library) untrack(() => draw(library, current, abc, pieces, view));
@@ -308,6 +310,7 @@
   <div class="header">
     <Transport />
     <DroneSwitch />
+    <WordsSwitch />
     <History />
     <LabelControls />
     <VoiceLeading />

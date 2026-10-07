@@ -75,7 +75,13 @@
         "id": { "type": "string", "pattern": "^n[0-9a-z]{1,16}$" },
         "midi": { "type": "integer", "minimum": 21, "maximum": 108 },
         "start": { "type": "integer", "minimum": 0 },
-        "dur": { "type": "integer", "minimum": 1, "maximum": 576 }
+        "dur": { "type": "integer", "minimum": 1, "maximum": 576 },
+        "lyric": {
+          "description": "Optional sung syllable on this note, drawn under the staff. A word split across notes carries hyphens: a trailing one on every syllable but its last, a leading one on every syllable but its first. Never sent to the tutor.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        }
       }
     },
     "chord": {

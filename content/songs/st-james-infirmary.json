@@ -20,169 +20,197 @@
       "id": "n1",
       "midi": 71,
       "start": 0,
-      "dur": 12
+      "dur": 12,
+      "lyric": "I"
     },
     {
       "id": "n2",
       "midi": 71,
       "start": 12,
-      "dur": 12
+      "dur": 12,
+      "lyric": "went"
     },
     {
       "id": "n3",
       "midi": 71,
       "start": 24,
-      "dur": 6
+      "dur": 6,
+      "lyric": "down"
     },
     {
       "id": "n4",
       "midi": 71,
       "start": 30,
-      "dur": 6
+      "dur": 6,
+      "lyric": "to"
     },
     {
       "id": "n5",
       "midi": 69,
       "start": 36,
-      "dur": 12
+      "dur": 12,
+      "lyric": "Saint"
     },
     {
       "id": "n6",
       "midi": 71,
       "start": 48,
-      "dur": 6
+      "dur": 6,
+      "lyric": "James"
     },
     {
       "id": "n7",
       "midi": 71,
       "start": 54,
-      "dur": 6
+      "dur": 6,
+      "lyric": "In-"
     },
     {
       "id": "n8",
       "midi": 67,
       "start": 60,
-      "dur": 6
+      "dur": 6,
+      "lyric": "-fir-"
     },
     {
       "id": "n9",
       "midi": 64,
       "start": 66,
-      "dur": 6
+      "dur": 6,
+      "lyric": "-ma-"
     },
     {
       "id": "n1c",
       "midi": 64,
       "start": 72,
-      "dur": 36
+      "dur": 36,
+      "lyric": "-ry,"
     },
     {
       "id": "na",
       "midi": 71,
       "start": 108,
-      "dur": 12
+      "dur": 12,
+      "lyric": "Saw"
     },
     {
       "id": "nb",
       "midi": 71,
       "start": 120,
-      "dur": 12
+      "dur": 12,
+      "lyric": "my"
     },
     {
       "id": "nc",
       "midi": 76,
       "start": 132,
-      "dur": 18
+      "dur": 18,
+      "lyric": "ba-"
     },
     {
       "id": "nd",
       "midi": 72,
       "start": 150,
-      "dur": 6
+      "dur": 6,
+      "lyric": "-by"
     },
     {
       "id": "ne",
       "midi": 71,
       "start": 156,
-      "dur": 48
+      "dur": 48,
+      "lyric": "there,"
     },
     {
       "id": "nf",
       "midi": 71,
       "start": 204,
-      "dur": 12
+      "dur": 12,
+      "lyric": "Stretched"
     },
     {
       "id": "n10",
       "midi": 71,
       "start": 216,
-      "dur": 6
+      "dur": 6,
+      "lyric": "on"
     },
     {
       "id": "n11",
       "midi": 71,
       "start": 222,
-      "dur": 6
+      "dur": 6,
+      "lyric": "a"
     },
     {
       "id": "n12",
       "midi": 69,
       "start": 228,
-      "dur": 12
+      "dur": 12,
+      "lyric": "long"
     },
     {
       "id": "n13",
       "midi": 71,
       "start": 240,
-      "dur": 12
+      "dur": 12,
+      "lyric": "white"
     },
     {
       "id": "n14",
       "midi": 67,
       "start": 252,
-      "dur": 6
+      "dur": 6,
+      "lyric": "ta-"
     },
     {
       "id": "n15",
       "midi": 64,
       "start": 258,
-      "dur": 36
+      "dur": 36,
+      "lyric": "-ble,"
     },
     {
       "id": "n16",
       "midi": 64,
       "start": 294,
-      "dur": 6
+      "dur": 6,
+      "lyric": "So"
     },
     {
       "id": "n17",
       "midi": 67,
       "start": 300,
-      "dur": 18
+      "dur": 18,
+      "lyric": "sweet,"
     },
     {
       "id": "n18",
       "midi": 67,
       "start": 318,
-      "dur": 6
+      "dur": 6,
+      "lyric": "so"
     },
     {
       "id": "n19",
       "midi": 67,
       "start": 324,
-      "dur": 12
+      "dur": 12,
+      "lyric": "cold,"
     },
     {
       "id": "n1a",
       "midi": 66,
       "start": 336,
-      "dur": 12
+      "dur": 12,
+      "lyric": "so"
     },
     {
       "id": "n1b",
       "midi": 64,
       "start": 348,
-      "dur": 36
+      "dur": 36,
+      "lyric": "bare."
     }
   ],
   "chords": []
