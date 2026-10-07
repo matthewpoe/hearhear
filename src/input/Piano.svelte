@@ -4,23 +4,31 @@
    * surface. Each key shows its scale degree in jianpu style (dots above or
    * below for the octave around home) and the computer key that plays it,
    * both following keyLabelMode. Keys light from ui.keyboardLights (chord
-   * tones in their function color, melody neutral) and sink while held.
-   * The number row listens from here, since this is the instrument.
+   * tones in their function color, melody neutral) while a writer owns
+   * them, and sink while held. The number row listens from here, since this
+   * is the instrument.
    */
   import { audioStatus, preload } from "../audio/index.js";
+  import FunctionMark from "../lib/FunctionMark.svelte";
   import { song } from "../store/song.js";
   import { keyLabelMode, ui } from "../store/ui.js";
   import { midiToDegree, spell } from "../theory/index.js";
-  import FunctionMark from "./FunctionMark.svelte";
-  import { bindingLabel, bindingSpoken, keyBindings } from "./keyBindings.js";
+  import {
+    HIGHEST,
+    LOWEST,
+    bindingLabel,
+    bindingSpoken,
+    clampWindow,
+    keyBindings,
+  } from "./keyBindings.js";
   import { heldNotes, press, release } from "./liveNotes.js";
   import { flatArmed, listenToNumberRow } from "./NumberRow.js";
 
-  const LOWEST = 36; // C2, matching the samples and all three note rows
-  const HIGHEST = 84; // C6
   const BLACK = new Set([1, 3, 6, 8, 10]);
   /** How long a screen-reader activation (a click with no press) holds the note. */
   const TAP_MS = 400;
+  /** Matches --dur-reveal: how long the confirm reveal's slow fade lasts. */
+  const REVEAL_MS = 700;
 
   /** Every key, low to high. `slot` is how many white keys lie below it, for layout. */
   const KEYS = (() => {
@@ -40,18 +48,38 @@
   const mode = $derived(keyLabelMode($song, $ui));
   const bindings = $derived(keyBindings($song.key, $ui.windowOctave));
   const degrees = $derived(new Map(KEYS.map((k) => [k.midi, midiToDegree(k.midi, $song.key)])));
-  const chord = $derived($ui.keyboardLights.chord);
+  // Lights show only while a writer (playback or hover) owns them.
+  const lights = $derived($ui.keyboardLights.source ? $ui.keyboardLights : null);
+  const chord = $derived(lights?.chord ?? null);
   const chordTones = $derived(new Set(chord?.midi ?? []));
-  const melody = $derived(new Set($ui.keyboardLights.melody));
+  const melody = $derived(new Set(lights?.melody ?? []));
+
+  // Confirming a key is a reveal: the chord fill fades in slowly once, then
+  // follows playback at the usual pace.
+  let revealing = $state(false);
+  /** @type {string | null} */
+  let previousMode = null;
+  $effect(() => {
+    const entering = mode === "confirmed" && previousMode !== null && previousMode !== "confirmed";
+    previousMode = mode;
+    if (!entering) return;
+    revealing = true;
+    const timer = setTimeout(() => (revealing = false), REVEAL_MS);
+    return () => clearTimeout(timer);
+  });
 
   const windowText = $derived.by(() => {
-    const w = $ui.windowOctave;
+    const w = clampWindow($song.key, $ui.windowOctave);
     if (w === 0) return "Number row: home octave";
     return `Number row: ${Math.abs(w)} octave${Math.abs(w) > 1 ? "s" : ""} ${w > 0 ? "up" : "down"}`;
   });
 
-  /** @param {-1 | 0 | 1} accidental */
-  const accidentalGlyph = (accidental) => ({ "-1": "♭", 0: "", 1: "♯" })[accidental];
+  /** How an accidental reads on a key and aloud. */
+  const ACCIDENTAL = {
+    "-1": { glyph: "♭", spoken: "flat " },
+    0: { glyph: "", spoken: "" },
+    1: { glyph: "♯", spoken: "sharp " },
+  };
 
   /** "C#4" → "C sharp 4", so screen readers don't say "number". @param {string} pitch */
   const speakPitch = (pitch) =>
@@ -71,16 +99,17 @@
     const { degree, accidental, octave } = /** @type {import("../types.js").ScaleDegree} */ (
       degrees.get(midi)
     );
-    const acc = { "-1": "flat ", 0: "", 1: "sharp " }[accidental];
     const binding = bindings.get(midi);
     const played = binding ? `, key ${bindingSpoken(binding)}` : "";
     const tentative = mode === "tentative" ? ", tentative" : "";
-    return `${pitch}, degree ${acc}${degree}${speakOctave(octave)}${played}${tentative}`;
+    return `${pitch}, degree ${ACCIDENTAL[accidental].spoken}${degree}${speakOctave(octave)}${played}${tentative}`;
   }
 
-  // Pointer and touch: each pointer holds the key it went down on. Tracking
-  // it means hovering out of a key never stops a note the number row holds.
-  // Bookkeeping only; nothing renders from it, so it isn't reactive.
+  // Pointer and touch: each pointer holds the key it went down on, captured so
+  // sliding onto a neighbour doesn't end the note, as on a real piano. A drag
+  // along the keys pans the scroller instead (touch-action: pan-x), which
+  // cancels the pointer and releases the note. Bookkeeping only; nothing
+  // renders from it, so it isn't reactive.
   /** @type {Map<number, number>} pointerId → MIDI */
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const pointers = new Map();
@@ -88,8 +117,9 @@
   /** @param {PointerEvent} event @param {number} midi */
   function pointerDown(event, midi) {
     if (event.button !== 0) return;
+    /** @type {HTMLElement} */ (event.currentTarget).setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, midi);
-    press(midi);
+    press(midi, `pointer:${event.pointerId}`);
   }
 
   /** @param {PointerEvent} event */
@@ -97,8 +127,10 @@
     const midi = pointers.get(event.pointerId);
     if (midi === undefined) return;
     pointers.delete(event.pointerId);
-    release(midi);
+    release(midi, `pointer:${event.pointerId}`);
   }
+
+  let taps = 0;
 
   /**
    * A click with no pointer press behind it comes from assistive tech: play a short note.
@@ -107,15 +139,19 @@
    */
   function assistiveClick(event, midi) {
     if (event.detail !== 0) return;
-    press(midi);
-    setTimeout(() => release(midi), TAP_MS);
+    const source = `tap:${++taps}`;
+    press(midi, source);
+    setTimeout(() => release(midi, source), TAP_MS);
   }
 
   // Keyboard: one tab stop for the whole piano (roving tabindex), arrows move
-  // along it, and Space or Enter holds the focused key.
+  // along it, and Space or Enter holds the focused key. The held key is
+  // remembered, so moving focus while holding never strands a note.
   let focusMidi = $state(60);
   /** @type {HTMLButtonElement[]} */
-  const buttons = $state([]);
+  const buttons = $state.raw([]);
+  /** @type {number | null} */
+  let keyboardHeld = null;
 
   /** @param {number} midi */
   function focusKey(midi) {
@@ -134,15 +170,24 @@
       focusKey(moves[/** @type {keyof typeof moves} */ (event.key)]);
     } else if (playsKey(event)) {
       event.preventDefault();
-      if (!event.repeat) press(midi);
+      if (event.repeat || keyboardHeld !== null) return;
+      keyboardHeld = midi;
+      press(midi, "focus");
     }
   }
 
-  /** @param {KeyboardEvent} event @param {number} midi */
-  function keyUp(event, midi) {
+  /** @param {KeyboardEvent} event */
+  function keyUp(event) {
     if (!playsKey(event)) return;
     event.preventDefault();
-    release(midi);
+    releaseKeyboard();
+  }
+
+  /** Let go of the key Space or Enter pressed, wherever focus is now. */
+  function releaseKeyboard() {
+    if (keyboardHeld === null) return;
+    release(keyboardHeld, "focus");
+    keyboardHeld = null;
   }
 
   function retrySamples() {
@@ -156,11 +201,9 @@
     <p class="status" aria-live="polite">
       {windowText}{#if $flatArmed}<span class="armed">♭ next note</span>{/if}
     </p>
-    {#if $audioStatus === "loading"}
-      <p class="sound" role="status">Loading piano sound…</p>
-    {:else if $audioStatus === "failed"}
+    {#if $audioStatus === "failed"}
       <p class="sound" role="alert">
-        Piano sound didn't load.
+        Couldn't load the piano sound.
         <button type="button" class="retry" onclick={retrySamples}>Retry</button>
       </p>
     {/if}
@@ -169,10 +212,12 @@
   <div class="scroller">
     <div
       class="keys"
+      class:revealing
       role="group"
       aria-label="Piano keys, C2 to C6"
       data-mode={mode}
       style:--whites={WHITE_COUNT}
+      onfocusout={releaseKeyboard}
     >
       {#each KEYS as k, i (k.midi)}
         {@const degree = degrees.get(k.midi)}
@@ -191,11 +236,10 @@
           aria-label={accessibleName(k.midi)}
           onpointerdown={(event) => pointerDown(event, k.midi)}
           onpointerup={pointerUp}
-          onpointerleave={pointerUp}
           onpointercancel={pointerUp}
           onclick={(event) => assistiveClick(event, k.midi)}
           onkeydown={(event) => keyDown(event, k.midi)}
-          onkeyup={(event) => keyUp(event, k.midi)}
+          onkeyup={keyUp}
           onfocus={() => (focusMidi = k.midi)}
           oncontextmenu={(event) => event.preventDefault()}
         >
@@ -206,7 +250,7 @@
             {#if degree}
               <span class="degree">
                 <span class="dots">{"•".repeat(Math.max(0, degree.octave))}</span>
-                <span class="number">{accidentalGlyph(degree.accidental)}{degree.degree}</span>
+                <span class="number">{ACCIDENTAL[degree.accidental].glyph}{degree.degree}</span>
                 <span class="dots">{"•".repeat(Math.max(0, -degree.octave))}</span>
               </span>
             {/if}
@@ -287,7 +331,8 @@
     background: var(--key-white);
     color: var(--key-black);
     cursor: pointer;
-    touch-action: none;
+    /* Taps and holds play; a horizontal drag scrolls the keys on a phone. */
+    touch-action: pan-x;
     user-select: none;
     -webkit-touch-callout: none;
     transition:
@@ -309,26 +354,39 @@
     z-index: 2;
   }
 
-  /* Function colors for lit chord tones. Yellow outlines use its edge token for contrast. */
+  /* Function colors for lit chord tones. Tentative outlines and marks use the
+     per-key-surface tokens, which meet 3:1 on ivory and black keys in both themes. */
   .fn-tonic {
     --fn: var(--fn-tonic);
     --fn-ink: var(--fn-tonic-ink);
-    --fn-edge: var(--fn-tonic);
+    --fn-edge: var(--fn-tonic-on-white-key);
+  }
+  .fn-tonic.black {
+    --fn-edge: var(--fn-tonic-on-black-key);
   }
   .fn-subdominant {
     --fn: var(--fn-subdominant);
     --fn-ink: var(--fn-subdominant-ink);
-    --fn-edge: var(--fn-subdominant-edge);
+    --fn-edge: var(--fn-subdominant-on-white-key);
+  }
+  .fn-subdominant.black {
+    --fn-edge: var(--fn-subdominant-on-black-key);
   }
   .fn-dominant {
     --fn: var(--fn-dominant);
     --fn-ink: var(--fn-dominant-ink);
-    --fn-edge: var(--fn-dominant);
+    --fn-edge: var(--fn-dominant-on-white-key);
+  }
+  .fn-dominant.black {
+    --fn-edge: var(--fn-dominant-on-black-key);
   }
   .fn-other {
     --fn: var(--fn-other);
     --fn-ink: var(--fn-other-ink);
-    --fn-edge: var(--fn-other);
+    --fn-edge: var(--fn-other-on-white-key);
+  }
+  .fn-other.black {
+    --fn-edge: var(--fn-other-on-black-key);
   }
 
   /* Melody, held keys, and chord tones before a guess all glow neutral. */
@@ -349,14 +407,18 @@
     color: var(--fn-ink);
   }
 
-  /* Tentative: an outline in the function color, no fill (tokens.css). */
+  /* The reveal: when a key is confirmed, the fill fades in at --dur-reveal. */
+  .revealing .key {
+    transition-duration: var(--dur-fast), var(--dur-reveal), var(--dur-fast);
+  }
+
+  /* Tentative: an outline and mark in the key-surface function color, full opacity, no fill. */
   [data-mode="tentative"] .key.chord::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     box-shadow: inset 0 0 0 calc(2 * var(--tentative-stroke)) var(--fn-edge);
-    opacity: var(--tentative-opacity);
     pointer-events: none;
   }
   [data-mode="tentative"] .key.chord :global(.mark) {
