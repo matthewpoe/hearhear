@@ -22,8 +22,10 @@
   import { DEMO_TUNES, loadDemo } from "../finding/demoTunes.js";
   import { heldNotes } from "../input/liveNotes.js";
   import { heldChord } from "../input/NumberRow.js";
+  import { LOWEST, keyBindings } from "../input/keyBindings.js";
   import { recorder } from "../record/tunes.js";
-  import { MOMENTARY, conditionMet, hintFor, skipped, stepTarget } from "./steps.js";
+  import { midiToDegree } from "../theory/index.js";
+  import { conditionMet, hintFor, pushDegree, stepTarget } from "./steps.js";
   import { tour, goTo, leaveTour, finishTour, autoStart } from "./tour.js";
   import { actionParts, pageFacts } from "./actions.js";
   import { spotlight, spotlightNote } from "./spotlight.js";
@@ -52,8 +54,8 @@
   let strip = $state();
   /** Bumped when the page changes, so page facts are read again. */
   let pageChanges = $state(0);
-  /** A touch screen: steps whose action is a physical key are skipped. */
-  const touch = !matchMedia("(hover: hover) and (pointer: fine)").matches;
+  /** Scale degrees of the last notes played, for `degrees` conditions. */
+  let recentDegrees = $state(/** @type {number[]} */ ([]));
   /** Facts read from the page: name to selector (content/guided-path.json). */
   const pageSelectors = /** @type {Record<string, string>} */ (content.pageFacts ?? {});
 
@@ -61,9 +63,11 @@
   const facts = $derived.by(() => {
     void pageChanges;
     return {
-      notePlaying: $heldNotes.size > 0 && $heldChord === null,
-      chordKeyHeld: $heldChord !== null,
-      chordRow: $ui.bottomRow === "chords",
+      transposed:
+        tourTune !== undefined &&
+        $song.id === tourTune.id &&
+        $song.notes.length > 0 &&
+        $song.notes[0].midi !== tourTune.notes[0]?.midi,
       recordStarted: $recorder.status === "armed" || $recorder.status === "recording",
       ...pageFacts(pageSelectors, (selector) => document.querySelector(selector) !== null),
     };
@@ -71,20 +75,15 @@
 
   const index = $derived($tour.index);
   const step = $derived(steps[index]);
-  const appState = $derived({ song: $song, played, tutorReplies, loadedThisTour, facts });
-  /** A key-press step's key is down now (MOMENTARY in steps.js). */
-  const held = $derived(
-    step.done.type === "fact" && MOMENTARY.includes(step.done.fact) && facts[step.done.fact],
-  );
-  /** The step at which that key was last seen up, so only a fresh press counts. */
-  let releasedAt = $state(-1);
-  $effect(() => {
-    if (!held) releasedAt = index;
+  const appState = $derived({
+    song: $song,
+    played,
+    tutorReplies,
+    loadedThisTour,
+    recentDegrees,
+    facts,
   });
-  const met = $derived(
-    conditionMet(step.done, appState) &&
-      (step.done.type !== "fact" || !MOMENTARY.includes(step.done.fact) || releasedAt === index),
-  );
+  const met = $derived(conditionMet(step.done, appState));
   const hint = $derived(hintFor(step, appState));
   const last = $derived(index === steps.length - 1);
 
@@ -96,8 +95,7 @@
   // it moves to the new step's heading.
   $effect(() => {
     const at = index;
-    if (!$tour.running || last) return;
-    if (!met && !skipped(step, { touch, facts })) return;
+    if (!$tour.running || last || !met) return;
     untrack(async () => {
       const active = document.activeElement;
       const inStrip = active === document.body || (strip?.contains(active) ?? false);
@@ -137,8 +135,10 @@
   });
 
   // Focus follows the walkthrough in and out when the viewer asked for it:
-  // to the step when "Guided lesson" starts it, back to that button when it
-  // ends. Starting on its own on a first visit takes no focus.
+  // to the step when "Guided lesson" starts it, and back to that button when
+  // it ends from the strip (focus was in it, so it dropped to the page).
+  // Starting on its own on a first visit takes no focus, and neither does
+  // ending because the viewer pressed Record.
   let wasRunning = false;
   $effect(() => {
     const on = $tour.running;
@@ -148,7 +148,27 @@
       wasRunning = on;
       await tick();
       if (on && !take) return;
+      if (!on && document.activeElement !== document.body) return;
       document.getElementById(on ? "guided-step-title" : "guided-entry")?.focus();
+    });
+  });
+
+  // The closing line isn't a step to complete: doing its action (pressing
+  // Record) ends the walkthrough, as Finish does.
+  $effect(() => {
+    if ($tour.running && step.sendOff && met) untrack(finishTour);
+  });
+
+  // The scale degrees of the notes played, from the number row or the piano,
+  // for "press 3 3 4 5". A chord from the A–J row isn't a note.
+  $effect(() => {
+    /** @type {ReadonlySet<number>} */
+    let before = new Set();
+    return heldNotes.subscribe((now) => {
+      const added = [...now].filter((midi) => !before.has(midi));
+      before = now;
+      if (added.length !== 1 || untrack(() => $heldChord) !== null) return;
+      recentDegrees = pushDegree(recentDegrees, midiToDegree(added[0], song.get().key));
     });
   });
 
@@ -180,13 +200,24 @@
 
   /**
    * The real control a step asks for, on the page now: the element to ring
-   * and scroll to, and for a note its id (the staff rings it itself).
+   * and scroll to, more elements to ring with it (the piano keys), and for a
+   * note its id (the staff rings it itself).
    * @param {number} at
-   * @returns {{ el: Element | null, noteId?: string }}
+   * @returns {{ el: Element | null, more?: Element[], noteId?: string }}
    */
   function targetOf(at) {
     const target = stepTarget(steps[at], song.get());
     if (!target) return { el: null };
+    if (target.codes) {
+      // The piano's keys run from LOWEST up, one button each.
+      const keys = document.querySelectorAll("#piano button.key");
+      const now = ui.get();
+      const els = [...keyBindings(song.get().key, now.windowOctave, now.bottomRow)]
+        .filter(([, b]) => b.modifier !== "shift" && target.codes?.includes(b.code))
+        .map(([midi]) => keys[midi - LOWEST])
+        .filter((el) => el !== undefined);
+      return { el: els[0] ?? null, more: els.slice(1) };
+    }
     if (target.songId) {
       const title = DEMO_TUNES.find(({ song: t }) => t.id === target.songId)?.song.title ?? "";
       const card = [...document.querySelectorAll("#song-chooser button")].find((b) =>
@@ -216,8 +247,12 @@
     if (!on) return;
     let undo = () => {};
     const frame = requestAnimationFrame(() => {
-      const { el, noteId } = targetOf(at);
-      undo = noteId ? spotlightNote(noteId) : el ? spotlight(el) : () => {};
+      const { el, more = [], noteId } = targetOf(at);
+      if (noteId) undo = spotlightNote(noteId);
+      else {
+        const undos = [el, ...more].flatMap((e) => (e ? [spotlight(e)] : []));
+        undo = () => undos.forEach((u) => u());
+      }
     });
     return () => {
       cancelAnimationFrame(frame);
@@ -314,7 +349,11 @@
 {#if $tour.running}
   <section class="strip" aria-label="Guided tour" bind:this={strip}>
     <div class="row">
-      <span class="count">Guided tour · step {index + 1}/{steps.length}</span>
+      <span class="count"
+        >{step.sendOff
+          ? "Guided tour · done"
+          : `Guided tour · step ${index + 1}/${steps.filter((s) => !s.sendOff).length}`}</span
+      >
       <span class="badge" title={path.status}>Draft</span>
       <span class="visually-hidden">({path.status})</span>
       <p class="line" aria-live="polite">

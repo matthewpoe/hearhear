@@ -41,15 +41,12 @@ const TARGETS = {
   load: ["#song-chooser button"],
   listen: ["#staff [aria-label='Playback']"],
   home: ["#key-prompt button"],
+  numbers: ["#piano .key"],
   "half-cadence": [`#staff [data-note-id="nf"]`],
-  "set-up-ending": [`#staff [data-note-id="n1c"]`],
-  "wrong-ish": [`#staff [data-note-id="${lastNote.id}"]`],
   land: [`#staff [data-note-id="${lastNote.id}"]`],
-  "number-keys": ["#piano .key"],
-  "chord-keys": ["#piano .key"],
-  transpose: ["#toolbar summary"],
   ask: ["#tutor > h2", "#tutor .demo", "#tutor .ask"],
-  record: ["#record-button"],
+  transpose: ["#toolbar summary"],
+  "your-turn": ["#record-button"],
 };
 /** Kept clear at every step: the tutor's heading, demo notice and question box, and the open dropdown. */
 const ALWAYS = ["#tutor > h2", "#tutor .demo", "#tutor .ask", "#chords [role='dialog']"];
@@ -111,7 +108,7 @@ function aboveDock(page, selector) {
  * data-spotlight that matches `selector`, or for a note, the note's own
  * elements carrying the staff's spotlight class.
  * @param {import("@playwright/test").Page} page
- * @param {{ selector?: string, text?: string, noteId?: string }} want
+ * @param {{ selector?: string, text?: string, noteId?: string, count?: number }} want
  */
 function spotlit(page, want) {
   return page.evaluate((want) => {
@@ -126,8 +123,8 @@ function spotlit(page, want) {
     }
     const lit = [...document.querySelectorAll("[data-spotlight]")];
     return (
-      lit.length === 1 &&
-      lit[0].matches(want.selector ?? "*") &&
+      lit.length === (want.count ?? 1) &&
+      lit.every((el) => el.matches(want.selector ?? "*")) &&
       (!want.text || (lit[0].textContent ?? "").includes(want.text))
     );
   }, want);
@@ -160,7 +157,7 @@ for (const viewport of [
     const heading = page.locator("#guided-step-title");
     await expect(heading).not.toBeFocused();
     const count = tour.getByText(/^Guided tour · step \d+\/\d+$/);
-    await expect(count).toHaveText(`Guided tour · step 1/${steps.length}`);
+    await expect(count).toHaveText(`Guided tour · step 1/${steps.length - 1}`);
     await expect(tour.getByText("Draft", { exact: true })).toBeVisible();
     // The Draft badge carries the placeholder note, for screen readers too.
     await expect(tour.getByText(/placeholder: pending Matthew's ear check/i)).toBeAttached();
@@ -183,15 +180,14 @@ for (const viewport of [
      * The step is current, its target wears the spotlight, and the strip
      * offers no button but the way out (Finish on the last step).
      * @param {string} id
-     * @param {{ selector?: string, text?: string, noteId?: string }} target
+     * @param {{ selector?: string, text?: string, noteId?: string, count?: number }} target
      */
     const expectStep = async (id, target) => {
       const at = steps.findIndex((/** @type {{ id: string }} */ s) => s.id === id);
       await expect(heading).toHaveText(`${titleOf(id)}:`);
-      await expect(count).toHaveText(`Guided tour · step ${at + 1}/${steps.length}`);
-      await expect(tour.getByRole("button")).toHaveText([
-        at === steps.length - 1 ? "Finish" : "Leave tour",
-      ]);
+      await expect(count).toHaveText(`Guided tour · step ${at + 1}/${steps.length - 1}`);
+      // No button does the step: only the way out.
+      await expect(tour.getByRole("button")).toHaveText(["Leave tour"]);
       await expect.poll(() => spotlit(page, target), `${id} spotlight`).toBe(true);
       await expect.poll(() => stripProblems(page, id)).toEqual([]);
     };
@@ -248,52 +244,61 @@ for (const viewport of [
     await expectStep("home", { selector: "#key-prompt" });
     await homes.getByRole("button", { name: "D", exact: true }).click();
 
-    // 4. 1 is home: a note on the number row.
-    await expectStep("number-keys", { selector: "#piano" });
-    await playKey("Digit1");
+    // 4. Count from home: 3 3 4 5 on the number row, its 3, 4 and 5 keys
+    // spotlit on the piano. One 3 is not enough.
+    await expectStep("numbers", { selector: "#piano button.key", count: 3 });
+    await playKey("Digit3");
+    await expect(heading).toHaveText(`${titleOf("numbers")}:`);
+    await playKey("Digit3");
+    await playKey("Digit4");
+    await playKey("Digit5");
 
-    // 5–8. Each chord step rings its note on the staff; the viewer clicks it
-    // and picks the chord (the chord row's letters: G is V, H is vi, A is I).
-    for (const [id, noteId, key] of [
-      ["half-cadence", "nf", "g"],
-      ["set-up-ending", "n1c", "g"],
-      ["wrong-ish", lastNote.id, "h"],
-      ["land", lastNote.id, "a"],
-    ]) {
-      await expectStep(id, { noteId });
-      await clickNote(page, noteId);
-      await expect(page.locator("#chords [role='dialog']")).toBeVisible();
-      await expect.poll(() => stripProblems(page, id)).toEqual([]);
-      await page.keyboard.press(key);
-      await page.keyboard.press("Escape");
-    }
+    // 5. V under bar 4's long note: the note is ringed; the viewer clicks it
+    // and picks V (the chord row's letters: G is V).
+    await expectStep("half-cadence", { noteId: "nf" });
+    await clickNote(page, "nf");
+    await expect(page.locator("#chords [role='dialog']")).toBeVisible();
+    await expect.poll(() => stripProblems(page, "half-cadence")).toEqual([]);
+    await page.keyboard.press("g");
+    await page.keyboard.press("Escape");
 
-    // 9. Chords by color: a chord key on the A–J row.
-    await expectStep("chord-keys", { selector: "#piano" });
-    await playKey("KeyA");
+    // 6. vi, then I, under the last note: vi alone doesn't finish it.
+    await expectStep("land", { noteId: lastNote.id });
+    await clickNote(page, lastNote.id);
+    await page.keyboard.press("h");
+    await page.keyboard.press("Escape");
+    await expectStep("land", { noteId: lastNote.id });
+    await clickNote(page, lastNote.id);
+    await page.keyboard.press("a");
+    await page.keyboard.press("Escape");
 
-    // 10. Same tune, any key: open the key tools.
-    await expectStep("transpose", { selector: "#toolbar" });
-    await page.locator("#toolbar summary").click();
-
-    // 11. Ask the tutor in the viewer's own words.
+    // 7. Ask the tutor in the viewer's own words.
     await expectStep("ask", { selector: "#tutor .ask" });
     await page.locator("#tutor-question").fill("Why does the ending land now?");
     await page.locator("#tutor").getByRole("button", { name: "Ask", exact: true }).click();
 
-    // 12. Record: the last step always offers Finish, so it can be skipped.
-    await expectStep("record", { selector: "#record-button" });
-    await page.screenshot({ path: test.info().outputPath(`record-step-${viewport.width}.png`) });
+    // 8. Play it in another key, from the disclosure in the key box. Opening
+    // it isn't enough; moving the tune is.
+    await expectStep("transpose", { selector: "#toolbar > summary" });
+    await page.locator("#toolbar > summary").click();
+    await expect(heading).toHaveText(`${titleOf("transpose")}:`);
+    await page.getByRole("button", { name: "Play in E major" }).click();
+
+    // The send-off: not a step, just the way on. Finish ends it, and so does
+    // pressing Record.
+    await expect(heading).toHaveText(`${titleOf("your-turn")}:`);
+    await expect(tour.getByText("Guided tour · done")).toBeVisible();
+    await expect(tour.getByRole("button")).toHaveText(["Finish"]);
+    await expect.poll(() => spotlit(page, { selector: "#record-button" })).toBe(true);
+    await page.screenshot({ path: test.info().outputPath(`send-off-${viewport.width}.png`) });
     await axe(page);
     await page.getByRole("button", { name: "Dark mode" }).click();
     await axe(page);
     await page.getByRole("button", { name: "Record a tune" }).click();
-    await expect(tour.getByText("Done.")).toBeVisible();
+    await expect(heading).toHaveCount(0);
     await page.getByRole("button", { name: "Cancel" }).click();
 
-    // Finishing takes the spotlight away; it doesn't start on its own again.
-    await page.getByRole("button", { name: "Finish" }).click();
-    await expect(heading).toHaveCount(0);
+    // Ending takes the spotlight away; it doesn't start on its own again.
     await expect(entry).toBeVisible();
     await expect(page.locator("[data-spotlight], #staff .spotlight")).toHaveCount(0);
     await page.reload();

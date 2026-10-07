@@ -13,7 +13,7 @@ import {
   noteAt,
   numeralAt,
   saveProgress,
-  skipped,
+  pushDegree,
   stepTarget,
 } from "../../src/guided/steps.js";
 
@@ -90,38 +90,49 @@ describe("the guided path's content", () => {
       load: () => {},
       home: () => store.rekey({ tonic: "D", mode: "major", provisional: false }),
       "half-cadence": () => place(store, 4, 3, "V"),
-      "set-up-ending": () => place(store, 8, 1, "V"),
-      "wrong-ish": () => place(store, 8, 3, "vi"),
       land: () => place(store, 8, 3, "I"),
     };
     let replies = 0;
     let played = false;
     /** @type {Record<string, boolean>} */
-    let facts = { chordRow: true };
-    const at = () => ({ ...state(store.get(), replies, played), facts });
+    let facts = {};
+    /** @type {number[]} */
+    let recentDegrees = [];
+    const at = () => ({ ...state(store.get(), replies, played), facts, recentDegrees });
     for (const step of steps) {
       assert.equal(conditionMet(step.done, at()), step.id === "load", step.id);
       if (step.id === "ask") replies = 1;
       else if (step.id === "listen") played = true;
       else if (step.done.type === "fact") facts = { ...facts, [step.done.fact]: true };
-      else doIt[step.id]();
+      else if (step.done.type === "degrees") {
+        for (const degree of step.done.degrees) {
+          recentDegrees = pushDegree(recentDegrees, { degree, accidental: 0 });
+        }
+      } else doIt[step.id]();
       assert.ok(conditionMet(step.done, at()), step.id);
-      if (step.done.type === "fact") facts = { ...facts, [step.done.fact]: false };
     }
   });
 });
 
-describe("skipped", () => {
-  const chordKeys = /** @type {Step} */ (steps.find((s) => s.id === "chord-keys"));
-  it("skips a physical-key step on a touch screen, and only there", () => {
-    assert.equal(skipped(chordKeys, { touch: true, facts: { chordRow: true } }), true);
-    assert.equal(skipped(chordKeys, { touch: false, facts: { chordRow: true } }), false);
+describe("degrees", () => {
+  const met = { type: /** @type {const} */ ("degrees"), degrees: [3, 3, 4, 5] };
+  /** @param {number[]} played */
+  const after = (played) =>
+    played.reduce(
+      (list, degree) => pushDegree(list, { degree, accidental: 0 }),
+      /** @type {number[]} */ ([]),
+    );
+  it("wants the degrees in order, as the last notes played", () => {
+    assert.ok(conditionMet(met, { ...state(tune), recentDegrees: after([1, 3, 3, 4, 5]) }));
+    assert.ok(!conditionMet(met, { ...state(tune), recentDegrees: after([3, 4, 5]) }));
+    assert.ok(!conditionMet(met, { ...state(tune), recentDegrees: after([3, 3, 4, 5, 6]) }));
+    assert.ok(!conditionMet(met, state(tune)));
   });
-  it("skips a step whose facts don't hold", () => {
-    assert.equal(skipped(chordKeys, { touch: false, facts: { chordRow: false } }), true);
+  it("counts a note off the scale as no degree", () => {
+    assert.deepEqual(pushDegree([3, 3, 4], { degree: 5, accidental: 1 }), [3, 3, 4, 0]);
   });
-  it("never skips a step with no needs", () => {
-    assert.equal(skipped(steps[0], { touch: true, facts: {} }), false);
+  it("keeps only the last few", () => {
+    assert.equal(after([1, 2, 3, 4, 5, 6, 7, 1, 2, 3]).length, 8);
   });
 });
 
@@ -251,11 +262,12 @@ describe("stepTarget", () => {
     assert.deepEqual(target("load"), { songId: "ode-to-joy" });
     assert.deepEqual(target("listen"), { selector: "#staff", button: "Play" });
     assert.deepEqual(target("home"), { selector: "#key-prompt" });
+    assert.deepEqual(target("numbers"), { codes: ["Digit3", "Digit4", "Digit5"] });
     assert.deepEqual(target("half-cadence"), noteId(4, 3));
-    assert.deepEqual(target("set-up-ending"), noteId(8, 1));
-    assert.deepEqual(target("wrong-ish"), noteId(8, 3));
     assert.deepEqual(target("land"), noteId(8, 3));
     assert.deepEqual(target("ask"), { selector: "#tutor .ask" });
+    assert.deepEqual(target("transpose"), { selector: "#toolbar > summary" });
+    assert.deepEqual(target("your-turn"), { selector: "#record-button, #record-card" });
   });
 
   it("names nothing for a note the song lacks", () => {

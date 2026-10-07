@@ -37,3 +37,21 @@ Matthew: the onboarding "needs to be way more actionable and way more concise ..
   - A key-press step needs a fresh press. The letter that placed I in the dropdown is still held when the chord-keys step arrives, and it used to finish that step at once.
 - **2026-10-07 — It starts on its own on a first visit, without taking focus, and only once per tab.** After someone leaves or finishes it, it stays put for the session (sessionStorage `hearhear.guided.dismissed`), and a single "Guided lesson" button in the masthead brings it back, with focus on the step. The landing's "Show me how" invitation is gone. The other e2e specs leave the walkthrough where they used to turn tips off. _Rejected:_ a choice screen ("Walk me through it" or "I'll explore"), which Matthew dropped; localStorage (would never auto-start again on a new visit).
 - **2026-10-07 — A fresh run with the tune already open reloads it bare.** No button loads the tune any more, and the song select can't re-pick the song already open. So a fresh run that finds Ode to Joy open reloads it bare (no key, no chords), which finishes step 1, and asks for Play again. A saved copy that the song list brings back mid-run is reloaded bare too.
+- **2026-10-07 — Eight steps and a send-off, built around the North Star (Matthew). Supersedes the twelve-step entry above.** Matthew delegated the wording and asked for a walkthrough that "focuses mercilessly" on why the product exists. Cut: chord keys A–J, the generic "1 is home", the bar-8 lean, and the separate vi step. vi and I are now one step: it finishes on I, and the dropdown's audition covers the comparison. New conditions:
+  - `degrees`: the last notes played, as scale degrees. "Press 3 3 4 5" finishes only on that sequence, so any key isn't enough, and a tap on the on-screen piano counts too.
+  - The `transposed` fact: the tour's tune sounds at another pitch.
+  - `sendOff` on the closing line. "Now try your own: press Record." is not a step: Finish ends it, and pressing Record ends it too without moving focus.
+
+  The step count leaves the send-off out ("step 4/8", then "done"). The numbers step rings the piano keys the number row's 3, 4 and 5 play. The transpose step rings `#toolbar > summary`, the disclosure in the key box since #42. With the tips gone, no other anchor needed remapping. _Rejected:_ requiring vi before I (the dropdown already lets you hear both); "any number key" for the numbers step (it doesn't show that the numbers are the tune).
+
+- **Why this order.** Each step serves the North Star: think in relationships, not pitches; your ear does the work, and the tool shortens the feedback loop.
+  1. **Load:** a tune everyone can hum, with its key hidden, so the ear has a job.
+  2. **Listen:** hear it and hum it before anything is labelled; notice where it wants to stop.
+  3. **Find home by ear:** the core act. Hold each candidate home underneath and feel which one the tune settles on. The tool makes each guess quick to test, and it doesn't hand over the answer.
+  4. **Count from home:** "3 3 4 5" is the tune as relationships to home, not pitches. It's the first payoff of finding home.
+  5. **A question at bar 4:** V under the long note shows what a chord does relative to home: it asks.
+  6. **Now let it land:** vi swerves and I answers. Hearing that difference is what the ear is learning.
+  7. **Ask why:** the tutor explains what the ear just felt, after the ear has done the work.
+  8. **Another key:** new sound, same numbers. It proves the relationships, not the pitches, were the thing.
+
+  Then the send-off: the same tools on a tune of your own.

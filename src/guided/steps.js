@@ -18,7 +18,11 @@ import { numeralOf, positionOf } from "../theory/index.js";
  *   | { type: "chordAt", bar: number, beat: number, numeral: string }
  *   | { type: "played" }
  *   | { type: "tutorReplied" }
+ *   | { type: "degrees", degrees: number[] }
  *   | { type: "fact", fact: string }} Condition
+ *
+ * `degrees`: the last notes played (number row or piano) were these scale
+ * degrees, in order, counted from home.
  *
  * A `fact` is one of FACTS, read from the stores, or a name in the content's
  * `pageFacts` (a selector; true while something on the page matches it).
@@ -29,7 +33,11 @@ import { numeralOf, positionOf } from "../theory/index.js";
  * @typedef {{ type: "song", song: string }
  *   | { type: "button", within: string, name: string }
  *   | { type: "element", selector: string }
- *   | { type: "note", bar: number, beat: number }} Target
+ *   | { type: "note", bar: number, beat: number }
+ *   | { type: "keys", codes: string[] }} Target
+ *
+ * `keys`: the piano keys the number row plays for those computer keys
+ * (KeyboardEvent codes, like "Digit3").
  *
  * @typedef {{
  *   id: string,
@@ -38,48 +46,38 @@ import { numeralOf, positionOf } from "../theory/index.js";
  *   done: Condition,
  *   hint?: { when: Condition, text: string },
  *   target: Target,
- *   when?: Record<string, boolean>,
- *   needsHardwareKeyboard?: boolean,
+ *   sendOff?: boolean,
  * }} Step
  *
- * `when`: facts that must hold for the step to apply (the A–J step needs the
- * row to play chords); `needsHardwareKeyboard`: its action is a physical key,
- * so a touch screen skips it.
+ * `sendOff`: the closing line, not a step to complete. Finish ends the
+ * walkthrough there, and doing its action ends it too.
  *
  * @typedef {{ status: string, song: string, steps: Step[] }} GuidedPath
  *
  * What the conditions read: the song on the staff, whether it has been
  * played since it was loaded, how many replies the tutor has given in its
  * conversation, and whether a tune was loaded since this run of the tour
- * started (so a fresh tour never skips its load step), and the facts.
+ * started (so a fresh tour never skips its load step), the scale degrees of
+ * the last notes played, and the facts.
  * @typedef {{
  *   song: Song,
  *   played: boolean,
  *   tutorReplies: number,
  *   loadedThisTour: boolean,
+ *   recentDegrees?: number[],
  *   facts?: Record<string, boolean>,
  * }} AppState
  */
 
 /**
  * The facts the component reads from the stores, as opposed to the page:
- * a single note held (number row or piano), a chord held on the A–J row,
- * whether that row plays chords, and whether the recorder is armed or
- * recording.
+ * the tour's tune now sounds in another key or octave, and the recorder is
+ * armed or recording.
  */
-export const FACTS = /** @type {const} */ ([
-  "notePlaying",
-  "chordKeyHeld",
-  "chordRow",
-  "recordStarted",
-]);
+export const FACTS = /** @type {const} */ (["transposed", "recordStarted"]);
 
-/**
- * Facts that hold only while a key is down. A step waiting for one needs a
- * fresh press: a key still held from the step before (a chord-row letter that
- * placed a chord) doesn't count.
- */
-export const MOMENTARY = /** @type {readonly string[]} */ (["notePlaying", "chordKeyHeld"]);
+/** How many recent degrees the component keeps, for `degrees` conditions. */
+export const RECENT_DEGREES = 8;
 
 /**
  * The note that starts at a bar and beat, if any.
@@ -115,7 +113,10 @@ export function numeralAt(song, bar, beat) {
  * @param {AppState} state
  * @returns {boolean}
  */
-export function conditionMet(condition, { song, played, tutorReplies, loadedThisTour, facts }) {
+export function conditionMet(
+  condition,
+  { song, played, tutorReplies, loadedThisTour, recentDegrees = [], facts },
+) {
   switch (condition.type) {
     case "songLoaded":
       return loadedThisTour && song.id === condition.song && song.notes.length > 0;
@@ -133,6 +134,8 @@ export function conditionMet(condition, { song, played, tutorReplies, loadedThis
       return played && song.notes.length > 0;
     case "tutorReplied":
       return tutorReplies > 0;
+    case "degrees":
+      return endsWith(recentDegrees, condition.degrees);
     case "fact":
       return facts?.[condition.fact] === true;
     default:
@@ -141,15 +144,24 @@ export function conditionMet(condition, { song, played, tutorReplies, loadedThis
 }
 
 /**
- * Whether a step doesn't apply here, so the walkthrough passes over it: its
- * action needs a physical key on a touch screen, or a fact it needs doesn't
- * hold.
- * @param {Step} step
- * @param {{ touch: boolean, facts: Record<string, boolean> }} here
+ * Whether `list` ends with `tail`, item for item.
+ * @param {readonly number[]} list
+ * @param {readonly number[]} tail
  */
-export function skipped(step, { touch, facts }) {
-  if (touch && step.needsHardwareKeyboard) return true;
-  return Object.entries(step.when ?? {}).some(([fact, wanted]) => facts[fact] !== wanted);
+function endsWith(list, tail) {
+  if (tail.length === 0 || list.length < tail.length) return false;
+  const start = list.length - tail.length;
+  return tail.every((item, i) => list[start + i] === item);
+}
+
+/**
+ * The degrees list after one more note: its scale degree (1–7, or 0 for a
+ * note off the scale), keeping the last RECENT_DEGREES.
+ * @param {readonly number[]} list
+ * @param {{ degree: number, accidental: number }} played
+ */
+export function pushDegree(list, played) {
+  return [...list, played.accidental === 0 ? played.degree : 0].slice(-RECENT_DEGREES);
 }
 
 /**
@@ -170,7 +182,7 @@ export function hintFor(step, state) {
  * Null when the target is a note the song lacks.
  * @param {Step} step
  * @param {Song} song
- * @returns {{ selector?: string, button?: string, songId?: string, noteId?: string } | null}
+ * @returns {{ selector?: string, button?: string, songId?: string, noteId?: string, codes?: string[] } | null}
  */
 export function stepTarget(step, song) {
   const target = step.target;
@@ -185,6 +197,8 @@ export function stepTarget(step, song) {
       const note = noteAt(song, target.bar, target.beat);
       return note ? { noteId: note.id } : null;
     }
+    case "keys":
+      return { codes: target.codes };
     default:
       return null;
   }

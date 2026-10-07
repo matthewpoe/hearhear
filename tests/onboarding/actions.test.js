@@ -19,10 +19,9 @@ const CONDITIONS = [
   "keyCommitted",
   "chordAt",
   "tutorReplied",
+  "degrees",
   "fact",
 ];
-/** Facts only a physical key can produce: their steps are skipped on touch screens. */
-const KEY_ONLY_FACTS = ["chordKeyHeld"];
 
 /** @param {string} file */
 const source = (file) => readFile(new URL(`../../src/${file}`, import.meta.url), "utf8");
@@ -60,15 +59,19 @@ describe("every walkthrough step waits for one action", () => {
     it(`${step.id}: has a done condition it can observe, one [[action]], and no Next`, () => {
       assert.ok(CONDITIONS.includes(step.done?.type), "done is what its action produces");
       if (step.done.type === "fact") assert.ok(facts.has(step.done.fact), step.done.fact);
-      for (const fact of Object.keys(step.when ?? {})) assert.ok(facts.has(fact), `when: ${fact}`);
       assert.equal(actionCount(step.line), 1, "exactly one [[action]] marker");
       for (const key of ["next", "text", "action"]) assert.ok(!(key in step), key);
       assert.ok(step.target, "a real control to spotlight");
-      if (step.done.type === "fact" && KEY_ONLY_FACTS.includes(step.done.fact)) {
-        assert.equal(step.needsHardwareKeyboard, true, "a touch screen could never do it");
-      }
+      const words = step.line.replace(/\[\[|\]\]/g, "").split(/\s+/).length;
+      assert.ok(words <= 16, `${words} words; keep a line to about 16`);
     });
   }
+
+  it("ends with one send-off line, after every step", () => {
+    const sendOffs = guided.steps.filter((step) => step.sendOff);
+    assert.equal(sendOffs.length, 1);
+    assert.equal(guided.steps.at(-1)?.sendOff, true);
+  });
 
   it("names every page fact with a selector", () => {
     for (const [fact, selector] of Object.entries(guided.pageFacts ?? {})) {

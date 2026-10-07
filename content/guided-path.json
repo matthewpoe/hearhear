@@ -1,5 +1,5 @@
 {
-  "$comment": "The guided demo path as data, run by src/guided/GuidedPath.svelte (step logic: src/guided/steps.js). Each step names one thing to do and advances only when the app shows it done: there is no Next or Back, only 'Leave tour'. Each step has an id, a title (2–4 words), a one-line instruction (`line`: an imperative first, at most one clause of why; its action is marked [[like this]], shown in the accent color, exactly once), `done` (the app state the instruction produces; the step advances on its own once it holds, and a step already done when the tour reaches it is skipped), an optional `hint` (text shown while its `when` holds and `done` doesn't), and an optional `action`: a button in the strip that does the step's action, or opens what it needs. Conditions: songLoaded {song}, played (Play pressed since the song loaded), keyChosen {tonic, mode}, keyCommitted, chordAt {bar, beat, numeral}, tutorReplied. Actions: loadSong {song}, press {within, name} (a button by its accessible name inside an element id), openChords {bar, beat}, audition {bar, beat, numeral}, askTutor {lesson} (the question from content/lessons/plan.json; the server replays content/lessons/recorded/<lesson>.json when it exists). Bars and beats are checked against the song by tests/guided/steps.test.js. Stream I scripts video from it. Matthew owns this wording; revised drafts by Claude, Oct 7, 2026, for action and concision.",
+  "$comment": "The guided walkthrough as data, run by src/guided/GuidedPath.svelte (step logic: src/guided/steps.js). Built around the North Star (docs/PRD.md): think in relationships, not pitches; your ear does the work and the tool shortens the feedback loop. Core first, extras after. It starts on its own on a first visit, in the dock's strip, and teaches the real interface: no button does a step for the viewer. Each step names one thing to do and spotlights the real control (`target`: a violet ring that pulses gently, scrolled into view), and advances only when the app shows it done: there is no Next or Back, only 'Leave tour' ('Finish' on the last). Fields: id, title (2–4 words), `line` (one action, marked [[like this]] and shown in the accent color, exactly once; about 16 words at most), `done` (what the action produces; a step already done when the walkthrough reaches it is skipped), optional `hint` (shown while its `when` holds and `done` doesn't), `target`, and `sendOff` on the closing line (not a step: Finish ends it, and doing its action finishes too). Conditions: songLoaded {song} (loaded during this run), played (Play pressed since the song loaded), keyChosen {tonic, mode}, keyCommitted, chordAt {bar, beat, numeral}, tutorReplied, degrees {degrees} (the last notes played on the number row or the piano, as scale degrees), fact {fact}: transposed, recordStarted (FACTS in steps.js), or a name in pageFacts (true while its selector matches). Targets: song {song} (its card on the welcome, else the song select), button {within, name}, element {selector}, note {bar, beat} (its notehead), keys {codes} (the piano keys those computer keys play). Bars and beats are checked against the song by tests/guided/steps.test.js. Wording by Claude, Oct 7, 2026, delegated by Matthew.",
   "status": "placeholder: pending Matthew's ear check and recorded lessons",
   "song": "ode-to-joy",
   "steps": [
@@ -11,10 +11,9 @@
         "type": "songLoaded",
         "song": "ode-to-joy"
       },
-      "action": {
-        "type": "loadSong",
-        "song": "ode-to-joy",
-        "label": "Load Ode to Joy"
+      "target": {
+        "type": "song",
+        "song": "ode-to-joy"
       }
     },
     {
@@ -24,17 +23,16 @@
       "done": {
         "type": "played"
       },
-      "action": {
-        "type": "press",
+      "target": {
+        "type": "button",
         "within": "staff",
-        "name": "Play",
-        "label": "Play"
+        "name": "Play"
       }
     },
     {
       "id": "home",
-      "title": "Find home",
-      "line": "[[Choose the note the tune settles on]]. Not sure? Help me find it.",
+      "title": "Find home by ear",
+      "line": "[[Pick the home the tune settles on]]: hold each one underneath with Help me find it.",
       "done": {
         "type": "keyChosen",
         "tonic": "D",
@@ -46,11 +44,22 @@
         },
         "text": "Does it settle there? [[Press Check it by ear]] and try each chord again."
       },
-      "action": {
-        "type": "press",
-        "within": "key-prompt",
-        "name": "Help me find it",
-        "label": "Find it by ear"
+      "target": {
+        "type": "element",
+        "selector": "#key-prompt"
+      }
+    },
+    {
+      "id": "numbers",
+      "title": "Count from home",
+      "line": "[[Press 3 3 4 5]] on your number row; that's the tune, counted from home.",
+      "done": {
+        "type": "degrees",
+        "degrees": [3, 3, 4, 5]
+      },
+      "target": {
+        "type": "keys",
+        "codes": ["Digit3", "Digit4", "Digit5"]
       }
     },
     {
@@ -63,75 +72,65 @@
         "beat": 3,
         "numeral": "V"
       },
-      "action": {
-        "type": "openChords",
+      "target": {
+        "type": "note",
         "bar": 4,
-        "beat": 3,
-        "label": "Show me the note"
-      }
-    },
-    {
-      "id": "set-up-ending",
-      "title": "Lean toward the end",
-      "line": "[[Put V under the first note of bar 8]], the 2 of '3 2 1'.",
-      "done": {
-        "type": "chordAt",
-        "bar": 8,
-        "beat": 1,
-        "numeral": "V"
-      },
-      "action": {
-        "type": "openChords",
-        "bar": 8,
-        "beat": 1,
-        "label": "Show me the note"
-      }
-    },
-    {
-      "id": "wrong-ish",
-      "title": "A chord that swerves",
-      "line": "[[Put vi under the last note]]; hear the ending turn sad instead of home.",
-      "done": {
-        "type": "chordAt",
-        "bar": 8,
-        "beat": 3,
-        "numeral": "vi"
-      },
-      "action": {
-        "type": "openChords",
-        "bar": 8,
-        "beat": 3,
-        "label": "Show me the note"
+        "beat": 3
       }
     },
     {
       "id": "land",
       "title": "Now let it land",
-      "line": "[[Swap the last chord for I]]; bar 4's question gets its answer.",
+      "line": "[[Try vi, then I, under the last note]]; keep the one that lands.",
       "done": {
         "type": "chordAt",
         "bar": 8,
         "beat": 3,
         "numeral": "I"
       },
-      "action": {
-        "type": "openChords",
+      "target": {
+        "type": "note",
         "bar": 8,
-        "beat": 3,
-        "label": "Show me the note"
+        "beat": 3
       }
     },
     {
       "id": "ask",
       "title": "Ask why",
-      "line": "[[Press Ask the tutor]] to hear why the ending lands now.",
+      "line": "[[Ask the tutor]] why the ending lands now.",
       "done": {
         "type": "tutorReplied"
       },
-      "action": {
-        "type": "askTutor",
-        "lesson": "ode-ending",
-        "label": "Ask the tutor"
+      "target": {
+        "type": "element",
+        "selector": "#tutor .ask"
+      }
+    },
+    {
+      "id": "transpose",
+      "title": "Same tune, any key",
+      "line": "[[Play it in another key]]: new sound, same numbers.",
+      "done": {
+        "type": "fact",
+        "fact": "transposed"
+      },
+      "target": {
+        "type": "element",
+        "selector": "#toolbar > summary"
+      }
+    },
+    {
+      "id": "your-turn",
+      "title": "Your turn",
+      "sendOff": true,
+      "line": "Now try your own: [[press Record]].",
+      "done": {
+        "type": "fact",
+        "fact": "recordStarted"
+      },
+      "target": {
+        "type": "element",
+        "selector": "#record-button, #record-card"
       }
     }
   ]
