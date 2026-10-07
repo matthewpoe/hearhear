@@ -25,15 +25,31 @@ export function createSseParser(onEvent) {
     if (data.length) onEvent(event, data.join("\n"));
   }
 
+  /** A chunk-final "\r" may be the first half of a "\r\n" split across chunks. */
+  let carriedCr = false;
+
+  /** @param {string} text */
+  function feed(text) {
+    buffer += text.replace(/\r\n?/g, "\n");
+    let end;
+    while ((end = buffer.indexOf("\n\n")) !== -1) {
+      dispatch(buffer.slice(0, end));
+      buffer = buffer.slice(end + 2);
+    }
+  }
+
   return {
-    /** @param {string} text */
+    /** @param {string} text the next decoded chunk */
     push(text) {
-      buffer += text.replace(/\r\n?/g, "\n");
-      let end;
-      while ((end = buffer.indexOf("\n\n")) !== -1) {
-        dispatch(buffer.slice(0, end));
-        buffer = buffer.slice(end + 2);
-      }
+      let next = carriedCr ? `\r${text}` : text;
+      carriedCr = next.endsWith("\r");
+      if (carriedCr) next = next.slice(0, -1);
+      feed(next);
+    },
+    /** The stream has ended: a carried "\r" was a line end after all. */
+    end() {
+      if (carriedCr) feed("\n");
+      carriedCr = false;
     },
   };
 }
