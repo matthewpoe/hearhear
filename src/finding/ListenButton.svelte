@@ -1,26 +1,36 @@
 <script>
   /**
-   * One listening test: the melody alone, or over a drone. While it plays the
-   * button stops it; if playback fails it says so and offers a retry.
+   * One listening test: the melody alone, or over a drone. One button plays and
+   * stops, so keyboard focus stays on it as playback starts and ends. If
+   * playback fails it says so and offers a retry.
    * @import { Key } from "../types.js"
    */
   import { listen, stopListening } from "./listen.js";
 
-  /** @type {{ label: string, droneKey?: Key | null }} */
+  /** @type {{ label: string, droneKey?: Pick<Key, "tonic" | "mode"> | null }} */
   let { label, droneKey = null } = $props();
 
   /** @type {"idle" | "playing" | "failed"} */
   let status = $state("idle");
+  /** Which play owns `status`: a newer play or a stop makes an older one stale. */
+  let run = 0;
 
   async function play() {
+    const mine = ++run;
     status = "playing";
     try {
       await listen(droneKey);
-      status = "idle";
+      if (mine === run) status = "idle";
     } catch (error) {
       console.error("Listening test failed", error);
-      status = "failed";
+      if (mine === run) status = "failed";
     }
+  }
+
+  function stopPlaying() {
+    run++;
+    status = "idle";
+    stopListening();
   }
 
   $effect(() => () => {
@@ -29,17 +39,18 @@
 </script>
 
 <span class="listen">
-  {#if status === "playing"}
-    <button type="button" class="playing" onclick={stopListening}>
-      <span class="icon stop" aria-hidden="true"></span>
+  <button
+    type="button"
+    class:playing={status === "playing"}
+    onclick={status === "playing" ? stopPlaying : play}
+  >
+    <span class="icon" class:stop={status === "playing"} aria-hidden="true"></span>
+    {#if status === "playing"}
       Stop <span class="visually-hidden">{label}</span>
-    </button>
-  {:else}
-    <button type="button" onclick={play}>
-      <span class="icon play" aria-hidden="true"></span>
+    {:else}
       {status === "failed" ? `Try again: ${label}` : label}
-    </button>
-  {/if}
+    {/if}
+  </button>
   {#if status === "failed"}
     <span class="failed" role="alert">That didn't play. Check your sound and try again.</span>
   {/if}
@@ -72,12 +83,11 @@
     width: 0.7rem;
     height: 0.7rem;
     background: var(--ink);
-  }
-  .play {
     clip-path: polygon(0 0, 100% 50%, 0 100%);
   }
-  .stop {
+  .icon.stop {
     border-radius: 2px;
+    clip-path: none;
   }
   .failed {
     color: var(--ink-muted);
