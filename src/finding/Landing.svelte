@@ -2,13 +2,16 @@
   /**
    * The welcome region (Stream D3): load a demo tune, then find its key. The
    * key prompt appears when a demo is waiting for a guess, or in free play
-   * once there's about a phrase on the provisional C.
+   * once there's about a phrase on the provisional C. It owns the piano's
+   * warm-up (decision D19): preload on mount, unlock with the sound-check
+   * chord on the first click anywhere.
    * @import { Key, Song } from "../types.js"
    */
+  import { onMount } from "svelte";
   import { song } from "../store/song.js";
   import { ui } from "../store/ui.js";
   import { audioStatus, preload, unlock } from "../audio/index.js";
-  import { DEMO_TUNES, loadDemo, trueKeyOf } from "./demoTunes.js";
+  import { DEMO_TUNES, loadDemo } from "./demoTunes.js";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
   import GuessResult from "./GuessResult.svelte";
@@ -16,22 +19,37 @@
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
 
-  let guessed = $state(false);
-  let reopened = $state(false);
-  let dismissed = $state(false);
+  /**
+   * What the user last did with the key prompt. With the two store facts (is
+   * the key provisional, is a demo awaiting its guess) it decides the view.
+   * "ask": nothing yet; "dismissed": put off in free play; "reopened": asked
+   * for the prompt again; "guessed": committed a key.
+   * @type {"ask" | "dismissed" | "reopened" | "guessed"}
+   */
+  let intent = $state("ask");
   let soundBlocked = $state(false);
 
   const empty = $derived($song.notes.length === 0);
-  const awaiting = $derived(
-    !empty &&
-      $song.key.provisional &&
-      ($ui.demoAwaitingGuess || ($song.notes.length >= PHRASE_NOTES && !dismissed)),
-  );
-  const showPrompt = $derived(awaiting || reopened);
-  const showResult = $derived(!showPrompt && guessed && !$song.key.provisional);
+  const demo = $derived($ui.demoAwaitingGuess);
 
-  $effect(() => {
+  /** @type {"none" | "prompt" | "find" | "result"} */
+  const view = $derived.by(() => {
+    if (empty) return "none";
+    if (intent === "reopened") return "prompt";
+    if (!$song.key.provisional) return intent === "guessed" ? "result" : "none";
+    // Provisional: a demo always waits for its guess, even after an undo (D18).
+    if (demo) return "prompt";
+    if (intent === "dismissed") return "find";
+    return $song.notes.length >= PHRASE_NOTES ? "prompt" : "none";
+  });
+
+  /** A demo's prompt waits for its guess; anywhere else the user can put it off. */
+  const canDismiss = $derived(!($song.key.provisional && demo));
+
+  onMount(() => {
     warmUp();
+    window.addEventListener("click", startSound, { capture: true, once: true });
+    return () => window.removeEventListener("click", startSound, { capture: true });
   });
 
   async function warmUp() {
@@ -56,29 +74,23 @@
   /** @param {Song} tune */
   function choose(tune) {
     loadDemo(tune);
-    guessed = false;
-    reopened = false;
-    dismissed = false;
-    startSound();
+    intent = "ask";
   }
 
-  /** @param {Pick<Key, "tonic" | "mode">} key */
+  /**
+   * Commit a guess. The demo flag stays set until the user leaves the demo
+   * (D18), so undoing the guess hides the labels again.
+   * @param {Pick<Key, "tonic" | "mode">} key
+   */
   function commit({ tonic, mode }) {
     stopListening();
     song.rekey({ tonic, mode, provisional: false });
-    ui.update({ demoAwaitingGuess: false });
-    guessed = true;
-    reopened = false;
+    intent = "guessed";
   }
 
-  /** Free play can put the prompt off; a demo waits for its guess. */
-  const dismiss = $derived(
-    $ui.demoAwaitingGuess
-      ? undefined
-      : reopened
-        ? () => (reopened = false)
-        : () => (dismissed = true),
-  );
+  function dismiss() {
+    intent = $song.key.provisional ? "dismissed" : "guessed";
+  }
 </script>
 
 <section id="landing" class:empty aria-label="Welcome">
@@ -118,14 +130,18 @@
     {/if}
   </div>
 
-  {#if showPrompt}
-    <KeyPrompt onguess={commit} ondismiss={dismiss} autofocus={$ui.demoAwaitingGuess || reopened} />
-  {:else if showResult}
-    <GuessResult
-      guess={$song.key}
-      trueKey={trueKeyOf($song.id)}
-      onchange={() => (reopened = true)}
+  {#if view === "prompt"}
+    <KeyPrompt
+      onguess={commit}
+      ondismiss={canDismiss ? dismiss : undefined}
+      autofocus={demo || intent === "reopened"}
     />
+  {:else if view === "find"}
+    <div class="find">
+      <button type="button" onclick={() => (intent = "reopened")}>Find the key</button>
+    </div>
+  {:else if view === "result"}
+    <GuessResult guess={$song.key} onchange={() => (intent = "reopened")} />
   {/if}
 </section>
 
@@ -214,7 +230,8 @@
     margin: 0;
     color: var(--ink-muted);
   }
-  .sound button {
+  .sound button,
+  .find button {
     padding: var(--space-1) var(--space-3);
     border: 1px solid var(--ink);
     border-radius: var(--radius-lg);
