@@ -190,20 +190,17 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(placed).toHaveCount(2);
 
   // 7. Ask the tutor, which says it is replaying recorded replies; the fixture
-  // reply ends with numbered listening steps, each on its own line.
+  // reply ends with numbered listening steps, rendered as a list.
   const tutor = page.locator("#tutor");
   await expect(tutor.getByText(/^Demo mode:/)).toBeVisible();
   const ask = tutor.getByRole("button", { name: "Ask", exact: true });
   await expect(ask).toBeDisabled();
   await tutor.getByLabel("Your question").fill("Why does bar 4 feel unfinished?");
   await ask.click();
-  const reply = page.locator("#tutor .turn.tutor p").last();
-  await expect(reply).toContainText("3.", { timeout: 10_000 });
-  // innerText follows layout: the steps keep their line breaks only if they render.
-  const lines = (await reply.innerText()).split("\n").map((line) => line.trim());
-  for (const step of ["1.", "2.", "3."]) {
-    expect(lines.some((line) => line.startsWith(step))).toBe(true);
-  }
+  const reply = page.locator("#tutor .turn.tutor").last();
+  await expect(reply.locator("ol.steps > li")).toHaveCount(3, { timeout: 10_000 });
+  await expect(reply.locator("ol.steps > li").first()).toHaveText(/^Hover any chord under bar 4/);
+  await expect(reply.locator("p")).not.toContainText("1.");
 
   // Both themes stay accessible after the whole path.
   await axe(page);
