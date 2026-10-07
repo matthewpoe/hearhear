@@ -10,6 +10,8 @@ import { chromaOf, mod } from "./pitch.js";
 /**
  * A chord tone's role by its interval number. A sus chord's 2nd or 4th stands
  * in for the third; a sixth chord's 6th is the added tone, like a seventh.
+ * Compound intervals (a 9th, 11th, or 13th, in chord types outside the song
+ * schema) aren't listed: they are tensions.
  * @type {Record<number, NoteRole>}
  */
 const ROLE_BY_NUMBER = {
@@ -52,7 +54,8 @@ export function analyzeNoteOverChord(midi, chord) {
   const index = toneSemis.indexOf(semis);
   if (index >= 0) {
     const interval = intervals[index];
-    return { role: ROLE_BY_NUMBER[/** @type {number} */ (Interval.get(interval).num)], interval };
+    const role = ROLE_BY_NUMBER[/** @type {number} */ (Interval.get(interval).num)] ?? "tension";
+    return { role, interval };
   }
   const alteredTension = chord.type === "7" && (semis === 1 || semis === 8);
   const clash = !alteredTension && toneSemis.includes(mod(semis - 1, 12));

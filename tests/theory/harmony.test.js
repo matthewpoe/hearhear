@@ -76,6 +76,15 @@ describe("analyzeNoteOverChord", () => {
     assert.equal(analyzeNoteOverChord(72, G7).role, "clash", "the 4th still clashes");
   });
 
+  it("calls a compound chord tone outside the schema's types a tension", () => {
+    // Tonal knows C9; its 9th has no role of its own, and fit must stay a number.
+    assert.deepEqual(analyzeNoteOverChord(62, { root: "C", type: "9" }), {
+      role: "tension",
+      interval: "9M",
+    });
+    assert.ok(Number.isFinite(fit(odeSong, odeSong.notes[0].id, { root: "E", type: "9" })));
+  });
+
   it("explains Ode's held E in bar 4 under V and IV", () => {
     assert.deepEqual(analyzeNoteOverChord(64, chord("V", D_MAJOR)), {
       role: "fifth",
