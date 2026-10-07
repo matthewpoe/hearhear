@@ -24,9 +24,11 @@
     clampWindow,
     keyBindings,
   } from "./keyBindings.js";
-  import { chordForCode, chordKeyLabel } from "./chordRow.js";
+  import { chordForCode, chordKeyLabel, chordRowHelp } from "./chordRow.js";
   import { heldNotes, press, release } from "./liveNotes.js";
   import { flatArmed, heldChord, listenToNumberRow } from "./NumberRow.js";
+  import Tip from "../toolbar/Tip.svelte";
+  import explainers from "../../content/explainers.json" with { type: "json" };
 
   const BLACK = new Set([1, 3, 6, 8, 10]);
   /** How long a screen-reader activation (a click with no press) holds the note. */
@@ -75,6 +77,7 @@
   const chord = $derived(lights?.chord ?? $heldChord);
   const chordTones = $derived(new Set(chord?.midi ?? []));
   const melody = $derived(new Set(lights?.melody ?? []));
+  const drone = $derived(new Set(lights?.drone ?? []));
 
   // Confirming a key is a reveal: the chord fill fades in slowly once, then
   // follows playback at the usual pace.
@@ -232,18 +235,25 @@
     </p>
     <div class="switch" role="group" aria-label="Bottom row">
       <span class="switch-label" aria-hidden="true">Bottom row:</span>
-      <button type="button" aria-pressed={chordsOnBottomRow} onclick={() => setBottomRow("chords")}
-        >Chords</button
-      >
-      <button type="button" aria-pressed={!chordsOnBottomRow} onclick={() => setBottomRow("notes")}
-        >Notes</button
-      >
+      <Tip id="bottom-row-chords-tip" text={explainers.options.bottomRowChords} above>
+        <button
+          type="button"
+          aria-pressed={chordsOnBottomRow}
+          aria-describedby="bottom-row-chords-tip"
+          onclick={() => setBottomRow("chords")}>Chords</button
+        >
+      </Tip>
+      <Tip id="bottom-row-notes-tip" text={explainers.options.bottomRowNotes} above>
+        <button
+          type="button"
+          aria-pressed={!chordsOnBottomRow}
+          aria-describedby="bottom-row-notes-tip"
+          onclick={() => setBottomRow("notes")}>Notes</button
+        >
+      </Tip>
     </div>
     {#if chordsOnBottomRow}
-      <p class="help">
-        Bottom row keys play chords: the A key is the home chord (1), F is 4, G is 5. With a note's
-        chord picker open, a letter key places that chord.
-      </p>
+      <p class="help" id="chord-row-help">{chordRowHelp(mode)}</p>
     {/if}
     {#if $audioStatus === "failed"}
       <p class="sound" role="alert">
@@ -276,6 +286,7 @@
           class:chord={inChord}
           class:melody={melody.has(k.midi)}
           class:held={$heldNotes.has(k.midi)}
+          class:drone={drone.has(k.midi)}
           style:--slot={k.slot}
           tabindex={k.midi === focusMidi ? 0 : -1}
           aria-label={accessibleName(k.midi)}
@@ -292,7 +303,10 @@
             {#if inChord && chord && mode !== "hidden"}
               <FunctionMark fn={chord.fn} outline={mode === "tentative"} />
             {/if}
-            {#if chordKey}
+            {#if chordKey && mode === "hidden"}
+              <!-- The chord row waits for home: its keys show as unavailable. -->
+              <kbd class="off">{chordKey.key}</kbd>
+            {:else if chordKey}
               <span class="chord-name">{chordKey.name}</span>
               <kbd>{chordKey.key}</kbd>
             {:else if degree}
@@ -450,7 +464,7 @@
     transition:
       transform var(--dur-fast) var(--ease),
       background-color var(--dur-fast) var(--ease),
-      box-shadow var(--dur-fast) var(--ease);
+      box-shadow var(--dur-melody-out) var(--ease);
   }
   .key.black {
     z-index: 1;
@@ -501,16 +515,98 @@
     --fn-edge: var(--fn-other-on-black-key);
   }
 
-  /* Melody, held keys, and chord tones before a guess all glow neutral. */
-  .key.melody,
-  .key.held,
+  /* Chord tones before a guess glow neutral: no color may hint at the key. */
   [data-mode="hidden"] .key.chord {
     background: var(--key-glow-melody);
     color: var(--key-black);
   }
+
+  /* Each light has its own form (tokens.css: gold is the melody sounding now).
+     - Melody and held keys: a gold fill, pale champagne at the top deepening
+       to ochre where the labels sit, with an inner glow. It lights quickly
+       and fades out on release.
+     - Chord tones: a flat function-color fill with the function's shape.
+     - Drone: a pale green tint with a green bar across the top, the color of
+       the drone switch. */
+  .key::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(to bottom, var(--melody-soft), var(--melody) 45%);
+    box-shadow: inset 0 0 0.6rem var(--melody-glow);
+    opacity: 0;
+    transition: opacity var(--dur-melody-out) var(--ease);
+    pointer-events: none;
+  }
+  .key.melody::before,
+  .key.held::before {
+    opacity: 1;
+    transition-duration: var(--dur-fast);
+  }
+  .key.melody,
+  .key.held {
+    color: var(--key-black);
+  }
+  /* The glow comes on fast and fades with the fill (--dur-melody-out) on
+     release, from the base transition. */
+  .key.melody,
+  .key.held {
+    transition-duration: var(--dur-fast);
+  }
+  .key.melody:not(.black),
+  .key.held:not(.black) {
+    box-shadow: 0 0 0.9rem var(--melody-glow);
+  }
   .key.held {
     transform: translateY(2px);
-    box-shadow: 0 0 0.75rem var(--key-glow-melody);
+  }
+  /* A melody note inside a lit chord keeps the chord's fill, ringed in gold. */
+  [data-mode="confirmed"] .key.chord.melody::before,
+  [data-mode="confirmed"] .key.chord.held::before {
+    opacity: 0;
+  }
+  [data-mode="confirmed"] .key.chord.melody,
+  [data-mode="confirmed"] .key.chord.held {
+    --ring: var(--melody);
+    box-shadow: inset 0 0 0 0.25rem var(--ring);
+  }
+  /* White keys keep the outer glow under the ring. */
+  [data-mode="confirmed"] .key.chord.melody:not(.black),
+  [data-mode="confirmed"] .key.chord.held:not(.black) {
+    box-shadow:
+      inset 0 0 0 0.25rem var(--ring),
+      0 0 0.9rem var(--melody-glow);
+  }
+  /* Gold on subdominant yellow is only 1.85:1, so on a yellow fill the ring
+     takes the subdominant edge color instead (3.1:1). */
+  [data-mode="confirmed"] .key.chord.fn-subdominant.melody,
+  [data-mode="confirmed"] .key.chord.fn-subdominant.held {
+    --ring: var(--fn-subdominant-on-white-key);
+  }
+  /* A green tint with a top border, so the bar still shows over a gold or
+     function fill. */
+  .key.drone {
+    border-top: 0.5rem solid var(--drone-on-white-key);
+    background: var(--drone-tint-white-key);
+  }
+  .key.black.drone {
+    border-top-color: var(--drone-on-black-key);
+    background: var(--drone-tint-black-key);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* No glow and no fade: the gold fill alone. */
+    .key::before {
+      box-shadow: none;
+    }
+    .key.melody:not(.black),
+    .key.held:not(.black) {
+      box-shadow: none;
+    }
+    [data-mode="confirmed"] .key.chord.melody:not(.black),
+    [data-mode="confirmed"] .key.chord.held:not(.black) {
+      box-shadow: inset 0 0 0 0.25rem var(--ring);
+    }
   }
 
   /* Confirmed: chord tones fill with their function color and shape. */
@@ -521,7 +617,7 @@
 
   /* The reveal: when a key is confirmed, the fill fades in at --dur-reveal. */
   .revealing .key {
-    transition-duration: var(--dur-fast), var(--dur-reveal), var(--dur-fast);
+    transition-duration: var(--dur-fast), var(--dur-reveal), var(--dur-melody-out);
   }
 
   /* Tentative: an outline and mark in the key-surface function color, full opacity, no fill. */
@@ -538,6 +634,8 @@
   }
 
   .labels {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;

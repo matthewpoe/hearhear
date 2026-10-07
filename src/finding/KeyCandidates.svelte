@@ -36,9 +36,10 @@
   // Ranked once when the finder opens, so the chords don't reshuffle under the user.
   const ranked = rankKeys(song.get().notes);
   const seed = song.get().id;
+  const lastMidi = song.get().notes.at(-1)?.midi ?? null;
 
   let set = $state(0);
-  const homes = $derived(finderHomes(ranked, seed, set, known));
+  const homes = $derived(finderHomes(ranked, seed, set, known, lastMidi));
   const sets = Math.ceil(ranked.length / FINDER_SIZE);
   /** Chord numbers run on across sets (4, 5, 6 after "Try three more"). */
   const first = $derived((set % sets) * FINDER_SIZE + 1);

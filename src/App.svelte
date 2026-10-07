@@ -13,7 +13,6 @@
   import ThemeToggle from "./ThemeToggle.svelte";
   import StaffPanelToggle from "./StaffPanelToggle.svelte";
   import SongPicker from "./toolbar/SongPicker.svelte";
-  import Callouts from "./callouts/Callouts.svelte";
   import GuidedEntry from "./guided/GuidedEntry.svelte";
   import GuidedPath from "./guided/GuidedPath.svelte";
   import RecordBar from "./record/RecordBar.svelte";
@@ -61,7 +60,6 @@
     <SongPicker />
   {/if}
   <div class="masthead-tools">
-    <Callouts />
     <ThemeToggle />
     <StaffPanelToggle />
   </div>
@@ -137,6 +135,13 @@
     margin: 0;
     color: var(--ink-muted);
     font-size: var(--text-sm);
+  }
+  /* With a song loaded, the song picker needs the tagline's room on a
+     laptop, so the masthead stays one line and the staff starts higher. */
+  @media (max-width: 90rem) {
+    .masthead:has(:global(.picker)) .tagline {
+      display: none;
+    }
   }
   .masthead-tools {
     display: flex;

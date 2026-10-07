@@ -27,6 +27,7 @@ import { createReadable } from "../lib/readable.js";
 import { emptySong } from "../store/song.js";
 import {
   MAX_TAKE_NOTES,
+  RECORDED_SWING,
   cleanTitle,
   isUserTune,
   newTuneId,
@@ -108,7 +109,7 @@ export function createRecorder({
   /**
    * A discarded tune, while Undo is offered, with what Discard needs to go
    * back again after an Undo.
-   * @type {{ song: Song, at: number, previous: Song | null, newestId: string } | null}
+   * @type {{ song: Song, at: number, take: import("../store/persist.js").RawTake | null, previous: Song | null, newestId: string } | null}
    */
   let discarded = null;
   let previewQueued = false;
@@ -119,11 +120,13 @@ export function createRecorder({
   const draftId = (tune) => `${tune.id}-take`;
 
   /**
-   * Forget a re-take's draft once this change has been saved, so a save of
-   * the draft that runs after it doesn't bring it back.
+   * Forget a re-take's draft, and any save of it still pending, so it can't
+   * come back. A tune on the shelf is never a draft and is left alone.
    * @param {string} id
    */
-  const forgetDraft = (id) => queueMicrotask(() => shelf.forget(id));
+  const forgetDraft = (id) => {
+    if (!shelf.has(id)) song.forget(id);
+  };
 
   /** Clear a view left by the last song: the same reset a fresh demo gets. */
   function resetView() {
@@ -244,7 +247,8 @@ export function createRecorder({
     }
     if (status !== "recording") return;
     quiet();
-    const take = takeNotes(presses, now());
+    const takeEnd = now();
+    const take = takeNotes(presses, takeEnd);
     if (base) {
       const before = base;
       base = null;
@@ -265,6 +269,11 @@ export function createRecorder({
       show(take);
     }
     shelf.track(song.get());
+    // The raw take stays beside the tune, so Feel can read it again.
+    shelf.saveTake(song.get().id, {
+      presses: presses.slice(0, MAX_TAKE_NOTES).map((p) => ({ ...p })),
+      endMs: takeEnd,
+    });
     set({ status: "naming", afterTake: true });
   }
 
@@ -334,14 +343,39 @@ export function createRecorder({
   /** Bring back the tune just discarded. */
   function undoDiscard() {
     if (!discarded) return;
-    const { song: tune, at } = discarded;
+    const { song: tune, at, take } = discarded;
     // Discarding it again goes back where the first Discard did.
     previous = discarded.previous;
     newestId = discarded.newestId;
     discarded = null;
-    shelf.add(tune, at);
+    shelf.add(tune, at, take);
     state.set(IDLE);
     openTune(tune.id);
+  }
+
+  /**
+   * Read the open tune's take again with the player's feel: Swing evens its
+   * long-short pairs (and marks it swung), Straight reads them literally.
+   * One undoable step; chords on the old notes go, as with Record again.
+   * @param {"straight" | "swing"} feel
+   * @returns {boolean} whether the tune had a take to read
+   */
+  function reread(feel) {
+    const current = song.get();
+    const raw = shelf.take(current.id);
+    if (!raw) return false;
+    const presses = raw.presses.map(({ midi, downMs, upMs }) => ({
+      midi,
+      downMs,
+      ...(Number.isFinite(upMs) ? { upMs: /** @type {number} */ (upMs) } : {}),
+    }));
+    const take = takeNotes(presses, raw.endMs, { feel });
+    song.replaceTake(
+      current.notes.map((n) => n.id),
+      take.notes,
+      { tempo: take.tempo, swing: take.swing ? RECORDED_SWING : null },
+    );
+    return true;
   }
 
   /** Put away the Undo offer. */
@@ -385,6 +419,7 @@ export function createRecorder({
     discard,
     undoDiscard,
     dismiss,
+    reread,
   };
 }
 

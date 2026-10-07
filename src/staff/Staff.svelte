@@ -10,17 +10,18 @@
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
   import { describeNote, hasLyrics, songToAbc } from "./abc.js";
+  import { spellMelody } from "../theory/index.js";
   import { mapDrawnNotes } from "./noteMap.js";
   import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
-  import DroneSwitch from "./DroneSwitch.svelte";
   import WordsSwitch from "./WordsSwitch.svelte";
+  import SwingSwitch from "./SwingSwitch.svelte";
+  import VoiceLeading from "../toolbar/VoiceLeading.svelte";
+  import MoreMenu from "../toolbar/MoreMenu.svelte";
   import AccidentalMenu from "./AccidentalMenu.svelte";
   import History from "../toolbar/History.svelte";
   import LabelControls from "../toolbar/LabelControls.svelte";
-  import VoiceLeading from "../toolbar/VoiceLeading.svelte";
-  import Toolbar from "../toolbar/Toolbar.svelte";
   import "../print.css";
 
   /** @typedef {typeof import("abcjs").default} Abcjs */
@@ -142,8 +143,9 @@
    */
   function labelNotes(current, notes, view, place) {
     const chordByNote = new Map(current.chords.map((c) => [c.noteId, c]));
+    const spelled = spellMelody(current.notes, current.key);
     noteButtons = [];
-    for (const note of current.notes) {
+    for (const [i, note] of current.notes.entries()) {
       const groups = notes.get(note.id) ?? [];
       for (const group of groups) {
         group.setAttribute("data-note-id", note.id);
@@ -156,7 +158,7 @@
       first.setAttribute("tabindex", "-1");
       first.setAttribute(
         "aria-label",
-        describeNote(note, chordByNote.get(note.id) ?? null, current.key, view),
+        describeNote(note, chordByNote.get(note.id) ?? null, current.key, view, spelled[i]),
       );
       noteButtons.push(first);
     }
@@ -165,7 +167,8 @@
     const index = byId >= 0 ? byId : Math.min(Math.max(place.index, 0), noteButtons.length - 1);
     const stop = noteButtons[index];
     stop.setAttribute("tabindex", "0");
-    if (place.hadFocus && stop instanceof SVGElement) stop.focus();
+    // The redraw puts the note back where it was, so its focus mustn't scroll.
+    if (place.hadFocus && stop instanceof SVGElement) stop.focus({ preventScroll: true });
   }
 
   /**
@@ -311,18 +314,25 @@
 </script>
 
 <section id="staff" class="staff" aria-label="Staff">
-  <!-- One compact row of controls over the music; it wraps on phones. -->
+  <!-- One row of controls over the music: Play and what it plays | the
+       chord-label choice | the switches for how it sounds and reads (Words,
+       Swing, Voice leading) | Undo/Redo and "More" (Print). Drone and degrees sit with
+       the key, the bottom row in the keyboard dock. It wraps only on narrow
+       screens. -->
   <div class="header">
     <Transport />
-    <DroneSwitch />
-    <WordsSwitch />
-    <History />
+    <span class="divider" aria-hidden="true"></span>
     <LabelControls />
-    <VoiceLeading />
-    <button type="button" class="print" onclick={() => window.print()} disabled={!abcjs}>
-      Print lead sheet
-    </button>
-    <Toolbar />
+    <span class="divider" aria-hidden="true"></span>
+    <div class="switches" role="group" aria-label="Sound and staff">
+      <WordsSwitch />
+      <SwingSwitch />
+      <VoiceLeading />
+    </div>
+    <div class="end">
+      <History />
+      <MoreMenu printable={abcjs !== null} />
+    </div>
   </div>
   {#if loadError}
     <p class="error" role="alert">
@@ -359,24 +369,41 @@
     border-radius: var(--radius-md);
     background: var(--surface);
   }
+  /* One line on a laptop (tests/e2e/layout.spec.js checks it). It may wrap
+     only for a moment, while a status ("Loading the piano…", "Paused")
+     sits beside Play, rather than overflow the page. */
   .header {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
   }
-  .print {
-    padding: var(--space-1) var(--space-2);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-lg);
-    background: var(--surface);
-    color: var(--ink);
-    font-size: var(--text-sm);
-    cursor: pointer;
+  .divider {
+    align-self: stretch;
+    width: 1px;
+    margin-block: var(--space-1);
+    background: var(--rule);
   }
-  .print:disabled {
-    color: var(--ink-muted);
-    cursor: not-allowed;
+  .end {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+  }
+  .switches {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  /* On phones the row wraps: groups go one under another, no dividers. */
+  @media (max-width: 60rem) {
+    .header,
+    .switches {
+      flex-wrap: wrap;
+    }
+    .divider {
+      display: none;
+    }
   }
   .error,
   .loading {
@@ -406,7 +433,6 @@
     --ink: var(--staff-ink);
     --ink-muted: var(--staff-ink-muted);
     --focus: var(--staff-focus);
-    --key-glow-melody: var(--staff-playhead);
     --fn-tonic: var(--staff-fn-tonic);
     --fn-subdominant-edge: var(--staff-fn-subdominant-edge);
     --fn-dominant: var(--staff-fn-dominant);
@@ -493,7 +519,12 @@
     outline: 2px solid var(--focus);
     outline-offset: 3px;
   }
-  .notation :global(.is-playing .abcjs-notehead),
+  /* The note sounding now glows gold, like its key on the piano. */
+  .notation :global(.is-playing .abcjs-notehead) {
+    stroke: var(--staff-playhead);
+    stroke-width: 6px;
+    paint-order: stroke;
+  }
   .notation :global(.is-hovered .abcjs-notehead) {
     stroke: var(--key-glow-melody);
     stroke-width: 6px;

@@ -17,6 +17,10 @@ const TUNES = [
   // and V; Greensleeves's bar-4 F sharp (degree 2, the half cadence) is V's 5th.
   { song: load("amazing-grace"), home: "A flat", dark: false, cadence: "n9", top: ["I", "V"] },
   { song: load("greensleeves"), home: "E", dark: true, cadence: "n17", top: ["V"] },
+  // The Saints' held G in bar 7 (degree 2) ends the first half on V.
+  { song: load("when-the-saints"), home: "F", dark: false, cadence: "n16", top: ["V"] },
+  // Sweet Georgia Brown's last note, the long G of the 2nd ending, is home.
+  { song: load("sweet-georgia-brown"), home: "G", dark: false, cadence: "n93", top: ["I"] },
 ];
 
 for (const { song, home, dark, cadence, top } of TUNES) {
@@ -29,7 +33,7 @@ for (const { song, home, dark, cadence, top } of TUNES) {
     page.on("pageerror", (error) => problems.push(error.message));
 
     await page.goto("/");
-    await page.getByRole("button", { name: "Beginner tips" }).click();
+    await page.getByRole("button", { name: "Leave lesson" }).click();
     await page.getByRole("button", { name: new RegExp(song.title) }).click();
 
     // Every note has a clickable head on the staff, under a time signature.

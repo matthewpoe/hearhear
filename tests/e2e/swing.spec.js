@@ -9,7 +9,7 @@ test("St. James is marked Swing above the staff; Ode is not", async ({ page }) =
   page.on("pageerror", (error) => problems.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
   const staff = page.locator("#staff");
 
   await page.getByRole("button", { name: /Ode to Joy/ }).click();

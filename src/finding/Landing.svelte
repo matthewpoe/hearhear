@@ -12,14 +12,17 @@
    * another key (say, a note click on a demo before the key guess).
    * @import { Key } from "../types.js"
    */
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import { song } from "../store/song.js";
   import { ui } from "../store/ui.js";
   import { audioStatus, preload, resume, unlock } from "../audio/index.js";
   import SongPicker from "../toolbar/SongPicker.svelte";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
-  import { recorder } from "../record/tunes.js";
+  import { nextStep, rhythmSource } from "../steps/nextStep.js";
+  import DroneSwitch from "../staff/DroneSwitch.svelte";
+  import DegreesSwitch from "../toolbar/DegreesSwitch.svelte";
+  import { recorder, shelf } from "../record/tunes.js";
   import { isUserTune } from "../record/take.js";
 
   /** Notes of free play before the prompt asks: about a phrase. */
@@ -58,11 +61,27 @@
     return $song.notes.length >= PHRASE_NOTES || isUserTune(songId) ? "prompt" : "none";
   });
 
-  const soundNote = $derived(
-    $audioStatus === "loading" || $audioStatus === "failed" || soundBlocked,
-  );
-  /** Nothing to show: no card, so the step column starts with the chords. */
-  const quiet = $derived(!empty && view === "none" && !soundNote);
+  /** The step path: Key, Rhythm, Chords, with the key current while its question shows. */
+  const path = $derived(nextStep($song, { keyOpen: view === "prompt" }));
+
+  /** A recorded tune's rhythm guess, taken as it is (the 3-vs-4 question is parked). */
+  function confirmRhythm() {
+    const now = song.get();
+    song.rebar({ ...now.meter, provisional: false });
+  }
+
+  /**
+   * A recorded tune with its raw take kept can be read again with the
+   * player's Feel. This is how the playing is read, not the playback
+   * switch: re-reading sets the song's swing to match, so that one follows.
+   */
+  const canReread = $derived(isUserTune($song.id) && shelf.take($song.id) !== null);
+  /** @type {"straight" | "swing"} */
+  const feel = $derived(($song.swing ?? 1) > 1 ? "swing" : "straight");
+  const FEELS = /** @type {const} */ ([
+    ["straight", "Straight"],
+    ["swing", "Swing"],
+  ]);
 
   /** A demo's prompt waits for its guess; anywhere else the user can put it off. */
   const canDismiss = $derived(!($song.key.provisional && demo));
@@ -99,6 +118,16 @@
     intent = "ask";
   });
 
+  /** @type {HTMLButtonElement | undefined} */
+  let reopenButton = $state();
+
+  /** "Next: …" or "Not now": collapse the key step, keeping focus on its row. */
+  async function collapseKey() {
+    intent = "dismissed";
+    await tick();
+    reopenButton?.focus();
+  }
+
   /**
    * Commit a guess, or take one back (a provisional key). The demo flag stays
    * set until the user leaves the demo (D18), so taking back or undoing a
@@ -112,7 +141,7 @@
   }
 </script>
 
-<section id="landing" class:empty class:quiet aria-label="Welcome">
+<section id="landing" class:empty aria-label={empty ? "Welcome" : "Next step"}>
   {#if empty}
     <h2>Hear a tune. Find where home is.</h2>
     <p class="invite">
@@ -134,20 +163,78 @@
     {/if}
   </div>
 
+  {#if !empty && !recording}
+    <!-- The next big-picture question. The current step opens below; a done
+         step is one line, and the key's can be reopened. -->
+    <ol class="path" aria-label="Steps">
+      {#each path.steps as step, i (step.id)}
+        <li class={step.status} aria-current={step.status === "current" ? "step" : undefined}>
+          <span class="num" aria-hidden="true">{i + 1}</span>
+          <span class="name">{step.label}</span>
+          <span class="summary">{step.summary}</span>
+          {#if step.id === "key" && view !== "prompt"}
+            <button
+              type="button"
+              class="reopen"
+              bind:this={reopenButton}
+              onclick={() => (intent = "reopened")}
+            >
+              {$song.key.provisional ? "Find the key" : "Change the key"}
+            </button>
+            <!-- The settings that count from home stay reachable with the key
+                 collapsed: a drone left on keeps sounding. -->
+            <span class="key-tools" role="group" aria-label="Hear it from home">
+              <DroneSwitch />
+              <DegreesSwitch />
+            </span>
+          {/if}
+        </li>
+      {/each}
+    </ol>
+  {/if}
+
   {#if view === "prompt"}
     <!-- Remount per song, so easy mode ranks the homes of the tune now loaded. -->
     {#key $song.id}
       <KeyPrompt
         onkey={rekey}
-        ondismiss={canDismiss ? () => (intent = "dismissed") : undefined}
+        ondismiss={canDismiss ? collapseKey : undefined}
+        next={$song.meter.provisional ? "rhythm" : "chords"}
         autofocus={(demo && $song.key.provisional && intent === "ask") || intent === "reopened"}
       />
     {/key}
-  {:else if view === "find"}
-    <div class="find">
-      <button type="button" onclick={() => (intent = "reopened")}>
-        {$song.key.provisional ? "Find the key" : "Change the key"}
-      </button>
+  {:else if path.current === "rhythm"}
+    <div class="rhythm" role="group" aria-labelledby="rhythm-title">
+      <h2 id="rhythm-title">Does this rhythm sound right?</h2>
+      <p>
+        {rhythmSource(isUserTune($song.id))}
+        {$song.meter.beatsPerBar}/{$song.meter.beatUnit} at {$song.tempo} beats a minute. Press Play and
+        tap along: do the bar lines fall where the beat feels strongest?
+      </p>
+      {#if canReread}
+        <fieldset class="feel" aria-describedby="feel-gloss">
+          <legend>Feel <span class="gloss">— how your playing is read</span></legend>
+          <div class="segmented">
+            {#each FEELS as [value, label] (value)}
+              <label class:checked={feel === value}>
+                <input
+                  type="radio"
+                  name="record-feel"
+                  {value}
+                  checked={feel === value}
+                  onchange={() => recorder.reread(value)}
+                />
+                {label}
+              </label>
+            {/each}
+          </div>
+          <p id="feel-gloss" class="gloss">
+            Swing writes long-short pairs as even eighths that play back swung. Straight writes them
+            as you played them, dotted where they're uneven. Undo takes a change back.
+          </p>
+        </fieldset>
+      {/if}
+      <button type="button" onclick={confirmRhythm}>Sounds right</button>
     </div>
   {/if}
 </section>
@@ -162,8 +249,75 @@
     border-radius: var(--radius-md);
     background: var(--surface);
   }
-  .quiet {
-    display: none;
+  .path {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+  .path li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--ink-muted);
+  }
+  .path li + li::before {
+    content: "→";
+    margin-right: var(--space-1);
+    color: var(--ink-muted);
+  }
+  .num {
+    display: inline-grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .path .current {
+    color: var(--ink);
+  }
+  /* The current step is what you do now: --accent. */
+  .current .num {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .name {
+    font-weight: 600;
+  }
+  .done .name,
+  .current .name {
+    color: var(--ink);
+  }
+  /* On phones the steps stack, one per line. */
+  @media (max-width: 40rem) {
+    .path {
+      flex-direction: column;
+    }
+    .path li + li::before {
+      display: none;
+    }
+  }
+  .key-tools {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+  }
+  .reopen {
+    padding: 0 var(--space-1);
+    border: none;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
   }
   h2 {
     margin: 0;
@@ -189,8 +343,67 @@
     margin: 0;
     color: var(--ink-muted);
   }
+  .rhythm {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+  .feel {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+  .feel legend {
+    padding: 0;
+    font-weight: 500;
+  }
+  .gloss {
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    font-weight: 400;
+  }
+  .segmented {
+    display: inline-flex;
+    justify-self: start;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .segmented label {
+    position: relative;
+    padding: var(--space-1) var(--space-3);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .segmented label + label {
+    border-left: 1px solid var(--ink);
+  }
+  .segmented label.checked {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .segmented input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .segmented label:has(input:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .rhythm h2 {
+    font-size: var(--text-lg);
+  }
+  .rhythm p {
+    max-width: 40rem;
+    margin: 0;
+    color: var(--ink-muted);
+  }
   .sound button,
-  .find button {
+  .rhythm button {
     padding: var(--space-1) var(--space-3);
     border: 1px solid var(--ink);
     border-radius: var(--radius-lg);

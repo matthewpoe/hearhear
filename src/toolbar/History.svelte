@@ -3,6 +3,8 @@
   // text field.
   import { song } from "../store/song.js";
   import { historyShortcut } from "./historyShortcut.js";
+  import explainers from "../../content/explainers.json" with { type: "json" };
+  import Tip from "./Tip.svelte";
 
   const history = song.history;
 
@@ -19,18 +21,24 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="history" role="group" aria-label="History">
-  <button
-    type="button"
-    disabled={!$history.canUndo}
-    aria-keyshortcuts="Meta+Z Control+Z"
-    onclick={() => song.undo()}>Undo</button
-  >
-  <button
-    type="button"
-    disabled={!$history.canRedo}
-    aria-keyshortcuts="Shift+Meta+Z Shift+Control+Z"
-    onclick={() => song.redo()}>Redo</button
-  >
+  <Tip id="undo-tip" text={explainers.options.undo} align="end">
+    <button
+      type="button"
+      disabled={!$history.canUndo}
+      aria-keyshortcuts="Meta+Z Control+Z"
+      aria-describedby="undo-tip"
+      onclick={() => song.undo()}>Undo</button
+    >
+  </Tip>
+  <Tip id="redo-tip" text={explainers.options.redo} align="end">
+    <button
+      type="button"
+      disabled={!$history.canRedo}
+      aria-keyshortcuts="Shift+Meta+Z Shift+Control+Z"
+      aria-describedby="redo-tip"
+      onclick={() => song.redo()}>Redo</button
+    >
+  </Tip>
 </div>
 
 <style>

@@ -32,6 +32,8 @@ async function clickNote(page, id) {
 }
 
 test("golden path: tune, key by ear and by chip, chords, song memory, tutor", async ({ page }) => {
+  // The longest walk in the suite; on a loaded machine it can pass 30 s.
+  test.setTimeout(60_000);
   /** @type {string[]} */
   const problems = [];
   page.on("console", (msg) => {
@@ -42,8 +44,8 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hear Hear", level: 1 })).toBeVisible();
   await axe(page);
-  // The core path, without the beginner tour; tips have their own spec.
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  // The core path, without the walkthrough; it has its own spec.
+  await page.getByRole("button", { name: "Leave lesson" }).click();
 
   // 1. Load the demo. Its key is hidden until the user commits a guess.
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
@@ -78,7 +80,7 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(question).toContainText(match);
   await expect(bright).toBeChecked();
   await expect(question).toContainText("Major unless you pick Dark.");
-  await expect(question.getByRole("button", { name: "Hide this card" })).toBeVisible();
+  await expect(question.getByRole("button", { name: "Next: find the chords" })).toBeVisible();
   await d.click();
   await expect(d).toHaveAttribute("aria-pressed", "false");
   await expect(question).not.toContainText(chose);
@@ -144,12 +146,63 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
     .click();
   await expect(page.getByRole("radio", { name: "Roman", exact: true })).toBeChecked();
 
-  // The voice-leading explainer passes axe while open.
-  const explain = page.locator('#staff button[aria-controls="voice-leading-explainer"]');
-  await explain.click();
-  await expect(page.locator("#voice-leading-explainer")).toBeVisible();
+  // Every option in the tool row has a tooltip, shown on hover and on
+  // keyboard focus, and named by aria-describedby: one gloss per option
+  // (content/explainers.json). Voice leading has no separate info bubble.
+  const voice = page.getByRole("switch", { name: "Voice leading" });
+  await expect(voice).toHaveAccessibleDescription(/^Voice leading is how a pianist moves/);
+  await expect(page.locator('[aria-controls="voice-leading-explainer"]')).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "Nashville" })).toHaveAccessibleDescription(
+    /plain numbers for the same idea/,
+  );
+  const voiceTip = page.locator("#voice-leading-tip");
+  await expect(voiceTip).toBeHidden();
+  await voice.hover();
+  await expect(voiceTip).toBeVisible();
   await axe(page);
-  await explain.click();
+  await page.mouse.move(0, 0);
+  await expect(voiceTip).toBeHidden();
+  await voice.focus();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await expect(voice).toBeFocused();
+  await expect(voiceTip).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(voiceTip).toBeHidden();
+
+  // The tool row: Play and its scope, the label style, the Swing and Voice
+  // leading switches (Words too, on a song with words), Undo/Redo, and Print
+  // under "More", which opens and closes by keyboard. Drone and degrees sit
+  // with the key.
+  const row = page.locator("#staff .header");
+  await expect(row.getByRole("switch")).toHaveCount(2);
+  await expect(row.getByRole("switch", { name: "Swing" })).toBeVisible();
+  await expect(row.getByRole("switch", { name: "Voice leading" })).toBeVisible();
+  const more = row.getByRole("button", { name: "More" });
+  await more.focus();
+  await page.keyboard.press("Enter");
+  await expect(row.getByRole("button", { name: "Print lead sheet" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(row.getByRole("button", { name: "Print lead sheet" })).toBeHidden();
+  await expect(more).toBeFocused();
+  await expect(question.getByRole("switch", { name: "Drone on home" })).toBeVisible();
+  await expect(question.getByRole("switch", { name: "Scale degrees" })).toBeVisible();
+
+  // All key handling is in the key box: "Play it in another key" transposes
+  // there, and the old toolbar section is gone.
+  await expect(page.getByText("Change key or transpose")).toHaveCount(0);
+  const transpose = question.locator("summary", { hasText: "Play it in another key" });
+  await expect(question).toContainText("Choose a different home");
+  await transpose.click();
+  await question.getByRole("button", { name: "Play in E major" }).click();
+  await expect(d).toHaveAttribute("aria-pressed", "false");
+  await expect(question.getByRole("button", { name: "Play in E major" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await question.getByRole("button", { name: "Play in D major" }).click();
+  await expect(d).toHaveAttribute("aria-pressed", "true");
+  await transpose.click();
 
   // 4. Click the held E in bar 4: V and ii fit best and come first. The open
   // dropdown has to pass axe in light theme too.

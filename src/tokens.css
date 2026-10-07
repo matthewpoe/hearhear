@@ -94,6 +94,24 @@
   --key-edge: #b9b6ae;
   --key-glow-melody: #b9b9c2;
 
+  /* The melody sounding now is gold, the third Mardi Gras color beside
+     violet (what you do) and green (what you hear: controls and the drone).
+     Gold is an ochre fill with a glow, never a flat edge or a shape, and it
+     is darker than subdominant yellow: --melody vs --fn-subdominant is 1.85
+     (1.89 protan, 1.83 deutan, 1.79 tritan). Key labels on --melody are
+     5.7 (--key-black, light) and 6.5 (dark). --melody-soft is only the top of
+     the gradient, above the labels. The drone is a pale green tint with a
+     green bar across the top of a key: the bar is 4.3 on its white-key tint
+     and 5.7 on its black-key tint; key labels on the tints are 13.7 / 15.7
+     (white keys) and 10.1 / 8.0 (black keys, light / dark). */
+  --melody: #c08a2c;
+  --melody-soft: #f3e4bf;
+  --melody-glow: #c08a2c8c;
+  --drone-on-white-key: #1e7a4c;
+  --drone-on-black-key: #6fd6a0;
+  --drone-tint-white-key: #d3ecdd;
+  --drone-tint-black-key: #1f4a35;
+
   /* The staff panel. In the light theme (and always in print) the staff draws
      straight on the page in --ink, so these just pass the page tokens
      through. The dark theme gives the staff its own panel: see below. */
@@ -103,7 +121,7 @@
   --staff-ink-muted: var(--ink-muted);
   --staff-line: var(--ink);
   --staff-line-strong: var(--ink);
-  --staff-playhead: var(--key-glow-melody);
+  --staff-playhead: var(--melody);
   --staff-focus: var(--focus);
   --staff-fn-tonic: var(--fn-tonic);
   --staff-fn-subdominant-edge: var(--fn-subdominant-edge);
@@ -155,6 +173,7 @@
   --dur-fast: 120ms;
   --dur-land: 400ms;
   --dur-reveal: 700ms;
+  --dur-melody-out: 280ms;
 }
 
 @media screen {
@@ -196,23 +215,22 @@
     --key-black: #0b0b0e;
     --key-edge: #4a4a55;
     --key-glow-melody: #8a8a96;
+    --melody-soft: #ead39a;
+    --melody-glow: #e0ac4ab3;
 
     /* The staff panel, slate by default: a deep aubergine from the violet,
        warm off-white notes, faint lines, so the staff isn't bright ink on
        near-black (an x-ray). Lines recede and notes lead. The playhead halo
-       is --sound green, what you hear.
-       TODO: switch --staff-playhead to the gold --melody token (keyboard
-       melody lights, feature/key-lights) once it lands, in both panels.
+       is --melody gold on both panels, like the sounding key on the piano.
        Contrast on slate #2b2135: notes 12.2, staff lines 3.3, bar lines 4.2,
        degrees and words 7.9, tonic 7.1, subdominant 9.3, dominant 6.7,
-       other 6.2, playhead 8.6. */
+       other 6.2, playhead 5.0. */
     --staff-panel: #2b2135;
     --staff-panel-edge: transparent;
     --staff-ink: #eee4d4;
     --staff-ink-muted: #c2b6cc;
     --staff-line: #7d6d91;
     --staff-line-strong: #918199;
-    --staff-playhead: #6fd6a0;
     --staff-focus: #d29cf5;
     --staff-fn-tonic: #8db1f7;
     --staff-fn-subdominant-edge: #f4c430;
@@ -228,7 +246,9 @@
      light theme's function colors deepened a step for the cream.
      Contrast on paper #e9e1cf: notes 11.6, staff lines 3.0, bar lines 4.4,
      degrees and words 6.1, tonic 6.9, subdominant 5.6, dominant 5.7,
-     other 5.2, playhead 4.1, focus 6.2. */
+     other 5.2, focus 6.2. The gold playhead halo is 2.3 on the cream (as
+     on the light page, 3.0 on white) but 5.0 against the dark notehead it
+     rings, so the playing note still stands out. */
   :root[data-theme="dark"][data-staff-panel="paper"] {
     --staff-panel: #e9e1cf;
     --staff-panel-edge: #d6ccb6;
@@ -236,7 +256,6 @@
     --staff-ink-muted: #5a5045;
     --staff-line: #8a7f6c;
     --staff-line-strong: #6f6555;
-    --staff-playhead: #1e7a4c;
     --staff-focus: #7a2a9e;
     --staff-fn-tonic: #1d4596;
     --staff-fn-subdominant-edge: #6e5300;
@@ -250,5 +269,6 @@
     --dur-fast: 0ms;
     --dur-land: 0ms;
     --dur-reveal: 0ms;
+    --dur-melody-out: 0ms;
   }
 }

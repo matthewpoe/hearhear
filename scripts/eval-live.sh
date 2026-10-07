@@ -21,7 +21,7 @@ port=$(uv run --no-env-file python -c 'import socket; s = socket.socket(); s.bin
 url="http://127.0.0.1:${port}"
 
 TUTOR_MODE=live \
-  TUTOR_RATE_LIMIT="60/minute;1000/day" \
+  TUTOR_RATE_LIMIT="240/minute;4000/day" \
   TUTOR_DAILY_TOKEN_BUDGET=2000000 \
   uv run --no-env-file uvicorn hearhear.app:app --app-dir server --host 127.0.0.1 --port "$port" \
   --log-level warning &

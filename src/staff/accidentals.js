@@ -7,7 +7,7 @@
  * @import { Key } from "../types.js"
  */
 
-import { spell } from "../theory/index.js";
+import { spell, spellMelody } from "../theory/index.js";
 import { displayNote } from "../theory/noteDisplay.js";
 import { parseSpelling } from "./abc.js";
 import { MAX_MIDI, MIN_MIDI } from "../store/song.js";
@@ -61,16 +61,31 @@ export function letterToMidi(letter, octave, offset) {
  * The menu for a note: its letter as the staff spells it in `key`, with each
  * accidental. The one it has now is `current`; choices off the piano are
  * marked so the menu can disable them.
+ *
+ * With the melody (`notes` and the note's `index`), the letter and each
+ * choice's "shown as" follow the staff's spelling in context (spellMelody),
+ * so a G sharp the staff writes as G sharp offers G choices, not A flat.
+ * Without it, the context-free `spell`.
  * @param {number} midi
  * @param {Key} key
+ * @param {{ notes: { midi: number }[], index: number }} [melody]
  * @returns {{ letter: string, octave: number, choices: AccidentalChoice[] }}
  */
-export function accidentalChoices(midi, key) {
-  const { letter, accidental: now, octave } = parseSpelling(spell(midi, key));
+export function accidentalChoices(midi, key, melody) {
+  /** How the staff spells the note at this pitch. @param {number} pitch */
+  const staffSpelling = (pitch) =>
+    melody
+      ? spellMelody(
+          melody.notes.map((n, i) => (i === melody.index ? { ...n, midi: pitch } : n)),
+          key,
+        )[melody.index]
+      : spell(pitch, key);
+  const { letter, accidental: now, octave } = parseSpelling(staffSpelling(midi));
   const choices = ACCIDENTALS.map(({ offset, symbol, name }) => {
     const target = letterToMidi(letter, octave, offset);
     const onPiano = target >= MIN_MIDI && target <= MAX_MIDI;
-    const shown = onPiano ? parseSpelling(spell(target, key)) : null;
+    const written = onPiano ? staffSpelling(target) : null;
+    const shown = written === null ? null : parseSpelling(written);
     const differs = shown !== null && (shown.letter !== letter || shown.accidental !== offset);
     return {
       offset,
@@ -79,7 +94,7 @@ export function accidentalChoices(midi, key) {
       midi: target,
       current: offset === now,
       onPiano,
-      shownAs: differs ? pretty(spell(target, key)).replace(/-?\d+$/, "") : null,
+      shownAs: differs && written ? pretty(written).replace(/-?\d+$/, "") : null,
     };
   });
   return { letter, octave, choices };

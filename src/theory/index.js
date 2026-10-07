@@ -7,7 +7,7 @@
  * contracts/README.md). Each concept lives in its own file.
  */
 
-export { spell, degreeToMidi, midiToDegree } from "./pitch.js";
+export { spell, spellMelody, melodyDegree, degreeToMidi, midiToDegree } from "./pitch.js";
 export { keyEventToDegree } from "./keyboard.js";
 export { parseNumeral, numeralOf, nashvilleOf, letterOf, chordFromNumeral } from "./numerals.js";
 export { chordFromLetter, sameChord } from "./letters.js";
@@ -18,5 +18,12 @@ export { fit } from "./fit.js";
 export { rankKeys } from "./keyFinding.js";
 export { guessRhythm } from "./rhythm.js";
 export { voice, passageBelow } from "./voicing.js";
-export { TICKS_PER_QUARTER, positionOf, rebar, ticksPerBar, ticksPerBeat } from "./meter.js";
+export {
+  TICKS_PER_QUARTER,
+  positionOf,
+  pulseTicks,
+  rebar,
+  ticksPerBar,
+  ticksPerBeat,
+} from "./meter.js";
 export { transposeSong, rekeySong } from "./keyChange.js";

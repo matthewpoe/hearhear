@@ -75,6 +75,12 @@ describe("toTutorSnapshot", () => {
     assert.equal("title" in blank, false);
   });
 
+  it("sends the song's swing when it has one, and none for a straight tune", () => {
+    const sj = toTutorSnapshot(/** @type {any} */ (stJames), { labelStyle: "roman" });
+    assert.equal(sj.swing, 2);
+    assert.equal("swing" in snap, false, "Ode to Joy plays straight");
+  });
+
   it("validates against the request contract generated from the Pydantic models", () => {
     const validate = new Ajv2020({ strict: false }).compile(requestSchema);
     for (const s of [

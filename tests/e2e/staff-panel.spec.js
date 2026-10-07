@@ -19,7 +19,7 @@ test("dark mode offers a slate or paper staff, and light mode doesn't", async ({
   page.on("pageerror", (error) => problems.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
   // A tune with degrees and a function-colored chord on it, so axe sees them.
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
   await page

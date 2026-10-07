@@ -54,6 +54,21 @@
           "default": null,
           "title": "Title"
         },
+        "swing": {
+          "anyOf": [
+            {
+              "description": "The song's swing feel: the long:short ratio of an eighth-note pair (2 is triplet swing). Optional; absent plays straight.",
+              "maximum": 3,
+              "minimum": 1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Swing"
+        },
         "key_hidden": {
           "default": false,
           "description": "True while key labels are hidden (a demo before the guess). The proxy then withholds every suggestion.",

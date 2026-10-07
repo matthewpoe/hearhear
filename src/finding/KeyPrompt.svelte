@@ -21,15 +21,20 @@
   import { TONICS, keyName } from "./keys.js";
   import KeyCandidates from "./KeyCandidates.svelte";
   import GuessResult from "./GuessResult.svelte";
+  import Transpose from "./Transpose.svelte";
+  import DroneSwitch from "../staff/DroneSwitch.svelte";
+  import DegreesSwitch from "../toolbar/DegreesSwitch.svelte";
+  import { CONTROLS } from "../lib/controls.js";
 
   /**
    * @type {{
    *   onkey: (key: Key) => void,
    *   ondismiss?: () => void,
    *   autofocus?: boolean,
+   *   next?: "rhythm" | "chords",
    * }}
    */
-  let { onkey, ondismiss, autofocus = false } = $props();
+  let { onkey, ondismiss, autofocus = false, next = "chords" } = $props();
 
   const MODES = /** @type {const} */ ([
     { mode: "major", label: "Bright (major)" },
@@ -64,11 +69,20 @@
   let opener = /** @type {HTMLElement | undefined} */ ($state());
   /** @type {{ show: () => void } | undefined} */
   let finder = $state();
-  /** @type {{ show: () => void } | undefined} */
+  /** @type {{ show: () => void, focus: () => boolean } | undefined} */
   let result = $state();
 
   $effect(() => {
     if (autofocus) heading?.focus();
+  });
+
+  // An undo (or anything outside this card) that takes the key back leaves no
+  // stale "You chose…" in the live region.
+  let wasChosen = !song.get().key.provisional;
+  $effect(() => {
+    const chosenNow = !$song.key.provisional;
+    if (wasChosen && !chosenNow) announcement = "No home chosen yet.";
+    wasChosen = chosenNow;
   });
 
   /**
@@ -144,69 +158,93 @@
     finding = true;
   }
 
-  function closeFinder() {
+  /**
+   * Close the finder and give focus back: to its opener, or, when a pick in
+   * the finder chose a key and "Help me find it" left with the two ways in,
+   * to the result card, or the heading.
+   */
+  async function closeFinder() {
     finding = false;
-    (opener?.isConnected ? opener : helpButton)?.focus();
+    await tick();
+    if (opener?.isConnected) opener.focus();
+    else if (helpButton?.isConnected) helpButton.focus();
+    else if (!result?.focus()) heading?.focus();
   }
 </script>
 
 <div id="key-prompt" class="prompt" role="group" aria-labelledby="key-prompt-title">
   <h2 id="key-prompt-title" bind:this={heading} tabindex="-1">What key is this tune in?</h2>
 
-  <ul class="paths">
-    <li>
-      <strong>Read music?</strong> The clues are on the staff: the sharps and flats the tune uses, and
-      the note its phrases come to rest on. Pick the key below.
-    </li>
-    <li>
-      <strong>Don't read music, or not sure?</strong>
-      <button
-        type="button"
-        class="help"
-        bind:this={helpButton}
-        aria-expanded={finding}
-        aria-controls="key-finder"
-        onclick={() => (finding ? closeFinder() : openFinder())}
-      >
-        Help me find it
-      </button>
-    </li>
-  </ul>
-
-  <fieldset class="row">
-    <legend>It sounds</legend>
-    {#each MODES as option (option.mode)}
-      <label class="chip">
-        <input
-          type="radio"
-          name="key-mode"
-          value={option.mode}
-          checked={mode === option.mode}
-          onchange={() => pickMode(option.mode)}
-        />
-        {option.label}
-      </label>
-    {/each}
-  </fieldset>
-
-  <div class="row" role="group" aria-labelledby="key-home-label">
-    <span id="key-home-label" class="label">Home note</span>
-    {#each TONICS[mode ?? "major"] as tonic (tonic)}
-      <button
-        type="button"
-        class="chip"
-        aria-pressed={chosen === tonic}
-        aria-label={spokenNote(tonic)}
-        onclick={() => pickHome(tonic)}
-      >
-        {displayNote(tonic)}
-      </button>
-    {/each}
-  </div>
-
-  {#if majorByDefault && !$song.key.provisional}
-    <p class="hint">Major unless you pick Dark.</p>
+  <!-- Two ways in, side by side on a wide screen: by eye, or by ear. -->
+  {#if $song.key.provisional}
+    <ul class="ways">
+      <li class="way">
+        <span class="eyebrow">By eye</span>
+        <strong>Read music?</strong>
+        <span class="clue">The staff's sharps and flats, and the note phrases rest on.</span>
+      </li>
+      <li class="way ear">
+        <span class="eyebrow">By ear</span>
+        <strong>Don't read music, or not sure?</strong>
+        <button
+          type="button"
+          class="help"
+          bind:this={helpButton}
+          aria-expanded={finding}
+          aria-controls="key-finder"
+          onclick={() => (finding ? closeFinder() : openFinder())}
+        >
+          Help me find it
+        </button>
+      </li>
+    </ul>
   {/if}
+
+  <!-- The decision: mode and home, together in one picker. -->
+  <div class="picker">
+    <fieldset class="row">
+      <legend class="eyebrow">It sounds</legend>
+      {#each MODES as option (option.mode)}
+        <label class="chip">
+          <input
+            type="radio"
+            name="key-mode"
+            value={option.mode}
+            checked={mode === option.mode}
+            onchange={() => pickMode(option.mode)}
+          />
+          {option.label}
+        </label>
+      {/each}
+    </fieldset>
+
+    <div
+      class="row"
+      role="group"
+      aria-labelledby="key-home-label"
+      aria-describedby={$song.key.provisional ? undefined : "rekey-hint"}
+    >
+      <span id="key-home-label" class="eyebrow">Home note</span>
+      {#each TONICS[mode ?? "major"] as tonic (tonic)}
+        <button
+          type="button"
+          class="chip"
+          aria-pressed={chosen === tonic}
+          aria-label={spokenNote(tonic)}
+          onclick={() => pickHome(tonic)}
+        >
+          {displayNote(tonic)}
+        </button>
+      {/each}
+    </div>
+
+    {#if !$song.key.provisional}
+      <p class="hint" id="rekey-hint">
+        {CONTROLS.rekey} with the chips: only home moves, so the numbers and colors change.
+        {#if majorByDefault}Major unless you pick Dark.{/if}
+      </p>
+    {/if}
+  </div>
 
   <p class="visually-hidden" role="status">{announcement}</p>
 
@@ -217,6 +255,8 @@
       {feedback}
       oncheck={openFinder}
       onkeep={keepChoice}
+      onnext={ondismiss}
+      {next}
     />
   {/if}
 
@@ -230,55 +270,106 @@
     />
   {/if}
 
-  {#if ondismiss}
-    <button type="button" class="quiet" onclick={ondismiss}>
-      {$song.key.provisional ? "Not now" : "Hide this card"}
-    </button>
+  <!-- Secondary: settings that count from home, and transposing. -->
+  <div class="secondary">
+    <div class="settings" role="group" aria-label="Hear it from home">
+      <DroneSwitch />
+      <DegreesSwitch />
+    </div>
+    {#if !$song.key.provisional}
+      <Transpose />
+    {/if}
+  </div>
+
+  {#if ondismiss && $song.key.provisional}
+    <button type="button" class="quiet" onclick={ondismiss}>Not now</button>
   {/if}
 </div>
 
 <style>
   .prompt {
     display: grid;
-    gap: var(--space-2);
-    justify-items: start;
+    gap: var(--space-3);
+    justify-items: stretch;
   }
   h2 {
     margin: 0;
-    font-size: var(--text-lg);
+    color: var(--accent);
+    font-size: var(--text-xl);
     font-weight: 500;
+    line-height: 1.2;
   }
-  .paths {
-    display: grid;
-    gap: var(--space-1);
+  /* Small-caps labels over each group, so a glance finds the parts. */
+  .eyebrow {
+    display: block;
     margin: 0;
     padding: 0;
     color: var(--ink-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .ways {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
     list-style: none;
   }
-  .paths strong {
-    color: var(--ink);
+  .way {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+  }
+  .way strong {
     font-weight: 500;
   }
-  .hint {
-    margin: 0;
+  .clue {
     color: var(--ink-muted);
+  }
+  .picker {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--paper);
   }
   .row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-1) var(--space-2);
+    gap: var(--space-2);
     margin: 0;
     padding: 0;
     border: 0;
   }
-  legend,
-  .label {
+  /* The label sits on its own line above its chips. */
+  .row > .eyebrow,
+  .row > legend {
+    flex-basis: 100%;
     float: left;
-    margin-right: var(--space-1);
-    padding: var(--space-1) 0;
-    font-weight: 500;
+    width: 100%;
+  }
+  .hint {
+    max-width: 40rem;
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+  .secondary {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
   }
   .chip {
     position: relative;
@@ -296,41 +387,50 @@
       border-color var(--dur-fast) var(--ease);
   }
   .chip:hover {
-    border-color: var(--ink);
+    border-color: var(--accent);
   }
   .chip input {
     position: absolute;
     opacity: 0;
     pointer-events: none;
   }
+  /* --accent is what you do (tokens.css): the chosen mode and home. */
   .chip:has(input:checked),
   .chip[aria-pressed="true"] {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--paper);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .chip:has(input:focus-visible) {
     outline: 3px solid var(--focus);
     outline-offset: 2px;
   }
-  button.help,
-  button.quiet {
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--ink);
+  /* "Help me find it" is the by-ear path's one action: a listening button,
+     so it wears --sound. */
+  button.help {
+    margin-top: var(--space-1);
+    padding: var(--space-1) var(--space-4);
+    border: 2px solid var(--sound);
     border-radius: var(--radius-lg);
-    background: var(--surface);
-    color: var(--ink);
+    background: var(--sound);
+    color: var(--sound-ink);
+    font-weight: 500;
     cursor: pointer;
+  }
+  button.help[aria-expanded="true"] {
+    background: var(--sound-soft);
+    color: var(--ink);
   }
   /* Tertiary, like the app's other text buttons: an underlined link. */
   button.quiet {
     justify-self: start;
-    padding-inline: var(--space-1);
-    border-color: transparent;
+    padding: var(--space-1);
+    border: none;
     background: none;
     color: var(--ink-muted);
     text-decoration: underline;
     text-underline-offset: 0.2em;
+    cursor: pointer;
   }
   button.quiet:hover {
     color: var(--ink);
