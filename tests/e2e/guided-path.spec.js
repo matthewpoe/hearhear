@@ -64,6 +64,9 @@ function stripProblems(page, id) {
       return s.top >= 0 && s.bottom <= innerHeight && s.left >= 0 && s.right <= innerWidth;
     };
     if (!inside()) problems.push("strip outside the viewport");
+    // The step's one-line instruction must fit without an ellipsis.
+    const line = strip.querySelector(".line:not(.open)");
+    if (line && line.scrollWidth > line.clientWidth + 1) problems.push("step line truncated");
     for (const selector of selectors) {
       for (const el of document.querySelectorAll(selector)) {
         el.scrollIntoView({ block: "nearest", behavior: "instant" });
