@@ -21,6 +21,53 @@ import { TICKS_PER_QUARTER, ticksPerBar, ticksPerBeat, voice } from "../theory/i
  * @typedef {{ tick: number, chordId?: string, chord?: Chord, voicing?: number[] }} Placement
  */
 
+/**
+ * Where a tick sounds under swing, in (fractional) ticks. Each quarter-note
+ * beat, counted from the first downbeat, is stretched piecewise: its first
+ * half (the on-beat eighth) lasts `ratio / (1 + ratio)` of the beat and its
+ * second half the rest, so an off-beat eighth lands at about 2/3 of the beat
+ * when the ratio is 2. On-beat ticks never move. Straight (ratio 1, or a meter
+ * counted in eighths) returns the tick unchanged.
+ * @param {number} tick
+ * @param {Meter} meter
+ * @param {number} ratio long:short
+ */
+export function swingTick(tick, meter, ratio) {
+  if (ratio === 1 || meter.beatUnit !== 4) return tick;
+  const beat = TICKS_PER_QUARTER;
+  const half = beat / 2;
+  const at = (((tick - meter.pickupTicks) % beat) + beat) % beat;
+  const long = (beat * ratio) / (1 + ratio);
+  const swung = at <= half ? (at * long) / half : long + ((at - half) * (beat - long)) / half;
+  return tick - at + swung;
+}
+
+/**
+ * A passage with every cue, and its range, moved to swung time (swingTick),
+ * so the sound and the visual events that ride on the cues (the staff's
+ * playhead, the keyboard lights) stay together. A straight song's passage
+ * comes back as is.
+ * @template {{ cues: Cue[], fromTick: number, toTick: number }} P
+ * @param {P} passage
+ * @param {Song} song
+ * @returns {P}
+ */
+export function swingPassage(passage, song) {
+  const ratio = song.swing ?? 1;
+  if (ratio === 1 || song.meter.beatUnit !== 4) return passage;
+  const at = (/** @type {number} */ tick) => swingTick(tick, song.meter, ratio);
+  return {
+    ...passage,
+    fromTick: at(passage.fromTick),
+    toTick: at(passage.toTick),
+    cues: passage.cues.map((cue) => ({
+      ...cue,
+      tick: at(cue.tick),
+      dur: at(cue.tick + cue.dur) - at(cue.tick),
+    })),
+  };
+}
+
 /** @param {Song} song */
 export const secondsPerTick = (song) => 60 / (song.tempo * TICKS_PER_QUARTER);
 

@@ -33,6 +33,12 @@
       "type": "integer",
       "minimum": 0
     },
+    "swing": {
+      "description": "Optional swing feel for playback: the long:short ratio of an eighth-note pair (2 is triplet swing, about 2:1). Absent or 1 plays straight. Applies in quarter-note meters only. The staff stays in straight eighths with a Swing marking, the jazz convention.",
+      "type": "number",
+      "minimum": 1,
+      "maximum": 3
+    },
     "notes": { "type": "array", "maxItems": 400, "items": { "$ref": "#/$defs/note" } },
     "chords": { "type": "array", "maxItems": 400, "items": { "$ref": "#/$defs/chord" } }
   },

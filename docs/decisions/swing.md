@@ -1,0 +1,9 @@
+# Swing playback: decisions
+
+Format: **date — decision.** Why. _Rejected:_ alternatives.
+
+- **2026-10-07 — An optional song-level `swing` ratio (long:short), 1 to 3; absent or 1 is straight.** St. James is set to 2, triplet swing, where an eighth pair plays at about 2:1. A ratio covers lighter swing (1.5) for the jazz tunes coming in without another schema change. It is checked by song.schema.json, `validateSong`, and the persisted-song guard. _Rejected:_ a boolean (it would have to become a ratio the first time a tune wants a lighter feel).
+- **2026-10-07 — Swing is applied once, where every playback path meets.** Play, bar, and phrase playback, the key finder's tune over a chord, chord auditions, and the meter click all build a passage of cues in `src/audio/index.js` (`playRequest`). `swingPassage` (src/audio/passage.js) moves every cue's tick and length, and the passage's range, to swung time before the Transport schedules them. Each beat is stretched piecewise from the first downbeat: the first half takes `ratio / (1 + ratio)` of the beat, so on-beat ticks never move and an off-beat eighth lands at 2/3 of the beat. The staff's playhead and the keyboard lights fire from those same cues through Tone.Draw, so they stay in sync with the swung sound with no extra code.
+- **2026-10-07 — Only meters counted in quarter notes swing.** A 6/8 or other eighth-note meter already has a long-short lilt, and swinging its eighths would distort it, so `swing` is ignored there.
+- **2026-10-07 — The notation stays in straight eighths with a "Swing" marking above the staff** (`Q:"Swing"` in the ABC), the jazz lead-sheet convention. _Rejected:_ writing dotted-eighth/sixteenth or triplet rhythms (harder to read, and not how the tunes are printed).
+- **2026-10-07 — Swing lives on the song, not in UI state.** It is part of how the tune goes, so it travels with the song and keeps through transpose and re-key, which copy the song.

@@ -148,6 +148,9 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
     `T:${safeTitle(song.title)}`,
     `M:${meter.beatsPerBar}/${meter.beatUnit}`,
     "L:1/48",
+    // Swung songs stay in straight eighths with a "Swing" marking above the
+    // staff, the jazz convention; playback does the swinging (passage.js).
+    ...(isSwung(song) ? ['Q:"Swing"'] : []),
     `K:${fifths === null ? "C" : key.tonic + (key.mode === "minor" ? "m" : "")}`,
   ];
   const lines = [];
@@ -301,6 +304,14 @@ function degreeLabel(midi, key) {
   const { degree, accidental, octave } = midiToDegree(midi, key);
   const dots = (octave > 0 ? DOT_ABOVE : DOT_BELOW).repeat(Math.abs(octave));
   return DEGREE_ACCIDENTAL[accidental] + degree + dots;
+}
+
+/**
+ * Whether playback swings this song's eighths (src/audio/passage.js swingPassage).
+ * @param {Song} song
+ */
+export function isSwung(song) {
+  return (song.swing ?? 1) > 1 && song.meter.beatUnit === 4;
 }
 
 /**
