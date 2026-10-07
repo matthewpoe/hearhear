@@ -118,42 +118,49 @@
     {
       "event": "message",
       "data": {
-        "delta": "4, beat 3, and play bars 3 and 4. "
+        "delta": "4, beat 3, and listen for the pause.\n"
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "Listen for the pause.\n"
+        "delta": "2. Try the V suggestion at bar 8, "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "2. Try the V and I suggestions in "
+        "delta": "beat 1, and hear the tension on "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "bar 8 and play bars 7 and 8.\n"
+        "delta": "the 2.\n"
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "3. Hold the drone on 1 and see whether "
+        "delta": "3. Try the I suggestion at bar 8, "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "the last note of bar 8 settles."
+        "delta": "beat 3 and see whether the last "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "note settles."
       },
       "delayMs": 45
     },

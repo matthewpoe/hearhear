@@ -157,6 +157,9 @@ def test_ends_every_reply_with_numbered_listening_steps() -> None:
         prompt
     )
     assert "tie the steps to the suggestion buttons" in prompt
+    assert "a control the app has today" in prompt
+    assert "play bar N" not in prompt
+    assert "drone test, only while the key is still being found" in prompt
     assert "as invitations" in prompt
 
 
@@ -170,10 +173,27 @@ def test_nudges_name_nothing_even_in_context_and_steps() -> None:
     prompt = _prompt()
     assert "Name no chord and no numeral anywhere in the message" in prompt
     assert "the theory, the cultural context, and the listening steps name no chord" in prompt
-    assert "Nudge steps point to bars, beats, scale degrees, and the drone" in prompt
+    assert (
+        "Nudge steps point to bars, beats, scale degrees, and, while the key is being found, "
+        "the drone test" in prompt
+    )
 
 
 def test_comparisons_differ_only_in_harmony() -> None:
     prompt = _prompt()
     assert "Never set up a comparison that differs in anything but harmony" in prompt
     assert "send the student to its buttons" in prompt
+
+
+def test_provisional_key_steps_never_point_to_suggestion_buttons() -> None:
+    prompt = _prompt()
+    assert (
+        "Listening steps then point to the last note, the drone test, and bars and beats, "
+        "never to suggestion buttons" in prompt
+    )
+
+
+def test_too_neat_challenge_does_not_name_chords_in_a_nudge() -> None:
+    prompt = _prompt()
+    assert "At comparison and answer levels, if every chord is I, IV, or V" in prompt
+    assert "in a nudge, point to where to listen without naming the chords" in prompt

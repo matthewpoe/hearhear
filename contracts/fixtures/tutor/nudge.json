@@ -90,35 +90,49 @@
     {
       "event": "message",
       "data": {
-        "delta": "1. Play bars 3 and 4, and keep the "
+        "delta": "1. Hover any chord under bar 4, "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "long note of bar 4 in your ear.\n"
+        "delta": "beat 3 so that bar plays, and keep "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "2. Hold the drone on 1 and play "
+        "delta": "its long last note in your ear.\n"
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "bars 7 and 8. See whether the ending "
+        "delta": "2. Hover any chord under bar 8, "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "settles in a way bar 4 doesn't.\n"
+        "delta": "beat 3 so the last bar plays, and "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "see whether that ending settles "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "in a way bar 4 doesn't.\n"
       },
       "delayMs": 45
     },

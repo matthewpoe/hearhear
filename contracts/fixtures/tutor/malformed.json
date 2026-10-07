@@ -55,7 +55,14 @@
     {
       "event": "message",
       "data": {
-        "delta": "3, beat 1, and play bars 2 and 3.\n"
+        "delta": "3, beat 1, and listen to the bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "it plays.\n"
       },
       "delayMs": 45
     },

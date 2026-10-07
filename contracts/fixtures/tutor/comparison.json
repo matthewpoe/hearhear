@@ -118,14 +118,14 @@
     {
       "event": "message",
       "data": {
-        "delta": "4, beat 3, then play bars 3 and "
+        "delta": "4, beat 3, and listen to the bar "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "4.\n"
+        "delta": "it plays.\n"
       },
       "delayMs": 45
     },
@@ -139,7 +139,7 @@
     {
       "event": "message",
       "data": {
-        "delta": "same spot and play the same bars.\n"
+        "delta": "same spot.\n"
       },
       "delayMs": 45
     },
@@ -153,14 +153,14 @@
     {
       "event": "message",
       "data": {
-        "delta": "you want to keep going into bar "
+        "delta": "the long 2 want to keep going into "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "5."
+        "delta": "bar 5."
       },
       "delayMs": 45
     },
