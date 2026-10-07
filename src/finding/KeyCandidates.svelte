@@ -191,7 +191,7 @@
     background: var(--surface);
   }
   li.picked {
-    border-color: var(--ink);
+    border-color: var(--accent);
   }
   .verdict {
     color: var(--ink);
@@ -222,9 +222,9 @@
     cursor: pointer;
   }
   button[aria-pressed="true"] {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--paper);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .close {
     border-color: transparent;

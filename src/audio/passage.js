@@ -21,6 +21,98 @@ import { TICKS_PER_QUARTER, pulseTicks, ticksPerBar, voice } from "../theory/ind
  * @typedef {{ tick: number, chordId?: string, chord?: Chord, voicing?: number[] }} Placement
  */
 
+/**
+ * Where a tick sounds under swing, in (fractional) ticks. Each quarter-note
+ * beat, counted from the first downbeat, is stretched piecewise: its first
+ * half (the on-beat eighth) lasts `ratio / (1 + ratio)` of the beat and its
+ * second half the rest, so an off-beat eighth lands at about 2/3 of the beat
+ * when the ratio is 2. On-beat ticks never move. Straight (ratio 1, or a meter
+ * counted in eighths) returns the tick unchanged.
+ *
+ * Only the sixteenth grid swings: a tick off it (a triplet) keeps its place,
+ * so triplets stay even, unless a grid point next to it moved past it; then it
+ * moves just far enough to stay between them. With `dotted`, the beat holds a dotted eighth and a
+ * sixteenth, and the sixteenth's tick (3/4 of the beat) moves to where the
+ * off-beat eighth goes, so the figure plays like the swung pair (8/4 at ratio
+ * 2), the way players phrase it. The map never runs backwards.
+ * @param {number} tick
+ * @param {Meter} meter
+ * @param {number} ratio long:short
+ * @param {{ dotted?: boolean }} [options]
+ */
+export function swingTick(tick, meter, ratio, { dotted = false } = {}) {
+  if (ratio === 1 || meter.beatUnit !== 4) return tick;
+  const beat = TICKS_PER_QUARTER;
+  const half = beat / 2;
+  const at = (((tick - meter.pickupTicks) % beat) + beat) % beat;
+  const long = (beat * ratio) / (1 + ratio);
+  /** Where a sixteenth-grid point of the beat sounds. */
+  const grid = (/** @type {number} */ x) => {
+    if (dotted && x === (beat * 3) / 4) return long;
+    return x <= half ? (x * long) / half : long + ((x - half) * (beat - long)) / half;
+  };
+  if ((at * 4) % beat === 0) return tick - at + grid(at);
+  // Off the grid: stay put, but between where the grid points around it went.
+  const sixteenth = beat / 4;
+  const below = Math.floor(at / sixteenth) * sixteenth;
+  return tick - at + Math.min(Math.max(at, grid(below)), grid(below + sixteenth));
+}
+
+/**
+ * The beats (by start tick) that hold a dotted eighth and a sixteenth: an
+ * onset at 3/4 of the beat and none at the half. A run of sixteenths has an
+ * onset at the half too, so it swings as a run.
+ * @param {Cue[]} cues
+ * @param {Meter} meter
+ * @returns {Set<number>}
+ */
+function dottedBeats(cues, meter) {
+  const beat = TICKS_PER_QUARTER;
+  /** @type {Map<number, Set<number>>} beat start → onsets within it */
+  const onsets = new Map();
+  for (const cue of cues) {
+    if (cue.kind === "click") continue;
+    const at = (((cue.tick - meter.pickupTicks) % beat) + beat) % beat;
+    const start = cue.tick - at;
+    onsets.set(start, (onsets.get(start) ?? new Set()).add(at));
+  }
+  const dotted = new Set();
+  for (const [start, ats] of onsets) {
+    if (ats.has((beat * 3) / 4) && !ats.has(beat / 2)) dotted.add(start);
+  }
+  return dotted;
+}
+
+/**
+ * A passage with every cue, and its range, moved to swung time (swingTick),
+ * so the sound and the visual events that ride on the cues (the staff's
+ * playhead, the keyboard lights) stay together. A straight song's passage
+ * comes back as is.
+ * @template {{ cues: Cue[], fromTick: number, toTick: number }} P
+ * @param {P} passage
+ * @param {Song} song
+ * @returns {P}
+ */
+export function swingPassage(passage, song) {
+  const ratio = song.swing ?? 1;
+  if (ratio === 1 || song.meter.beatUnit !== 4) return passage;
+  const beat = TICKS_PER_QUARTER;
+  const dotted = dottedBeats(passage.cues, song.meter);
+  const at = (/** @type {number} */ tick) => {
+    const start = tick - ((((tick - song.meter.pickupTicks) % beat) + beat) % beat);
+    return swingTick(tick, song.meter, ratio, { dotted: dotted.has(start) });
+  };
+  return {
+    ...passage,
+    fromTick: at(passage.fromTick),
+    toTick: at(passage.toTick),
+    cues: passage.cues.map((cue) => {
+      if (cue.kind === "click") return cue; // clicks mark the beats, which never move
+      return { ...cue, tick: at(cue.tick), dur: at(cue.tick + cue.dur) - at(cue.tick) };
+    }),
+  };
+}
+
 /** @param {Song} song */
 export const secondsPerTick = (song) => 60 / (song.tempo * TICKS_PER_QUARTER);
 

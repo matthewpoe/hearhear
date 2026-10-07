@@ -15,12 +15,16 @@
  * @import { SongStore } from "./song.js"
  */
 
-import { validateSong } from "./song.js";
+import { isLyric, isSwing, validateSong } from "./song.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
 export const STORE_VERSION = 1;
 const SONG_PREFIX = "hearhear.song.";
 const OPEN_KEY = "hearhear.openSong";
+/** The user's own songs (recorded tunes): one index of ids, oldest first. */
+const MY_SONGS_KEY = "hearhear.mySongs";
+/** A user song's id: "mine-" and a base-36 counter, within the song id pattern. */
+const MY_SONG_ID = /^mine-[a-z0-9]{1,58}$/;
 /** Wait this long after the last change before saving. */
 const SAVE_DELAY_MS = 300;
 
@@ -44,7 +48,8 @@ const CHORD_TYPES = new Set([
 
 /**
  * sessionStorage-like access; the getter itself may throw (blocked storage).
- * @typedef {() => Pick<Storage, "getItem" | "setItem">} StorageAccess
+ * `removeItem` is optional: without it a forgotten song just stays stored.
+ * @typedef {() => Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>} StorageAccess
  */
 
 /**
@@ -72,8 +77,9 @@ function isSong(song) {
     typeof id === "string" &&
     /^[a-z0-9-]{1,64}$/.test(id) &&
     typeof title === "string" &&
+    // By code point, as cleanTitle and song.rename count.
     title.length >= 1 &&
-    title.length <= 120 &&
+    Array.from(title).length <= 120 &&
     isObject(key) &&
     typeof key.tonic === "string" &&
     TONIC.test(key.tonic) &&
@@ -85,6 +91,7 @@ function isSong(song) {
     isInt(meter.pickupTicks, 0, 144) &&
     typeof meter.provisional === "boolean" &&
     isInt(tempo, 30, 240) &&
+    (song.swing === undefined || isSwing(song.swing)) &&
     isInt(version, 0) &&
     Array.isArray(notes) &&
     notes.every(
@@ -94,7 +101,8 @@ function isSong(song) {
         /^n[0-9a-z]{1,16}$/.test(n.id) &&
         isInt(n.midi, 21, 108) &&
         isInt(n.start, 0) &&
-        isInt(n.dur, 1, 576),
+        isInt(n.dur, 1, 576) &&
+        (n.lyric === undefined || isLyric(n.lyric)),
     ) &&
     Array.isArray(chords) &&
     chords.every(
@@ -169,6 +177,36 @@ export function createSongMemory(storage) {
         // Corrupt JSON or a song that breaks an invariant: start fresh instead.
         return null;
       }
+    },
+
+    /**
+     * Forget a saved song (a discarded recording).
+     * @param {string} id
+     */
+    forget(id) {
+      guard(() => storage().removeItem?.(SONG_PREFIX + id), undefined);
+    },
+
+    /**
+     * The "my songs" index: the ids of the user's own songs, oldest first.
+     * Anything that isn't a list of user-song ids reads as empty.
+     * @returns {string[]}
+     */
+    mySongs() {
+      const raw = guard(() => storage().getItem(MY_SONGS_KEY), null);
+      try {
+        const ids = JSON.parse(raw ?? "[]");
+        return Array.isArray(ids)
+          ? ids.filter((id) => typeof id === "string" && MY_SONG_ID.test(id))
+          : [];
+      } catch {
+        return [];
+      }
+    },
+
+    /** @param {string[]} ids the user's own songs, oldest first */
+    setMySongs(ids) {
+      guard(() => storage().setItem(MY_SONGS_KEY, JSON.stringify(ids)), undefined);
     },
 
     /** @returns {string | null} the id of the song open in this tab */

@@ -19,6 +19,8 @@
   import SongPicker from "../toolbar/SongPicker.svelte";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
+  import { recorder } from "../record/tunes.js";
+  import { isUserTune } from "../record/take.js";
 
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
@@ -38,9 +40,12 @@
   const songId = $derived($song.id);
   const demo = $derived($ui.demoAwaitingGuess);
 
+  /** A take is running: the key question waits for Stop. */
+  const recording = $derived($recorder.status === "armed" || $recorder.status === "recording");
+
   /** @type {"none" | "prompt" | "find"} */
   const view = $derived.by(() => {
-    if (empty) return "none";
+    if (empty || recording) return "none";
     // A demo always waits for its guess, even after an undo (D18).
     if ($song.key.provisional && demo) return "prompt";
     if (intent === "dismissed") return "find";
@@ -49,7 +54,8 @@
     // shows the question as the guess left it: the chosen chip and the result.
     if (demo) return "prompt";
     if (!$song.key.provisional) return "none";
-    return $song.notes.length >= PHRASE_NOTES ? "prompt" : "none";
+    // A recorded tune asks at once, however short: finding home comes next.
+    return $song.notes.length >= PHRASE_NOTES || isUserTune(songId) ? "prompt" : "none";
   });
 
   const soundNote = $derived(
@@ -152,6 +158,7 @@
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border: 1px solid var(--rule);
+    border-top: var(--band) solid var(--accent);
     border-radius: var(--radius-md);
     background: var(--surface);
   }
@@ -160,6 +167,7 @@
   }
   h2 {
     margin: 0;
+    color: var(--accent);
     font-size: var(--text-xl);
     font-weight: 500;
   }
@@ -189,5 +197,23 @@
     background: var(--surface);
     color: var(--ink);
     cursor: pointer;
+  }
+  .sound button {
+    border: 2px solid var(--sound);
+  }
+
+  /* The landing's song cards (SongPicker's hero list, styled from here so the
+     picker's own file stays untouched): violet tiles with a violet band. */
+  section :global(#song-chooser button) {
+    border-color: var(--accent-soft);
+    border-left: var(--band) solid var(--accent);
+    background: var(--accent-soft);
+  }
+  section :global(#song-chooser button:hover) {
+    border-color: var(--accent);
+  }
+  section :global(#song-chooser .title) {
+    color: var(--accent);
+    font-weight: 700;
   }
 </style>

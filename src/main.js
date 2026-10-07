@@ -5,6 +5,7 @@ import App from "./App.svelte";
 import { song } from "./store/song.js";
 import { ui } from "./store/ui.js";
 import { installPersistence } from "./store/persist.js";
+import { songStorage } from "./store/storage.js";
 import { loadDemo } from "./finding/demoTunes.js";
 import { stop } from "./audio/index.js";
 
@@ -16,7 +17,7 @@ if (!target) throw new Error("Missing #app mount point");
 const memory = installPersistence({
   song,
   ui,
-  storage: () => window.sessionStorage,
+  storage: songStorage,
   fresh: loadDemo,
   stop,
 });
