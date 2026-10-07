@@ -452,7 +452,7 @@
     transition:
       transform var(--dur-fast) var(--ease),
       background-color var(--dur-fast) var(--ease),
-      box-shadow var(--dur-fast) var(--ease);
+      box-shadow var(--dur-melody-out) var(--ease);
   }
   .key.black {
     z-index: 1;
@@ -536,6 +536,12 @@
   .key.held {
     color: var(--key-black);
   }
+  /* The glow comes on fast and fades with the fill (--dur-melody-out) on
+     release, from the base transition. */
+  .key.melody,
+  .key.held {
+    transition-duration: var(--dur-fast);
+  }
   .key.melody:not(.black),
   .key.held:not(.black) {
     box-shadow: 0 0 0.9rem var(--melody-glow);
@@ -550,7 +556,21 @@
   }
   [data-mode="confirmed"] .key.chord.melody,
   [data-mode="confirmed"] .key.chord.held {
-    box-shadow: inset 0 0 0 0.25rem var(--melody);
+    --ring: var(--melody);
+    box-shadow: inset 0 0 0 0.25rem var(--ring);
+  }
+  /* White keys keep the outer glow under the ring. */
+  [data-mode="confirmed"] .key.chord.melody:not(.black),
+  [data-mode="confirmed"] .key.chord.held:not(.black) {
+    box-shadow:
+      inset 0 0 0 0.25rem var(--ring),
+      0 0 0.9rem var(--melody-glow);
+  }
+  /* Gold on subdominant yellow is only 1.85:1, so on a yellow fill the ring
+     takes the subdominant edge color instead (3.1:1). */
+  [data-mode="confirmed"] .key.chord.fn-subdominant.melody,
+  [data-mode="confirmed"] .key.chord.fn-subdominant.held {
+    --ring: var(--fn-subdominant-on-white-key);
   }
   /* A green tint with a top border, so the bar still shows over a gold or
      function fill. */
@@ -571,6 +591,10 @@
     .key.held:not(.black) {
       box-shadow: none;
     }
+    [data-mode="confirmed"] .key.chord.melody:not(.black),
+    [data-mode="confirmed"] .key.chord.held:not(.black) {
+      box-shadow: inset 0 0 0 0.25rem var(--ring);
+    }
   }
 
   /* Confirmed: chord tones fill with their function color and shape. */
@@ -581,7 +605,7 @@
 
   /* The reveal: when a key is confirmed, the fill fades in at --dur-reveal. */
   .revealing .key {
-    transition-duration: var(--dur-fast), var(--dur-reveal), var(--dur-fast);
+    transition-duration: var(--dur-fast), var(--dur-reveal), var(--dur-melody-out);
   }
 
   /* Tentative: an outline and mark in the key-surface function color, full opacity, no fill. */
