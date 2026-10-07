@@ -3,14 +3,17 @@
 // marking) or Swing (even eighths, marked Swing). Undo takes a re-read back.
 // Note lengths are read from the tab's saved song: abcjs draws a dot as an
 // unclassed path, so the staff has no element to count.
+//
+// The take is deterministic: Playwright's clock is paused while the keys are
+// played and moved forward by exact amounts between presses, so every
+// key-down and key-up carries the timestamp the line calls for, however busy
+// the runner is. The rhythm math itself is unit-tested (rhythm.test.js); this
+// spec checks the UI: the Feel radios, the re-read, the marking, and Undo.
 
 import { test, expect } from "@playwright/test";
 import { axe } from "./axe.js";
 
-/**
- * A slow 900 ms beat (about 67 BPM), so browser timing under load can't blur
- * a 2:1 pair: a quarter, three swung pairs, then a quarter.
- */
+/** A 900 ms beat (about 67 BPM): a quarter, three 2:1 swung pairs, a quarter. */
 const BEAT_MS = 900;
 const HOLD_MS = 90;
 const LINE = [1, 2 / 3, 1 / 3, 2 / 3, 1 / 3, 2 / 3, 1 / 3, 1];
@@ -23,17 +26,23 @@ test("a swung take reads as Swing, and as dotted rhythm when Straight; Undo rest
   const problems = [];
   page.on("pageerror", (error) => problems.push(error.message));
 
+  await page.clock.install();
   await page.goto("/");
   await page.getByRole("button", { name: "Leave lesson" }).click();
   await page.getByRole("button", { name: /^Record a tune/ }).click();
   const bar = page.getByRole("region", { name: "Your tune" });
+  await expect(bar.getByText("Ready to record")).toBeVisible();
+
+  // Time stands still between presses and moves only by the line's amounts.
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
   for (const [i, beats] of LINE.entries()) {
     await page.keyboard.down(KEYS[i]);
-    await page.waitForTimeout(HOLD_MS);
+    await page.clock.runFor(HOLD_MS);
     await page.keyboard.up(KEYS[i]);
-    await page.waitForTimeout(beats * BEAT_MS - HOLD_MS);
+    await page.clock.runFor(Math.round(beats * BEAT_MS) - HOLD_MS);
   }
   await page.keyboard.press("Escape");
+  await page.clock.resume();
   const title = bar.getByLabel("Name your tune");
   await title.fill("Swing check");
   await title.press("Enter");
