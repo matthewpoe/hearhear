@@ -41,7 +41,7 @@ describe("rankKeys", () => {
   });
 
   it("accepts minor's raised leading tone as in the key", () => {
-    const withLeadingTone = [...stJames.notes, { id: "n1c", midi: 75, start: 384, dur: 12 }];
+    const withLeadingTone = [...stJames.notes, { id: "n1d", midi: 75, start: 384, dur: 12 }];
     const eMinor = rankKeys(withLeadingTone).find((r) => name(r) === "E minor");
     assert.deepEqual(eMinor?.outOfScale, []);
   });
