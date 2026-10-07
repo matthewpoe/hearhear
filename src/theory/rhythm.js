@@ -96,6 +96,12 @@ function duplicateOnsets(events) {
  * A long-short pair from about 3:2 to 3:1 (wider, 5:4 to 3.6:1, for human timing)
  * is a swung eighth pair when it fills one beat.
  */
+/**
+ * How to read long-short pairs: "auto" guesses; "swing" and "straight" are
+ * the player's say (record mode's Feel choice).
+ * @typedef {"auto" | "swing" | "straight"} Feel
+ */
+
 const SWING_MIN = 1.25;
 const SWING_MAX = 3.6;
 
@@ -130,11 +136,17 @@ function swungPairs(gaps, beatMs) {
  * gap the take also plays is a dotted figure, never swing, and its half is
  * the beat if more of the take lands on the grid that way. Each swung pair's
  * gaps are then evened out to half its length.
+ * With `feel` "swing" the player has said it swings: pairs are evened even
+ * where they could be dotted figures. With "straight" they are read
+ * literally: a pair near 2:1 or 3:1 is a dotted eighth and a sixteenth, a
+ * gentler one two eighths, and nothing is marked swung.
  * @param {number[]} gaps ms between onsets
- * @returns {{ gaps: number[], beatMs: number, swing: boolean }} `swing`:
- *   more of the take's eighth pairs were swung than straight
+ * @param {Feel} [feel]
+ * @returns {{ gaps: number[], beatMs: number, swing: boolean, fixed: Map<number, number> }}
+ *   `swing`: the take reads as swung (by default, more of its eighth pairs
+ *   were swung than straight); `fixed`: ticks set for some gaps
  */
-function readSwing(gaps) {
+function readSwing(gaps, feel = "auto") {
   const positive = gaps.filter((g) => g > 0);
   const straightBeat = plausibleBeat(mostCommonGap(positive));
   const sums = [];
@@ -167,7 +179,10 @@ function readSwing(gaps) {
     const dotted = gaps.some(
       (g, i) => !pairGaps.has(i) && Math.abs(g - pairSum / 2) <= SAME_GAP * (pairSum / 2),
     );
-    if (
+    if (feel === "swing") {
+      // The player says it swings: no dotted-figure guard, ties go to swing.
+      if (explained(swingBeat) >= explained(straightBeat)) beatMs = swingBeat;
+    } else if (
       !dotted &&
       swingBeat < 1.5 * straightBeat &&
       explained(swingBeat) > explained(straightBeat)
@@ -180,6 +195,17 @@ function readSwing(gaps) {
     }
   }
   const pairs = swungPairs(gaps, beatMs);
+  /** Ticks fixed for a pair's two gaps, when read straight. @type {Map<number, number>} */
+  const fixed = new Map();
+  if (feel === "straight") {
+    // Read literally: a pair nearer 3:1 than 1:1 is a dotted eighth and a
+    // sixteenth; a gentler one is two eighths. Either way it fills the beat.
+    for (const i of pairs) {
+      const long = gaps[i] / (gaps[i] + gaps[i + 1]) >= 0.625 ? 9 : 6;
+      fixed.set(i, long).set(i + 1, TICKS_PER_QUARTER - long);
+    }
+    return { gaps, beatMs, swing: false, fixed };
+  }
   const even = [...gaps];
   for (const i of pairs) even[i] = even[i + 1] = (gaps[i] + gaps[i + 1]) / 2;
   const eighth = beatMs / 2;
@@ -192,7 +218,8 @@ function readSwing(gaps) {
       i++;
     }
   }
-  return { gaps: even, beatMs, swing: pairs.length > straightPairs };
+  const swing = feel === "swing" ? true : pairs.length > straightPairs;
+  return { gaps: even, beatMs, swing, fixed };
 }
 
 /**
@@ -208,7 +235,10 @@ function readSwing(gaps) {
  *
  * Swung eighths are written straight, the jazz convention: a long-short pair
  * (about 2:1, from 3:2 to 3:1) that fills one beat becomes two eighths, and
- * `swing` says whether most of the take's eighth pairs were swung.
+ * `swing` says whether most of the take's eighth pairs were swung. `feel`
+ * overrides the guess: "swing" evens every such pair (even one that could be
+ * a dotted figure) and marks the take swung; "straight" reads the pairs
+ * literally, as dotted eighth and sixteenth or as two eighths.
  *
  * Two onsets less than a quarter of a beat apart (a two-finger slip) are one
  * note: the earlier event is dropped and listed in `dropped`, so the caller
@@ -216,16 +246,17 @@ function readSwing(gaps) {
  * release (not a number, or before its key-down) is treated as legato: the
  * note lasts until the next one, and the last note lasts one beat.
  * @param {{ downMs: number, upMs: number }[]} events in order
- * @param {{ endMs?: number }} [options] `endMs`: when the take stopped
+ * @param {{ endMs?: number, feel?: Feel }} [options] `endMs`: when the take
+ *   stopped; `feel`: how to read long-short pairs (default "auto", the guess)
  * @returns {{ notes: { start: number, dur: number }[], beatMs: number, dropped: number[], swing: boolean }}
  *   notes in ticks from 0, one per event not dropped; `beatMs` is the detected
  *   beat, so record mode can set the tempo; `dropped` lists the indices of
  *   events merged into the next one, ascending
  */
-export function guessRhythm(events, { endMs } = {}) {
+export function guessRhythm(events, { endMs, feel = "auto" } = {}) {
   const dropped = duplicateOnsets(events);
   const kept = events.filter((_, i) => !dropped.includes(i));
-  return { ...guessKept(kept, endMs), dropped };
+  return { ...guessKept(kept, endMs, feel), dropped };
 }
 
 /**
@@ -233,10 +264,12 @@ export function guessRhythm(events, { endMs } = {}) {
  * duplicate onsets.
  * @param {{ downMs: number, upMs: number }[]} events
  * @param {number | undefined} endMs
+ * @param {Feel} feel
  */
-function guessKept(events, endMs) {
-  const { gaps, beatMs, swing } = readSwing(
+function guessKept(events, endMs, feel) {
+  const { gaps, beatMs, swing, fixed } = readSwing(
     events.slice(1).map((e, i) => e.downMs - events[i].downMs),
+    feel,
   );
   const half = TICKS_PER_QUARTER / 2;
 
@@ -252,7 +285,7 @@ function guessKept(events, endMs) {
       }
       return { start, dur: held ?? TICKS_PER_QUARTER };
     }
-    const gap = snapTicks(gaps[i] / beatMs);
+    const gap = fixed.get(i) ?? snapTicks(gaps[i] / beatMs);
     const rest = held !== null && events[i + 1].downMs - event.upMs >= beatMs;
     // A rest keeps the note's held length, leaving at least a beat of silence.
     const dur = rest ? Math.min(gap, Math.max(half, Math.min(held, gap - TICKS_PER_QUARTER))) : gap;

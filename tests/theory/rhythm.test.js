@@ -154,6 +154,57 @@ describe("guessRhythm", () => {
     assert.equal(swing, true);
   });
 
+  it("reads one swung take straight or swung, as the player says", () => {
+    const beatMs = 600;
+    // Quarter, then three 2:1 pairs, then a quarter.
+    const onsets = [0, 1, 1 + 2 / 3, 2, 2 + 2 / 3, 3, 3 + 2 / 3, 4];
+    const events = tapAt(onsets, beatMs);
+    const endMs = 1000 + 5 * beatMs;
+
+    const swung = guessRhythm(events, { endMs, feel: "swing" });
+    assert.equal(swung.swing, true);
+    assert.deepEqual(
+      swung.notes.map((n) => n.dur),
+      [12, 6, 6, 6, 6, 6, 6, 12],
+    );
+
+    const straight = guessRhythm(events, { endMs, feel: "straight" });
+    assert.equal(straight.swing, false);
+    assert.deepEqual(
+      straight.notes.map((n) => n.dur),
+      [12, 9, 3, 9, 3, 9, 3, 12],
+    );
+    assert.deepEqual(
+      straight.notes.map((n) => n.start),
+      [0, 12, 21, 24, 33, 36, 45, 48],
+    );
+    // The same tempo either way: the feel changes the values, not the beat.
+    assert.equal(straight.beatMs, swung.beatMs);
+  });
+
+  it("evens dotted-looking pairs when the player says it swings", () => {
+    const onsets = [0, 1.5, 2, 3.5, 4, 5.5, 6, 7, 8];
+    const events = tapAt(onsets, 600);
+    const endMs = 1000 + 9 * 600;
+    // Left to the guess, these are dotted quarters and eighths, not swing.
+    assert.equal(guessRhythm(events, { endMs }).swing, false);
+    const swung = guessRhythm(events, { endMs, feel: "swing" });
+    assert.equal(swung.swing, true);
+    assert.deepEqual(
+      swung.notes.slice(0, 6).map((n) => n.dur),
+      Array(6).fill(6),
+    );
+  });
+
+  it("a gentle 3:2 pair read straight is two eighths", () => {
+    const onsets = [0, 1, 1.6, 2, 3];
+    const { notes } = guessRhythm(tapAt(onsets, 600), { endMs: 1000 + 4 * 600, feel: "straight" });
+    assert.deepEqual(
+      notes.map((n) => n.dur),
+      [12, 6, 6, 12, 12],
+    );
+  });
+
   it("reads swung pairs from 3:2 to 3:1 among quarter notes as straight eighths", () => {
     for (const ratio of [1.5, 2, 3]) {
       // Quarter, swung pair, quarter, swung pair, quarter, quarter.
