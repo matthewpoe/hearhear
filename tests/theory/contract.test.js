@@ -76,6 +76,11 @@ describe("functionOf follows contracts/functions.json", () => {
     ["#iv°", "major", "dominant"],
     ["V7/V", "major", "dominant"],
     ["III", "minor", "tonic"],
+    ["I", "minor", "tonic"],
+    ["Imaj7", "minor", "tonic"],
+    ["IV", "minor", "subdominant"],
+    ["IV6", "minor", "subdominant"],
+    ["bIII", "major", "other"],
     ["bII", "major", "other"],
     ["not a numeral", "major", "other"],
   ];
