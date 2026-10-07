@@ -46,33 +46,3 @@ button {
   clip-path: inset(50%);
   white-space: nowrap;
 }
-
-/* Shared selected-state color (tokens.css: --accent is what you do). The
-   toolbar and the key box are being restructured in their own stream, so
-   they're colored from here by role rather than in their files: any pressed
-   or checked control in the staff header or the key box takes the violet
-   fill. The ids outrank the components' scoped ink fills. */
-#staff .header [aria-pressed="true"],
-#staff .header label:has(input:checked),
-#key-prompt [aria-pressed="true"],
-#key-prompt label:has(input:checked) {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-/* Switch dots, except the drone's, which is a sound control (--sound). */
-#staff .header [aria-checked="true"]:not(.drone *) .dot {
-  border-color: var(--accent);
-  background: var(--accent);
-}
-/* A focus ring drawn inside a violet segment flips to the fill's ink. */
-#staff .header label:has(input:checked):has(input:focus-visible) {
-  outline-color: var(--accent-ink);
-}
-#key-prompt [aria-pressed]:hover,
-#key-prompt label:has(input):hover {
-  border-color: var(--accent);
-}
-#key-prompt h2 {
-  color: var(--accent);
-}

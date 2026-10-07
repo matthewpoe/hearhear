@@ -22,6 +22,8 @@ COPY server ./server
 COPY contracts ./contracts
 # The recorded lessons replay in either mode, with no passphrase.
 COPY content/lessons/recorded ./content/lessons/recorded
+# The tutor prompt names controls by their labels in the app.
+COPY content/controls.json ./content/controls.json
 RUN uv sync --frozen --no-dev
 COPY --from=web /app/dist ./dist
 RUN useradd --create-home app

@@ -6,7 +6,13 @@ import pytest
 from helpers import REPO_ROOT, SNAPSHOT
 
 from hearhear.models import TutorRequest
-from hearhear.prompt import SYSTEM_PROMPT, user_message
+from hearhear.prompt import (
+    CONTROL_TOKEN,
+    SYSTEM_PROMPT,
+    SYSTEM_PROMPT_TEMPLATE,
+    load_controls,
+    user_message,
+)
 
 
 def message_for(**fields: Any) -> str:
@@ -269,3 +275,13 @@ def test_too_neat_challenge_does_not_name_chords_in_a_nudge() -> None:
     prompt = _prompt()
     assert "At comparison and answer levels, if every chord is I, IV, or V" in prompt
     assert "in a nudge, point to where to listen without naming the chords" in prompt
+
+
+def test_every_control_the_prompt_names_is_in_controls_json() -> None:
+    controls = load_controls()
+    named = set(CONTROL_TOKEN.findall(SYSTEM_PROMPT_TEMPLATE))
+    assert {"play", "playBar", "drone"} <= named
+    assert named <= controls.keys()
+    assert "{control:" not in SYSTEM_PROMPT
+    for key in named:
+        assert controls[key] in SYSTEM_PROMPT, key

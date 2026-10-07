@@ -36,6 +36,7 @@
   import { passageAround, voicingIn } from "./passage.js";
   import { placeOn, sideFor } from "./placement.js";
   import { NO_TAP, activate } from "./tap.js";
+  import VoiceLeading from "../toolbar/VoiceLeading.svelte";
 
   const WIDTH_PX = 352;
   const GUTTER_PX = 16;
@@ -309,8 +310,10 @@
       : noteId
         ? document.querySelector(`#staff [data-note-id="${CSS.escape(noteId)}"]`)
         : null;
-    // SVGElement implements focus() as HTMLElement does.
-    /** @type {HTMLElement | SVGElement | null} */ (target)?.focus();
+    // SVGElement implements focus() as HTMLElement does. Focus goes back to
+    // where it was without scrolling: the note was on screen when it opened
+    // the dropdown, and a scroll here pushed the masthead off the top.
+    /** @type {HTMLElement | SVGElement | null} */ (target)?.focus({ preventScroll: true });
   }
 
   /**
@@ -476,7 +479,10 @@
 <svelte:window onpointerdown={onWindowPointerDown} onresize={refit} onscroll={refit} />
 
 <section id="chords" class="chords" aria-label="Chords">
-  <h2>Chords</h2>
+  <div class="heading">
+    <h2>Chords</h2>
+    <VoiceLeading />
+  </div>
   <ChordChipRow
     onopen={(noteId, anchor) => openAt(noteId, anchor.getBoundingClientRect(), anchor)}
     onhear={hearNow}
@@ -611,8 +617,16 @@
     border-radius: var(--radius-md);
     background: var(--surface);
   }
+  .heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
   h2 {
-    margin: 0 0 var(--space-2);
+    margin: 0;
     color: var(--accent);
     font-size: var(--text-lg);
     font-weight: 500;
