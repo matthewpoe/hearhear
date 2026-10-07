@@ -112,6 +112,15 @@ for (const viewport of [
     });
     page.on("pageerror", (error) => problems.push(error.message));
 
+    // The piano's samples wait until step 2, to press its Play before the piano is ready.
+    /** @type {() => void} */
+    let releaseSamples = () => {};
+    const samplesHeld = new Promise((resolve) => (releaseSamples = () => resolve(undefined)));
+    await page.route("**/samples/piano/**", async (route) => {
+      await samplesHeld;
+      await route.continue();
+    });
+
     await page.goto("/");
     const tips = page.getByRole("button", { name: "Beginner tips" });
     const tip = page.locator("aside.callout");
@@ -155,8 +164,14 @@ for (const viewport of [
     await tryThis("Load Ode to Joy").click();
     await expectStep("listen");
 
-    // 2. Play it: loading alone doesn't count.
+    // 2. Play it: loading alone doesn't count. Pressed at once, while the
+    // piano still loads, it waits for the piano and then plays.
+    await expect(page.locator("#staff").getByText("Loading the piano…")).toBeVisible();
     await tryThis("Play the tune").click();
+    const waiting = tour.getByRole("button", { name: "Loading the piano…" });
+    await expect(waiting).toBeVisible();
+    await expect(heading).toHaveText(`${titleOf("listen")}:`);
+    releaseSamples();
     await expectStep("home");
     await page.locator("#staff").getByRole("button", { name: "Stop" }).click();
 

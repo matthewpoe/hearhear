@@ -16,7 +16,7 @@
   import plan from "../../content/lessons/plan.json";
   import { song } from "../store/song.js";
   import { ui } from "../store/ui.js";
-  import { auditionChord } from "../audio/index.js";
+  import { audioStatus, auditionChord } from "../audio/index.js";
   import { passageAround, voicingIn } from "../chords/passage.js";
   import { DEMO_TUNES } from "../finding/demoTunes.js";
   import { chordFromNumeral } from "../theory/index.js";
@@ -44,6 +44,8 @@
   );
 
   let folded = $state(false);
+  /** A "Try this" press waiting for the piano: the step it was made on, else -1. */
+  let waitingAt = $state(-1);
   let more = $state(false);
   /** Replies in the tutor's conversation, counted from its log. */
   let tutorReplies = $state(0);
@@ -108,6 +110,24 @@
     });
   });
 
+  // A press that found its button disabled while the piano loads (the
+  // staff's Play) goes through once the piano is ready, and is dropped if the
+  // step changes or the piano fails (the staff then shows Retry).
+  $effect(() => {
+    const status = $audioStatus;
+    const at = waitingAt;
+    if (at < 0) return;
+    if (at !== index || status === "failed") waitingAt = -1;
+    else if (status === "ready") {
+      waitingAt = -1;
+      const action = steps[at].action;
+      untrack(async () => {
+        await tick();
+        if (action?.type === "press" && index === at) tryIt(action);
+      });
+    }
+  });
+
   $effect(() => {
     void $song.id;
     played = false;
@@ -167,7 +187,8 @@
       case "press": {
         const within = document.getElementById(action.within);
         const button = within && buttonIn(within, action.name);
-        if (button) button.click();
+        if (button?.disabled && $audioStatus === "loading") waitingAt = index;
+        else if (button) button.click();
         else within?.scrollIntoView({ block: "nearest" });
         break;
       }
@@ -232,7 +253,13 @@
         >
         {#if step.action}
           {@const action = step.action}
-          <button type="button" class="primary" onclick={() => tryIt(action)}>{action.label}</button
+          {@const waiting = waitingAt === index}
+          <button
+            type="button"
+            class="primary"
+            aria-disabled={waiting}
+            onclick={() => !waiting && tryIt(action)}
+            >{waiting ? "Loading the piano…" : action.label}</button
           >
         {/if}
         <button type="button" disabled={index === 0} onclick={() => goTo(index - 1)}>Back</button>
@@ -325,6 +352,9 @@
   .primary {
     background: var(--ink);
     color: var(--paper);
+  }
+  .primary[aria-disabled="true"] {
+    cursor: progress;
   }
   .link {
     border-color: transparent;
