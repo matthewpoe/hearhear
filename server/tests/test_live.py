@@ -674,3 +674,84 @@ def test_the_real_sdk_sends_the_fallback_beta_and_reports_the_serving_model(
     assert dict(stream)["suggestions"]["served_by"] == "claude-opus-4-8"
     assert dict(stream)["suggestions"]["fallback"] is True
     assert app_module.budget.spent == (1000 + 20) + (1100 + 200)
+
+
+def one_slot_taken(monkeypatch: pytest.MonkeyPatch) -> asyncio.Semaphore:
+    """A cap of one, already held by another student's stream."""
+    slots = asyncio.Semaphore(1)
+    asyncio.run(slots.acquire())
+    monkeypatch.setattr(app_module, "streams", slots)
+    return slots
+
+
+def test_a_full_cap_turns_the_request_away_at_once(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    slots = one_slot_taken(monkeypatch)
+    response = ask(live_mode)
+    assert response.status_code == 503
+    assert response.json() == {
+        "error": {
+            "code": "busy",
+            "message": "The tutor is helping someone else right now. Try again in a moment.",
+        }
+    }
+    assert response.headers["Retry-After"] == "5"
+    assert response.headers["X-Request-Id"]
+    assert fake.calls == []
+    slots.release()
+    assert ask(live_mode).status_code == 200
+    assert not slots.locked(), "the finished stream gave its slot back"
+
+
+@pytest.mark.parametrize(
+    "fake",
+    [FakeClient(sdk_events(json.dumps(REPLY))[:12], error=RuntimeError("boom")), FailsOnOpen()],
+    ids=["mid-stream", "on-open"],
+)
+def test_a_failed_stream_gives_its_slot_back(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch, fake: Any
+) -> None:
+    use_fake(monkeypatch, fake)
+    slots = asyncio.Semaphore(1)
+    monkeypatch.setattr(app_module, "streams", slots)
+    for _ in range(2):
+        assert dict(events(ask(live_mode).text))["error"]["code"] == "upstream"
+    assert not slots.locked()
+
+
+@pytest.mark.parametrize("fails_on", ["http.response.start", "http.response.body"])
+def test_a_client_that_goes_away_gives_its_slot_back(
+    monkeypatch: pytest.MonkeyPatch, fails_on: str
+) -> None:
+    slots = asyncio.Semaphore(1)
+    monkeypatch.setattr(app_module, "streams", slots)
+
+    async def forever() -> AsyncIterator[str]:
+        while True:
+            yield "event: message\ndata: {}\n\n"
+
+    async def send(message: Any) -> None:
+        if message["type"] == fails_on:
+            raise OSError("client gone")
+
+    async def receive() -> Any:
+        await asyncio.Event().wait()
+
+    async def serve() -> None:
+        await slots.acquire()
+        response = app_module.ReleasingStreamingResponse(forever())
+        scope = {"type": "http", "asgi": {"spec_version": "2.4"}}
+        with pytest.raises(Exception):  # noqa: B017 - the type is Starlette's business
+            await response(scope, receive, send)
+
+    asyncio.run(serve())
+    assert not slots.locked()
+
+
+def test_the_cap_leaves_fixture_mode_alone(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    one_slot_taken(monkeypatch)
+    assert client.post("/api/tutor", json={"snapshot": SNAPSHOT}).status_code == 200

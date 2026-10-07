@@ -16,20 +16,21 @@ A missing code (or one with no letters or digits) and a wrong code both return `
 
 ## Errors before the stream
 
-Every response to `POST /api/tutor` that passes validation and the rate limit carries an `X-Request-Id` header, a 32-character hex id that also appears in the server's logs for that request. The 401, `access_locked` 429, and 503 below carry it too; 413, 422, and `rate_limited` 429 are refused before a request id exists.
+Every response to `POST /api/tutor` that passes validation and the rate limit carries an `X-Request-Id` header, a 32-character hex id that also appears in the server's logs for that request. The 401, `access_locked` 429, and both 503s below carry it too; 413, 422, and `rate_limited` 429 are refused before a request id exists.
 
 Non-stream failures return JSON with no stream at all: the client gets this status and body instead of `text/event-stream`. Each one carries `{ "error": { "code", "message" } }`:
 
-| Status | `code`            | When                                                                                                                      | Implemented |
-| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| 413    | `too_large`       | Body over 128 KB                                                                                                          | Stream E    |
-| 422    | `invalid_request` | Fails `TutorRequest` validation                                                                                           | Phase 0     |
-| 429    | `rate_limited`    | Per-IP limit. Carries `Retry-After`, in whole seconds until the limit resets.                                             | Stream E    |
-| 401    | `access_required` | Live mode only: `X-Tutor-Access` is missing or wrong. The panel asks for the code and offers the recorded lessons.        | Stream E2   |
-| 429    | `access_locked`   | Live mode only: this IP sent 5 wrong codes in 10 minutes. Carries `Retry-After`, in whole seconds until it may try again. | Stream E2   |
-| 503    | `over_budget`     | Daily token budget spent, checked before Claude is called. The client switches to cached lessons. Carries `X-Request-Id`. | Stream E    |
+| Status | `code`            | When                                                                                                                                                                                                                                                          | Implemented  |
+| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 413    | `too_large`       | Body over 128 KB                                                                                                                                                                                                                                              | Stream E     |
+| 422    | `invalid_request` | Fails `TutorRequest` validation                                                                                                                                                                                                                               | Phase 0      |
+| 429    | `rate_limited`    | Per-IP limit. Carries `Retry-After`, in whole seconds until the limit resets.                                                                                                                                                                                 | Stream E     |
+| 401    | `access_required` | Live mode only: `X-Tutor-Access` is missing or wrong. The panel asks for the code and offers the recorded lessons.                                                                                                                                            | Stream E2    |
+| 429    | `access_locked`   | Live mode only: this IP sent 5 wrong codes in 10 minutes. Carries `Retry-After`, in whole seconds until it may try again.                                                                                                                                     | Stream E2    |
+| 503    | `over_budget`     | Daily token budget spent, checked before Claude is called. The client switches to cached lessons. Carries `X-Request-Id`.                                                                                                                                     | Stream E     |
+| 503    | `busy`            | Live mode only: `TUTOR_MAX_CONCURRENT` streams (default 4) are already in flight, across every IP. Refused at once, never queued: "The tutor is helping someone else right now. Try again in a moment." Carries `Retry-After` (5 seconds) and `X-Request-Id`. | Checkpoint 3 |
 
-Checks run in that order: body cap, validation, rate limit, then in live mode the access lockout, the access code, and the budget. A request turned away at any of them never reaches Claude, and an unauthenticated client never learns whether the budget is spent.
+Checks run in that order: body cap, validation, rate limit, then in live mode the access lockout, the access code, the budget, and the in-flight cap. A request turned away at any of them never reaches Claude, and an unauthenticated client never learns whether the budget is spent.
 
 ## Events, in order
 

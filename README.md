@@ -28,6 +28,7 @@ The tutor proxy reads these from the environment (Railway variables in productio
 | `TUTOR_ACCESS_CODE`        | (none)              | The live tutor's passphrase, set only in the host's environment. Required when `TUTOR_MODE=live`; the server refuses to start without it. Never logged. |
 | `TUTOR_DAILY_TOKEN_BUDGET` | `500000`            | Input plus output tokens per UTC day, in memory. The hard cap is the Console spend limit.                                                               |
 | `TUTOR_RATE_LIMIT`         | `10/minute;100/day` | Per-client-IP limit on `/api/tutor`, in slowapi syntax. The eval harness raises it.                                                                     |
+| `TUTOR_MAX_CONCURRENT`     | `4`                 | Live streams in flight at once, across every IP. Past it, a request gets `503 busy` at once rather than waiting.                                        |
 
 ## Where things are
 

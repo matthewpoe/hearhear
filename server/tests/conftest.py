@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 import pytest
@@ -20,5 +21,6 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setattr(app_module, "settings", settings)
     monkeypatch.setattr(app_module, "budget", TokenBudget(settings.daily_token_budget))
     monkeypatch.setattr(app_module, "lockout", AccessLockout())
+    monkeypatch.setattr(app_module, "streams", asyncio.Semaphore(settings.max_concurrent))
     app_module.limiter.reset()
     return TestClient(app_module.app)
