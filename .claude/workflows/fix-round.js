@@ -1,7 +1,7 @@
 export const meta = {
   name: 'fix-round',
   description: 'Apply Matthew-accepted review calls to stream branches in worktrees, each followed by an independent Fable re-review of the fix diff',
-  whenToUse: 'After triage of a build round. args: { rebase: boolean, streams: [{ letter, id, name, owns, tip, decisions[], findings[] }] }, generated from the triage data.',
+  whenToUse: 'After triage of a build round. args: { rebase: boolean, streams: [{ letter, id, name, owns, tip, decisions[], findings[] }] }, generated from the triage data. Each stream/<id> branch must not be checked out in any other worktree when the run starts (git refuses to check out a branch twice).',
   phases: [
     { title: 'Fix', detail: 'one fixer per stream, on its existing branch, in its own worktree' },
     { title: 'Re-review', detail: 'one Fable reviewer per stream: accepted calls, the fix diff, and regressions', model: 'fable' },

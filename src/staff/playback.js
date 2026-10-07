@@ -21,6 +21,8 @@ import { drone as holdDrone, playPhrase } from "../audio/index.js";
 /**
  * Play part of the song with the playhead and keyboard lights following.
  * Resolves when playback ends or is stopped, after clearing what it lit.
+ * A new call stops the previous one; the earlier call then resolves without
+ * touching anything the newer call owns (its drone, playhead, or lights).
  * @param {TickRange} range
  * @param {{
  *   chords?: { chord: Chord, voicing: number[] }[],
