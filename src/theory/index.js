@@ -108,67 +108,117 @@ export function keyEventToDegree(code, { shift, alt }) {
 
 // --- Chord naming -------------------------------------------------------------
 
+/** Diatonic intervals from the tonic, by mode (natural minor). */
+const DEGREE_INTERVALS = {
+  major: ["1P", "2M", "3M", "4P", "5P", "6M", "7M"],
+  minor: ["1P", "2M", "3m", "4P", "5P", "6m", "7m"],
+};
+
 /**
+ * How each chord type in contracts/song.schema.json is written as a numeral:
+ * case (lowercase = minor-third family) and suffix. One table, so parsing and
+ * formatting can never disagree.
+ * @type {{ type: string, lower: boolean, suffix: string, nashville: string }[]}
+ */
+const NUMERAL_FORMS = [
+  { type: "M", lower: false, suffix: "", nashville: "" },
+  { type: "7", lower: false, suffix: "7", nashville: "7" },
+  { type: "maj7", lower: false, suffix: "maj7", nashville: "maj7" },
+  { type: "6", lower: false, suffix: "6", nashville: "6" },
+  { type: "sus2", lower: false, suffix: "sus2", nashville: "sus2" },
+  { type: "sus4", lower: false, suffix: "sus4", nashville: "sus4" },
+  { type: "aug", lower: false, suffix: "+", nashville: "+" },
+  { type: "m", lower: true, suffix: "", nashville: "m" },
+  { type: "m7", lower: true, suffix: "7", nashville: "m7" },
+  { type: "m6", lower: true, suffix: "6", nashville: "m6" },
+  { type: "dim", lower: true, suffix: "°", nashville: "°" },
+  { type: "dim7", lower: true, suffix: "°7", nashville: "°7" },
+  { type: "m7b5", lower: true, suffix: "ø7", nashville: "ø7" },
+];
+
+/**
+ * A parsed Roman numeral. `type` is the Tonal chord type from the song schema,
+ * so every chord the app can hold has exactly one numeral and back.
  * @typedef {{
- *   degree: number, accidental: -1 | 0 | 1,
- *   quality: "major" | "minor" | "diminished" | "augmented",
- *   seventh: boolean, of: ParsedNumeral | null
+ *   degree: number, accidental: -1 | 0 | 1, type: string, of: ParsedNumeral | null
  * }} ParsedNumeral
  */
 
 /**
- * Parse a Roman numeral. Uppercase is major, lowercase minor; `°` or `o`
- * diminished, `+` augmented; a trailing 7 adds a seventh; `/x` is an applied chord.
- * @param {string} text e.g. "V7", "bVII", "vii°", "V7/IV"
+ * Parse a Roman numeral. Uppercase is major, lowercase minor; suffixes `7`,
+ * `maj7`, `6`, `sus2`, `sus4`, `+`, `°` (or `o`), `°7`, and `ø7` (or `ø`);
+ * a leading `b` or `#` marks a chromatic root; `/x` is an applied chord.
+ * @param {string} text e.g. "V7", "bVII", "vii°", "iiø7", "Imaj7", "V7/IV"
  * @returns {ParsedNumeral | null} null if it does not parse
  */
 export function parseNumeral(text) {
-  const [head, target] = text.trim().split("/");
-  const m = head.match(/^(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(°|o|\+)?(7)?$/);
+  const [head, target, extra] = text.trim().split("/");
+  if (extra !== undefined) return null;
+  const m = head.match(/^(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(.*)$/);
   if (!m) return null;
-  const [, acc, roman, mark, seventh] = m;
+  const [, acc, roman, rawSuffix] = m;
+  const suffix = rawSuffix.replace(/^o/, "°").replace(/^ø$/, "ø7");
   const lower = roman === roman.toLowerCase();
+  const form = NUMERAL_FORMS.find((f) => f.lower === lower && f.suffix === suffix);
+  if (!form) return null;
   const of = target === undefined ? null : parseNumeral(target);
   if (target !== undefined && !of) return null;
   return {
     degree: ROMAN.indexOf(roman.toUpperCase()) + 1,
     accidental: acc === "b" ? -1 : acc === "#" ? 1 : 0,
-    quality: mark === "+" ? "augmented" : mark ? "diminished" : lower ? "minor" : "major",
-    seventh: Boolean(seventh),
+    type: form.type,
     of,
   };
 }
 
 /**
- * The Roman numeral of a chord in a key, e.g. A7 in D major → "V7".
+ * Scale degree of a chord root, by letter name, so spelling decides the degree
+ * (Bb in D major is b6, A# would be #5).
+ * @param {string} root
+ * @param {Key} key
+ * @returns {{ degree: number, accidental: number }}
+ */
+function rootDegree(root, key) {
+  const letters = "CDEFGAB";
+  const degree = ((letters.indexOf(root[0]) - letters.indexOf(key.tonic[0]) + 7) % 7) + 1;
+  const diatonic = TNote.transpose(key.tonic, DEGREE_INTERVALS[key.mode][degree - 1]);
+  const accidental =
+    (((((TNote.chroma(root) ?? 0) - (TNote.chroma(diatonic) ?? 0)) % 12) + 18) % 12) - 6;
+  return { degree, accidental };
+}
+
+/**
+ * The Roman numeral of a chord in a key, e.g. A7 in D major → "V7",
+ * Bb in D major → "bVI". "?" when the root is more than a semitone from the scale.
  * @param {ChordSpec} chord
  * @param {Key} key
  * @returns {string}
  */
 export function numeralOf(chord, key) {
-  // STUB(A): diatonic roots only, no applied-chord detection.
-  const semis = ((TNote.chroma(chord.root) ?? 0) - (TNote.chroma(key.tonic) ?? 0) + 12) % 12;
-  const index = SCALES[key.mode].indexOf(semis);
-  const base = ROMAN[index >= 0 ? index : 0];
-  const minorish = ["m", "m7", "m6", "dim", "dim7", "m7b5"].includes(chord.type);
-  const mark = chord.type.startsWith("dim") || chord.type === "m7b5" ? "°" : "";
-  const seventh = chord.type.endsWith("7") ? "7" : "";
-  return (minorish ? base.toLowerCase() : base) + mark + seventh;
+  // STUB(A): no applied-chord detection (V7/IV comes out as I7).
+  const { degree, accidental } = rootDegree(chord.root, key);
+  const form = NUMERAL_FORMS.find((f) => f.type === chord.type);
+  if (!form || Math.abs(accidental) > 1) return "?";
+  const roman = ROMAN[degree - 1];
+  const prefix = accidental === -1 ? "b" : accidental === 1 ? "#" : "";
+  return prefix + (form.lower ? roman.toLowerCase() : roman) + form.suffix;
 }
 
 /**
  * Nashville number counted from the current tonic in major and minor alike
- * (1m in a minor key, never 6m), e.g. Em in D major → "2m".
+ * (1m in a minor key, never 6m), e.g. Em in D major → "2m", Bb in D → "b6".
+ * Secondary dominants are plain numbers with their quality (VI7 → "67").
+ * Sevenths come back as a plain "7"; the view superscripts them.
  * @param {ChordSpec} chord
  * @param {Key} key
  * @returns {string}
  */
 export function nashvilleOf(chord, key) {
-  // STUB(A): no chromatic roots or superscript sevenths yet.
-  const parsed = parseNumeral(numeralOf(chord, key));
-  if (!parsed) return "?";
-  const suffix = { major: "", minor: "m", diminished: "°", augmented: "+" }[parsed.quality];
-  return `${parsed.degree}${suffix}${parsed.seventh ? "7" : ""}`;
+  const { degree, accidental } = rootDegree(chord.root, key);
+  const form = NUMERAL_FORMS.find((f) => f.type === chord.type);
+  if (!form || Math.abs(accidental) > 1) return "?";
+  const prefix = accidental === -1 ? "b" : accidental === 1 ? "#" : "";
+  return `${prefix}${degree}${form.nashville}`;
 }
 
 /**
@@ -177,12 +227,13 @@ export function nashvilleOf(chord, key) {
  * @returns {string}
  */
 export function letterOf(chord) {
-  const suffix = { M: "", m: "m", dim: "°", aug: "+" }[chord.type] ?? chord.type;
+  const suffix = { M: "", dim: "°", dim7: "°7", m7b5: "ø7", aug: "+" }[chord.type] ?? chord.type;
   return chord.root + suffix;
 }
 
 /**
- * The chord a numeral names in a key, e.g. "V7" in D major → { root: "A", type: "7" }.
+ * The chord a numeral names in a key, e.g. "V7" in D major → { root: "A", type: "7" },
+ * "V7/IV" in D major → { root: "D", type: "7" }.
  * @param {string} numeral
  * @param {Key} key
  * @returns {ChordSpec | null} null if the numeral does not parse
@@ -190,12 +241,14 @@ export function letterOf(chord) {
 export function chordFromNumeral(numeral, key) {
   const parsed = parseNumeral(numeral);
   if (!parsed) return null;
-  // STUB(A): ignores applied chords (`of`).
-  const semis = SCALES[key.mode][parsed.degree - 1] + parsed.accidental;
-  const root = TNote.pitchClass(TNote.transpose(key.tonic, Interval.fromSemitones(semis)));
-  const triad = { major: "M", minor: "m", diminished: "dim", augmented: "aug" }[parsed.quality];
-  const type = parsed.seventh ? { M: "7", m: "m7", dim: "m7b5", aug: "aug" }[triad] : triad;
-  return { root: TNote.simplify(root), type: /** @type {string} */ (type) };
+  // An applied chord is measured from its target's root, as if that root were a major tonic.
+  const home = parsed.of ? chordFromNumeral(numeral.split("/")[1], key) : null;
+  const tonic = home ? home.root : key.tonic;
+  const mode = home ? "major" : key.mode;
+  const diatonic = TNote.transpose(tonic, DEGREE_INTERVALS[mode][parsed.degree - 1]);
+  const shift = { "-1": "-1A", 0: "1P", 1: "1A" }[parsed.accidental];
+  const root = TNote.pitchClass(TNote.transpose(diatonic, shift));
+  return { root, type: parsed.type };
 }
 
 /**
@@ -206,8 +259,21 @@ export function chordFromNumeral(numeral, key) {
  * @returns {HarmonicFunction}
  */
 export function functionOf(numeral, mode) {
-  // STUB(A): table lookup only; secondary-dominant rules not yet applied.
-  const base = numeral.replace(/7$/, "").replace("o", "°");
+  const parsed = parseNumeral(numeral);
+  if (!parsed) return "other";
+  const diminished = ["dim", "dim7", "m7b5"].includes(parsed.type);
+  // Applied chords, major-minor sevenths off V, and raised-root diminished
+  // chords all point at a new target: dominant (contracts/functions.json).
+  if (parsed.of) return "dominant";
+  if (parsed.type === "7" && !(parsed.degree === 5 && parsed.accidental === 0)) return "dominant";
+  if (diminished && parsed.accidental === 1) return "dominant";
+  // The table lists triads; an added seventh or sixth doesn't change function.
+  const lower = NUMERAL_FORMS.some((f) => f.type === parsed.type && f.lower);
+  const roman = ROMAN[parsed.degree - 1];
+  const base =
+    { "-1": "b", 0: "", 1: "#" }[parsed.accidental] +
+    (lower ? roman.toLowerCase() : roman) +
+    (diminished ? "°" : parsed.type === "aug" ? "+" : "");
   const table = /** @type {Record<string, string[]>} */ (functions[mode]);
   for (const fn of ["tonic", "subdominant", "dominant"]) {
     if (table[fn].includes(base)) return /** @type {HarmonicFunction} */ (fn);
@@ -276,9 +342,11 @@ export function fit(song, noteId, chord) {
 
 /**
  * Rank all 24 keys by Krumhansl-Schmuckler correlation. Candidates, never a
- * verdict: out-of-scale notes are annotations, not filters.
+ * verdict: out-of-scale notes are annotations, not filters ("F natural is
+ * outside D major"), so a blue-note melody keeps its real key in the running.
  * @param {Note[]} notes
- * @returns {{ key: Key, score: number, outOfScale: string[] }[]} 24 entries, best first
+ * @returns {{ key: Key, score: number, outOfScale: { noteId: string, pitch: string }[] }[]}
+ *   24 entries, best first; `pitch` is spelled in that key, e.g. "F4"
  */
 export function rankKeys(notes) {
   void notes; // STUB(A): fixed order, C major first.
@@ -298,11 +366,13 @@ export function rankKeys(notes) {
  * pause over half a beat after a release becomes a rest; the last note's
  * length comes from its release.
  * @param {{ downMs: number, upMs: number }[]} events in order
- * @returns {{ start: number, dur: number }[]} ticks, starting at 0
+ * @returns {{ notes: { start: number, dur: number }[], beatMs: number }} notes in ticks
+ *   from 0; `beatMs` is the detected beat, so record mode can set the tempo
  */
 export function guessRhythm(events) {
-  // STUB(A): plain quarter notes.
-  return events.map((_, i) => ({ start: i * 12, dur: 12 }));
+  // STUB(A): plain quarter notes at the first gap's tempo.
+  const beatMs = events.length > 1 ? events[1].downMs - events[0].downMs : 625;
+  return { notes: events.map((_, i) => ({ start: i * 12, dur: 12 })), beatMs };
 }
 
 /**
