@@ -9,7 +9,7 @@
   import { tick, untrack } from "svelte";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
-  import { describeNote, songToAbc } from "./abc.js";
+  import { describeNote, hasLyrics, songToAbc } from "./abc.js";
   import { mapDrawnNotes } from "./noteMap.js";
   import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
@@ -42,6 +42,8 @@
   const labelStyle = $derived($ui.labelStyle);
   const showDegrees = $derived($ui.showDegrees);
   const showWords = $derived($ui.showWords);
+  /** Whether the staff writes a words line, so its syllables get their own style. */
+  const wordsShown = $derived(showWords && hasLyrics($song));
   const notation = $derived(songToAbc($song, { mode, labelStyle, showDegrees, showWords }));
 
   /** Note groups in reading order; one per note (its first glyph). */
@@ -105,7 +107,10 @@
         paddingtop: 0,
         // A small title: the masthead already names the song, and the music
         // needs the height (it prints the same way).
-        format: { titlefont: "Jost 13" },
+        // Lyric lines are measured in the face they're drawn in (Jost), two
+        // sizes up from the 13 they're drawn at (CSS below), so abcjs leaves
+        // each syllable a little air and no two words touch.
+        format: { titlefont: "Jost 13", vocalfont: "Jost 15 bold" },
       });
       const { notes, chords } = mapDrawnNotes(tune, pieces);
       registerNoteElements(notes);
@@ -335,7 +340,7 @@
   <!-- abcjs sizes the host with a percentage padding, which resolves against
        its parent's width, so the width cap sits on this wrapper. -->
   <div class="frame">
-    <div class="notation mode-{mode}" bind:this={host}></div>
+    <div class="notation mode-{mode}" class:words={wordsShown} bind:this={host}></div>
   </div>
   <AccidentalMenu
     request={accidentalMenu}
@@ -412,6 +417,16 @@
   .notation :global(.abcjs-annotation),
   .notation :global(.abcjs-lyric) {
     fill: var(--ink-muted);
+  }
+  /* Drawn at 13, measured at 15 (vocalfont above) for the spacing. */
+  .notation :global(.abcjs-lyric) {
+    font-size: 13px;
+  }
+  /* The words: each note's lyric text ends with its syllable, then an empty
+     line, so the syllable is the second-to-last line. Regular weight, apart
+     from the bold degree above it. */
+  .notation.words :global(.abcjs-lyric > tspan:nth-last-child(2)) {
+    font-weight: 400;
   }
 
   /* Notes are buttons: pointer, focus, and the playhead. */

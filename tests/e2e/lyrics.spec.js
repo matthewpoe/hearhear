@@ -49,6 +49,29 @@ test("St. James shows its words under the staff, and the Words switch hides them
   const firstLyricTop = await lyrics.first().evaluate((el) => el.getBoundingClientRect().top);
   expect(firstLyricTop).toBeGreaterThan(staffBottom);
 
+  // Regular weight, and no two syllables on a line touch (bounding boxes only).
+  const layout = await lyrics.evaluateAll((texts) => {
+    const spans = texts.map((t) => {
+      const lines = t.querySelectorAll("tspan");
+      return lines[lines.length - 2];
+    });
+    const boxes = spans.map((s) => s.getBoundingClientRect());
+    const rows = new Map();
+    for (const b of boxes) {
+      const row = Math.round(b.top / 10);
+      rows.set(row, [...(rows.get(row) ?? []), b]);
+    }
+    const gaps = [...rows.values()].flatMap((row) =>
+      row.sort((a, b) => a.left - b.left).flatMap((b, i) => (i ? [b.left - row[i - 1].right] : [])),
+    );
+    return {
+      weights: [...new Set(spans.map((s) => getComputedStyle(s).fontWeight))],
+      minGap: Math.min(...gaps),
+    };
+  });
+  expect(layout.weights).toEqual(["400"]);
+  expect(layout.minGap).toBeGreaterThan(4);
+
   await axe(page);
 
   await words.click();

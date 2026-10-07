@@ -167,7 +167,10 @@ export function songToAbc(song, { mode, labelStyle, showDegrees, showWords = tru
     const syllables = lineBars.flatMap((b) => b.syllables);
     if (syllables.some((s) => s !== "*")) lines.push(`w:${syllables.join(" ")}`);
     const words = lineBars.flatMap((b) => b.words);
-    if (writeWords && words.some((s) => s !== "*")) lines.push(`w:${words.join(" ")}`);
+    // Every music line gets the words line, even one with no syllables, so a
+    // syllable is always the last line of its note's lyric text (the staff
+    // styles it apart from the degree above it).
+    if (writeWords) lines.push(`w:${words.join(" ")}`);
   }
   return { abc: [...header, ...lines].join("\n") + "\n", pieces };
 }
