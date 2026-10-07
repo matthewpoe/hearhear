@@ -32,6 +32,7 @@ const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
  *   avoids naming the key, and the server withholds every suggestion.
  * The song's title rides along, trimmed to the contract's bound, so the tutor
  * can ground its teaching in the tune's tradition; it is left out when blank.
+ * So does the song's swing, when it has one, so the tutor can talk about feel.
  */
 export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
   const { key, meter } = song;
@@ -87,5 +88,6 @@ export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
     bars,
     key_hidden: keyHidden,
     ...(title ? { title } : {}),
+    ...(song.swing === undefined ? {} : { swing: song.swing }),
   };
 }
