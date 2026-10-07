@@ -137,12 +137,13 @@
 
   // A press that found its button disabled while the piano loads (the
   // staff's Play) goes through once the piano is ready, and is dropped if the
-  // step changes or the piano fails (the staff then shows Retry).
+  // step changes, the tour is left, or the piano fails (the staff then shows Retry).
   $effect(() => {
     const status = $audioStatus;
     const at = waitingAt;
+    const on = $tour.running;
     if (at < 0) return;
-    if (at !== index || status === "failed") waitingAt = -1;
+    if (at !== index || !on || status === "failed") waitingAt = -1;
     else if (status === "ready") {
       waitingAt = -1;
       const action = steps[at].action;

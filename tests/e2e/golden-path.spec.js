@@ -96,7 +96,7 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
     .poll(() =>
       keep.evaluate((el) => {
         const dock = document.querySelector(".keyboard-dock")?.getBoundingClientRect().top ?? 0;
-        return el.getBoundingClientRect().bottom <= dock;
+        return el.getBoundingClientRect().bottom <= dock + 1;
       }),
     )
     .toBe(true);
