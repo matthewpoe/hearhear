@@ -22,6 +22,7 @@
   import { onAskRequest } from "./requests.js";
   import { checkSuggestions } from "./validate.js";
   import { failureText, canRetry } from "./failures.js";
+  import { replySteps } from "./replySteps.js";
 
   /** @import { HintLevel, Turn } from "./client.js" */
 
@@ -240,6 +241,17 @@
   }
 </script>
 
+<!-- A tutor reply: its prose, then its closing listening steps as a list. -->
+{#snippet reply(text)}
+  {@const { prose, steps } = replySteps(text)}
+  {#if prose}<p>{prose}</p>{/if}
+  {#if steps.length}
+    <ol class="steps">
+      {#each steps as step, i (i)}<li>{step}</li>{/each}
+    </ol>
+  {/if}
+{/snippet}
+
 <section id="tutor" class="tutor" aria-label="Tutor">
   <h2>Tutor</h2>
 
@@ -251,7 +263,7 @@
             {turn.role === "student" ? "You" : "Tutor"}
             {#if turn.level}<span class="level">· {LEVEL_NAMES[turn.level]}</span>{/if}
           </span>
-          <p>{turn.text}</p>
+          {#if turn.role === "tutor"}{@render reply(turn.text)}{:else}<p>{turn.text}</p>{/if}
         </li>
       {/each}
       {#if pending}
@@ -263,7 +275,7 @@
         {/if}
         <li class="turn tutor" aria-busy={status === "loading"}>
           <span class="who">Tutor <span class="level">· {LEVEL_NAMES[pending.level]}</span></span>
-          {#if pending.reply}<p>{pending.reply}</p>{/if}
+          {#if pending.reply}{@render reply(pending.reply)}{/if}
         </li>
       {/if}
     </ol>
@@ -434,6 +446,12 @@
   .turn p {
     margin: var(--space-1) 0 0;
     white-space: pre-line;
+  }
+  .steps {
+    display: grid;
+    gap: var(--space-1);
+    margin: var(--space-2) 0 0;
+    padding-left: var(--space-4);
   }
 
   .dots::after {

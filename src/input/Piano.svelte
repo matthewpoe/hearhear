@@ -14,6 +14,7 @@
   import { song } from "../store/song.js";
   import { keyLabelMode, ui } from "../store/ui.js";
   import { midiToDegree, spell } from "../theory/index.js";
+  import { spokenNote } from "../theory/noteDisplay.js";
   import {
     HIGHEST,
     LOWEST,
@@ -102,10 +103,6 @@
     1: { glyph: "♯", spoken: "sharp " },
   };
 
-  /** "C#4" → "C sharp 4", so screen readers don't say "number". @param {string} pitch */
-  const speakPitch = (pitch) =>
-    pitch.replace(/^([A-G])#/, "$1 sharp ").replace(/^([A-G])b/, "$1 flat ");
-
   /** @param {number} octave */
   function speakOctave(octave) {
     if (octave === 0) return "";
@@ -115,7 +112,8 @@
 
   /** @param {number} midi */
   function accessibleName(midi) {
-    const pitch = speakPitch(spell(midi, $song.key));
+    // "C sharp 4", so screen readers don't say "number".
+    const pitch = spokenNote(spell(midi, $song.key));
     const chordKey = chordKeys.get(midi);
     if (mode === "hidden") return chordKey ? `${pitch}, key ${chordKey.key} plays a chord` : pitch;
     const { degree, accidental, octave } = /** @type {import("../types.js").ScaleDegree} */ (
@@ -123,7 +121,7 @@
     );
     const binding = bindings.get(midi);
     const played = chordKey
-      ? `, key ${chordKey.key} plays chord ${chordKey.name}`
+      ? `, key ${chordKey.key} plays chord ${spokenNote(chordKey.name)}`
       : binding
         ? `, key ${bindingSpoken(binding)}`
         : "";
@@ -305,7 +303,14 @@
               </span>
             {/if}
             {#if binding && !chordKey}
-              <kbd>{bindingLabel(binding)}</kbd>
+              {@const label = bindingLabel(binding)}
+              {@const shifted = label.startsWith("⇧")}
+              <!-- Jost has no ⇧, so the arrow comes from a system font. -->
+              <kbd
+                >{#if shifted}<span class="shift">⇧</span>{/if}{shifted
+                  ? label.slice(1)
+                  : label}</kbd
+              >
             {/if}
           </span>
         </button>
@@ -535,6 +540,11 @@
   }
   .black kbd {
     font-size: 0.5625rem;
+  }
+  .shift {
+    font-family: system-ui, sans-serif;
+    font-size: 1.15em;
+    line-height: 1;
   }
 
   /* Before a demo guess nothing key-relative shows; confirming fades it in. */

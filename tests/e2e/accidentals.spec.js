@@ -4,7 +4,7 @@
 // Fails on any console error.
 
 import { test, expect } from "@playwright/test";
-import AxeBuilder from "@axe-core/playwright";
+import { axe } from "./axe.js";
 
 /** Ode to Joy's third note: G4, in D major once the key is chosen. */
 const G = "n3";
@@ -20,22 +20,6 @@ async function noteHead(page, id) {
   const box = await head.boundingBox();
   if (!box) throw new Error(`note ${id} isn't on the staff`);
   return { head, position: { x: box.width / 2, y: box.height / 4 } };
-}
-
-/** @param {import("@playwright/test").Page} page */
-async function axe(page) {
-  // Let theme transitions settle, so contrast is measured on final colors.
-  await page.evaluate(() => {
-    const finite = document
-      .getAnimations()
-      .filter((a) => a.effect?.getComputedTiming().endTime !== Infinity);
-    const settled = Promise.allSettled(finite.map((a) => a.finished));
-    return Promise.race([settled, new Promise((resolve) => setTimeout(resolve, 2000))]);
-  });
-  const { violations } = await new AxeBuilder({ page }).analyze();
-  expect(
-    violations.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target).join(" | ")})`),
-  ).toEqual([]);
 }
 
 test("right-click a note to change its accidental, by mouse and keyboard", async ({ page }) => {
@@ -119,7 +103,7 @@ test("right-click a note to change its accidental, by mouse and keyboard", async
   await menu.getByRole("menuitemradio", { name: "G sharp" }).click();
   await expect(menu).toHaveCount(0);
   await expect(note).toHaveAccessibleName(/^G sharp 4\b/);
-  await expect(page.locator("#staff .pitch-status")).toHaveText("G♯4");
+  await expect(page.locator("#staff .pitch-status")).toHaveText("G sharp 4");
   await expect(note).toBeFocused();
 
   // 3. Undo restores the natural.
@@ -137,7 +121,7 @@ test("right-click a note to change its accidental, by mouse and keyboard", async
   await expect(note).toBeFocused();
   // G flat in D major is the F sharp that's already in the key.
   await expect(note).toHaveAccessibleName(/^F sharp 4\b/);
-  await expect(page.locator("#staff .pitch-status")).toHaveText("G♭4, shown as F♯4");
+  await expect(page.locator("#staff .pitch-status")).toHaveText("G flat 4, shown as F sharp 4");
 
   // 5. Escape closes without a change and returns focus; the ContextMenu key opens it too.
   await page.keyboard.press("ContextMenu");

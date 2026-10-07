@@ -21,7 +21,14 @@
   import { DEMO_TUNES } from "../finding/demoTunes.js";
   import { chordFromNumeral } from "../theory/index.js";
   import { requestAsk } from "../tutor/requests.js";
-  import { conditionMet, hintFor, lessonExchange, noteAt, shouldAdvance } from "./steps.js";
+  import {
+    conditionMet,
+    hintFor,
+    lessonExchange,
+    noteAt,
+    shouldAdvance,
+    stepTarget,
+  } from "./steps.js";
   import { tour, goTo, leaveTour, finishTour } from "./tour.js";
 
   /** @import { Action, GuidedPath } from "./steps.js" */
@@ -83,6 +90,24 @@
     });
   });
 
+  // Each step (and a resumed tour) brings what it asks the viewer to use into
+  // view, centred above the dock: the song chooser, Play, the key prompt's
+  // button, the note on the staff, the tutor's question box.
+  $effect(() => {
+    const at = index;
+    const on = $tour.running;
+    if (!on) return;
+    untrack(async () => {
+      await tick();
+      const target = stepTarget(steps[at], song.get());
+      const within = target && document.querySelector(target.selector);
+      if (!within) return;
+      const el = (target.button && buttonIn(within, target.button)) || within;
+      const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
+    });
+  });
+
   $effect(() => {
     void $song.id;
     played = false;
@@ -120,6 +145,17 @@
     document.getElementById("guided-fold")?.focus();
   }
 
+  /**
+   * A button by its accessible name (aria-label or text) inside an element.
+   * @param {Element} within
+   * @param {string} name
+   */
+  function buttonIn(within, name) {
+    return [...within.querySelectorAll("button")].find(
+      (b) => (b.getAttribute("aria-label") ?? b.textContent ?? "").trim() === name,
+    );
+  }
+
   /** @param {Action} action */
   function tryIt(action) {
     switch (action.type) {
@@ -130,9 +166,7 @@
       }
       case "press": {
         const within = document.getElementById(action.within);
-        const button = [...(within?.querySelectorAll("button") ?? [])].find(
-          (b) => (b.getAttribute("aria-label") ?? b.textContent ?? "").trim() === action.name,
-        );
+        const button = within && buttonIn(within, action.name);
         if (button) button.click();
         else within?.scrollIntoView({ block: "nearest" });
         break;

@@ -35,9 +35,13 @@
     background: var(--ink);
     color: var(--paper);
   }
-  /* The invitation takes a line of its own in the masthead's wrapping row. */
+  /* The invitation takes a line of its own in the masthead's wrapping row,
+     lined up with the workspace below it (App.svelte: 80rem less its
+     padding, centred). */
   .invite {
     flex: 1 0 100%;
+    max-width: calc(80rem - 2 * var(--space-4));
+    margin-inline: auto;
     display: flex;
     flex-wrap: wrap;
     align-items: center;

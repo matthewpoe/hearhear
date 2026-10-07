@@ -8,6 +8,7 @@
  */
 
 import { spell } from "../theory/index.js";
+import { displayNote } from "../theory/noteDisplay.js";
 import { parseSpelling } from "./abc.js";
 import { MAX_MIDI, MIN_MIDI } from "../store/song.js";
 
@@ -22,8 +23,6 @@ const ACCIDENTALS = [
 
 /** Semitones above C for each letter. */
 const NATURALS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-
-const SYMBOLS = { "##": "𝄪", "#": "♯", bb: "𝄫", b: "♭" };
 
 /**
  * @typedef {{
@@ -45,7 +44,7 @@ const SYMBOLS = { "##": "𝄪", "#": "♯", bb: "𝄫", b: "♭" };
  * A spelled pitch class or pitch with music symbols: "Eb4" → "E♭4".
  * @param {string} spelled
  */
-export const pretty = (spelled) => spelled.replace(/##|#|bb|b/, (a) => SYMBOLS[a]);
+export const pretty = displayNote;
 
 /**
  * MIDI of a letter with an accidental in a written octave. The octave is the

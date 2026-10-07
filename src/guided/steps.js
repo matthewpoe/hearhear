@@ -123,6 +123,33 @@ export function shouldAdvance(wasMet, isMet) {
 }
 
 /**
+ * What a step asks the viewer to use, for the strip to scroll into view: a
+ * selector, and for a "press" action the button's accessible name inside it.
+ * Null when the step names nothing on the page (or a note the song lacks).
+ * @param {Step} step
+ * @param {Song} song
+ * @returns {{ selector: string, button?: string } | null}
+ */
+export function stepTarget(step, song) {
+  const action = step.action;
+  switch (action?.type) {
+    case "loadSong":
+      return { selector: "#song-chooser" };
+    case "press":
+      return { selector: `#${action.within}`, button: action.name };
+    case "openChords":
+    case "audition": {
+      const note = noteAt(song, action.bar, action.beat);
+      return note ? { selector: `#staff [data-note-id=${JSON.stringify(note.id)}]` } : null;
+    }
+    case "askTutor":
+      return { selector: "#tutor .ask" };
+    default:
+      return null;
+  }
+}
+
+/**
  * A step index kept inside the path.
  * @param {number} index
  * @param {number} count

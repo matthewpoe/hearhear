@@ -9,7 +9,7 @@
 
 import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
-import AxeBuilder from "@axe-core/playwright";
+import { axe } from "./axe.js";
 
 const ode = JSON.parse(
   readFileSync(new URL("../../content/songs/ode-to-joy.json", import.meta.url), "utf8"),
@@ -29,23 +29,6 @@ async function clickNote(page, id) {
   const box = await head.boundingBox();
   if (!box) throw new Error(`note ${id} isn't on the staff`);
   await head.click({ position: { x: box.width / 2, y: box.height / 4 } });
-}
-
-/** @param {import("@playwright/test").Page} page */
-async function axe(page) {
-  // Let theme and hover transitions settle, so contrast is measured on final colors.
-  // Cancelled animations reject `finished`, and infinite ones never settle.
-  await page.evaluate(() => {
-    const finite = document
-      .getAnimations()
-      .filter((a) => a.effect?.getComputedTiming().endTime !== Infinity);
-    const settled = Promise.allSettled(finite.map((a) => a.finished));
-    return Promise.race([settled, new Promise((resolve) => setTimeout(resolve, 2000))]);
-  });
-  const { violations } = await new AxeBuilder({ page }).analyze();
-  expect(
-    violations.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target).join(" | ")})`),
-  ).toEqual([]);
 }
 
 test("golden path: tune, key by ear and by chip, chords, song memory, tutor", async ({ page }) => {
@@ -126,7 +109,7 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(finder.locator('button[aria-pressed="true"]')).toHaveCount(0);
   await finder.getByRole("button", { name: "Chord 2 sounds like home" }).click();
   await expect(finder).toBeVisible();
-  await expect(finder).toContainText("Chord 1: F# minor");
+  await expect(finder).toContainText("Chord 1: F♯ minor");
   await expect(finder).toContainText("Chord 2: D major");
   await expect(finder).toContainText("Chord 3: A major");
   await expect(d).toHaveAttribute("aria-pressed", "true");
@@ -190,20 +173,17 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(placed).toHaveCount(2);
 
   // 7. Ask the tutor, which says it is replaying recorded replies; the fixture
-  // reply ends with numbered listening steps, each on its own line.
+  // reply ends with numbered listening steps, rendered as a list.
   const tutor = page.locator("#tutor");
   await expect(tutor.getByText(/^Demo mode:/)).toBeVisible();
   const ask = tutor.getByRole("button", { name: "Ask", exact: true });
   await expect(ask).toBeDisabled();
   await tutor.getByLabel("Your question").fill("Why does bar 4 feel unfinished?");
   await ask.click();
-  const reply = page.locator("#tutor .turn.tutor p").last();
-  await expect(reply).toContainText("3.", { timeout: 10_000 });
-  // innerText follows layout: the steps keep their line breaks only if they render.
-  const lines = (await reply.innerText()).split("\n").map((line) => line.trim());
-  for (const step of ["1.", "2.", "3."]) {
-    expect(lines.some((line) => line.startsWith(step))).toBe(true);
-  }
+  const reply = page.locator("#tutor .turn.tutor").last();
+  await expect(reply.locator("ol.steps > li")).toHaveCount(3, { timeout: 10_000 });
+  await expect(reply.locator("ol.steps > li").first()).toContainText(/bar 4/);
+  await expect(reply.locator("p")).not.toContainText("1.");
 
   // Both themes stay accessible after the whole path.
   await axe(page);
