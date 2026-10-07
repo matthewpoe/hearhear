@@ -19,6 +19,8 @@ const TUNES = [
   { song: load("greensleeves"), home: "E", dark: true, cadence: "n17", top: ["V"] },
   // The Saints' held G in bar 7 (degree 2) ends the first half on V.
   { song: load("when-the-saints"), home: "F", dark: false, cadence: "n16", top: ["V"] },
+  // Sweet Georgia Brown's last note, the long G of the 2nd ending, is home.
+  { song: load("sweet-georgia-brown"), home: "G", dark: false, cadence: "n93", top: ["I"] },
 ];
 
 for (const { song, home, dark, cadence, top } of TUNES) {

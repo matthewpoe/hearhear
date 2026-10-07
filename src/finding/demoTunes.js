@@ -12,6 +12,7 @@ import stJames from "../../content/songs/st-james-infirmary.json" with { type: "
 import amazingGrace from "../../content/songs/amazing-grace.json" with { type: "json" };
 import greensleeves from "../../content/songs/greensleeves.json" with { type: "json" };
 import saints from "../../content/songs/when-the-saints.json" with { type: "json" };
+import sweetGeorgia from "../../content/songs/sweet-georgia-brown.json" with { type: "json" };
 import { song } from "../store/song.js";
 import { ui } from "../store/ui.js";
 import { stop } from "../audio/index.js";
@@ -39,6 +40,10 @@ export const DEMO_TUNES = [
   {
     song: /** @type {Song} */ (saints),
     blurb: "The New Orleans parade tune: three pickup notes into a long one.",
+  },
+  {
+    song: /** @type {Song} */ (sweetGeorgia),
+    blurb: "A 1925 jazz standard that circles three chords before it lands home.",
   },
 ];
 
