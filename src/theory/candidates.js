@@ -26,7 +26,10 @@ const EXTENDED = {
 };
 
 /**
- * The likely suspects for the dropdown, in the current key and mode, unordered.
+ * The likely suspects for the dropdown, in the current key and mode, most
+ * common first, then the extended chords. Keep this order when sorting by
+ * fit, with a stable sort, so a tie falls to the commoner chord (I before iii
+ * under Ode's opening bar, where both score the same).
  * @param {Key} key
  * @param {{ extended?: boolean }} [options] extended: secondary dominants, borrowed, passing diminished
  * @returns {ChordSpec[]}
