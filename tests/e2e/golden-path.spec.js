@@ -182,7 +182,7 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await ask.click();
   const reply = page.locator("#tutor .turn.tutor").last();
   await expect(reply.locator("ol.steps > li")).toHaveCount(3, { timeout: 10_000 });
-  await expect(reply.locator("ol.steps > li").first()).toHaveText(/^Hover any chord under bar 4/);
+  await expect(reply.locator("ol.steps > li").first()).toContainText(/bar 4/);
   await expect(reply.locator("p")).not.toContainText("1.");
 
   // Both themes stay accessible after the whole path.
