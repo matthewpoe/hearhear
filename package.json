@@ -21,7 +21,7 @@
   "dependencies": {
     "abcjs": "6.7.1",
     "svelte": "5.57.2",
-    "tonal": "6.5.0",
+    "tonal": "6.4.3",
     "tone": "15.1.22"
   },
   "devDependencies": {

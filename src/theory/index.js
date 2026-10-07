@@ -1,0 +1,379 @@
+/**
+ * The theory core's public API (Stream A). Pure functions: no DOM, audio, or
+ * store imports (enforced by ESLint). Everything relative-pitch lives here, so
+ * the app, the store, and the Node eval harness share one definition.
+ *
+ * CONTRACT: exported names, parameters, and return shapes are frozen (see
+ * contracts/README.md). Bodies marked STUB(A) are Phase 0 placeholders that
+ * return plausible values; Stream A replaces them and adds tests.
+ *
+ * @import { Key, Meter, Note, Chord, ChordSpec, Song, ScaleDegree, HarmonicFunction, NoteRole } from "../types.js"
+ */
+
+import { Chord as TChord, Interval, Note as TNote } from "tonal";
+import functions from "../../contracts/functions.json" with { type: "json" };
+import { positionOf, ticksPerBar } from "./meter.js";
+
+export { TICKS_PER_QUARTER, positionOf, ticksPerBar, ticksPerBeat } from "./meter.js";
+
+const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
+
+/** @param {Key} key MIDI of degree 1 in the home octave. STUB(A): register choice. */
+function tonicMidi(key) {
+  const chroma = /** @type {number} */ (TNote.chroma(key.tonic));
+  return 60 + (chroma > 6 ? chroma - 12 : chroma);
+}
+
+// --- Pitch and key ---------------------------------------------------------
+
+/**
+ * Spell a MIDI pitch in the context of a key, e.g. 66 in D major → "F#4".
+ * @param {number} midi
+ * @param {Key} key
+ * @returns {string}
+ */
+export function spell(midi, key) {
+  // STUB(A): flat keys spell with flats, everything else with sharps.
+  const flatKey = key.tonic.includes("b") || key.tonic === "F";
+  return flatKey ? TNote.fromMidi(midi) : TNote.fromMidiSharps(midi);
+}
+
+/**
+ * Resolve a scale degree to an absolute pitch. Minor keys use natural minor.
+ * @param {ScaleDegree} degree
+ * @param {Key} key
+ * @param {number} [windowOctave=0] The arrow keys' octave shift of the whole input window.
+ * @returns {number} MIDI
+ */
+export function degreeToMidi({ degree, accidental, octave }, key, windowOctave = 0) {
+  const step = SCALES[key.mode][degree - 1];
+  return tonicMidi(key) + step + accidental + 12 * (octave + windowOctave);
+}
+
+/**
+ * The inverse of degreeToMidi: which degree (and octave dot) a pitch is in a key.
+ * @param {number} midi
+ * @param {Key} key
+ * @returns {ScaleDegree}
+ */
+export function midiToDegree(midi, key) {
+  const fromTonic = midi - tonicMidi(key);
+  const octave = Math.floor(fromTonic / 12);
+  const pc = fromTonic - octave * 12;
+  const scale = SCALES[key.mode];
+  const exact = scale.indexOf(pc);
+  // STUB(A): chromatic notes read as a raised degree below; real spelling is contextual.
+  const index = exact >= 0 ? exact : scale.indexOf(pc - 1);
+  const degree = /** @type {ScaleDegree["degree"]} */ (index + 1);
+  return { degree, accidental: exact >= 0 ? 0 : 1, octave };
+}
+
+const ROW_DEGREES = {
+  Digit: ["1", "2", "3", "4", "5", "6", "7"],
+  upper: ["Q", "W", "E", "R", "T", "Y", "U"],
+  lower: ["A", "S", "D", "F", "G", "H", "J"],
+};
+
+/**
+ * Map a physical key (KeyboardEvent.code) and modifiers to a scale degree.
+ * Number row = home octave, with 8 9 0 continuing to 1 2 3 above; Q–U = one
+ * octave below; A–J = two below. Shift raises, Alt/Option lowers.
+ * @param {string} code e.g. "Digit5", "KeyU"
+ * @param {{ shift: boolean, alt: boolean }} modifiers
+ * @returns {ScaleDegree | null} null for keys that are not note keys
+ */
+export function keyEventToDegree(code, { shift, alt }) {
+  const accidental = shift && !alt ? 1 : alt && !shift ? -1 : 0;
+  /** @param {number} index @param {number} octave */
+  const at = (index, octave) => ({
+    degree: /** @type {ScaleDegree["degree"]} */ (index + 1),
+    accidental: /** @type {ScaleDegree["accidental"]} */ (accidental),
+    octave,
+  });
+  const digit = code.match(/^Digit(\d)$/)?.[1];
+  if (digit) {
+    const n = Number(digit);
+    if (n >= 1 && n <= 7) return at(n - 1, 0);
+    return at({ 8: 0, 9: 1, 0: 2 }[n] ?? 0, 1);
+  }
+  const letter = code.match(/^Key([A-Z])$/)?.[1];
+  if (!letter) return null;
+  const upper = ROW_DEGREES.upper.indexOf(letter);
+  if (upper >= 0) return at(upper, -1);
+  const lower = ROW_DEGREES.lower.indexOf(letter);
+  if (lower >= 0) return at(lower, -2);
+  return null;
+}
+
+// --- Chord naming -------------------------------------------------------------
+
+/**
+ * @typedef {{
+ *   degree: number, accidental: -1 | 0 | 1,
+ *   quality: "major" | "minor" | "diminished" | "augmented",
+ *   seventh: boolean, of: ParsedNumeral | null
+ * }} ParsedNumeral
+ */
+
+/**
+ * Parse a Roman numeral. Uppercase is major, lowercase minor; `°` or `o`
+ * diminished, `+` augmented; a trailing 7 adds a seventh; `/x` is an applied chord.
+ * @param {string} text e.g. "V7", "bVII", "vii°", "V7/IV"
+ * @returns {ParsedNumeral | null} null if it does not parse
+ */
+export function parseNumeral(text) {
+  const [head, target] = text.trim().split("/");
+  const m = head.match(/^(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(°|o|\+)?(7)?$/);
+  if (!m) return null;
+  const [, acc, roman, mark, seventh] = m;
+  const lower = roman === roman.toLowerCase();
+  const of = target === undefined ? null : parseNumeral(target);
+  if (target !== undefined && !of) return null;
+  return {
+    degree: ROMAN.indexOf(roman.toUpperCase()) + 1,
+    accidental: acc === "b" ? -1 : acc === "#" ? 1 : 0,
+    quality: mark === "+" ? "augmented" : mark ? "diminished" : lower ? "minor" : "major",
+    seventh: Boolean(seventh),
+    of,
+  };
+}
+
+/**
+ * The Roman numeral of a chord in a key, e.g. A7 in D major → "V7".
+ * @param {ChordSpec} chord
+ * @param {Key} key
+ * @returns {string}
+ */
+export function numeralOf(chord, key) {
+  // STUB(A): diatonic roots only, no applied-chord detection.
+  const semis = ((TNote.chroma(chord.root) ?? 0) - (TNote.chroma(key.tonic) ?? 0) + 12) % 12;
+  const index = SCALES[key.mode].indexOf(semis);
+  const base = ROMAN[index >= 0 ? index : 0];
+  const minorish = ["m", "m7", "m6", "dim", "dim7", "m7b5"].includes(chord.type);
+  const mark = chord.type.startsWith("dim") || chord.type === "m7b5" ? "°" : "";
+  const seventh = chord.type.endsWith("7") ? "7" : "";
+  return (minorish ? base.toLowerCase() : base) + mark + seventh;
+}
+
+/**
+ * Nashville number counted from the current tonic in major and minor alike
+ * (1m in a minor key, never 6m), e.g. Em in D major → "2m".
+ * @param {ChordSpec} chord
+ * @param {Key} key
+ * @returns {string}
+ */
+export function nashvilleOf(chord, key) {
+  // STUB(A): no chromatic roots or superscript sevenths yet.
+  const parsed = parseNumeral(numeralOf(chord, key));
+  if (!parsed) return "?";
+  const suffix = { major: "", minor: "m", diminished: "°", augmented: "+" }[parsed.quality];
+  return `${parsed.degree}${suffix}${parsed.seventh ? "7" : ""}`;
+}
+
+/**
+ * Letter-name chord symbol, e.g. { root: "A", type: "7" } → "A7".
+ * @param {ChordSpec} chord
+ * @returns {string}
+ */
+export function letterOf(chord) {
+  const suffix = { M: "", m: "m", dim: "°", aug: "+" }[chord.type] ?? chord.type;
+  return chord.root + suffix;
+}
+
+/**
+ * The chord a numeral names in a key, e.g. "V7" in D major → { root: "A", type: "7" }.
+ * @param {string} numeral
+ * @param {Key} key
+ * @returns {ChordSpec | null} null if the numeral does not parse
+ */
+export function chordFromNumeral(numeral, key) {
+  const parsed = parseNumeral(numeral);
+  if (!parsed) return null;
+  // STUB(A): ignores applied chords (`of`).
+  const semis = SCALES[key.mode][parsed.degree - 1] + parsed.accidental;
+  const root = TNote.pitchClass(TNote.transpose(key.tonic, Interval.fromSemitones(semis)));
+  const triad = { major: "M", minor: "m", diminished: "dim", augmented: "aug" }[parsed.quality];
+  const type = parsed.seventh ? { M: "7", m: "m7", dim: "m7b5", aug: "aug" }[triad] : triad;
+  return { root: TNote.simplify(root), type: /** @type {string} */ (type) };
+}
+
+/**
+ * Harmonic function of a numeral, which drives every color and shape in the
+ * app. Data lives in contracts/functions.json.
+ * @param {string} numeral
+ * @param {"major" | "minor"} mode
+ * @returns {HarmonicFunction}
+ */
+export function functionOf(numeral, mode) {
+  // STUB(A): table lookup only; secondary-dominant rules not yet applied.
+  const base = numeral.replace(/7$/, "").replace("o", "°");
+  const table = /** @type {Record<string, string[]>} */ (functions[mode]);
+  for (const fn of ["tonic", "subdominant", "dominant"]) {
+    if (table[fn].includes(base)) return /** @type {HarmonicFunction} */ (fn);
+  }
+  return "other";
+}
+
+// --- Harmony -------------------------------------------------------------------
+
+/**
+ * Pitch classes of a chord, root first, e.g. A7 → ["A", "C#", "E", "G"].
+ * @param {ChordSpec} chord
+ * @returns {string[]}
+ */
+export function chordTones(chord) {
+  return TChord.getChord(chord.type, chord.root).notes;
+}
+
+/**
+ * What a melody note is over a chord. This one function drives the dropdown's
+ * "why" labels, fit, the clash check, and the evals.
+ * @param {number} midi
+ * @param {ChordSpec} chord
+ * @returns {{ role: NoteRole, interval: string }}
+ */
+export function analyzeNoteOverChord(midi, chord) {
+  // STUB(A): interval class only, no tension-vs-clash judgment.
+  const semis = (midi - (TNote.chroma(chord.root) ?? 0) + 120) % 12;
+  const interval = Interval.fromSemitones(semis);
+  const tones = chordTones(chord).map((n) => TNote.chroma(n));
+  if (!tones.includes(midi % 12)) return { role: semis === 1 ? "clash" : "tension", interval };
+  /** @type {Record<number, NoteRole>} */
+  const roles = { 0: "root", 3: "third", 4: "third", 6: "fifth", 7: "fifth", 8: "fifth" };
+  return { role: roles[semis] ?? "seventh", interval };
+}
+
+/**
+ * The likely suspects for the dropdown, in the current key and mode, unordered.
+ * @param {Key} key
+ * @param {{ extended?: boolean }} [options] extended: secondary dominants, borrowed, passing diminished
+ * @returns {ChordSpec[]}
+ */
+export function candidates(key, { extended = false } = {}) {
+  const numerals =
+    key.mode === "major" ? ["I", "IV", "V", "vi", "ii", "iii"] : ["i", "iv", "V", "III", "VI"];
+  // STUB(A): extended vocabulary.
+  const extra = extended ? ["V7/IV", "V7/V", "bVII", "iv"] : [];
+  return [...numerals, ...extra].map((n) => chordFromNumeral(n, key)).filter((c) => c !== null);
+}
+
+/**
+ * How well a chord fits the melody around a note: melody notes within the
+ * chord's span, weighted by beat strength and duration.
+ * @param {Song} song
+ * @param {string} noteId the note the chord would sit on
+ * @param {ChordSpec} chord
+ * @returns {number} 0..1
+ */
+export function fit(song, noteId, chord) {
+  // STUB(A): only the anchor note, unweighted.
+  const note = song.notes.find((n) => n.id === noteId);
+  if (!note) return 0;
+  const score = { root: 1, third: 1, fifth: 0.9, seventh: 0.7, tension: 0.4, clash: 0.1 };
+  return score[analyzeNoteOverChord(note.midi, chord).role];
+}
+
+/**
+ * Rank all 24 keys by Krumhansl-Schmuckler correlation. Candidates, never a
+ * verdict: out-of-scale notes are annotations, not filters.
+ * @param {Note[]} notes
+ * @returns {{ key: Key, score: number, outOfScale: string[] }[]} 24 entries, best first
+ */
+export function rankKeys(notes) {
+  void notes; // STUB(A): fixed order, C major first.
+  const tonics = ["C", "G", "D", "A", "E", "B", "F#", "Db", "Ab", "Eb", "Bb", "F"];
+  return ["major", "minor"].flatMap((mode, m) =>
+    tonics.map((tonic, i) => ({
+      key: { tonic, mode: /** @type {Key["mode"]} */ (mode), provisional: true },
+      score: 1 - (m * 12 + i) / 24,
+      outOfScale: [],
+    })),
+  );
+}
+
+/**
+ * Guess rhythm from key-down/up times. The most common gap between onsets is
+ * the beat (a quarter); other gaps snap to ½, 1, 1½, 2, 3, or 4 beats; a
+ * pause over half a beat after a release becomes a rest; the last note's
+ * length comes from its release.
+ * @param {{ downMs: number, upMs: number }[]} events in order
+ * @returns {{ start: number, dur: number }[]} ticks, starting at 0
+ */
+export function guessRhythm(events) {
+  // STUB(A): plain quarter notes.
+  return events.map((_, i) => ({ start: i * 12, dur: 12 }));
+}
+
+/**
+ * Voice a chord with nearest-inversion voice leading in a fixed register below
+ * the melody, so auditioned alternatives differ only in harmony.
+ * @param {ChordSpec} chord
+ * @param {number[] | null} previous the previous chord's voicing, if any
+ * @param {{ low: number, high: number }} [register] MIDI bounds, default C3–C4
+ * @returns {number[]} MIDI, ascending
+ */
+export function voice(chord, previous, register = { low: 48, high: 60 }) {
+  void previous; // STUB(A): root position, no voice leading.
+  const rootMidi =
+    register.low + (((((TNote.chroma(chord.root) ?? 0) - register.low) % 12) + 12) % 12);
+  return chordTones(chord).map((pc) => {
+    const up = ((((TNote.chroma(pc) ?? 0) - rootMidi) % 12) + 12) % 12;
+    return rootMidi + up;
+  });
+}
+
+// --- Meter and transforms ---------------------------------------------------
+
+/**
+ * Lay out bars for a meter hypothesis. Notes never move; only bar lines do.
+ * Bar 0 is the pickup when meter.pickupTicks > 0.
+ * @param {Song} song
+ * @param {Meter} meter
+ * @returns {{ index: number, startTick: number, noteIds: string[] }[]}
+ */
+export function rebar(song, meter) {
+  const end = song.notes.reduce((max, n) => Math.max(max, n.start + n.dur), 0);
+  const barTicks = ticksPerBar(meter);
+  const firstBar = meter.pickupTicks > 0 ? 0 : 1;
+  const lastBar = end === 0 ? firstBar : positionOf(end - 1, meter).bar;
+  const bars = [];
+  for (let index = firstBar; index <= lastBar; index++) {
+    const startTick = index === 0 ? 0 : meter.pickupTicks + (index - 1) * barTicks;
+    const noteIds = song.notes
+      .filter((n) => positionOf(n.start, meter).bar === index)
+      .map((n) => n.id);
+    bars.push({ index, startTick, noteIds });
+  }
+  return bars;
+}
+
+/**
+ * Move melody, chords, and tonic together by a number of semitones.
+ * @param {Song} song
+ * @param {number} semitones
+ * @returns {Song}
+ */
+export function transposeSong(song, semitones) {
+  // STUB(A): enharmonic choice (F# vs Gb) per the PRD's conventional-key list.
+  const interval = Interval.fromSemitones(semitones);
+  /** @param {string} pc */
+  const move = (pc) => TNote.simplify(TNote.transpose(pc, interval));
+  return {
+    ...song,
+    key: { ...song.key, tonic: move(song.key.tonic) },
+    notes: song.notes.map((n) => ({ ...n, midi: n.midi + semitones })),
+    chords: song.chords.map((c) => ({ ...c, root: move(c.root) })),
+  };
+}
+
+/**
+ * Change the key hypothesis only; notes and chords stay as heard and every
+ * label re-derives.
+ * @param {Song} song
+ * @param {Key} key
+ * @returns {Song}
+ */
+export function rekeySong(song, key) {
+  return { ...song, key };
+}
