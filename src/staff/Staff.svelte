@@ -158,7 +158,8 @@
     const index = byId >= 0 ? byId : Math.min(Math.max(place.index, 0), noteButtons.length - 1);
     const stop = noteButtons[index];
     stop.setAttribute("tabindex", "0");
-    if (place.hadFocus && stop instanceof SVGElement) stop.focus();
+    // The redraw puts the note back where it was, so its focus mustn't scroll.
+    if (place.hadFocus && stop instanceof SVGElement) stop.focus({ preventScroll: true });
   }
 
   /**

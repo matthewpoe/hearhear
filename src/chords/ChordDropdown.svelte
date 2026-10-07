@@ -309,8 +309,10 @@
       : noteId
         ? document.querySelector(`#staff [data-note-id="${CSS.escape(noteId)}"]`)
         : null;
-    // SVGElement implements focus() as HTMLElement does.
-    /** @type {HTMLElement | SVGElement | null} */ (target)?.focus();
+    // SVGElement implements focus() as HTMLElement does. Focus goes back to
+    // where it was without scrolling: the note was on screen when it opened
+    // the dropdown, and a scroll here pushed the masthead off the top.
+    /** @type {HTMLElement | SVGElement | null} */ (target)?.focus({ preventScroll: true });
   }
 
   /**
