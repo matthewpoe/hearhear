@@ -280,12 +280,12 @@ for (const viewport of [
     await expect.poll(() => aboveDock(page, `#staff [data-note-id="${lastNote.id}"]`)).toBe(true);
     await page.evaluate(() => window.scrollTo(0, 0));
     await expect.poll(() => aboveDock(page, "#tutor .ask")).toBe(false);
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect.poll(() => aboveDock(page, "#tutor .ask")).toBe(true);
     await page.getByRole("button", { name: "Back" }).click();
     await expectStep("land");
     await expect(tour.getByText("Done.")).toBeVisible();
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     await expectStep("ask");
 
     await axe(page);

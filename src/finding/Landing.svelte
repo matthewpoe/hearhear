@@ -108,7 +108,7 @@
   /** @type {HTMLButtonElement | undefined} */
   let reopenButton = $state();
 
-  /** "Done" or "Not now": collapse the key step, keeping focus on its row. */
+  /** "Next: find the chords" or "Not now": collapse the key step, keeping focus on its row. */
   async function collapseKey() {
     intent = "dismissed";
     await tick();
@@ -245,10 +245,11 @@
   .path .current {
     color: var(--ink);
   }
+  /* The current step is what you do now: --accent. */
   .current .num {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--paper);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .name {
     font-weight: 600;
