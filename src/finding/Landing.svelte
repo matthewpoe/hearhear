@@ -22,7 +22,7 @@
   import { nextStep, rhythmSource } from "../steps/nextStep.js";
   import DroneSwitch from "../staff/DroneSwitch.svelte";
   import DegreesSwitch from "../toolbar/DegreesSwitch.svelte";
-  import { recorder } from "../record/tunes.js";
+  import { recorder, shelf } from "../record/tunes.js";
   import { isUserTune } from "../record/take.js";
 
   /** Notes of free play before the prompt asks: about a phrase. */
@@ -69,6 +69,19 @@
     const now = song.get();
     song.rebar({ ...now.meter, provisional: false });
   }
+
+  /**
+   * A recorded tune with its raw take kept can be read again with the
+   * player's Feel. This is how the playing is read, not the playback
+   * switch: re-reading sets the song's swing to match, so that one follows.
+   */
+  const canReread = $derived(isUserTune($song.id) && shelf.take($song.id) !== null);
+  /** @type {"straight" | "swing"} */
+  const feel = $derived(($song.swing ?? 1) > 1 ? "swing" : "straight");
+  const FEELS = /** @type {const} */ ([
+    ["straight", "Straight"],
+    ["swing", "Swing"],
+  ]);
 
   /** A demo's prompt waits for its guess; anywhere else the user can put it off. */
   const canDismiss = $derived(!($song.key.provisional && demo));
@@ -197,6 +210,29 @@
         {$song.meter.beatsPerBar}/{$song.meter.beatUnit} at {$song.tempo} beats a minute. Press Play and
         tap along: do the bar lines fall where the beat feels strongest?
       </p>
+      {#if canReread}
+        <fieldset class="feel" aria-describedby="feel-gloss">
+          <legend>Feel <span class="gloss">— how your playing is read</span></legend>
+          <div class="segmented">
+            {#each FEELS as [value, label] (value)}
+              <label class:checked={feel === value}>
+                <input
+                  type="radio"
+                  name="record-feel"
+                  {value}
+                  checked={feel === value}
+                  onchange={() => recorder.reread(value)}
+                />
+                {label}
+              </label>
+            {/each}
+          </div>
+          <p id="feel-gloss" class="gloss">
+            Swing writes long-short pairs as even eighths that play back swung. Straight writes them
+            as you played them, dotted where they're uneven. Undo takes a change back.
+          </p>
+        </fieldset>
+      {/if}
       <button type="button" onclick={confirmRhythm}>Sounds right</button>
     </div>
   {/if}
@@ -309,6 +345,52 @@
     display: grid;
     gap: var(--space-2);
     justify-items: start;
+  }
+  .feel {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+  .feel legend {
+    padding: 0;
+    font-weight: 500;
+  }
+  .gloss {
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    font-weight: 400;
+  }
+  .segmented {
+    display: inline-flex;
+    justify-self: start;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .segmented label {
+    position: relative;
+    padding: var(--space-1) var(--space-3);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .segmented label + label {
+    border-left: 1px solid var(--ink);
+  }
+  .segmented label.checked {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .segmented input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .segmented label:has(input:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
   }
   .rhythm h2 {
     font-size: var(--text-lg);
