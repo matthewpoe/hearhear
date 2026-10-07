@@ -35,6 +35,7 @@
     transition: background var(--dur-fast) var(--ease);
   }
   [aria-pressed="true"] .dot {
-    background: var(--ink);
+    border-color: var(--accent);
+    background: var(--accent);
   }
 </style>
