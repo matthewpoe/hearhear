@@ -14,7 +14,6 @@
   import { DEMO_TUNES, loadDemo } from "./demoTunes.js";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
-  import GuessResult from "./GuessResult.svelte";
 
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
@@ -22,8 +21,9 @@
   /**
    * What the user last did with the key prompt. With the two store facts (is
    * the key provisional, is a demo awaiting its guess) it decides the view.
-   * "ask": nothing yet; "dismissed": put off in free play; "reopened": asked
-   * for the prompt again; "guessed": committed a key.
+   * "ask": nothing yet; "dismissed": put off with "Not now"; "reopened":
+   * asked for the prompt again; "guessed": chose (or took back) a home, so
+   * the prompt stays open to change or check it.
    * @type {"ask" | "dismissed" | "reopened" | "guessed"}
    */
   let intent = $state("ask");
@@ -32,14 +32,14 @@
   const empty = $derived($song.notes.length === 0);
   const demo = $derived($ui.demoAwaitingGuess);
 
-  /** @type {"none" | "prompt" | "find" | "result"} */
+  /** @type {"none" | "prompt" | "find"} */
   const view = $derived.by(() => {
     if (empty) return "none";
-    if (intent === "reopened") return "prompt";
-    if (!$song.key.provisional) return intent === "guessed" ? "result" : "none";
-    // Provisional: a demo always waits for its guess, even after an undo (D18).
-    if (demo) return "prompt";
+    // A demo always waits for its guess, even after an undo (D18).
+    if ($song.key.provisional && demo) return "prompt";
     if (intent === "dismissed") return "find";
+    if (intent !== "ask") return "prompt";
+    if (!$song.key.provisional) return "none";
     return $song.notes.length >= PHRASE_NOTES ? "prompt" : "none";
   });
 
@@ -78,18 +78,15 @@
   }
 
   /**
-   * Commit a guess. The demo flag stays set until the user leaves the demo
-   * (D18), so undoing the guess hides the labels again.
-   * @param {Pick<Key, "tonic" | "mode">} key
+   * Commit a guess, or take one back (a provisional key). The demo flag stays
+   * set until the user leaves the demo (D18), so taking back or undoing a
+   * guess hides the labels again.
+   * @param {Key} key
    */
-  function commit({ tonic, mode }) {
+  function rekey(key) {
     stopListening();
-    song.rekey({ tonic, mode, provisional: false });
+    song.rekey(key);
     intent = "guessed";
-  }
-
-  function dismiss() {
-    intent = $song.key.provisional ? "dismissed" : "guessed";
   }
 </script>
 
@@ -139,17 +136,17 @@
     <!-- Remount per song, so easy mode ranks the homes of the tune now loaded. -->
     {#key $song.id}
       <KeyPrompt
-        onguess={commit}
-        ondismiss={canDismiss ? dismiss : undefined}
-        autofocus={demo || intent === "reopened"}
+        onkey={rekey}
+        ondismiss={canDismiss ? () => (intent = "dismissed") : undefined}
+        autofocus={(demo && intent === "ask") || intent === "reopened"}
       />
     {/key}
   {:else if view === "find"}
     <div class="find">
-      <button type="button" onclick={() => (intent = "reopened")}>Find the key</button>
+      <button type="button" onclick={() => (intent = "reopened")}>
+        {$song.key.provisional ? "Find the key" : "Change the key"}
+      </button>
     </div>
-  {:else if view === "result"}
-    <GuessResult guess={$song.key} onchange={() => (intent = "reopened")} />
   {/if}
 </section>
 
