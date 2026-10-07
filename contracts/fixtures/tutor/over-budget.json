@@ -1,5 +1,6 @@
 {
   "name": "over-budget",
+  "song": "ode-to-joy",
   "description": "Daily budget spent mid-session: the stream ends with an error; the client falls back to cached lessons.",
   "events": [
     {

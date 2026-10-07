@@ -1,60 +1,61 @@
 {
   "name": "answer",
+  "song": "ode-to-joy",
   "description": "Hint level answer: best guess with the theory behind it.",
   "events": [
     {
       "event": "message",
       "data": {
-        "delta": "My best guess is V in bar 4, "
+        "delta": "My best guess is V under the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "then V to I in bar 8. Bar 4 is "
+        "delta": "long E in bar 4, then V to I "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "a half cadence: it pauses on "
+        "delta": "in bar 8. Bar 4 is a half cadence: "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "the dominant, the red square, "
+        "delta": "it pauses on the dominant, the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "so the second phrase can answer "
+        "delta": "red square, so the second phrase "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "it and come home. I'm fairly "
+        "delta": "can answer it and come home. "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "confident, but play it and see "
+        "delta": "I'm fairly confident, but play "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "if it lands for you. "
+        "delta": "it and see if it lands for you. "
       },
       "delayMs": 45
     },
@@ -67,11 +68,11 @@
         "suggestions": [
           {
             "bar": 4,
-            "beat": 1,
+            "beat": 3,
             "numeral": "V",
             "letter": "A",
             "confidence": "high",
-            "reason": "Half cadence: the first phrase pauses on the dominant."
+            "reason": "Half cadence: the held E is the 5th of A, so the first phrase pauses on the dominant."
           },
           {
             "bar": 8,

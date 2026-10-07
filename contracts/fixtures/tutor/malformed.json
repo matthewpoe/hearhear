@@ -1,5 +1,6 @@
 {
   "name": "malformed",
+  "song": "ode-to-joy",
   "description": "One suggestion fails server validation (numeral and letter disagree) and is dropped.",
   "events": [
     {

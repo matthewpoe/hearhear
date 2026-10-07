@@ -1,5 +1,6 @@
 {
   "name": "nudge",
+  "song": "ode-to-joy",
   "description": "Hint level nudge: points at where to listen, no suggestions.",
   "events": [
     {
