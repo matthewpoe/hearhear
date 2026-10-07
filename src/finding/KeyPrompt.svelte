@@ -11,6 +11,7 @@
    * the same words GuessResult shows.
    * @import { Key } from "../types.js"
    */
+  import { tick } from "svelte";
   import { song } from "../store/song.js";
   import { afterFinderPick, afterHomeClick, afterModeChange, chosenTonic } from "./keyChoice.js";
   import { COPY, feedbackText, fill, finderText, guessFeedback } from "./guessFeedback.js";
@@ -63,6 +64,8 @@
   let opener = /** @type {HTMLElement | undefined} */ ($state());
   /** @type {{ show: () => void } | undefined} */
   let finder = $state();
+  /** @type {{ show: () => void } | undefined} */
+  let result = $state();
 
   $effect(() => {
     if (autofocus) heading?.focus();
@@ -79,6 +82,9 @@
       ? "No home chosen yet."
       : feedbackText(key, guessFeedback(key, known, kept));
     announcement = lead ? `${lead} ${said}` : said;
+    // A choice on the card shows its result (and any invitation) above the
+    // dock; a choice in the finder leaves the finder where it is.
+    if (!key.provisional && !finding) tick().then(() => result?.show());
   }
 
   /** @param {string} tonic */
@@ -205,7 +211,13 @@
   <p class="visually-hidden" role="status">{announcement}</p>
 
   {#if !$song.key.provisional}
-    <GuessResult guess={$song.key} {feedback} oncheck={openFinder} onkeep={keepChoice} />
+    <GuessResult
+      bind:this={result}
+      guess={$song.key}
+      {feedback}
+      oncheck={openFinder}
+      onkeep={keepChoice}
+    />
   {/if}
 
   {#if finding}

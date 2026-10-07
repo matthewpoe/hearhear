@@ -28,6 +28,15 @@
   /** @type {HTMLButtonElement | undefined} */
   let checkButton = $state();
 
+  /** @type {HTMLElement | undefined} */
+  let card = $state();
+
+  /** Bring the card into view above the keyboard dock, without moving focus. */
+  export function show() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    card?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+  }
+
   /** "Keep my choice" removes itself, so focus moves to the "Check it by ear" that stays. */
   async function keepChoice() {
     onkeep();
@@ -36,7 +45,7 @@
   }
 </script>
 
-<div class="result">
+<div class="result" bind:this={card}>
   <p class="home">{fill(COPY.chose, guess)}</p>
   {#if invite}
     <p>{COPY[feedback === "otherMode" ? "otherMode" : "mismatch"]}</p>
