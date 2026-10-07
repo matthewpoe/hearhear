@@ -14,7 +14,6 @@ import {
   loadProgress,
   noteAt,
   numeralAt,
-  placePanel,
   saveProgress,
   shouldAdvance,
 } from "../../src/guided/steps.js";
@@ -46,7 +45,7 @@ function place(store, bar, beat, numeral) {
 }
 
 /** @param {Song} song */
-const state = (song, tutorReplies = 0) => ({ song, tutorReplies });
+const state = (song, tutorReplies = 0, played = false) => ({ song, tutorReplies, played });
 
 describe("the guided path's content", () => {
   it("is marked as a placeholder until Matthew's ear check", () => {
@@ -72,10 +71,10 @@ describe("the guided path's content", () => {
     );
   });
 
-  it("has unique step ids, a title and text on each, and a label on each action", () => {
+  it("has unique step ids, a title, a one-line instruction and text on each, and a label on each action", () => {
     assert.equal(new Set(steps.map((s) => s.id)).size, steps.length);
     for (const step of steps) {
-      assert.ok(step.title && step.text, step.id);
+      assert.ok(step.title && step.line && step.text, step.id);
       if (step.action) assert.ok(step.action.label, step.id);
     }
   });
@@ -98,11 +97,14 @@ describe("the guided path's content", () => {
       land: () => place(store, 8, 3, "I"),
     };
     let replies = 0;
+    let played = false;
     for (const step of steps) {
-      assert.equal(conditionMet(step.done, state(store.get(), replies)), step.id === "load");
+      const before = state(store.get(), replies, played);
+      assert.equal(conditionMet(step.done, before), step.id === "load", step.id);
       if (step.id === "ask") replies = 1;
+      else if (step.id === "listen") played = true;
       else doIt[step.id]();
-      assert.ok(conditionMet(step.done, state(store.get(), replies)), step.id);
+      assert.ok(conditionMet(step.done, state(store.get(), replies, played)), step.id);
     }
   });
 });
@@ -139,6 +141,13 @@ describe("conditionMet", () => {
     place(store, 8, 3, "I");
     assert.ok(conditionMet(at, state(store.get())));
     assert.equal(noteAt(store.get(), 8, 2), null, "no note starts on beat 2 of bar 8");
+  });
+
+  it("wants Play pressed on a loaded song", () => {
+    const played = /** @type {const} */ ({ type: "played" });
+    assert.ok(!conditionMet(played, state(tune)));
+    assert.ok(conditionMet(played, state(tune, 0, true)));
+    assert.ok(!conditionMet(played, state({ ...tune, notes: [] }, 0, true)));
   });
 
   it("wants a tutor reply", () => {
@@ -220,32 +229,5 @@ describe("lessonExchange", () => {
       level: "answer",
     });
     assert.equal(lessonExchange(plan, "nope"), null);
-  });
-});
-
-describe("placePanel", () => {
-  const size = { width: 300, height: 150 };
-  const area = { left: 80, right: 1360, bottom: 750 };
-  const right = { top: 588, left: 1060 };
-
-  it("sits above the dock at the workspace's right edge when that's clear", () => {
-    assert.deepEqual(placePanel(size, area, []), right);
-  });
-
-  it("lifts above the tutor's question box when it would cover it", () => {
-    const ask = { top: 640, left: 900, bottom: 740, right: 1340 };
-    assert.deepEqual(placePanel(size, area, [ask], ask), { top: 478, left: 1060 });
-  });
-
-  it("moves to the left edge when the right is covered twice over", () => {
-    const ask = { top: 640, left: 900, bottom: 740, right: 1340 };
-    const log = { top: 300, left: 900, bottom: 630, right: 1340 };
-    assert.deepEqual(placePanel(size, area, [ask, log], ask), { top: 588, left: 80 });
-  });
-
-  it("takes the spot that covers least when none is clear", () => {
-    const everywhere = { top: 0, left: 0, bottom: 900, right: 1440 };
-    const corner = { top: 700, left: 1300, bottom: 750, right: 1360 };
-    assert.deepEqual(placePanel(size, area, [everywhere, corner]), { top: 588, left: 80 });
   });
 });
