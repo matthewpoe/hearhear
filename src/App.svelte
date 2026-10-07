@@ -9,6 +9,7 @@
   import ThemeToggle from "./ThemeToggle.svelte";
   import Toolbar from "./toolbar/Toolbar.svelte";
   import Callouts from "./callouts/Callouts.svelte";
+  import { song } from "./store/song.js";
 </script>
 
 <header class="masthead">
@@ -23,7 +24,9 @@
 <main class="workspace">
   <Landing />
   <Staff />
-  <Toolbar />
+  {#if $song.notes.length > 0}
+    <Toolbar />
+  {/if}
   <ChordDropdown />
   <TutorPanel />
 </main>

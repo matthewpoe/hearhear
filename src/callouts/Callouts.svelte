@@ -57,7 +57,13 @@
         pageChanges += 1;
       });
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Ids too: an anchor can appear by gaining its id, with no new element.
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["id"],
+    });
     // The first look-up ran before the layout was attached to the document, so
     // every anchor was missing; look again now that it is. Untracked, so this
     // effect doesn't depend on the counter it bumps.
