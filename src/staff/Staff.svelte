@@ -433,6 +433,10 @@
     --ink: var(--staff-ink);
     --ink-muted: var(--staff-ink-muted);
     --focus: var(--staff-focus);
+    /* The guided lesson's spotlight ring is --accent: on the panel it takes
+       the focus violet, which is tuned for the panel. */
+    --accent: var(--staff-focus);
+    --key-glow-melody: var(--staff-hover);
     --fn-tonic: var(--staff-fn-tonic);
     --fn-subdominant-edge: var(--staff-fn-subdominant-edge);
     --fn-dominant: var(--staff-fn-dominant);

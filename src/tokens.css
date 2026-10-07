@@ -122,6 +122,7 @@
   --staff-line: var(--ink);
   --staff-line-strong: var(--ink);
   --staff-playhead: var(--melody);
+  --staff-hover: var(--key-glow-melody);
   --staff-focus: var(--focus);
   --staff-fn-tonic: var(--fn-tonic);
   --staff-fn-subdominant-edge: var(--fn-subdominant-edge);
@@ -224,13 +225,15 @@
        is --melody gold on both panels, like the sounding key on the piano.
        Contrast on slate #2b2135: notes 12.2, staff lines 3.3, bar lines 4.2,
        degrees and words 7.9, tonic 7.1, subdominant 9.3, dominant 6.7,
-       other 6.2, playhead 5.0. */
+       other 6.2, playhead 5.0, hover ring 4.2, focus and the lesson's
+       spotlight ring (--staff-focus) 7.2. */
     --staff-panel: #2b2135;
     --staff-panel-edge: transparent;
     --staff-ink: #eee4d4;
     --staff-ink-muted: #c2b6cc;
     --staff-line: #7d6d91;
     --staff-line-strong: #918199;
+    --staff-hover: #918199;
     --staff-focus: #d29cf5;
     --staff-fn-tonic: #8db1f7;
     --staff-fn-subdominant-edge: #f4c430;
@@ -246,7 +249,7 @@
      light theme's function colors deepened a step for the cream.
      Contrast on paper #e9e1cf: notes 11.6, staff lines 3.0, bar lines 4.4,
      degrees and words 6.1, tonic 6.9, subdominant 5.6, dominant 5.7,
-     other 5.2, focus 6.2. The gold playhead halo is 2.3 on the cream (as
+     other 5.2, hover ring 4.4, focus and the lesson's spotlight ring 6.1. The gold playhead halo is 2.3 on the cream (as
      on the light page, 3.0 on white) but 5.0 against the dark notehead it
      rings, so the playing note still stands out. */
   :root[data-theme="dark"][data-staff-panel="paper"] {
@@ -256,6 +259,7 @@
     --staff-ink-muted: #5a5045;
     --staff-line: #8a7f6c;
     --staff-line-strong: #6f6555;
+    --staff-hover: #6f6555;
     --staff-focus: #7a2a9e;
     --staff-fn-tonic: #1d4596;
     --staff-fn-subdominant-edge: #6e5300;
