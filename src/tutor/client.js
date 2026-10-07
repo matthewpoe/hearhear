@@ -57,8 +57,9 @@ function codeFromStatus(status) {
   if (status === 413) return "too_large";
   if (status === 422) return "invalid_request";
   if (status === 429) return "rate_limited";
-  if (status >= 500) return "network";
-  return "protocol";
+  // Any other status without our envelope never reached the tutor (an edge
+  // error page, a misrouted deploy), so it isn't the tutor's answer garbled.
+  return "network";
 }
 
 /**

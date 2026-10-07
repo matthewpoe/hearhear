@@ -6,7 +6,14 @@ import stJames from "../../content/songs/st-james-infirmary.json" with { type: "
 import { checkSuggestions } from "../../src/tutor/validate.js";
 
 /** @type {Record<string, any>} */
-const SONGS = { "ode-to-joy": ode, "st-james-infirmary": stJames };
+const SONGS_DIR = new URL("../../content/songs/", import.meta.url);
+/** Every bundled song by id, so a new fixture or song needs no edit here. */
+const SONGS = Object.fromEntries(
+  readdirSync(SONGS_DIR)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => JSON.parse(readFileSync(new URL(f, SONGS_DIR), "utf8")))
+    .map((song) => [song.id, song]),
+);
 
 const FIXTURES = new URL("../../contracts/fixtures/tutor/", import.meta.url);
 
@@ -30,6 +37,7 @@ describe("checkSuggestions", () => {
     if (!event) continue;
     it(`keeps every suggestion in the ${fixture.name} fixture`, () => {
       const raw = event.data.suggestions;
+      assert.ok(SONGS[fixture.song], `fixture ${fixture.name} names unknown song ${fixture.song}`);
       const { items, dropped } = checkSuggestions(raw, SONGS[fixture.song]);
       assert.equal(dropped, 0);
       assert.equal(items.length, raw.length);

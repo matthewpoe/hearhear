@@ -51,11 +51,13 @@
 
   // A different song starts a new conversation: its history says nothing about
   // this one, escalation waits for a nudge about it, and a reply still in
-  // flight belongs to the old song. Suggestions are left alone: loading bumps
-  // the song's version, which marks them stale.
+  // flight belongs to the old song. Its suggestions go too: both demo songs
+  // number their notes from n1, so a stale suggestion could otherwise sit on
+  // the new song's note with the same id.
   $effect(() => {
     void songId;
     untrack(() => {
+      suggestions.clear();
       controller?.abort();
       controller = null;
       log = [];
@@ -128,16 +130,25 @@
     if (status === "loading") return;
     const asked = question.trim() || null;
     question = "";
+    const keyboard = activatedByKeyboard();
     send(asked, level);
-    // The button just pressed is now disabled; keep focus in the panel.
-    textarea?.focus();
+    // The button just pressed is now disabled; keep a keyboard user in the panel.
+    if (keyboard) textarea?.focus();
   }
 
   function retry() {
     if (!pending) return;
+    const keyboard = activatedByKeyboard();
     send(pending.question, pending.level);
-    // Try again unmounts as the retry starts; keep focus in the panel.
-    textarea?.focus();
+    // Try again unmounts as the retry starts; keep a keyboard user in the panel.
+    if (keyboard) textarea?.focus();
+  }
+
+  // Focus moves to the text box only after a keyboard activation. After a
+  // mouse click it stays put, because a focused text box turns the note keys
+  // off and the tutor's next step is usually to go and play something.
+  function activatedByKeyboard() {
+    return document.activeElement?.matches(":focus-visible") ?? false;
   }
 
   /** @param {SubmitEvent} event */

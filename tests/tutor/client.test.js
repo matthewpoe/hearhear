@@ -73,10 +73,12 @@ describe("askTutor", () => {
       assert.equal(await failureCode(), "rate_limited");
     });
 
-    it("calls an unexpected status with no envelope a protocol failure", async () => {
-      answer(new Response("", { status: 418 }));
-      assert.equal(await failureCode(), "protocol");
-    });
+    for (const status of [401, 403, 404, 405, 418]) {
+      it(`reads a bare ${status} as unreachable, not a garbled answer`, async () => {
+        answer(new Response("", { status }));
+        assert.equal(await failureCode(), "network");
+      });
+    }
   });
 
   it("reports a fetch that never reaches the server as network", async () => {
