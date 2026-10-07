@@ -1,50 +1,140 @@
 /**
- * The beginner tour's pure logic: which callout shows next, and where it sits
- * beside its anchor. No DOM access; the component passes in what it measured.
+ * The beginner tour's pure logic: which callout shows next, when the user's
+ * own actions finish one, when one steps aside, and where it sits beside its
+ * anchor. No DOM access; the component passes in what it measured.
  */
 
 /**
+ * What the tour knows about the app, read from the stores and the page.
+ * - songLoaded: a tune is on the staff.
+ * - keyChosen: the user has committed a home (the key isn't provisional).
+ * - playing: the tune is playing (a playhead is lit).
+ * - finderOpen: the ear finder ("Help me find it") is open.
+ * - dropdownOpen: the chord dropdown is open on a note.
+ * - chordPlaced: the song has at least one chord.
+ * @typedef {{
+ *   songLoaded: boolean,
+ *   keyChosen: boolean,
+ *   playing: boolean,
+ *   finderOpen: boolean,
+ *   dropdownOpen: boolean,
+ *   chordPlaced: boolean,
+ * }} TourFacts
+ */
+
+/** @typedef {keyof TourFacts} Fact */
+
+/**
  * One beginner callout from content/callouts.json.
+ * - anchor: the id of the element it sits beside.
+ * - part: a selector for a smaller target inside the anchor (the "Help me
+ *   find it" button inside the key question). The anchor still counts as the tip's subject.
+ * - when: the facts that must hold for it to show, so it shows only while
+ *   its subject is on screen and makes sense.
+ * - doneWhen: the fact that means the user did what it asks; once that holds,
+ *   the tip counts as seen.
+ * - noNext: no Next button; the tip waits for its doneWhen action.
  * @typedef {{
  *   id: string,
  *   anchor: string,
+ *   part?: string,
  *   title?: string,
  *   text: string,
  *   needsKeyLabels?: boolean,
+ *   when?: Partial<TourFacts>,
+ *   doneWhen?: Fact,
+ *   noNext?: boolean,
  * }} Callout
  */
 
 /**
+ * Whether the app is in the state a callout's `when` asks for.
+ * @param {Callout} callout
+ * @param {TourFacts} facts
+ */
+export function isDue(callout, facts) {
+  return Object.entries(callout.when ?? {}).every(
+    ([fact, wanted]) => facts[/** @type {Fact} */ (fact)] === wanted,
+  );
+}
+
+/**
  * The first callout, in content order, that hasn't been dismissed, whose
- * anchor is on the page, and that doesn't explain key labels while a demo
- * hides them.
+ * moment has come (`when`), whose anchor is on screen, and that doesn't
+ * explain key labels while a demo hides them.
  * @param {Callout[]} callouts
  * @param {{
  *   dismissed: ReadonlySet<string>,
- *   hasAnchor: (id: string) => boolean,
+ *   hasAnchor: (callout: Callout) => boolean,
  *   labelsHidden: boolean,
+ *   facts: TourFacts,
  * }} context
  * @returns {Callout | null}
  */
-export function nextCallout(callouts, { dismissed, hasAnchor, labelsHidden }) {
+export function nextCallout(callouts, { dismissed, hasAnchor, labelsHidden, facts }) {
   return (
     callouts.find(
       (callout) =>
         !dismissed.has(callout.id) &&
         !(labelsHidden && callout.needsKeyLabels) &&
-        hasAnchor(callout.anchor),
+        isDue(callout, facts) &&
+        hasAnchor(callout),
     ) ?? null
   );
 }
 
 /**
- * The dismissed set with one more id.
+ * Ids of the callouts the user has already acted on: their `doneWhen` fact
+ * holds (a song loaded, a key chosen, the dropdown opened).
+ * @param {Callout[]} callouts
+ * @param {TourFacts} facts
+ * @returns {string[]}
+ */
+export function actedOn(callouts, facts) {
+  return callouts.filter((c) => c.doneWhen && facts[c.doneWhen]).map((c) => c.id);
+}
+
+/**
+ * The dismissed set with more ids.
  * @param {ReadonlySet<string>} dismissed
- * @param {string} id
+ * @param {...string} ids
  * @returns {Set<string>}
  */
-export function dismiss(dismissed, id) {
-  return new Set([...dismissed, id]);
+export function dismiss(dismissed, ...ids) {
+  return new Set([...dismissed, ...ids]);
+}
+
+/**
+ * Whether any of an element's box is in the visible area (the viewport above
+ * the keyboard dock, when given). A tip waits until its subject is in view.
+ * @param {Rect} rect
+ * @param {{ width: number, height: number, bottom?: number }} viewport
+ */
+export function isOnScreen(rect, viewport) {
+  const floor = Math.min(viewport.bottom ?? viewport.height, viewport.height);
+  return (
+    rect.bottom > 0 &&
+    rect.top < floor &&
+    rect.right > 0 &&
+    rect.left < viewport.width &&
+    rect.bottom > rect.top
+  );
+}
+
+/** Actions elsewhere a tip tolerates before it folds into the "Tip" chip. */
+const ACTIONS_ELSEWHERE = 1;
+
+/**
+ * Count one user action (a click or tap, or keyboard focus moving) against
+ * the showing tip. Actions on the tip or its subject (the anchor element)
+ * don't count; the second action elsewhere folds the tip away.
+ * @param {number} elsewhere actions elsewhere so far, for this tip
+ * @param {boolean} onSubject the action was on the tip or its anchor
+ * @returns {{ elsewhere: number, fold: boolean }}
+ */
+export function countAction(elsewhere, onSubject) {
+  const next = onSubject ? elsewhere : elsewhere + 1;
+  return { elsewhere: next, fold: next > ACTIONS_ELSEWHERE };
 }
 
 /** @typedef {{ top: number, left: number, bottom: number, right: number }} Rect */
@@ -67,9 +157,10 @@ const MARGIN = 8;
  * A tip must never cover the controls someone is about to use (`avoid`: the
  * key question's choices, Play, the masthead toggles). If the first choice
  * would, it tries beside the anchor (right, then left, where there's room),
- * then above and below (at the anchor's left edge, then its right), then over the anchor itself or in a gap between
- * the controls, and takes the
- * first spot that covers none; if every spot covers some, the one that
+ * then above and below (at the anchor's left edge, then its right), then over
+ * the anchor's own top, then each of those slid just past a control it
+ * covers, then in a gap between the controls, and takes the first spot that
+ * covers none; if every spot covers some, the one that
  * covers least. An anchor inside the keyboard dock (`inDock`) puts its tip
  * just above the dock, on the right (over the tutor column) first, then at
  * the anchor's left, before any of the above.
@@ -87,7 +178,7 @@ export function placeCallout(anchor, size, viewport, { avoid = [], inDock = fals
   });
   const right = anchor.right + GAP;
   const left = anchor.left - GAP - size.width;
-  const candidates = [
+  const near = [
     ...(inDock
       ? [fit(floor - size.height, viewport.width), fit(floor - size.height, anchor.left)]
       : []),
@@ -101,15 +192,37 @@ export function placeCallout(anchor, size, viewport, { avoid = [], inDock = fals
     // tutor column rather than the key question's controls on the left.
     fit(anchor.bottom + GAP, anchor.right - size.width),
     fit(anchor.top - GAP - size.height, anchor.right - size.width),
-    // Last resorts: over the anchor's own top (its controls are in `avoid`),
-    // or in a gap between the controls.
+    // Over the anchor's own top, at its left or right (its controls are in
+    // `avoid`, so this only wins over prose).
     fit(anchor.top, anchor.left),
+    fit(anchor.top, anchor.right - size.width),
+  ];
+  const covered = (/** @type {Position} */ at) => coverage(at, size, avoid);
+  // A spot slid just past each control it would cover (right, left, up,
+  // down), so a tip can sit beside a button rather than on it.
+  const slid = (/** @type {Position[]} */ spots) =>
+    spots.flatMap((at) =>
+      avoid
+        .filter((rect) => coverage(at, size, [rect]) > 0)
+        .flatMap((rect) => [
+          fit(at.top, rect.right + MARGIN),
+          fit(at.top, rect.left - MARGIN - size.width),
+          fit(rect.top - MARGIN - size.height, at.left),
+          fit(rect.bottom + MARGIN, at.left),
+        ]),
+    );
+  const once = slid(near);
+  const candidates = [
+    ...near,
+    ...once,
+    // Twice, for a spot hemmed in on two sides (under the music, beside the tutor).
+    ...slid(once),
+    // Last resort: in a gap between the controls.
     ...avoid.flatMap((rect) => [
       fit(rect.bottom + MARGIN, anchor.left),
       fit(rect.top - MARGIN - size.height, anchor.left),
     ]),
   ];
-  const covered = (/** @type {Position} */ at) => coverage(at, size, avoid);
   return candidates.reduce((best, at) => (covered(at) < covered(best) ? at : best));
 }
 

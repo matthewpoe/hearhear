@@ -1,26 +1,37 @@
 <script>
   // Beginner callouts (PRD section 8): plain-words tips from
   // content/callouts.json, one at a time, each beside the element whose id is
-  // its anchor. Renders the "Beginner tips" toggle where it's placed, and the
-  // current tip in a fixed layer that follows its anchor on scroll and resize.
-  // A tip never takes focus when it appears; it is announced politely and
-  // sits in the tab order right after the toggle.
+  // its anchor, and only while the app is in the state the tip talks about.
+  // Renders the "Beginner tips" toggle where it's placed, and the current tip
+  // in a fixed layer that follows its anchor on scroll and resize. A tip never
+  // takes focus when it appears; it is announced politely and sits in the tab
+  // order right after the toggle. Doing what a tip asks counts it as seen; a
+  // second action somewhere else folds it into a "Tip" chip by the toggle.
   import { tick, untrack } from "svelte";
   import content from "../../content/callouts.json";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
-  import { nextCallout, dismiss, placeCallout, scrollForTip } from "./tour.js";
+  import {
+    nextCallout,
+    actedOn,
+    countAction,
+    dismiss,
+    placeCallout,
+    scrollForTip,
+    isOnScreen,
+  } from "./tour.js";
   import { loadOn, saveOn, loadDismissed, saveDismissed } from "./memory.js";
 
-  /** @import { Callout } from "./tour.js" */
+  /** @import { Callout, TourFacts } from "./tour.js" */
 
   /** @type {Callout[]} */
-  const callouts = content.callouts;
+  const callouts = /** @type {Callout[]} */ (content.callouts);
 
   /**
    * Controls a tip must never cover: the key question's choices and guess
-   * buttons, Play, the masthead toggles (this one included), and the music,
-   * whose notes are buttons the staff tip tells the viewer to click.
+   * buttons, Play, the masthead toggles (this one included), the music, whose
+   * notes are buttons the chords tip tells the viewer to click, the open
+   * chord dropdown, and the tutor's heading, question box, and replies.
    */
   const KEEP_CLEAR = [
     "#key-prompt button",
@@ -28,7 +39,21 @@
     "#staff [aria-label='Playback']",
     "#staff svg",
     ".masthead-tools",
+    "#chords [role='dialog']",
+    "#tutor > h2",
+    "#tutor .log",
+    "#tutor .ask",
   ].join(",");
+
+  /**
+   * The element a callout points at: its anchor, or the part inside it.
+   * @param {Callout} callout
+   * @returns {Element | null}
+   */
+  function targetOf(callout) {
+    const anchor = document.getElementById(callout.anchor);
+    return callout.part ? (anchor?.querySelector(callout.part) ?? null) : anchor;
+  }
 
   /**
    * An element's viewport box as a plain object (a DOMRect's fields are
@@ -40,16 +65,32 @@
     return { top, left, bottom, right };
   }
 
-  /** The visible area (above the keyboard dock) and the controls to keep clear. */
+  /** The visible area: the window, down to the top of the keyboard dock. */
+  function visibleArea() {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      bottom: document.querySelector(".keyboard-dock")?.getBoundingClientRect().top,
+    };
+  }
+
+  /** The visible area and the controls to keep clear. */
   function measure() {
     return {
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        bottom: document.querySelector(".keyboard-dock")?.getBoundingClientRect().top,
-      },
+      viewport: visibleArea(),
       avoid: [...document.querySelectorAll(KEEP_CLEAR)].map(rectOf),
     };
+  }
+
+  /**
+   * Whether a callout's subject is in view, so its tip can show. The dock is
+   * always in view.
+   * @param {Callout} callout
+   */
+  function inView(callout) {
+    const target = targetOf(callout);
+    if (!target) return false;
+    return target.closest(".keyboard-dock") !== null || isOnScreen(rectOf(target), visibleArea());
   }
 
   ui.update({ calloutsOn: loadOn() });
@@ -57,15 +98,36 @@
   let dismissed = $state(loadDismissed());
   /** Closed for this page visit; the next visit picks up where it left off. */
   let closed = $state(false);
-  /** Bumped when the page's elements change, so anchors are looked up again. */
+  /** Tips folded into the "Tip" chip during this visit, by id. */
+  let folded = $state(/** @type {Set<string>} */ (new Set()));
+  /** Actions elsewhere since the current tip appeared or was unfolded. */
+  let elsewhere = 0;
+  /** Whether the latest input was a pointer, so a click counts once, not again as focus. */
+  let pointing = false;
+  /** Bumped when the page's elements change or it scrolls, so anchors are looked up again. */
   let pageChanges = $state(0);
   let position = $state({ top: 0, left: 0 });
   /** @type {HTMLElement | undefined} */
   let box = $state();
   /** @type {HTMLButtonElement | undefined} */
   let toggle = $state();
+  /** @type {HTMLButtonElement | undefined} */
+  let chip = $state();
 
   const labelsHidden = $derived(keyLabelMode($song, $ui) === "hidden");
+
+  /** @type {TourFacts} */
+  const facts = $derived.by(() => {
+    void pageChanges;
+    return {
+      songLoaded: $song.notes.length > 0,
+      keyChosen: !$song.key.provisional,
+      playing: $ui.playheadNoteId !== null,
+      finderOpen: document.getElementById("key-finder") !== null,
+      dropdownOpen: $ui.selectedNoteId !== null,
+      chordPlaced: $song.chords.length > 0,
+    };
+  });
 
   /** @param {ReadonlySet<string>} ids */
   function upNext(ids) {
@@ -73,25 +135,46 @@
     return nextCallout(callouts, {
       dismissed: ids,
       labelsHidden,
-      hasAnchor: (id) => document.getElementById(id) !== null,
+      facts,
+      hasAnchor: inView,
     });
   }
 
   const current = $derived($ui.calloutsOn && !closed ? upNext(dismissed) : null);
+  const open = $derived(current !== null && !folded.has(current.id));
   const another = $derived(current ? upNext(dismiss(dismissed, current.id)) !== null : false);
   const titleId = $derived(current ? `callout-${current.id}-title` : undefined);
 
-  // Anchors come and go (the landing leaves once a song loads; other streams'
-  // panels mount later). Coalesced to one look-up per frame.
+  // Doing what a tip asks (loading a song, playing it, choosing a key,
+  // opening the finder or the dropdown) counts it as seen, showing or not.
+  $effect(() => {
+    if (!$ui.calloutsOn) return;
+    const seen = untrack(() => dismissed);
+    const done = actedOn(callouts, facts).filter((id) => !seen.has(id));
+    if (done.length === 0) return;
+    dismissed = dismiss(seen, ...done);
+    saveDismissed(dismissed);
+  });
+
+  // Each tip starts with a clean count of actions elsewhere.
+  $effect(() => {
+    void current?.id;
+    elsewhere = 0;
+  });
+
+  // Anchors come and go (the landing leaves once a song loads; the key
+  // finder opens and closes) and scroll in and out of view. Coalesced to one
+  // look-up per frame.
   $effect(() => {
     let frame = 0;
-    const observer = new MutationObserver(() => {
+    const lookAgain = () => {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
         pageChanges += 1;
       });
-    });
+    };
+    const observer = new MutationObserver(lookAgain);
     // Ids too: an anchor can appear by gaining its id, with no new element.
     observer.observe(document.body, {
       childList: true,
@@ -105,8 +188,12 @@
     untrack(() => {
       pageChanges += 1;
     });
+    window.addEventListener("scroll", lookAgain, { capture: true, passive: true });
+    window.addEventListener("resize", lookAgain);
     return () => {
       observer.disconnect();
+      window.removeEventListener("scroll", lookAgain, { capture: true });
+      window.removeEventListener("resize", lookAgain);
       cancelAnimationFrame(frame);
     };
   });
@@ -114,7 +201,7 @@
   $effect(() => {
     if (!current || !box) return;
     void pageChanges;
-    const anchor = document.getElementById(current.anchor);
+    const anchor = targetOf(current);
     const callout = box;
     if (!anchor) return;
     const place = () => {
@@ -144,7 +231,7 @@
     // anchor into view, as block: "nearest" would, or further when that would
     // leave the tip covering a control. The dock never scrolls, so an anchor
     // in it needs none.
-    const anchor = current && document.getElementById(current.anchor);
+    const anchor = current && open && targetOf(current);
     if (anchor && box && !anchor.closest(".keyboard-dock")) {
       const { viewport, avoid } = measure();
       const { scrollY, innerHeight } = window;
@@ -159,13 +246,14 @@
       const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (top !== 0) window.scrollBy({ top, behavior: smooth ? "smooth" : "auto" });
     }
-    (box ?? toggle)?.focus({ preventScroll: true });
+    (open ? box : (chip ?? toggle))?.focus({ preventScroll: true });
   }
 
   /** Remember this tip as seen and put the tips away until the next visit. */
   async function close() {
     if (!current) return;
-    const hadFocus = box?.contains(document.activeElement) ?? false;
+    const active = document.activeElement;
+    const hadFocus = (box?.contains(active) ?? false) || (chip !== undefined && chip === active);
     dismissed = dismiss(dismissed, current.id);
     saveDismissed(dismissed);
     closed = true;
@@ -182,12 +270,49 @@
       dismissed = new Set();
       saveDismissed(dismissed);
       closed = false;
+      folded = new Set();
     }
+  }
+
+  /** Open the folded tip again, with focus in it. */
+  async function unfold() {
+    const id = current?.id;
+    folded = new Set([...folded].filter((other) => other !== id));
+    elsewhere = 0;
+    await tick();
+    box?.focus({ preventScroll: true });
+  }
+
+  /**
+   * Count a click, tap, or keyboard focus move against the open tip. One on
+   * the tip, its subject (the anchor element), or the tips toggle is free;
+   * the second one anywhere else folds the tip into the chip.
+   * @param {Event} event
+   */
+  function onAction(event) {
+    if (!current || !open || !(event.target instanceof Node)) return;
+    const target = event.target;
+    const subject = document.getElementById(current.anchor);
+    const onSubject = [box, subject, toggle].some((el) => el?.contains(target) ?? false);
+    const counted = countAction(elsewhere, onSubject);
+    elsewhere = counted.elsewhere;
+    if (counted.fold) folded = new Set([...folded, current.id]);
+  }
+
+  /** @param {PointerEvent} event */
+  function onPointerdown(event) {
+    pointing = true;
+    onAction(event);
+  }
+
+  /** @param {FocusEvent} event */
+  function onFocusin(event) {
+    if (!pointing) onAction(event);
   }
 
   /** Escape closes the tip from inside it, or when nothing else has focus. @param {KeyboardEvent} event */
   function onKeydown(event) {
-    if (event.key !== "Escape" || event.defaultPrevented || !current) return;
+    if (event.key !== "Escape" || event.defaultPrevented || !open) return;
     const active = document.activeElement;
     if (active === document.body || box?.contains(active)) {
       event.preventDefault();
@@ -196,7 +321,12 @@
   }
 </script>
 
-<svelte:window onkeydown={onKeydown} />
+<svelte:window
+  onkeydown={onKeydown}
+  onkeydowncapture={() => (pointing = false)}
+  onpointerdowncapture={onPointerdown}
+  onfocusincapture={onFocusin}
+/>
 
 <button
   bind:this={toggle}
@@ -209,11 +339,23 @@
   Beginner tips
 </button>
 
+{#if current && !open}
+  <button
+    bind:this={chip}
+    type="button"
+    class="chip"
+    aria-label="Show the tip{current.title ? `: ${current.title}` : ''}"
+    onclick={unfold}
+  >
+    Tip
+  </button>
+{/if}
+
 <p class="visually-hidden" aria-live="polite">
-  {#if current}Tip: {current.title ? `${current.title} ` : ""}{current.text}{/if}
+  {#if current && open}Tip: {current.title ? `${current.title} ` : ""}{current.text}{/if}
 </p>
 
-{#if current}
+{#if current && open}
   {#key current.id}
     <aside
       bind:this={box}
@@ -226,9 +368,11 @@
     >
       {#if current.title}<h2 id={titleId}>{current.title}</h2>{/if}
       <p>{current.text}</p>
-      <div class="actions">
-        <button type="button" class="next" onclick={next}>{another ? "Next" : "Got it"}</button>
-      </div>
+      {#if !current.noNext}
+        <div class="actions">
+          <button type="button" class="next" onclick={next}>{another ? "Next" : "Got it"}</button>
+        </div>
+      {/if}
       <button type="button" class="close" aria-label="Close tips" onclick={close}>
         <span aria-hidden="true">×</span>
       </button>
@@ -237,7 +381,8 @@
 {/if}
 
 <style>
-  .toggle {
+  .toggle,
+  .chip {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -247,6 +392,10 @@
     background: var(--surface);
     color: var(--ink);
     cursor: pointer;
+  }
+  .chip {
+    border: 2px solid var(--ink);
+    animation: appear var(--dur-land) var(--ease);
   }
   .dot {
     width: 0.75rem;
@@ -261,7 +410,7 @@
   .callout {
     position: fixed;
     z-index: 10;
-    width: min(20rem, calc(100vw - 16px));
+    width: min(22rem, calc(100vw - 16px));
     padding: var(--space-3) var(--space-5) var(--space-3) var(--space-3);
     border: 2px solid var(--ink);
     border-radius: var(--radius-md);
@@ -315,7 +464,8 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .callout {
+    .callout,
+    .chip {
       animation: none;
     }
     .dot {

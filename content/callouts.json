@@ -1,55 +1,77 @@
 {
-  "$comment": "Beginner callouts, shown one at a time in this order, each beside the element whose id is its anchor. A callout whose anchor isn't on the page is skipped. needsKeyLabels: true skips it while a demo hides key labels (before the user's guess). Matthew owns this wording; Stream K renders it. Drafts by Claude, Oct 7, 2026; revised for the staff-first layout.",
+  "$comment": "Beginner callouts. One shows at a time: the first in this order that isn't seen yet, whose moment has come (when: facts that must hold; see TourFacts in src/callouts/tour.js), and whose anchor (an element id, or with part, a selector inside it) is on the page. doneWhen: the fact that means the user did what the tip asks, which counts it as seen. noNext: no Next button; the tip waits for that action. needsKeyLabels: true skips it while a demo hides key labels. Matthew owns this wording; Stream T renders it. Drafts by Claude, Oct 7, 2026; revised so each tip shows with its subject.",
   "callouts": [
     {
       "id": "welcome",
       "anchor": "song-chooser",
       "title": "Start here",
-      "text": "Turn your sound on and pick a tune. Everything you hear also shows on screen, so you can follow along with it off."
+      "text": "Turn your sound on. Everything you hear also shows on screen, so you can follow along with it off. Pick a tune to begin.",
+      "when": { "songLoaded": false },
+      "doneWhen": "songLoaded",
+      "noNext": true
     },
     {
       "id": "staff",
       "anchor": "staff",
       "title": "The tune, written out",
-      "text": "Press Play and watch: each note lights up as it sounds. Higher on the lines means a higher note. Click any note to try chords under it."
+      "text": "Press Play and watch: each note lights up as it sounds. Higher on the lines means a higher note.",
+      "when": { "songLoaded": true, "keyChosen": false },
+      "doneWhen": "playing"
     },
     {
       "id": "key-prompt",
       "anchor": "key-prompt",
       "title": "Your first job: find home",
-      "text": "Most tunes keep coming back to one note and resting there. That note is home. Hum along and notice where the tune wants to stop."
+      "text": "Most tunes keep coming back to one note and resting there. That note is home, and the key is named after it. Hum along and notice where the tune wants to stop.",
+      "when": { "songLoaded": true, "keyChosen": false },
+      "doneWhen": "keyChosen"
+    },
+    {
+      "id": "key-finder",
+      "anchor": "key-prompt",
+      "part": "[aria-controls='key-finder']",
+      "title": "Don't read music? Use your ear.",
+      "text": "Press Help me find it. You'll hear the tune over a few chords, one at a time. Pick the one that sounds like home.",
+      "when": { "songLoaded": true, "keyChosen": false },
+      "doneWhen": "finderOpen"
     },
     {
       "id": "number-keys",
       "anchor": "piano",
       "title": "These number keys are notes. 1 is home.",
       "text": "Press 1 to 7 on your computer's top row to climb the scale, the ladder of notes a tune is built from. The row below plays the same steps an octave lower.",
-      "needsKeyLabels": true
+      "needsKeyLabels": true,
+      "when": { "keyChosen": true, "dropdownOpen": false }
     },
     {
       "id": "audition",
-      "anchor": "chords",
+      "anchor": "staff",
       "title": "Hover a chord to hear it under the tune.",
-      "text": "A chord is a few notes played together by the left hand, under the melody (the part you'd hum). Try a few and keep the one that sounds right to you."
+      "text": "Click any note on the staff to open its chords. A chord is a few notes played together by the left hand, under the melody (the part you'd hum).",
+      "when": { "keyChosen": true, "dropdownOpen": false },
+      "doneWhen": "dropdownOpen"
     },
     {
       "id": "function-shapes",
       "anchor": "chords",
       "title": "Blue circle means home; red square means tension.",
       "text": "Each chord's shape and color say what it does. Blue circle: home, at rest. Yellow triangle: stepping away. Red square: tension that wants to come home.",
-      "needsKeyLabels": true
+      "needsKeyLabels": true,
+      "when": { "keyChosen": true, "dropdownOpen": false, "chordPlaced": true }
     },
     {
       "id": "toolbar",
       "anchor": "toolbar",
       "title": "Same tune, any key",
-      "text": "Open this to play the tune higher or lower. The sound changes, but the numbers stay the same, because they count from home. The buttons above the staff choose how chords are named."
+      "text": "Open Change key or transpose, above the music, to play the tune higher or lower. The sound changes, but the numbers stay the same, because they count from home.",
+      "when": { "keyChosen": true, "dropdownOpen": false }
     },
     {
       "id": "tutor",
       "anchor": "tutor",
       "title": "Stuck? Ask the tutor.",
-      "text": "It's an AI music teacher. It points you to where to listen rather than handing you the answer. Ask for options or its best guess whenever you want more."
+      "text": "It's an AI music teacher. It points you to where to listen rather than handing you the answer. Ask for options or its best guess whenever you want more.",
+      "when": { "keyChosen": true, "dropdownOpen": false }
     }
   ]
 }

@@ -3,11 +3,17 @@ import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 import {
   nextCallout,
+  isDue,
+  actedOn,
+  countAction,
+  isOnScreen,
   dismiss,
   placeCallout,
   coverage,
   scrollForTip,
 } from "../../src/callouts/tour.js";
+
+/** @import { Callout, TourFacts } from "../../src/callouts/tour.js" */
 
 const callouts = [
   { id: "a", anchor: "landing", text: "A" },
@@ -16,10 +22,22 @@ const callouts = [
   { id: "d", anchor: "chords", text: "D" },
 ];
 const onPage = new Set(["landing", "piano", "chords"]);
+
+/** @type {TourFacts} */
+const START = {
+  songLoaded: false,
+  keyChosen: false,
+  playing: false,
+  finderOpen: false,
+  dropdownOpen: false,
+  chordPlaced: false,
+};
+
 const context = (overrides = {}) => ({
   dismissed: new Set(),
-  hasAnchor: (/** @type {string} */ id) => onPage.has(id),
+  hasAnchor: (/** @type {Callout} */ c) => onPage.has(c.anchor),
   labelsHidden: false,
+  facts: START,
   ...overrides,
 });
 
@@ -44,13 +62,61 @@ describe("nextCallout", () => {
   it("returns null when every callout is dismissed or unanchored", () => {
     assert.equal(nextCallout(callouts, context({ dismissed: new Set(["a", "b", "d"]) })), null);
   });
+
+  it("skips a callout whose moment hasn't come, even with its anchor on the page", () => {
+    const gated = [{ ...callouts[0], when: { songLoaded: true } }, callouts[3]];
+    assert.equal(nextCallout(gated, context())?.id, "d");
+    const loaded = { ...START, songLoaded: true };
+    assert.equal(nextCallout(gated, context({ facts: loaded }))?.id, "a");
+  });
+});
+
+describe("isDue", () => {
+  const tip = { id: "t", anchor: "x", text: "T" };
+  it("is always due with no conditions", () => {
+    assert.equal(isDue(tip, START), true);
+  });
+  it("needs every listed fact to match, true or false", () => {
+    const when = { songLoaded: true, keyChosen: false };
+    assert.equal(isDue({ ...tip, when }, { ...START, songLoaded: true }), true);
+    assert.equal(isDue({ ...tip, when }, START), false);
+    assert.equal(isDue({ ...tip, when }, { ...START, songLoaded: true, keyChosen: true }), false);
+  });
+});
+
+describe("actedOn", () => {
+  const tips = [
+    { id: "welcome", anchor: "x", text: "W", doneWhen: /** @type {const} */ ("songLoaded") },
+    { id: "key", anchor: "x", text: "K", doneWhen: /** @type {const} */ ("keyChosen") },
+    { id: "plain", anchor: "x", text: "P" },
+  ];
+  it("lists the tips whose action has happened", () => {
+    assert.deepEqual(actedOn(tips, START), []);
+    assert.deepEqual(actedOn(tips, { ...START, songLoaded: true }), ["welcome"]);
+    assert.deepEqual(actedOn(tips, { ...START, songLoaded: true, keyChosen: true }), [
+      "welcome",
+      "key",
+    ]);
+  });
+});
+
+describe("countAction", () => {
+  it("lets actions on the tip's subject pass freely", () => {
+    assert.deepEqual(countAction(0, true), { elsewhere: 0, fold: false });
+  });
+  it("tolerates one action elsewhere and folds the tip on the second", () => {
+    const first = countAction(0, false);
+    assert.deepEqual(first, { elsewhere: 1, fold: false });
+    assert.deepEqual(countAction(first.elsewhere, true), { elsewhere: 1, fold: false });
+    assert.deepEqual(countAction(first.elsewhere, false), { elsewhere: 2, fold: true });
+  });
 });
 
 describe("dismiss", () => {
-  it("adds an id without changing the original set", () => {
+  it("adds ids without changing the original set", () => {
     const before = new Set(["a"]);
-    const after = dismiss(before, "b");
-    assert.deepEqual([...after], ["a", "b"]);
+    const after = dismiss(before, "b", "c");
+    assert.deepEqual([...after], ["a", "b", "c"]);
     assert.deepEqual([...before], ["a"]);
   });
 });
@@ -161,6 +227,65 @@ describe("placeCallout", () => {
     const small = { width: 200, height: 80 };
     assert.deepEqual(placeCallout(rect(10, 20, 50), size, small), { top: 8, left: 8 });
   });
+
+  it("slides sideways past a button rather than cover it", () => {
+    const wide = { top: 50, bottom: 300, left: 20, right: 980 };
+    const music = { top: 60, bottom: 290, left: 100, right: 900 };
+    const button = { top: 310, bottom: 340, left: 20, right: 480 };
+    const tutorHeading = { top: 310, bottom: 340, left: 800, right: 980 };
+    const avoid = [music, button, tutorHeading];
+    const place = placeCallout(wide, size, viewport, { avoid });
+    assert.deepEqual(place, { top: 312, left: 488 });
+  });
+
+  // Measured at 1440x900 with a key chosen: the toolbar's toggle sits at the
+  // top right, the music fills the width under it, and the tutor's heading is
+  // below the music on the right.
+  const laptop = { width: 1440, height: 900, bottom: 755 };
+  const toolbar = { top: 60, bottom: 92, left: 1042, right: 1221 };
+  const music = { top: 93, bottom: 368, left: 272, right: 1168 };
+  const masthead = { top: 8, bottom: 42, left: 1136, right: 1416 };
+  const tutorHeading = { top: 418, bottom: 448, left: 875, right: 1311 };
+  const tutorAsk = { top: 528, bottom: 668, left: 875, right: 1311 };
+
+  it("slides twice when a spot is hemmed in on two sides", () => {
+    const tip = { width: 352, height: 167 };
+    const avoid = [masthead, music, tutorHeading, tutorAsk];
+    const place = placeCallout(toolbar, tip, laptop, { avoid });
+    assert.equal(coverage(place, tip, avoid), 0);
+    assert.ok(place.top >= music.bottom, "under the music");
+  });
+
+  it("keeps a key-question tip off the tutor's heading and question box", () => {
+    const keyPrompt = { top: 360, bottom: 640, left: 105, right: 835 };
+    const tip = { width: 352, height: 188 };
+    // Before the key is chosen the music has no degree numbers, so it's shorter.
+    const avoid = [
+      { ...music, bottom: 335 },
+      { top: 467, bottom: 500, left: 349, right: 485 }, // Help me find it
+      { top: 510, bottom: 544, left: 204, right: 457 }, // Bright / Dark
+      { top: 550, bottom: 585, left: 219, right: 771 }, // home notes
+      { ...tutorHeading, top: 385, bottom: 415 },
+      { ...tutorAsk, top: 500, bottom: 635 },
+    ];
+    const place = placeCallout(keyPrompt, tip, laptop, { avoid });
+    assert.equal(coverage(place, tip, avoid), 0);
+  });
+});
+
+describe("isOnScreen", () => {
+  const viewport = { width: 1000, height: 800, bottom: 650 };
+  /** @param {number} top @param {number} bottom */
+  const band = (top, bottom) => ({ top, bottom, left: 0, right: 500 });
+  it("is true when any of the element shows above the dock", () => {
+    assert.equal(isOnScreen(band(600, 900), viewport), true);
+    assert.equal(isOnScreen(band(-100, 10), viewport), true);
+  });
+  it("is false when the element is under the dock, scrolled away, or empty", () => {
+    assert.equal(isOnScreen(band(660, 700), viewport), false);
+    assert.equal(isOnScreen(band(-200, -10), viewport), false);
+    assert.equal(isOnScreen(band(100, 100), viewport), false);
+  });
 });
 
 describe("coverage", () => {
@@ -211,18 +336,128 @@ describe("scrollForTip", () => {
   });
 });
 
+const contentUrl = new URL("../../content/callouts.json", import.meta.url);
+/** @type {Callout[]} */
+const content = JSON.parse(await readFile(contentUrl, "utf8")).callouts;
+
 describe("content/callouts.json", () => {
-  it("has unique ids and the fields every callout needs", async () => {
-    const url = new URL("../../content/callouts.json", import.meta.url);
-    const { callouts: content } = JSON.parse(await readFile(url, "utf8"));
+  it("has unique ids and the fields every callout needs", () => {
     assert.ok(content.length >= 6);
-    assert.equal(
-      new Set(content.map((/** @type {{ id: string }} */ c) => c.id)).size,
-      content.length,
-    );
+    assert.equal(new Set(content.map((c) => c.id)).size, content.length);
     for (const c of content) {
       assert.equal(typeof c.anchor, "string", c.id);
       assert.ok(c.text.length > 0, c.id);
     }
+  });
+
+  it("gates only on facts the tour knows, and waits only for a real action", () => {
+    const known = Object.keys(START);
+    for (const c of content) {
+      for (const fact of Object.keys(c.when ?? {})) assert.ok(known.includes(fact), c.id);
+      if (c.doneWhen) assert.ok(known.includes(c.doneWhen), c.id);
+      if (c.noNext) assert.ok(c.doneWhen, `${c.id} has no Next, so it needs a doneWhen`);
+    }
+  });
+
+  it("ends the welcome with the first thing to do", () => {
+    const welcome = content.find((c) => c.id === "welcome");
+    assert.match(welcome?.text ?? "", /Pick a tune to begin\.$/);
+    assert.equal(welcome?.noNext, true);
+  });
+});
+
+/** Anchors that exist only once a tune is loaded. */
+const AFTER_LOADING = new Set(["key-prompt", "toolbar", "piano"]);
+
+/**
+ * Whether a callout's target is on the page in a given state of the app.
+ * @param {TourFacts} facts
+ * @param {Callout} callout
+ */
+function onPageIn(facts, callout) {
+  if (callout.anchor === "song-chooser") return !facts.songLoaded;
+  return AFTER_LOADING.has(callout.anchor) ? facts.songLoaded : true;
+}
+
+/**
+ * Walk the real tour the way the component does: the user's actions count
+ * their tips as seen, then the first due tip shows.
+ * @param {TourFacts} facts
+ * @param {Set<string>} seen
+ */
+function step(facts, seen) {
+  for (const id of actedOn(content, facts)) seen.add(id);
+  return nextCallout(content, {
+    dismissed: seen,
+    facts,
+    labelsHidden: facts.songLoaded && !facts.keyChosen,
+    hasAnchor: (c) => onPageIn(facts, c),
+  })?.id;
+}
+
+describe("the beginner tour, walked as a first-timer", () => {
+  it("shows each tip with its subject and lets actions move it on", () => {
+    const seen = new Set();
+    let facts = START;
+    assert.equal(step(facts, seen), "welcome");
+    facts = { ...facts, songLoaded: true };
+    assert.equal(step(facts, seen), "staff", "loading a tune moves past the welcome");
+    facts = { ...facts, playing: true };
+    assert.equal(step(facts, seen), "key-prompt", "pressing Play finishes the staff tip");
+    facts = { ...facts, playing: false };
+    seen.add("key-prompt"); // Next
+    assert.equal(step(facts, seen), "key-finder");
+    facts = { ...facts, keyChosen: true };
+    assert.equal(step(facts, seen), "number-keys", "choosing a key opens the labelled tips");
+    seen.add("number-keys");
+    assert.equal(step(facts, seen), "audition");
+    facts = { ...facts, dropdownOpen: true };
+    assert.equal(step(facts, seen), undefined, "opening the dropdown does what it asks");
+    assert.ok(seen.has("audition"));
+    facts = { ...facts, dropdownOpen: false, chordPlaced: true };
+    assert.equal(step(facts, seen), "function-shapes", "the shapes tip waits for a chord");
+    seen.add("function-shapes");
+    assert.equal(step(facts, seen), "toolbar", "transpose shows only once a key is chosen");
+    seen.add("toolbar");
+    assert.equal(step(facts, seen), "tutor");
+    seen.add("tutor");
+    assert.equal(step(facts, seen), undefined);
+  });
+
+  it("never offers transpose, number keys, or the tutor before a key is chosen", () => {
+    const seen = new Set(["welcome", "staff", "key-prompt", "key-finder"]);
+    assert.equal(step({ ...START, songLoaded: true }, seen), undefined);
+  });
+
+  it("counts opening the ear finder as acting on its tip", () => {
+    const seen = new Set(["welcome", "staff"]);
+    const facts = { ...START, songLoaded: true, finderOpen: true };
+    assert.equal(step(facts, seen), "key-prompt");
+    assert.ok(seen.has("key-finder"));
+  });
+
+  it("skips the staff and key tips for someone who chooses a key straight away", () => {
+    const seen = new Set();
+    assert.equal(step({ ...START, songLoaded: true, keyChosen: true }, seen), "number-keys");
+    assert.ok(seen.has("key-prompt"), "choosing the key counts its tip as seen");
+  });
+
+  it("shows nothing over the open dropdown, then returns to the tour", () => {
+    const seen = new Set(["welcome", "staff", "key-prompt", "key-finder"]);
+    const open = { ...START, songLoaded: true, keyChosen: true, dropdownOpen: true };
+    assert.equal(step(open, seen), undefined, "nothing covers the dropdown's work");
+    assert.equal(step({ ...open, dropdownOpen: false }, seen), "number-keys");
+  });
+
+  it("explains the shapes beside the chords someone placed without the tour", () => {
+    const seen = new Set(["welcome", "staff", "key-prompt", "key-finder", "number-keys"]);
+    const facts = { ...START, songLoaded: true, keyChosen: true, chordPlaced: true };
+    assert.equal(step(facts, seen), "audition");
+    seen.add("audition");
+    assert.equal(step(facts, seen), "function-shapes");
+  });
+
+  it("puts the tutor last", () => {
+    assert.equal(content.at(-1)?.id, "tutor");
   });
 });
