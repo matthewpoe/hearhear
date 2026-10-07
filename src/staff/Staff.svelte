@@ -464,7 +464,12 @@
     outline: 2px solid var(--focus);
     outline-offset: 3px;
   }
-  .notation :global(.is-playing .abcjs-notehead),
+  /* The note sounding now glows gold, like its key on the piano. */
+  .notation :global(.is-playing .abcjs-notehead) {
+    stroke: var(--melody);
+    stroke-width: 6px;
+    paint-order: stroke;
+  }
   .notation :global(.is-hovered .abcjs-notehead) {
     stroke: var(--key-glow-melody);
     stroke-width: 6px;
