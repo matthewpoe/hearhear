@@ -16,7 +16,7 @@
   import plan from "../../content/lessons/plan.json";
   import { song } from "../store/song.js";
   import { ui } from "../store/ui.js";
-  import { auditionChord } from "../audio/index.js";
+  import { audioStatus, auditionChord } from "../audio/index.js";
   import { passageAround, voicingIn } from "../chords/passage.js";
   import { DEMO_TUNES } from "../finding/demoTunes.js";
   import { chordFromNumeral } from "../theory/index.js";
@@ -44,6 +44,8 @@
   );
 
   let folded = $state(false);
+  /** A "Try this" press waiting for the piano: the step it was made on, else -1. */
+  let waitingAt = $state(-1);
   let more = $state(false);
   /** Replies in the tutor's conversation, counted from its log. */
   let tutorReplies = $state(0);
@@ -91,8 +93,12 @@
   });
 
   // Each step (and a resumed tour) brings what it asks the viewer to use into
-  // view, centred above the dock: the song chooser, Play, the key prompt's
-  // button, the note on the staff, the tutor's question box.
+  // view above the dock: the song chooser, Play, the key prompt's card, the
+  // note on the staff, the tutor's question box. A button's whole card or
+  // panel comes with it when that fits, so a step asking for the home chips
+  // shows them too. Nothing moves when it's already in view, so pressing
+  // Play never nudges the page; a note is centred, leaving room for its
+  // chords below it.
   $effect(() => {
     const at = index;
     const on = $tour.running;
@@ -102,10 +108,50 @@
       const target = stepTarget(steps[at], song.get());
       const within = target && document.querySelector(target.selector);
       if (!within) return;
-      const el = (target.button && buttonIn(within, target.button)) || within;
+      const button = target.button ? buttonIn(within, target.button) : undefined;
+      const el = button && !fitsAboveDock(within) ? button : within;
+      if (inViewAboveDock(el)) return;
       const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
-      el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
+      el.scrollIntoView({
+        block: target.button ? "nearest" : "center",
+        behavior: smooth ? "smooth" : "auto",
+      });
     });
+  });
+
+  /** The top of the keyboard dock, which the page scrolls above. */
+  function dockTop() {
+    return document.querySelector(".keyboard-dock")?.getBoundingClientRect().top ?? innerHeight;
+  }
+
+  /** @param {Element} el */
+  function fitsAboveDock(el) {
+    return el.getBoundingClientRect().height <= dockTop();
+  }
+
+  /** @param {Element} el */
+  function inViewAboveDock(el) {
+    const r = el.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= dockTop();
+  }
+
+  // A press that found its button disabled while the piano loads (the
+  // staff's Play) goes through once the piano is ready, and is dropped if the
+  // step changes, the tour is left, or the piano fails (the staff then shows Retry).
+  $effect(() => {
+    const status = $audioStatus;
+    const at = waitingAt;
+    const on = $tour.running;
+    if (at < 0) return;
+    if (at !== index || !on || status === "failed") waitingAt = -1;
+    else if (status === "ready") {
+      waitingAt = -1;
+      const action = steps[at].action;
+      untrack(async () => {
+        await tick();
+        if (action?.type === "press" && index === at) tryIt(action);
+      });
+    }
   });
 
   $effect(() => {
@@ -167,7 +213,8 @@
       case "press": {
         const within = document.getElementById(action.within);
         const button = within && buttonIn(within, action.name);
-        if (button) button.click();
+        if (button?.disabled && $audioStatus === "loading") waitingAt = index;
+        else if (button) button.click();
         else within?.scrollIntoView({ block: "nearest" });
         break;
       }
@@ -232,7 +279,13 @@
         >
         {#if step.action}
           {@const action = step.action}
-          <button type="button" class="primary" onclick={() => tryIt(action)}>{action.label}</button
+          {@const waiting = waitingAt === index}
+          <button
+            type="button"
+            class="primary"
+            aria-disabled={waiting}
+            onclick={() => !waiting && tryIt(action)}
+            >{waiting ? "Loading the piano…" : action.label}</button
           >
         {/if}
         <button type="button" disabled={index === 0} onclick={() => goTo(index - 1)}>Back</button>
@@ -325,6 +378,9 @@
   .primary {
     background: var(--ink);
     color: var(--paper);
+  }
+  .primary[aria-disabled="true"] {
+    cursor: progress;
   }
   .link {
     border-color: transparent;

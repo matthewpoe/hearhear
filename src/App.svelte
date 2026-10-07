@@ -22,6 +22,21 @@
 
   // The page keeps the dock's height as scroll padding (global.css), so focus
   // and scrollIntoView never leave a control under the keyboard.
+  /**
+   * A mouse press on a dock button focuses it without scrolling: the dock is
+   * sticky, and Chrome would otherwise scroll its place at the page's end
+   * into view. Keyboard focus and the piano keys' own pointer handling are
+   * unchanged.
+   * @param {MouseEvent} event
+   */
+  function focusInPlace(event) {
+    const target = event.target instanceof Element ? event.target : null;
+    const button = target?.closest("button");
+    if (!button || button.disabled || button.classList.contains("key")) return;
+    event.preventDefault();
+    button.focus({ preventScroll: true });
+  }
+
   $effect(() => {
     if (!dock) return;
     const root = document.documentElement;
@@ -73,7 +88,8 @@
   </p>
 </main>
 
-<footer class="keyboard-dock" bind:this={dock}>
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<footer class="keyboard-dock" bind:this={dock} onmousedown={focusInPlace}>
   <GuidedPath />
   <Piano />
 </footer>

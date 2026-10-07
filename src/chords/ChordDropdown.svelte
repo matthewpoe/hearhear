@@ -597,7 +597,7 @@
           </p>
         {/if}
       </div>
-      <div class="more-below" class:shown={moreBelow} aria-hidden="true">More below</div>
+      <div class="more-below" class:shown={moreBelow} aria-hidden="true"></div>
     </div>
   {/if}
 </section>
@@ -669,19 +669,14 @@
     cursor: pointer;
   }
   /* The scroll cue: content fades out at the bottom edge while more of the
-     list is hidden below it. It takes no space and no clicks. */
+     list is hidden below it. No label, so nothing is printed over the
+     option showing through. It takes no space and no clicks. */
   .more-below {
     position: sticky;
     bottom: calc(-1 * var(--space-3));
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
     height: 2.5rem;
     margin: -2.5rem calc(-1 * var(--space-3)) 0;
-    padding-bottom: var(--space-1);
-    background: linear-gradient(transparent, var(--surface) 70%);
-    color: var(--ink-muted);
-    font-size: var(--text-sm);
+    background: linear-gradient(transparent, var(--surface));
     pointer-events: none;
     visibility: hidden;
   }
