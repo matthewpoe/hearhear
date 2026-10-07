@@ -153,3 +153,10 @@ Wave 1 returned 67 Fable findings (2 high, 18 medium, 47 low), all verified, plu
 - **2026-10-07 — A refusal or a max_tokens stop has its own message:** "The tutor couldn't answer that one. Try asking another way." (error code `unanswerable`). "Garbled" is reserved for replies that really are malformed.
 - **2026-10-07 — The default daily token budget is 500,000** (was 2,000,000). The Console spend limit stays the real cap.
 - **2026-10-07 — rationale-notes.md brought in line with the build:** structured outputs, fixed number rows, server-side withholding, the refusal fallback, the passphrase gate, and the 8-hour-line cuts.
+
+## Review of PRs 12–22 (Matthew, Oct 7, 2026)
+
+- **2026-10-07 — Free-play suggestions are no longer guarded only by the prompt.** The server clamp (PR 19) withholds suggestions for a nudge, a provisional key, and a hidden key, so the deferred finding is resolved and removed from `docs/deferred.md`.
+- **2026-10-07 — The eval harness excludes fallback-served replies** on the suggestions event's `fallback` flag and reports the count (PR 21, per D15 as amended). The deferred finding is resolved and removed.
+- **2026-10-07 — A `#code=` link's passphrase is kept in sessionStorage for the tab (accepted).** A refresh keeps the tutor open; closing the tab forgets it. It never goes to localStorage.
+- **2026-10-07 — Silent top keys in A, Bb, and B are accepted for the alpha.** In those keys the top one or two number-row keys are silent, and the arrows never move the octave window (PR 12's flagged consequence, now in `docs/deferred.md`).
