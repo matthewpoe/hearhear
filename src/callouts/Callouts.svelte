@@ -5,7 +5,7 @@
   // current tip in a fixed layer that follows its anchor on scroll and resize.
   // A tip never takes focus when it appears; it is announced politely and
   // sits in the tab order right after the toggle.
-  import { tick } from "svelte";
+  import { tick, untrack } from "svelte";
   import content from "../../content/callouts.json";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
@@ -58,6 +58,12 @@
       });
     });
     observer.observe(document.body, { childList: true, subtree: true });
+    // The first look-up ran before the layout was attached to the document, so
+    // every anchor was missing; look again now that it is. Untracked, so this
+    // effect doesn't depend on the counter it bumps.
+    untrack(() => {
+      pageChanges += 1;
+    });
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frame);
