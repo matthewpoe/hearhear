@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import path from "../../content/guided-path.json" with { type: "json" };
-import plan from "../../content/lessons/plan.json" with { type: "json" };
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import { createSongStore } from "../../src/store/song.js";
 import { chordFromNumeral } from "../../src/theory/index.js";
@@ -10,12 +9,11 @@ import {
   clampStep,
   conditionMet,
   hintFor,
-  lessonExchange,
   loadProgress,
   noteAt,
   numeralAt,
   saveProgress,
-  shouldAdvance,
+  pushDegree,
   stepTarget,
 } from "../../src/guided/steps.js";
 
@@ -46,7 +44,12 @@ function place(store, bar, beat, numeral) {
 }
 
 /** @param {Song} song */
-const state = (song, tutorReplies = 0, played = false) => ({ song, tutorReplies, played });
+const state = (song, played = false, loadedThisTour = true) => ({
+  song,
+  played,
+  loadedThisTour,
+  facts: { keyCommitted: song.notes.length > 0 && !song.key.provisional },
+});
 
 describe("the guided path's content", () => {
   it("is marked as a placeholder until Matthew's ear check", () => {
@@ -72,18 +75,12 @@ describe("the guided path's content", () => {
     );
   });
 
-  it("has unique step ids, a title, a one-line instruction and text on each, and a label on each action", () => {
+  it("has unique step ids, and a title, a one-line instruction and a target on each", () => {
     assert.equal(new Set(steps.map((s) => s.id)).size, steps.length);
     for (const step of steps) {
-      assert.ok(step.title && step.line && step.text, step.id);
-      if (step.action) assert.ok(step.action.label, step.id);
+      assert.ok(step.title && step.line && step.target, step.id);
+      assert.ok(!("action" in step), `${step.id}: the tour has no step buttons`);
     }
-  });
-
-  it("asks the tutor with a question from the lesson plan", () => {
-    const asks = steps.flatMap((s) => (s.action?.type === "askTutor" ? [s.action.lesson] : []));
-    assert.notEqual(asks.length, 0);
-    for (const lesson of asks) assert.ok(lessonExchange(plan, lesson), lesson);
   });
 
   it("is completed, step by step, by playing the story through the song store", () => {
@@ -93,24 +90,58 @@ describe("the guided path's content", () => {
       load: () => {},
       home: () => store.rekey({ tonic: "D", mode: "major", provisional: false }),
       "half-cadence": () => place(store, 4, 3, "V"),
-      "set-up-ending": () => place(store, 8, 1, "V"),
-      "wrong-ish": () => place(store, 8, 3, "vi"),
       land: () => place(store, 8, 3, "I"),
     };
-    let replies = 0;
     let played = false;
+    /** @type {Record<string, boolean>} */
+    let facts = {};
+    /** @type {number[]} */
+    let recentDegrees = [];
+    const at = () => ({ ...state(store.get(), played), facts, recentDegrees });
     for (const step of steps) {
-      const before = state(store.get(), replies, played);
-      assert.equal(conditionMet(step.done, before), step.id === "load", step.id);
-      if (step.id === "ask") replies = 1;
-      else if (step.id === "listen") played = true;
-      else doIt[step.id]();
-      assert.ok(conditionMet(step.done, state(store.get(), replies, played)), step.id);
+      assert.equal(conditionMet(step.done, at()), step.id === "load", step.id);
+      if (step.id === "listen") played = true;
+      else if (step.done.type === "fact") facts = { ...facts, [step.done.fact]: true };
+      else if (step.done.type === "degrees") {
+        for (const degree of step.done.degrees) {
+          recentDegrees = pushDegree(recentDegrees, { degree, accidental: 0 });
+        }
+      } else doIt[step.id]();
+      assert.ok(conditionMet(step.done, at()), step.id);
     }
   });
 });
 
+describe("degrees", () => {
+  const met = { type: /** @type {const} */ ("degrees"), degrees: [3, 3, 4, 5] };
+  /** @param {number[]} played */
+  const after = (played) =>
+    played.reduce(
+      (list, degree) => pushDegree(list, { degree, accidental: 0 }),
+      /** @type {number[]} */ ([]),
+    );
+  it("wants the degrees in order, as the last notes played", () => {
+    assert.ok(conditionMet(met, { ...state(tune), recentDegrees: after([1, 3, 3, 4, 5]) }));
+    assert.ok(!conditionMet(met, { ...state(tune), recentDegrees: after([3, 4, 5]) }));
+    assert.ok(!conditionMet(met, { ...state(tune), recentDegrees: after([3, 3, 4, 5, 6]) }));
+    assert.ok(!conditionMet(met, state(tune)));
+  });
+  it("counts a note off the scale as no degree", () => {
+    assert.deepEqual(pushDegree([3, 3, 4], { degree: 5, accidental: 1 }), [3, 3, 4, 0]);
+  });
+  it("keeps only the last few", () => {
+    assert.equal(after([1, 2, 3, 4, 5, 6, 7, 1, 2, 3]).length, 8);
+  });
+});
+
 describe("conditionMet", () => {
+  it("reads a fact", () => {
+    const met = { type: /** @type {const} */ ("fact"), fact: "notePlaying" };
+    assert.ok(conditionMet(met, { ...state(tune), facts: { notePlaying: true } }));
+    assert.ok(!conditionMet(met, { ...state(tune), facts: { notePlaying: false } }));
+    assert.ok(!conditionMet(met, state(tune)));
+  });
+
   it("wants the named song with notes", () => {
     const met = { type: /** @type {const} */ ("songLoaded"), song: "ode-to-joy" };
     assert.ok(conditionMet(met, state(tune)));
@@ -118,10 +149,15 @@ describe("conditionMet", () => {
     assert.ok(!conditionMet(met, state({ ...tune, notes: [] })));
   });
 
+  it("wants the song loaded during this run, so a fresh tour starts at step 1", () => {
+    const met = { type: /** @type {const} */ ("songLoaded"), song: "ode-to-joy" };
+    assert.ok(!conditionMet(met, state(tune, false, false)));
+  });
+
   it("counts a committed key only, and the right one for keyChosen", () => {
     const store = demo();
     const d = /** @type {const} */ ({ type: "keyChosen", tonic: "D", mode: "major" });
-    const any = /** @type {const} */ ({ type: "keyCommitted" });
+    const any = /** @type {const} */ ({ type: "fact", fact: "keyCommitted" });
     assert.ok(!conditionMet(d, state(store.get())));
     assert.ok(!conditionMet(any, state(store.get())));
     store.rekey({ tonic: "G", mode: "major", provisional: false });
@@ -147,14 +183,8 @@ describe("conditionMet", () => {
   it("wants Play pressed on a loaded song", () => {
     const played = /** @type {const} */ ({ type: "played" });
     assert.ok(!conditionMet(played, state(tune)));
-    assert.ok(conditionMet(played, state(tune, 0, true)));
-    assert.ok(!conditionMet(played, state({ ...tune, notes: [] }, 0, true)));
-  });
-
-  it("wants a tutor reply", () => {
-    const replied = /** @type {const} */ ({ type: "tutorReplied" });
-    assert.ok(!conditionMet(replied, state(tune, 0)));
-    assert.ok(conditionMet(replied, state(tune, 2)));
+    assert.ok(conditionMet(played, state(tune, true)));
+    assert.ok(!conditionMet(played, state({ ...tune, notes: [] }, true)));
   });
 });
 
@@ -168,15 +198,6 @@ describe("hintFor", () => {
     assert.match(hintFor(home, state(store.get())) ?? "", /Check it by ear/);
     store.rekey({ tonic: "D", mode: "major", provisional: false });
     assert.equal(hintFor(home, state(store.get())), null);
-  });
-});
-
-describe("shouldAdvance", () => {
-  it("advances only when a condition becomes true", () => {
-    assert.equal(shouldAdvance(false, true), true);
-    assert.equal(shouldAdvance(true, true), false, "already done on arrival: wait for Next");
-    assert.equal(shouldAdvance(false, false), false);
-    assert.equal(shouldAdvance(true, false), false);
   });
 });
 
@@ -222,41 +243,29 @@ describe("progress", () => {
   });
 });
 
-describe("lessonExchange", () => {
-  it("gives the plan's question and hint level", () => {
-    const ending = plan.exchanges.find((e) => e.id === "ode-ending");
-    assert.deepEqual(lessonExchange(plan, "ode-ending"), {
-      question: ending?.question,
-      level: "answer",
-    });
-    assert.equal(lessonExchange(plan, "nope"), null);
-  });
-});
-
 describe("stepTarget", () => {
   /** @param {string} id */
   const target = (id) =>
     stepTarget(/** @type {Step} */ (steps.find((s) => s.id === id)), demo().get());
   /** @param {number} bar @param {number} beat */
-  const noteSelector = (bar, beat) => `#staff [data-note-id="${noteAt(tune, bar, beat)?.id}"]`;
+  const noteId = (bar, beat) => ({ noteId: noteAt(tune, bar, beat)?.id });
 
-  it("points each step at what it asks the viewer to use", () => {
-    assert.deepEqual(target("load"), { selector: "#song-chooser" });
+  it("points each step at the real control it asks the viewer to use", () => {
+    assert.deepEqual(target("load"), { songId: "ode-to-joy" });
     assert.deepEqual(target("listen"), { selector: "#staff", button: "Play" });
-    assert.deepEqual(target("home"), { selector: "#key-prompt", button: "Help me find it" });
-    assert.deepEqual(target("half-cadence"), { selector: noteSelector(4, 3) });
-    assert.deepEqual(target("set-up-ending"), { selector: noteSelector(8, 1) });
-    assert.deepEqual(target("wrong-ish"), { selector: noteSelector(8, 3) });
-    assert.deepEqual(target("land"), { selector: noteSelector(8, 3) });
+    assert.deepEqual(target("home"), { selector: "#key-prompt" });
+    assert.deepEqual(target("numbers"), { codes: ["Digit3", "Digit4", "Digit5"] });
+    assert.deepEqual(target("half-cadence"), noteId(4, 3));
+    assert.deepEqual(target("land"), noteId(8, 3));
     assert.deepEqual(target("ask"), { selector: "#tutor .ask" });
+    assert.deepEqual(target("transpose"), { selector: "#toolbar > summary" });
+    assert.deepEqual(target("your-turn"), { selector: "#record-button, #record-card" });
   });
 
-  it("names nothing for a step without an action or a missing note", () => {
-    const bare = /** @type {Step} */ ({ ...steps[0], action: undefined });
-    assert.equal(stepTarget(bare, tune), null);
+  it("names nothing for a note the song lacks", () => {
     const off = /** @type {Step} */ ({
       ...steps[0],
-      action: { type: "openChords", bar: 99, beat: 1, label: "x" },
+      target: { type: "note", bar: 99, beat: 1 },
     });
     assert.equal(stepTarget(off, tune), null);
   });

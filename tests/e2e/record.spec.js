@@ -40,7 +40,7 @@ test("record a tune, name it, and find it on the staff, in the picker, and after
   page.on("pageerror", (error) => problems.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
 
   // 1. Arm from the welcome's "Play a melody" card: Stop takes focus.
   await page.getByRole("button", { name: /^Record a tune/ }).click();
@@ -136,7 +136,7 @@ test("the masthead's Record button starts a new tune beside a demo, and the bar 
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
   const record = page.getByRole("button", { name: "Record a tune" });
   await record.click();

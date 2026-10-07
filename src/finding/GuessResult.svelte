@@ -19,11 +19,20 @@
    *   feedback: Feedback,
    *   oncheck: () => void,
    *   onkeep: () => void,
+   *   onnext?: () => void,
+   *   next?: "rhythm" | "chords",
    * }}
    */
-  let { guess, feedback, oncheck, onkeep } = $props();
+  let { guess, feedback, oncheck, onkeep, onnext, next = "chords" } = $props();
+
+  /** The step path's next step names the advance. */
+  const NEXT = { rhythm: "Next: check the rhythm", chords: "Next: find the chords" };
 
   const invite = $derived(feedback === "mismatch" || feedback === "otherMode");
+
+  /** "You chose {key} as home." in three parts, so the key can be large. */
+  const [before, after] = $derived(COPY.chose.split("{key}"));
+  const key = $derived(fill("{key}", guess));
 
   /** @type {HTMLButtonElement | undefined} */
   let checkButton = $state();
@@ -37,6 +46,16 @@
     card?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
   }
 
+  /**
+   * Focus the card's first button ("Check it by ear" when it shows), for a
+   * finder that closes after its opener left. False if there's none.
+   */
+  export function focus() {
+    const target = checkButton ?? card?.querySelector("button");
+    target?.focus();
+    return target !== undefined && target !== null;
+  }
+
   /** "Keep my choice" removes itself, so focus moves to the "Check it by ear" that stays. */
   async function keepChoice() {
     onkeep();
@@ -46,54 +65,120 @@
 </script>
 
 <div class="result" bind:this={card}>
-  <p class="home">{fill(COPY.chose, guess)}</p>
+  <div class="headline">
+    <p class="home">
+      <span class="eyebrow">{before.trim()}</span>
+      <span class="key">{key}</span>
+      <span class="visually-hidden">{after}</span>
+    </p>
+    {#if onnext}
+      <button type="button" class="primary" onclick={onnext}>{NEXT[next]}</button>
+    {/if}
+  </div>
   {#if invite}
     <p>{COPY[feedback === "otherMode" ? "otherMode" : "mismatch"]}</p>
     <p class="actions">
-      <button type="button" onclick={oncheck}>{COPY.check}</button>
-      <button type="button" onclick={keepChoice}>{COPY.keep}</button>
+      <button type="button" class="secondary" onclick={oncheck}>{COPY.check}</button>
+      <button type="button" class="secondary" onclick={keepChoice}>{COPY.keep}</button>
     </p>
   {:else}
-    {#if feedback === "match"}
-      <p class="home">{COPY.match}</p>
-    {/if}
     <p>
-      Next: find the chords. Click a note on the staff to try chords under it, or use the bottom row
-      of keys (A to J) to play chords as you go.
+      {#if feedback === "match"}<span class="verdict">{COPY.match}</span>{/if}
+      <span class="check">
+        Not sure? <button type="button" class="link" bind:this={checkButton} onclick={oncheck}
+          >{COPY.check}</button
+        >
+      </span>
     </p>
-    <p>
-      Not sure? <button type="button" bind:this={checkButton} onclick={oncheck}>{COPY.check}</button
-      >
-    </p>
+  {/if}
+  {#if next === "chords"}
+    <p class="hint">Then click a note on the staff, or play chords with the keys A to J.</p>
   {/if}
 </div>
 
 <style>
   .result {
     display: grid;
-    gap: var(--space-1);
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4) var(--space-3);
+    border-left: var(--band) solid var(--accent);
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
     animation: arrive var(--dur-reveal) var(--ease);
   }
   p {
     margin: 0;
-    color: var(--ink-muted);
+    color: var(--ink);
+  }
+  /* The key and the step's one action share a row. */
+  .headline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
   }
   .home {
-    color: var(--ink);
+    display: grid;
+  }
+  .eyebrow {
+    color: var(--ink-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .key {
+    color: var(--accent);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .verdict {
+    margin-right: var(--space-2);
     font-weight: 500;
+  }
+  .hint {
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
   }
   .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-1);
+  }
+  .check {
+    color: var(--ink-muted);
   }
   button {
     padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--rule);
     border-radius: var(--radius-lg);
+    font: inherit;
+    cursor: pointer;
+  }
+  /* The step's one advance: --accent, what you do. */
+  .primary {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+  .secondary {
+    border: 1px solid var(--rule);
     background: var(--surface);
     color: var(--ink);
-    cursor: pointer;
+  }
+  .link {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
   @keyframes arrive {
     from {
