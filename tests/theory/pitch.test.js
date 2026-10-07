@@ -191,6 +191,16 @@ describe("keyEventToDegree", () => {
     assert.equal(keyEventToDegree("KeyE", { shift: true, alt: true })?.accidental, 0);
   });
 
+  it("reads the numeric keypad's digits as the number row's", () => {
+    for (const d of ["1", "5", "7", "8", "0"]) {
+      assert.deepEqual(keyEventToDegree(`Numpad${d}`, plain), keyEventToDegree(`Digit${d}`, plain));
+    }
+    assert.equal(keyEventToDegree("Numpad7", { shift: true, alt: false })?.accidental, 1);
+    for (const code of ["NumpadAdd", "NumpadEnter", "NumpadDecimal"]) {
+      assert.equal(keyEventToDegree(code, plain), null, code);
+    }
+  });
+
   it("ignores keys that aren't note keys", () => {
     for (const code of ["KeyI", "KeyO", "KeyP", "KeyK", "KeyL", "Minus", "BracketLeft", "Space"]) {
       assert.equal(keyEventToDegree(code, plain), null, code);
