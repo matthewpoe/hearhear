@@ -1,6 +1,6 @@
 /**
  * A song's limits, in one place: its title length, tempo range and default,
- * note count, lyric length, and swing range, read from
+ * note count and length, lyric length, and swing range, read from
  * contracts/song.schema.json so the app and the schema can't drift. The
  * tutor request model on the server is held to the same bounds by
  * server/tests/test_song_limits.py.
@@ -22,6 +22,9 @@ export { DEFAULT_TEMPO } from "../theory/rhythm.js";
 
 /** The most notes a song holds: a recording stops here. */
 export const MAX_NOTES = SONG.notes.maxItems;
+
+/** A note's longest, in ticks (twelve to the quarter). */
+export const MAX_NOTE_TICKS = DEFS.note.properties.dur.maximum;
 
 /** A note's lyric syllable's longest, in characters. */
 export const MAX_LYRIC_CHARS = DEFS.note.properties.lyric.maxLength;

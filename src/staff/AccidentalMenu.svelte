@@ -1,10 +1,16 @@
 <script>
-  // The accidental menu: a right-click (ctrl-click on a Mac, long-press on
-  // touch, Shift+F10 or the ContextMenu key) on a staff note offers the
-  // note's letter with each accidental, for a sharp or flat forgotten while
-  // entering it. A choice sets the pitch in one undoable step, plays it, and
-  // announces it. It sits like the chord dropdown: inside the visible area,
-  // above the keyboard dock (placement.js decides the side).
+  // The note menu: a right-click (ctrl-click on a Mac, long-press on touch,
+  // Shift+F10 or the ContextMenu key) on a staff note, on any song. It offers
+  // the note's letter with each accidental, for a sharp or flat forgotten
+  // while entering it; then any pitch (up or down a half step or an octave,
+  // inside A0 to C8), the length (an eighth longer or shorter, rippling the
+  // notes after it), and Delete note, which leaves a rest so later bars stay
+  // put. Each edit is one undoable step, plays the note, and announces it.
+  // An accidental or Delete closes the menu; the steps keep it open, so they
+  // repeat. Shift+Up and Shift+Down step the pitch from anywhere in it (plain
+  // arrows move between items, as in any menu), and Shift+Backspace or
+  // Shift+Delete deletes. It sits like the chord dropdown: inside the
+  // visible area, above the keyboard dock (placement.js decides the side).
   /** @import { PlacementInput, Side } from "../chords/placement.js" */
   /** @import { AccidentalChoice } from "./accidentals.js" */
   import { tick } from "svelte";
@@ -14,6 +20,7 @@
   import { placeOn, sideFor } from "../chords/placement.js";
   import { spokenNote } from "../theory/noteDisplay.js";
   import { accidentalChoices, pretty } from "./accidentals.js";
+  import { movePitch, spokenLength, stepLength } from "./noteEdits.js";
 
   const GUTTER_PX = 16;
   /** How long a picked note sounds. */
@@ -45,6 +52,35 @@
     note ? accidentalChoices(note.midi, $song.key, { notes: $song.notes, index }) : null,
   );
   const title = $derived(note ? pretty(spellMelody($song.notes, $song.key)[index]) : "");
+  /** The pitch and length steps, each null where it would leave the limits. */
+  const steps = $derived(
+    note
+      ? [
+          {
+            label: "Up a half step",
+            midi: movePitch(note.midi, 1),
+            shortcut: "Shift+ArrowUp",
+            glyph: "⇧↑",
+          },
+          {
+            label: "Down a half step",
+            midi: movePitch(note.midi, -1),
+            shortcut: "Shift+ArrowDown",
+            glyph: "⇧↓",
+          },
+          { label: "Up an octave", midi: movePitch(note.midi, 12), shortcut: null, glyph: null },
+          { label: "Down an octave", midi: movePitch(note.midi, -12), shortcut: null, glyph: null },
+        ]
+      : [],
+  );
+  const lengths = $derived(
+    note
+      ? [
+          { label: "Longer", dur: stepLength(note.dur, 1) },
+          { label: "Shorter", dur: stepLength(note.dur, -1) },
+        ]
+      : [],
+  );
 
   // Open: place below the note (or above), then focus the current choice.
   $effect(() => {
@@ -102,22 +138,65 @@
   }
 
   const itemsOf = () =>
-    [...(popup?.querySelectorAll('[role="menuitemradio"]') ?? [])].map(
+    [...(popup?.querySelectorAll('[role="menuitemradio"], [role="menuitem"]') ?? [])].map(
       (el) => /** @type {HTMLElement} */ (el),
     );
+
+  /** @param {number} midi */
+  function sound(midi) {
+    noteOn(midi);
+    setTimeout(() => noteOff(midi), NOTE_MS);
+  }
+
+  /** The note as the staff now spells it (in context), said aloud. */
+  function spokenNow() {
+    const after = song.get();
+    const at = after.notes.findIndex((n) => n.id === request?.noteId);
+    return at < 0 ? "" : spokenNote(spellMelody(after.notes, after.key)[at] ?? "");
+  }
 
   /** @param {AccidentalChoice} choice */
   function pick(choice) {
     if (!request || !menu || !choice.onPiano) return;
     if (!choice.current) song.setPitch(request.noteId, choice.midi);
-    noteOn(choice.midi);
-    setTimeout(() => noteOff(choice.midi), NOTE_MS);
+    sound(choice.midi);
     // Announced (the staff's status line is for screen readers): spelled out.
     const named = spokenNote(choice.label + menu.octave);
-    const after = song.get();
-    const at = after.notes.findIndex((n) => n.id === request.noteId);
-    const shown = spokenNote(spellMelody(after.notes, after.key)[at] ?? "");
-    onannounce(choice.shownAs ? `${named}, shown as ${shown}` : named);
+    onannounce(choice.shownAs ? `${named}, shown as ${spokenNow()}` : named);
+    onclose(true);
+  }
+
+  /**
+   * A pitch step. The menu stays open on it, so it repeats.
+   * @param {number | null} midi the new pitch; null past A0 or C8
+   */
+  function stepPitch(midi) {
+    if (!request || midi === null) return;
+    song.setPitch(request.noteId, midi);
+    sound(midi);
+    onannounce(spokenNow());
+  }
+
+  /**
+   * A length step; the notes after it ripple. The menu stays open.
+   * @param {number | null} dur the new length in ticks; null at a limit
+   */
+  function stepDuration(dur) {
+    if (!request || !note || dur === null) return;
+    song.setDuration(request.noteId, dur);
+    sound(note.midi);
+    onannounce(`${spokenNow()}, ${spokenLength(dur)}`);
+  }
+
+  /**
+   * Delete the note and its chord, keeping its time as a rest (makeRest), so
+   * the bars after it don't shift.
+   */
+  function remove() {
+    if (!request) return;
+    const named = spokenNow();
+    song.makeRest(request.noteId);
+    onannounce(`Deleted ${named}. Its time is a rest.`);
     onclose(true);
   }
 
@@ -133,7 +212,14 @@
       Home: 0,
       End: last,
     };
-    if (event.key === "Escape") {
+    if (event.shiftKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+      // Claimed here, so the number row's arrows leave the octave window alone.
+      event.preventDefault();
+      stepPitch(steps[event.key === "ArrowUp" ? 0 : 1]?.midi ?? null);
+    } else if (event.shiftKey && (event.key === "Backspace" || event.key === "Delete")) {
+      event.preventDefault();
+      remove();
+    } else if (event.key === "Escape") {
       event.preventDefault();
       event.stopPropagation();
       onclose(true);
@@ -194,6 +280,46 @@
           {/if}
         </button>
       {/each}
+      <div role="separator"></div>
+      {#each steps as step (step.label)}
+        <button
+          type="button"
+          role="menuitem"
+          aria-disabled={step.midi === null}
+          aria-keyshortcuts={step.shortcut}
+          tabindex="-1"
+          onclick={() => stepPitch(step.midi)}
+        >
+          <span class="label">{step.label}</span>
+          {#if step.glyph}
+            <kbd aria-hidden="true">{step.glyph}</kbd>
+          {/if}
+        </button>
+      {/each}
+      <div role="separator"></div>
+      {#each lengths as length (length.label)}
+        <button
+          type="button"
+          role="menuitem"
+          aria-disabled={length.dur === null}
+          tabindex="-1"
+          onclick={() => stepDuration(length.dur)}
+        >
+          <span class="label">{length.label}</span>
+          <span class="hint">by an eighth</span>
+        </button>
+      {/each}
+      <div role="separator"></div>
+      <button
+        type="button"
+        role="menuitem"
+        aria-keyshortcuts="Shift+Backspace"
+        tabindex="-1"
+        onclick={remove}
+      >
+        <span class="label">Delete note</span>
+        <span class="hint">leaves a rest</span>
+      </button>
     </div>
   </div>
 {/if}
@@ -249,6 +375,16 @@
   button[aria-disabled="true"] {
     color: var(--ink-muted);
     cursor: not-allowed;
+  }
+  [role="separator"] {
+    margin: var(--space-1) var(--space-2);
+    border-top: 1px solid var(--rule);
+  }
+  kbd {
+    margin-left: auto;
+    color: var(--ink-muted);
+    font: inherit;
+    font-size: var(--text-sm);
   }
   .label {
     min-width: 2.5em;
