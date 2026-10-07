@@ -2,34 +2,57 @@
  * Notes held right now, from any input: the on-screen piano and the number
  * row both press and release through here, so a note sounds once and lights
  * its piano key however it was played.
+ *
+ * Each hold is tracked by its source (a number-row key, a pointer, the
+ * focused piano key), and a note stops only when the last source holding it
+ * lets go: lifting a finger off a piano key never cuts off the same pitch
+ * still held on the number row.
  */
 
 import { noteOff, noteOn } from "../audio/index.js";
 import { createReadable } from "../lib/readable.js";
 
-const held = createReadable(/** @type {ReadonlySet<number>} */ (new Set()));
+/** Who holds each sounding pitch. Never mutated in place; every change publishes a new map. */
+const holds = createReadable(/** @type {ReadonlyMap<number, ReadonlySet<string>>} */ (new Map()));
 
-/** MIDI pitches currently held down. */
-export const heldNotes = { subscribe: held.subscribe };
+/** MIDI pitches currently held down, by any source. */
+export const heldNotes = {
+  /** @param {(value: ReadonlySet<number>) => void} run */
+  subscribe: (run) => holds.subscribe((map) => run(new Set(map.keys()))),
+};
 
 /**
- * Start a note. Pressing a note that is already held does nothing, so two
- * inputs on the same pitch never retrigger it.
+ * Start a note for a source. A pitch already sounding is not retriggered;
+ * the source just joins the holders.
  * @param {number} midi
+ * @param {string} source e.g. "key:Digit1", "pointer:3", "focus"
  */
-export function press(midi) {
-  const current = held.get();
-  if (current.has(midi)) return;
-  held.set(new Set(current).add(midi));
-  noteOn(midi);
+export function press(midi, source) {
+  const current = holds.get();
+  const holders = current.get(midi);
+  if (holders?.has(source)) return;
+  holds.set(new Map(current).set(midi, new Set(holders).add(source)));
+  if (!holders) noteOn(midi);
 }
 
-/** @param {number} midi */
-export function release(midi) {
-  const current = held.get();
-  if (!current.has(midi)) return;
-  const next = new Set(current);
+/**
+ * Let go of a note for a source. The note stops when no source holds it.
+ * @param {number} midi
+ * @param {string} source
+ */
+export function release(midi, source) {
+  const current = holds.get();
+  const holders = current.get(midi);
+  if (!holders?.has(source)) return;
+  const next = new Map(current);
+  const rest = new Set(holders);
+  rest.delete(source);
+  if (rest.size > 0) {
+    next.set(midi, rest);
+    holds.set(next);
+    return;
+  }
   next.delete(midi);
-  held.set(next);
+  holds.set(next);
   noteOff(midi);
 }

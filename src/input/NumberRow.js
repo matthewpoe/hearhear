@@ -2,7 +2,8 @@
  * Noodle mode: the computer keyboard is the instrument. The number row plays
  * scale degrees in the current key (Q–U one octave below, A–J two below),
  * Shift raises, Alt/Option lowers, and the up and down arrows move the whole
- * window an octave. Keys are read by physical position (KeyboardEvent.code),
+ * window an octave, as far as keeps every key on the C2–C6 piano (see
+ * windowBounds). Keys are read by physical position (KeyboardEvent.code),
  * since Shift+3 arrives as "#" and Option+3 on a Mac as "£".
  *
  * Another handler that consumes a key (the chord dropdown auditioning by
@@ -13,6 +14,7 @@ import { createReadable } from "../lib/readable.js";
 import { song } from "../store/song.js";
 import { ui } from "../store/ui.js";
 import { degreeToMidi, keyEventToDegree } from "../theory/index.js";
+import { clampWindow, onPiano } from "./keyBindings.js";
 import { press, release } from "./liveNotes.js";
 
 /**
@@ -22,9 +24,6 @@ import { press, release } from "./liveNotes.js";
  */
 export const ONE_SHOT_FLAT_FALLBACK = true;
 const ONE_SHOT_FLAT_CODE = "Minus";
-
-/** How far the arrows move the window: one octave either way keeps every row near the C2–C6 piano. */
-export const WINDOW_OCTAVE_LIMIT = 1;
 
 const armed = createReadable(false);
 
@@ -38,6 +37,7 @@ export const flatArmed = { subscribe: armed.subscribe };
  */
 function isFormField(target) {
   return (
+    typeof HTMLElement !== "undefined" &&
     target instanceof HTMLElement &&
     (target.isContentEditable || target.closest("input, textarea, select") !== null)
   );
@@ -45,10 +45,14 @@ function isFormField(target) {
 
 /** @param {number} delta */
 function shiftWindow(delta) {
-  const current = ui.get().windowOctave;
-  const next = Math.max(-WINDOW_OCTAVE_LIMIT, Math.min(WINDOW_OCTAVE_LIMIT, current + delta));
+  const { key } = song.get();
+  const current = clampWindow(key, ui.get().windowOctave);
+  const next = clampWindow(key, current + delta);
   if (next !== current) ui.update({ windowOctave: next });
 }
+
+/** The hold a number-row key keeps in liveNotes. @param {string} code */
+const source = (code) => `key:${code}`;
 
 /**
  * Listen for the number row on a target (the window, in the app).
@@ -92,9 +96,11 @@ export function listenToNumberRow(target) {
 
     armed.set(false);
     const { key } = song.get();
-    const midi = degreeToMidi(degree, key, ui.get().windowOctave);
+    const midi = degreeToMidi(degree, key, clampWindow(key, ui.get().windowOctave));
+    // Off the piano there is no key to light and no sample to play.
+    if (!onPiano(midi)) return;
     held.set(event.code, midi);
-    press(midi);
+    press(midi, source(event.code));
   }
 
   /** @param {KeyboardEvent} event */
@@ -102,12 +108,12 @@ export function listenToNumberRow(target) {
     const midi = held.get(event.code);
     if (midi === undefined) return;
     held.delete(event.code);
-    release(midi);
+    release(midi, source(event.code));
   }
 
   // Key-ups never arrive after the window loses focus, so let go of everything.
   function releaseAll() {
-    for (const midi of held.values()) release(midi);
+    for (const [code, midi] of held) release(midi, source(code));
     held.clear();
   }
 
