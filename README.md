@@ -14,7 +14,7 @@ make install
 make dev        # app on http://localhost:5173, API on :8000
 ```
 
-The tutor runs in fixture mode by default, so no API key is needed. `make check` runs everything CI runs.
+The tutor runs in fixture mode by default, so no API key is needed. `make check` runs everything CI runs. `make eval-live` and `make capture-lessons` call the live tutor (they ask before spending anything); the second records the demo's lessons, as `content/lessons/README.md` describes.
 
 ## Environment
 
