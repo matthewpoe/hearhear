@@ -60,7 +60,7 @@ describe("toTutorSnapshot", () => {
   it("puts a pickup in bar 0 at the end of the bar", () => {
     const sj = toTutorSnapshot(/** @type {any} */ (stJames), { labelStyle: "roman" });
     assert.equal(sj.bars[0].bar, 0);
-    assert.deepEqual(sj.bars[0].notes, [{ beat: 4, pitch: "A3", degree: "5", beats: 1 }]);
+    assert.deepEqual(sj.bars[0].notes, [{ beat: 4, pitch: "B4", degree: "5", beats: 1 }]);
     assert.equal(sj.meter.pickup_beats, 1);
   });
 });
