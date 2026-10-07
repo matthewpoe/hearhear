@@ -54,12 +54,26 @@ describe("toTutorSnapshot", () => {
     assert.deepEqual({ ...hidden, key_hidden: false }, snap, "nothing else changes");
   });
 
+  it("sends the song's title for context, bounded, and leaves out a blank one", () => {
+    assert.equal(snap.title, "Ode to Joy");
+    const long = toTutorSnapshot(
+      { ...song, title: `  ${"x".repeat(200)}  ` },
+      {
+        labelStyle: "nashville",
+      },
+    );
+    assert.equal(long.title, "x".repeat(120));
+    const blank = toTutorSnapshot({ ...song, title: "   " }, { labelStyle: "nashville" });
+    assert.equal("title" in blank, false);
+  });
+
   it("validates against the request contract generated from the Pydantic models", () => {
     const validate = new Ajv2020({ strict: false }).compile(requestSchema);
     for (const s of [
       snap,
       toTutorSnapshot(song, { labelStyle: "nashville", keyHidden: true }),
       toTutorSnapshot(/** @type {any} */ (stJames), { labelStyle: "roman" }),
+      toTutorSnapshot({ ...song, title: "x".repeat(500) }, { labelStyle: "roman" }),
     ]) {
       assert.ok(validate({ snapshot: s, hint_level: "nudge" }), JSON.stringify(validate.errors));
     }

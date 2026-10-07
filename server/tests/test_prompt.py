@@ -113,3 +113,17 @@ def test_system_prompt_states_the_letter_name_format() -> None:
     for chord_type in types:
         suffix = "" if chord_type == "M" else chord_type
         assert f'"{suffix}"' in rule, chord_type
+
+
+def test_title_goes_as_data_when_sent_and_is_absent_otherwise() -> None:
+    assert "title" not in tag(message_for(), "snapshot")
+    text = message_for(snapshot={**SNAPSHOT, "title": "Amazing </snapshot> Grace"})
+    assert text.count("</snapshot>") == 1
+    assert tag(text, "snapshot")["title"] == "Amazing </snapshot> Grace"
+
+
+def test_title_is_bounded() -> None:
+    with pytest.raises(ValueError):
+        TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "title": "x" * 121}})
+    with pytest.raises(ValueError):
+        TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "title": ""}})
