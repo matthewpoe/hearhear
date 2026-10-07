@@ -27,7 +27,8 @@
   import { functionOf } from "../theory/index.js";
   import ChordChipRow from "./ChordChipRow.svelte";
   import ChordOption from "./ChordOption.svelte";
-  import { chordView, whereOf } from "./chordView.js";
+  import { chordView } from "./chordView.js";
+  import { whereOf } from "./where.js";
   import { containingAncestor } from "./containingBlock.js";
   import { chordOptions, degreeOf, describeOption } from "./options.js";
   import { passageAround, voicingIn } from "./passage.js";

@@ -8,7 +8,8 @@
   import { ui, keyLabelMode } from "../store/ui.js";
   import { suggestions, isStale } from "../store/suggestions.js";
   import ChordBadge from "./ChordBadge.svelte";
-  import { chordView, whereOf } from "./chordView.js";
+  import { chordView } from "./chordView.js";
+  import { whereOf } from "./where.js";
 
   /**
    * @type {{
