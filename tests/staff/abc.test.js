@@ -127,30 +127,43 @@ test("hidden mode writes K:C, accidentals on the notes, no degrees, and a neutra
   assert.doesNotMatch(abc, /"D"/);
 });
 
-test("confirmed mode writes the chord's letter name and no numeral", () => {
+test("chord symbols follow the label style, as the chord chips show them", () => {
+  const D = { tonic: "D", mode: /** @type {const} */ ("major"), provisional: false };
+  const A7 = { root: "A", type: "7" };
+  /** @param {import("../../src/types.js").LabelStyle} labelStyle */
+  const symbol = (labelStyle) => chordSymbol(A7, D, { mode: "confirmed", labelStyle });
+  assert.equal(symbol("roman"), "V7");
+  assert.equal(symbol("nashville"), "5⁷");
+  assert.equal(symbol("letters"), "A7");
+  assert.equal(symbol("roman+letters"), "V7 · A7");
+  assert.equal(chordSymbol(A7, D, { mode: "tentative", labelStyle: "roman" }), "V7");
+  assert.equal(chordSymbol(A7, D, { mode: "hidden", labelStyle: "roman" }), HIDDEN_CHORD_MARK);
+
   const { abc, pieces } = songToAbc(
-    song(
-      { tonic: "D", mode: "major" },
-      [note("a", 66, 0, 48)],
-      [{ id: "x", noteId: "a", root: "A", type: "7" }],
-    ),
+    song({ tonic: "D", mode: "major" }, [note("a", 66, 0, 48)], [{ id: "x", noteId: "a", ...A7 }]),
     CONFIRMED,
   );
-  assert.deepEqual(body(abc), ['"A7"F48 |]']);
+  assert.deepEqual(body(abc), ['"V7"F48 |]']);
   assert.deepEqual(pieces, [{ noteId: "a", chordId: "x" }]);
 });
 
 test("chord symbol text can't break out of its ABC quotes", () => {
+  const C = { tonic: "C", mode: /** @type {const} */ ("major"), provisional: false };
+  const letters = {
+    mode: /** @type {const} */ ("confirmed"),
+    labelStyle: /** @type {const} */ ("letters"),
+  };
   const nasty = { root: "D", type: '"\nK:F %x\\' };
-  assert.equal(chordSymbol(nasty, "confirmed"), "DK:F x");
-  assert.equal(chordSymbol({ root: '"', type: "M" }, "confirmed"), "?");
+  assert.equal(chordSymbol(nasty, C, letters), "DK:F x");
+  assert.equal(chordSymbol({ root: '"', type: "M" }, C, letters), "?");
+  assert.equal(chordSymbol({ root: "^", type: "M" }, C, letters), "?");
   const { abc } = songToAbc(
     song(
       { tonic: "C", mode: "major" },
       [note("a", 60, 0, 48)],
       [{ id: "x", noteId: "a", ...nasty }],
     ),
-    CONFIRMED,
+    { ...CONFIRMED, labelStyle: "letters" },
   );
   assert.equal(abc.split("\n").filter((l) => l.startsWith("K:")).length, 1);
 });
@@ -173,6 +186,10 @@ test("the accessible name says only what the staff shows", () => {
   const key = { tonic: "D", mode: /** @type {const} */ ("major"), provisional: false };
   const chord = { id: "x", noteId: "a", root: "D", type: "M" };
   const n = note("a", 66, 0, 12);
-  assert.equal(describeNote(n, chord, key, CONFIRMED), "F sharp 4, degree 3, chord D");
+  assert.equal(describeNote(n, chord, key, CONFIRMED), "F sharp 4, degree 3, chord I");
+  assert.equal(
+    describeNote(n, chord, key, { ...CONFIRMED, labelStyle: "letters" }),
+    "F sharp 4, degree 3, chord D",
+  );
   assert.equal(describeNote(n, chord, key, HIDDEN), "F sharp 4, chord");
 });

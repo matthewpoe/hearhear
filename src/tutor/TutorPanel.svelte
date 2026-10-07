@@ -61,8 +61,30 @@
   const offered = $derived($suggestions.items.length);
   const stale = $derived(offered > 0 && isStale($suggestions, $song.version));
   const songId = $derived($song.id);
+  const hasSong = $derived($song.notes.length > 0);
+  const canAsk = $derived(hasSong && status !== "loading" && question.trim() !== "");
+  /**
+   * The server replays recorded replies (TUTOR_MODE=fixture): known from
+   * /api/health, or from a reply served by "fixture".
+   */
+  let demoReplies = $state(false);
 
   $effect(() => () => controller?.abort());
+
+  // Only says whether to show the demo notice; the tutor's own requests have
+  // their own failure states, so a failed check just leaves the notice off.
+  $effect(() => {
+    const check = new AbortController();
+    fetch("/api/health", { signal: check.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((health) => {
+        if (health?.tutor_mode === "fixture") demoReplies = true;
+      })
+      .catch((error) => {
+        if (!check.signal.aborted) console.warn("Couldn't read the tutor's mode", error);
+      });
+    return () => check.abort();
+  });
 
   // A different song starts a new conversation: its history says nothing about
   // this one, escalation waits for a nudge about it, and a reply still in
@@ -116,6 +138,7 @@
         },
       );
       if (exchange.signal.aborted) return;
+      if (reply.served_by === "fixture") demoReplies = true;
       const raw = Array.isArray(reply.suggestions) ? reply.suggestions : [];
       const { items, dropped } = checkSuggestions(raw, current);
       const replyLevel = Object.hasOwn(LEVEL_NAMES, reply.hint_level) ? reply.hint_level : level;
@@ -154,7 +177,9 @@
   /** @param {HintLevel} level */
   function ask(level) {
     // Enter still fires while a reply streams; keep the draft for later.
-    if (status === "loading") return;
+    if (status === "loading" || !hasSong) return;
+    // A nudge answers a question; the escalations build on the last reply.
+    if (level === "nudge" && !question.trim()) return;
     const asked = question.trim() || null;
     question = "";
     const keyboard = activatedByKeyboard();
@@ -229,10 +254,19 @@
         </li>
       {/if}
     </ol>
+  {:else if !hasSong}
+    <p class="intro">Load a tune first.</p>
   {:else}
     <p class="intro">
       Ask about any chord or bar, or just ask what to listen for. The tutor starts with a nudge; ask
       for more when you want it.
+    </p>
+  {/if}
+
+  {#if demoReplies}
+    <p class="demo">
+      Demo mode: the tutor plays back recorded sample replies about Ode to Joy, so it may not answer
+      your exact question.
     </p>
   {/if}
 
@@ -298,9 +332,9 @@
       {onkeydown}
       rows="2"
       maxlength={MAX_QUESTION_CHARS}
-      placeholder="Why does bar 4 feel unfinished?"></textarea>
+      placeholder={hasSong ? "Why does bar 4 feel unfinished?" : ""}></textarea>
     <div class="actions">
-      <button type="submit" class="primary" disabled={status === "loading"}>Ask</button>
+      <button type="submit" class="primary" disabled={!canAsk}>Ask</button>
       <div class="escalate" role="group" aria-label="Ask for more">
         <button
           type="button"
@@ -335,9 +369,13 @@
     font-weight: 500;
   }
   .intro,
-  .status {
+  .status,
+  .demo {
     margin: 0;
     color: var(--ink-muted);
+  }
+  .demo {
+    font-size: var(--text-sm);
   }
   /* Hidden visually but never removed from the accessibility tree: a live
      region that leaves the tree and returns with its content isn't reliably

@@ -8,7 +8,8 @@
   import { ui, keyLabelMode } from "../store/ui.js";
   import { suggestions, isStale } from "../store/suggestions.js";
   import ChordBadge from "./ChordBadge.svelte";
-  import { chordView, whereOf } from "./chordView.js";
+  import { chordView } from "./chordView.js";
+  import { whereOf } from "./where.js";
 
   /**
    * @type {{
@@ -49,7 +50,15 @@
 </script>
 
 {#if chips.length === 0}
-  <p class="empty">Click a note on the staff to try chords under it.</p>
+  <p class="empty">
+    {#if $song.notes.length === 0}
+      Load a tune, then click a note on the staff to try chords under it.
+    {:else if labelMode === "hidden"}
+      Choose the key first, then click a note to try chords under it.
+    {:else}
+      Click a note on the staff to try chords under it.
+    {/if}
+  </p>
 {:else}
   <ol class="chips" aria-label="Placed chords">
     {#each chips as { chord, place } (chord.id)}

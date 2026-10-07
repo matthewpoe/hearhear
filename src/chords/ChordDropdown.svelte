@@ -22,12 +22,14 @@
     auditionDebounced,
     preload,
     stopAudition,
+    unlock,
   } from "../audio/index.js";
   import { playWithVisuals } from "../staff/playback.js";
   import { functionOf } from "../theory/index.js";
   import ChordChipRow from "./ChordChipRow.svelte";
   import ChordOption from "./ChordOption.svelte";
-  import { chordView, whereOf } from "./chordView.js";
+  import { chordView } from "./chordView.js";
+  import { whereOf } from "./where.js";
   import { containingAncestor } from "./containingBlock.js";
   import { chordOptions, degreeOf, describeOption } from "./options.js";
   import { passageAround, voicingIn } from "./passage.js";
@@ -68,6 +70,8 @@
   /** @type {string | null} */
   let audioError = $state(null);
   let tap = $state(NO_TAP);
+  /** The dropdown scrolls and more of it lies below: show the fade cue. */
+  let moreBelow = $state(false);
   /** Announced when a tap previews an option, since the visible cue isn't read. */
   let tapHint = $state("");
   // Plain values, not state: they record what this component has touched so
@@ -172,6 +176,7 @@
    *   button or a staff note (an SVG element)
    */
   async function openAt(noteId, rect, opener) {
+    void wakeAudio();
     const maxLeft = window.scrollX + window.innerWidth - WIDTH_PX - GUTTER_PX;
     open = {
       noteId,
@@ -200,6 +205,23 @@
   }
 
   /**
+   * Opening the dropdown is a user gesture (a click, or Enter on a note), and
+   * the next thing it does is audition on hover, which is not one. If audio
+   * hasn't started yet (no earlier click unlocked it, or that unlock timed
+   * out), start it now so the first hover sounds. unlock() also plays the
+   * sound-check chord, so it runs only while the audio context isn't running.
+   */
+  async function wakeAudio() {
+    try {
+      const { getContext } = await import("tone");
+      if (getContext().state !== "running") await unlock();
+    } catch (error) {
+      console.error("Audio didn't start from the note click", error);
+      audioError = error instanceof Error ? error.message : String(error);
+    }
+  }
+
+  /**
    * `top` and `left` are page coordinates, so they hold only while no
    * ancestor of the dropdown is a containing block (positioned, transformed,
    * filtered, contained). None is today; if a layout change adds one, say so
@@ -220,10 +242,14 @@
    * Keep the dropdown inside the visible area, between the top of the
    * viewport and the sticky keyboard dock (which shows the keys a hover
    * lights): below the anchor if it fits, else above it, else on the roomier
-   * side with its own scroll. The side is chosen once per open; later refits
-   * keep it, so growing content scrolls inside rather than flipping.
+   * side with its own scroll. The side is chosen once per open; refits for
+   * growing content keep it, so the content scrolls inside rather than
+   * flipping. When the page scrolls or resizes, the room on each side
+   * changes, so the side is chosen again: that keeps the dropdown clear of
+   * the dock instead of sliding under it or shrinking to a sliver.
+   * @param {{ reside?: boolean }} [options]
    */
-  function fit() {
+  function fit({ reside = false } = {}) {
     if (!open || !dialog) return;
     const dockTop = document.querySelector(DOCK_SELECTOR)?.getBoundingClientRect().top;
     const visibleBottom = Math.min(window.innerHeight, dockTop ?? Infinity);
@@ -238,11 +264,20 @@
       gap: GUTTER_PX / 2,
       cap: window.innerHeight * CAP_VH,
     };
-    open.side ??= sideFor(at);
+    if (reside || !open.side) open.side = sideFor(at);
     const { top, maxHeight } = placeOn(at, open.side);
     open.top = top;
     open.maxHeight = maxHeight;
+    // The new max height isn't in the DOM yet, so measure against it here.
+    moreBelow = dialog.scrollTop + maxHeight < at.height - 1;
   }
+
+  /** On the dropdown's own scroll: is content still hidden below? */
+  function onDialogScroll() {
+    if (dialog) moreBelow = dialog.scrollTop + dialog.clientHeight < dialog.scrollHeight - 1;
+  }
+
+  const refit = () => fit({ reside: true });
 
   /** @param {boolean} restoreFocus */
   function close(restoreFocus) {
@@ -424,7 +459,7 @@
   }
 </script>
 
-<svelte:window onpointerdown={onWindowPointerDown} onresize={fit} />
+<svelte:window onpointerdown={onWindowPointerDown} onresize={refit} onscroll={refit} />
 
 <section id="chords" class="chords" aria-label="Chords">
   <h2>Chords</h2>
@@ -447,6 +482,7 @@
       style:max-height={open.maxHeight === null ? null : `${open.maxHeight}px`}
       {onkeydown}
       {onfocusout}
+      onscroll={onDialogScroll}
     >
       <div class="content" bind:this={content}>
         <h3 id="chord-dropdown-title">Chord at {where}</h3>
@@ -533,7 +569,9 @@
         {/if}
 
         {#if placed}
-          <button type="button" class="more" onclick={() => commit(null)}>No chord here</button>
+          <!-- An action, worded as one: "No chord here" read as a status line
+               that contradicted the chord just placed. -->
+          <button type="button" class="more" onclick={() => commit(null)}>Remove this chord</button>
         {/if}
 
         {#if $audioStatus === "loading"}
@@ -545,6 +583,7 @@
           </p>
         {/if}
       </div>
+      <div class="more-below" class:shown={moreBelow} aria-hidden="true">More below</div>
     </div>
   {/if}
 </section>
@@ -567,6 +606,9 @@
     max-width: calc(100vw - 2rem);
     max-height: 70vh;
     overflow-y: auto;
+    /* Scrolling past the end never scrolls the page under the dropdown. */
+    overscroll-behavior: contain;
+    scrollbar-color: var(--ink-muted) transparent;
     padding: var(--space-3);
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
@@ -611,6 +653,26 @@
     background: transparent;
     color: var(--ink);
     cursor: pointer;
+  }
+  /* The scroll cue: content fades out at the bottom edge while more of the
+     list is hidden below it. It takes no space and no clicks. */
+  .more-below {
+    position: sticky;
+    bottom: calc(-1 * var(--space-3));
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 2.5rem;
+    margin: -2.5rem calc(-1 * var(--space-3)) 0;
+    padding-bottom: var(--space-1);
+    background: linear-gradient(transparent, var(--surface) 70%);
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .more-below.shown {
+    visibility: visible;
   }
   @keyframes drop {
     from {

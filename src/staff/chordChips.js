@@ -1,7 +1,8 @@
 /**
- * Color the staff's chord letter names by harmonic function, the way a lead
- * sheet colors them (decision D3): no shapes and no chip boxes on the staff;
- * those, and the numerals, live only in the chord chip row (Stream D2).
+ * Color the staff's chord symbols by harmonic function, the way a lead sheet
+ * colors them (decision D3): no shapes and no chip boxes on the staff; those
+ * live only in the chord chip row (Stream D2). The symbols' text follows the
+ * user's label style (abc.js), like the chips.
  * abcjs can't style one chord symbol from ABC, so after it renders we give
  * each symbol's text element (found via noteMap.js) its function's color
  * token from theory's functionInfo. Staff.svelte's styles apply it per label

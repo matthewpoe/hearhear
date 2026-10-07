@@ -5,18 +5,11 @@
  * neutral mark, with no label and no function, because a numeral or even a
  * letter name gives home away (decision D2).
  *
- * @import { ChordSpec, Key, LabelStyle, HarmonicFunction, Meter, Note } from "../types.js"
+ * @import { ChordSpec, Key, LabelStyle, HarmonicFunction } from "../types.js"
  * @import { KeyLabelMode } from "../store/ui.js"
  */
 
-import {
-  functionInfo,
-  functionOf,
-  letterOf,
-  nashvilleOf,
-  numeralOf,
-  positionOf,
-} from "../theory/index.js";
+import { functionInfo, functionOf, letterOf, nashvilleOf, numeralOf } from "../theory/index.js";
 
 /**
  * @typedef {{
@@ -90,15 +83,4 @@ function styledLabel(chord, key, style, numeral, letters) {
       : { text: number, sup: "" };
   }
   return { text: numeral, sup: "" };
-}
-
-/**
- * Where a note sits, for labels: "bar 2, beat 3". Bar 0 is the pickup.
- * @param {Note} note
- * @param {Meter} meter
- * @returns {string}
- */
-export function whereOf(note, meter) {
-  const { bar, beat } = positionOf(note.start, meter);
-  return `bar ${bar}, beat ${beat}`;
 }
