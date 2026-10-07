@@ -95,17 +95,38 @@
 </footer>
 
 <style>
+  /* A Bauhaus bar across the top: violet, green and ink rectangles in the
+     interface's own colors (tokens.css), never the function primaries. */
   .masthead {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2) var(--space-3);
     padding: var(--space-2) var(--space-4);
+    border-top: var(--band) solid;
+    border-image: linear-gradient(
+        to right,
+        var(--accent) 0 62%,
+        var(--sound) 62% 81%,
+        var(--ink) 81% 100%
+      )
+      1;
   }
+  /* The wordmark is a solid violet block, square-cornered like a poster. */
   h1 {
     margin: 0;
+    padding: 0 var(--space-2);
+    background: var(--accent);
+    color: var(--accent-ink);
     font-size: var(--text-lg);
     font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  /* The masthead's song picker: the pressed tune takes the selected color. */
+  .masthead > :global(.picker button[aria-pressed="true"]) {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .tagline {
     margin: 0;
@@ -169,10 +190,11 @@
   .credits a {
     color: inherit;
   }
+  /* The dock is where sound comes from, so its frame is --sound. */
   .keyboard-dock {
     position: sticky;
     bottom: 0;
     background: var(--surface);
-    border-top: 1px solid var(--rule);
+    border-top: var(--band) solid var(--sound);
   }
 </style>

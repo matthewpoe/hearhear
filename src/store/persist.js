@@ -16,7 +16,7 @@
  */
 
 import songSchema from "../../contracts/song.schema.json" with { type: "json" };
-import { validateSong } from "./song.js";
+import { isSwing, validateSong } from "./song.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
 export const STORE_VERSION = 1;
@@ -106,6 +106,7 @@ function isSong(song) {
     isInt(meter.pickupTicks, meterRules.pickupTicks) &&
     typeof meter.provisional === "boolean" &&
     isInt(tempo, SONG.tempo) &&
+    (song.swing === undefined || isSwing(song.swing)) &&
     isInt(version, SONG.version) &&
     isList(
       notes,

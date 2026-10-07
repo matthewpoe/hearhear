@@ -99,6 +99,7 @@ describe("persist.js accepts what song.schema.json accepts", () => {
     /** @type {[(string | number)[], { minimum?: number, maximum?: number }][]} */
     const bounded = [
       [["tempo"], top.tempo],
+      [["swing"], top.swing],
       [["version"], top.version],
       [["meter", "beatsPerBar"], defs.meter.properties.beatsPerBar],
       [["meter", "pickupTicks"], defs.meter.properties.pickupTicks],

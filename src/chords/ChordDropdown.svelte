@@ -605,14 +605,17 @@
 </section>
 
 <style>
+  /* A violet band and heading mark the step you're working on. */
   .chords {
     padding: var(--space-4);
     border: 1px solid var(--rule);
+    border-top: var(--band) solid var(--accent);
     border-radius: var(--radius-md);
     background: var(--surface);
   }
   h2 {
     margin: 0 0 var(--space-2);
+    color: var(--accent);
     font-size: var(--text-lg);
     font-weight: 500;
   }
