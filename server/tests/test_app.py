@@ -1,46 +1,28 @@
+import base64
+import hashlib
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from helpers import SNAPSHOT, events
 
-from hearhear import app as app_module
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
-SNAPSHOT: dict[str, Any] = {
-    "version": 7,
-    "key": {"tonic": "D", "mode": "major", "provisional": False},
-    "meter": {"beats_per_bar": 4, "beat_unit": 4, "pickup_beats": 0, "provisional": False},
-    "tempo": 108,
-    "label_style": "roman",
-    "bars": [
-        {
-            "bar": 1,
-            "notes": [{"beat": 1, "pitch": "F#4", "degree": "3", "beats": 1}],
-            "chords": [{"beat": 1, "numeral": "I", "nashville": "1", "letter": "D"}],
-        }
-    ],
-}
-
-
-@pytest.fixture
-def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    (tmp_path / "assets").mkdir()
-    (tmp_path / "assets" / "app.js").write_text("console.log('hi')")
-    (tmp_path / "index.html").write_text("<!doctype html><title>Hear Hear</title>")
-    settings = app_module.settings.__class__(
-        **{**app_module.settings.__dict__, "dist_dir": tmp_path}
-    )
-    monkeypatch.setattr(app_module, "settings", settings)
-    return TestClient(app_module.app)
-
-
-def events(body: str) -> list[tuple[str, dict[str, Any]]]:
-    parsed = []
-    for block in body.strip().split("\n\n"):
-        event_line, data_line = block.split("\n")
-        parsed.append((event_line.removeprefix("event: "), json.loads(data_line[6:])))
-    return parsed
+# The <style> rule abcjs 6.7.1 inserts into every staff it draws, copied from
+# node_modules/abcjs/src/write/draw/set-paper-size.js (built there, inserted as
+# textContent by insertStyles in svg.js). Pinned to 6.7.1: when abcjs changes,
+# re-copy the rule from that file and update ABCJS_STYLE_HASH in app.py.
+ABCJS_VERSION = "6.7.1"
+ABCJS_STYLE_RULE = (
+    ".abcjs-dragging-in-progress text, .abcjs-dragging-in-progress tspan {"
+    "-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; "
+    "-moz-user-select: none; -ms-user-select: none; user-select: none;}"
+)
 
 
 def test_health(client: TestClient) -> None:
@@ -50,11 +32,12 @@ def test_health(client: TestClient) -> None:
 
 
 def test_security_headers_on_every_response(client: TestClient) -> None:
+    rule_hash = base64.b64encode(hashlib.sha256(ABCJS_STYLE_RULE.encode()).digest()).decode()
     for path in ("/api/health", "/", "/assets/app.js"):
         headers = client.get(path).headers
         csp = dict(d.split(" ", 1) for d in headers["content-security-policy"].split("; "))
         assert csp["script-src"] == "'self'"
-        assert csp["style-src"] == "'self'"
+        assert csp["style-src"] == f"'self' 'sha256-{rule_hash}'", "abcjs's <style>, by hash only"
         assert csp["style-src-attr"] == "'unsafe-inline'"
         assert headers["x-content-type-options"] == "nosniff"
         assert "referrer-policy" in headers
@@ -93,6 +76,58 @@ def test_tutor_fixture_stream_follows_the_protocol(client: TestClient) -> None:
     suggestions = dict(stream)["suggestions"]
     assert suggestions["snapshot_version"] == 7
     assert len(suggestions["suggestions"]) == 2
+
+
+def test_csp_hash_is_pinned_to_the_locked_abcjs() -> None:
+    """The style hash above is only right for abcjs 6.7.1. An upgrade fails
+    here first, rather than as a CSP console error on every staff."""
+    lock = json.loads((REPO_ROOT / "package-lock.json").read_text())
+    assert lock["packages"]["node_modules/abcjs"]["version"] == ABCJS_VERSION
+
+
+def test_fixture_reports_it_was_served_by_no_model(client: TestClient) -> None:
+    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "hint_level": "comparison"})
+    assert dict(events(response.text))["suggestions"]["served_by"] == "fixture"
+
+
+def test_hidden_key_withholds_fixture_suggestions_too(client: TestClient) -> None:
+    body = {"snapshot": {**SNAPSHOT, "key_hidden": True}, "hint_level": "comparison"}
+    suggestions = dict(events(client.post("/api/tutor", json=body).text))["suggestions"]
+    assert suggestions["suggestions"] == []
+    assert suggestions["dropped"] == 2
+
+
+def import_app(**env: str) -> subprocess.CompletedProcess[str]:
+    """Import the app in a fresh interpreter, as uvicorn does at startup."""
+    clean = {k: v for k, v in os.environ.items() if not k.startswith(("ANTHROPIC_", "TUTOR_"))}
+    return subprocess.run(
+        [sys.executable, "-c", "import hearhear.app"],
+        cwd=REPO_ROOT / "server",
+        env={**clean, **env},
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+
+
+@pytest.mark.parametrize("key", [None, "", "   "], ids=["unset", "empty", "blank"])
+def test_live_mode_without_an_api_key_fails_at_startup(key: str | None) -> None:
+    env = {"TUTOR_MODE": "live"} | ({} if key is None else {"ANTHROPIC_API_KEY": key})
+    result = import_app(**env)
+    assert result.returncode != 0
+    assert "RuntimeError" in result.stderr
+    assert "ANTHROPIC_API_KEY" in result.stderr
+
+
+def test_live_mode_with_an_api_key_starts_without_echoing_it() -> None:
+    result = import_app(TUTOR_MODE="live", ANTHROPIC_API_KEY="sk-ant-test-not-a-real-key")
+    assert result.returncode == 0, result.stderr
+    assert "sk-ant-test" not in result.stdout + result.stderr
+
+
+def test_fixture_mode_needs_no_api_key() -> None:
+    assert import_app(TUTOR_MODE="fixture").returncode == 0
 
 
 def test_tutor_over_budget_fixture(client: TestClient) -> None:
