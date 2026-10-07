@@ -186,7 +186,7 @@ function drawableLengths(ticks) {
  * @param {string} name a spelled pitch from theory's spell(), e.g. "F#4"
  * @returns {{ letter: string, accidental: number, octave: number }}
  */
-function parseSpelling(name) {
+export function parseSpelling(name) {
   const m = name.match(/^([A-G])(##|#|bb|b)?(-?\d+)$/);
   if (!m) throw new RangeError(`Unexpected spelling ${name}`);
   const accidental = { "##": 2, "#": 1, bb: -2, b: -1 }[m[2] ?? ""] ?? 0;
