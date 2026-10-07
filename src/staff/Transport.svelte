@@ -1,7 +1,8 @@
 <script>
-  // Play and Stop for the whole song, or from the bar of the note the user
-  // last clicked or focused ("Play from bar 4", with "Play bar 4" for that bar
-  // alone, which the tutor's listening steps point to). The visuals (the
+  // One big Play/Stop, and beside it a segmented choice of what Play plays:
+  // from the top, or this bar, the bar of the note the user last clicked or
+  // focused (Play then reads "Play bar 4", the name the tutor's listening
+  // steps use; names come from content/controls.json). The visuals (the
   // staff playhead, the keyboard lights) come from playWithVisuals, the one
   // playback driver with visuals (decision D10); this component only starts
   // and stops it.
@@ -11,6 +12,12 @@
   import { onNoteClick } from "./staffEvents.js";
   import { barName, barPlace, songEnd } from "./bars.js";
   import { playWithVisuals } from "./playback.js";
+  import Segmented from "../toolbar/Segmented.svelte";
+  import Tip from "../toolbar/Tip.svelte";
+  import { CONTROLS, withBar } from "../lib/controls.js";
+  import explainers from "../../content/explainers.json" with { type: "json" };
+
+  const GLOSS = explainers.options;
 
   /** @typedef {import("../audio/index.js").TickRange} TickRange */
 
@@ -29,12 +36,35 @@
   const where = $derived(place ? barName(place.number) : "");
   const songId = $derived($song.id);
 
+  /** What Play plays: the whole tune, or the place's bar alone. */
+  let scope = $state(/** @type {"whole" | "bar"} */ ("whole"));
+  const playsBar = $derived(scope === "bar" && place !== null);
+  /** "Play", or "Play bar 4" while this bar is chosen (the name the tutor uses). */
+  const playLabel = $derived(playsBar ? withBar(CONTROLS.playBar, where) : CONTROLS.play);
+  const scopes = $derived([
+    { value: "whole", label: CONTROLS.fromTop, tip: GLOSS.fromTop },
+    {
+      value: "bar",
+      label: CONTROLS.thisBar,
+      tip: place ? `${GLOSS.thisBar} Now: ${where}.` : GLOSS.thisBar,
+      disabled: place === null,
+    },
+  ]);
+
   $effect(() => onNoteClick(({ noteId }) => (lastNoteId = noteId)));
 
   // Another song (or the same one reopened) starts from the top again.
   $effect(() => {
     void songId;
     lastNoteId = null;
+    scope = "whole";
+  });
+
+  // With no place left (its note deleted, the song switched), "This bar" has
+  // nothing to point at: back to the top, so a later note click never turns
+  // Play into "Play bar N" unasked.
+  $effect(() => {
+    if (place === null) scope = "whole";
   });
 
   // Arrowing along the staff's notes moves the place too.
@@ -68,33 +98,28 @@
 
 <div class="transport" role="group" aria-label="Playback">
   <!-- One button that toggles, so focus stays put when playback starts. -->
-  <button
-    type="button"
-    class="control"
-    onclick={playing ? stop : () => play(place?.fromBar)}
-    disabled={!playing && (loading || samplesFailed || $song.notes.length === 0)}
-  >
-    <span class="icon" class:play={!playing} aria-hidden="true"></span>{playing
-      ? "Stop"
-      : place
-        ? `Play from ${where}`
-        : "Play"}
-  </button>
-  {#if place}
+  <Tip id="play-tip" text={playing ? "Stops playback." : playsBar ? GLOSS.thisBar : GLOSS.fromTop}>
     <button
       type="button"
-      class="small"
-      onclick={() => play(place.bar)}
-      disabled={loading || samplesFailed}
+      class="control"
+      aria-describedby="play-tip"
+      onclick={playing ? stop : () => play(playsBar ? place?.bar : undefined)}
+      disabled={!playing && (loading || samplesFailed || $song.notes.length === 0)}
     >
-      Play {where}
+      <span class="icon" class:play={!playing} aria-hidden="true"></span>{playing
+        ? "Stop"
+        : playLabel}
     </button>
-    <button type="button" class="small" onclick={() => play()} disabled={loading || samplesFailed}>
-      Play from the top
-    </button>
-  {/if}
+  </Tip>
+  <Segmented
+    name="play-scope"
+    legend="What Play plays"
+    options={scopes}
+    value={playsBar ? "bar" : "whole"}
+    onchange={(value) => (scope = value === "bar" ? "bar" : "whole")}
+  />
 
-  <p class="status" role="status">
+  <p class="status" class:shown={loading || samplesFailed || failed} role="status">
     {#if loading}
       Loading the piano…
     {:else if samplesFailed}
@@ -111,41 +136,32 @@
   .transport {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
     gap: var(--space-2);
   }
   /* Play is the sound control: filled --sound (tokens.css). */
   .control {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-2);
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--sound);
+    min-width: 9.5rem;
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--sound);
     border-radius: var(--radius-lg);
     background: var(--sound);
     color: var(--sound-ink);
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
   }
-  .small {
-    padding: var(--space-1) var(--space-2);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-lg);
-    background: var(--surface);
-    color: var(--ink);
-    font-size: var(--text-sm);
-    cursor: pointer;
-  }
-  .control:disabled,
-  .small:disabled {
+  .control:disabled {
     border-color: var(--rule);
     background: var(--surface);
     color: var(--ink-muted);
     cursor: not-allowed;
   }
   .icon {
-    width: 0.7rem;
-    height: 0.7rem;
+    width: 0.75rem;
+    height: 0.75rem;
     background: currentColor;
   }
   .play {
@@ -155,6 +171,15 @@
     margin: 0;
     color: var(--ink-muted);
     font-size: var(--text-sm);
+    white-space: nowrap;
+  }
+  /* Empty, the live region takes no room in the row. */
+  .status:not(.shown) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
   .link {
     padding: 0;
