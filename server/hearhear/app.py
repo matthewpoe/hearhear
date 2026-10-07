@@ -44,15 +44,23 @@ if settings.tutor_mode == "live":
     anthropic_client()  # A client that can't be built fails the deploy, not a question.
 
 
-# Self only, with two narrow exceptions. Tone.js runs its clock in a Worker
-# built from a blob: URL, and the demo-video recorder plays back blob: media.
-# abcjs sets `style` attributes while measuring and rendering, so inline style
-# *attributes* are allowed; <style> elements and every script stay 'self'.
+# The one <style> element abcjs 6.7.1 inserts into every staff it draws:
+# set-paper-size.js builds this rule and svg.js's insertStyles sets it as the
+# element's textContent. It must match byte for byte, so an abcjs upgrade that
+# changes the rule needs a new hash (the browser reports the expected one in
+# its CSP console error).
+ABCJS_STYLE_HASH = "'sha256-BCpnf71gZdCsSCHDzyB1RsBbZ0qQdqseK6v+yJsgg30='"
+
+# Self only, with narrow exceptions. Tone.js runs its clock in a Worker built
+# from a blob: URL, and the demo-video recorder plays back blob: media. abcjs
+# sets `style` attributes while measuring and rendering, so inline style
+# *attributes* are allowed, and its one <style> element is allowed by hash.
+# Every other <style> element and every script stay 'self'.
 CONTENT_SECURITY_POLICY = "; ".join(
     [
         "default-src 'self'",
         "script-src 'self'",
-        "style-src 'self'",
+        f"style-src 'self' {ABCJS_STYLE_HASH}",
         "style-src-attr 'unsafe-inline'",
         "img-src 'self' data:",
         "font-src 'self'",
