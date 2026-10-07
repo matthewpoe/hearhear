@@ -80,7 +80,7 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(question).toContainText(match);
   await expect(bright).toBeChecked();
   await expect(question).toContainText("Major unless you pick Dark.");
-  await expect(question.getByRole("button", { name: "Done: on to chords" })).toBeVisible();
+  await expect(question.getByRole("button", { name: "Next: find the chords" })).toBeVisible();
   await d.click();
   await expect(d).toHaveAttribute("aria-pressed", "false");
   await expect(question).not.toContainText(chose);
