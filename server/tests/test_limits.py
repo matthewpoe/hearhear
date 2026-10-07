@@ -80,6 +80,28 @@ def test_rate_limit_returns_429_with_the_error_envelope(two_per_minute: TestClie
     response = two_per_minute.post("/api/tutor", json={"snapshot": SNAPSHOT})
     assert response.status_code == 429
     assert response.json()["error"]["code"] == "rate_limited"
+    assert "a minute" in response.json()["error"]["message"]
+
+
+def test_429_says_when_to_retry(two_per_minute: TestClient) -> None:
+    for _ in range(2):
+        ask(two_per_minute)
+    response = two_per_minute.post("/api/tutor", json={"snapshot": SNAPSHOT})
+    retry_after = response.headers["retry-after"]
+    assert retry_after.isdigit(), "an integer number of seconds"
+    assert 1 <= int(retry_after) <= 60
+
+
+def test_429_on_the_daily_limit_does_not_promise_a_minute(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(app_module, "settings", settings_with(rate_limit="1/day"))
+    ask(client)
+    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT})
+    assert response.status_code == 429
+    assert int(response.headers["retry-after"]) > 60
+    assert "a minute" not in response.json()["error"]["message"]
+    assert "recorded lessons still work" in response.json()["error"]["message"]
 
 
 def test_spoofed_leftmost_forwarded_for_does_not_reset_the_limit(

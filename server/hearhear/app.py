@@ -4,7 +4,9 @@ Same-origin serving, so there is no CORS middleware; in development the Vite
 dev server proxies /api here.
 """
 
+import math
 import os
+import time
 import uuid
 from functools import cache
 from typing import Annotated
@@ -131,11 +133,26 @@ async def invalid_request(_request: Request, exc: RequestValidationError) -> JSO
     return error_response(422, "invalid_request", f"{where}: {first['msg']}")
 
 
+def _retry_after_seconds(request: Request) -> int:
+    """Whole seconds until the limit that was hit resets, at least 1.
+
+    slowapi records the limit it tripped on `request.state.view_rate_limit`
+    as (limit, storage keys), and the storage reports when that window resets.
+    """
+    item, keys = request.state.view_rate_limit
+    reset_at, _remaining = limiter.limiter.get_window_stats(item, *keys)
+    return max(1, math.ceil(reset_at - time.time()))
+
+
 @app.exception_handler(RateLimitExceeded)
-async def rate_limited(_request: Request, _exc: RateLimitExceeded) -> JSONResponse:
-    log_event("request_rejected", code="rate_limited")
-    message = "That's a lot of questions at once. Give the tutor a minute and try again."
-    return error_response(429, "rate_limited", message)
+async def rate_limited(request: Request, _exc: RateLimitExceeded) -> JSONResponse:
+    retry_after = _retry_after_seconds(request)
+    log_event("request_rejected", code="rate_limited", retry_after=retry_after)
+    if retry_after <= 60:
+        message = "That's a lot of questions at once. Give the tutor a minute and try again."
+    else:
+        message = "That's the tutor's limit for now. The recorded lessons still work."
+    return error_response(429, "rate_limited", message, {"Retry-After": str(retry_after)})
 
 
 def _rate_limit() -> str:
