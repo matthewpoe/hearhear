@@ -24,6 +24,24 @@ export function onAskRequest(listener) {
   return () => listeners.delete(listener);
 }
 
+/** The recorded lesson the guided path's current step asks with, or "". */
+let stepLesson = "";
+
+/**
+ * The guided path's current step names a recorded lesson ("lesson:<id>"), or
+ * "" when it doesn't or the walkthrough isn't running. A question the viewer
+ * asks meanwhile replays it: the step answers anyone, at no cost.
+ * @param {string} fixture
+ */
+export function setStepLesson(fixture) {
+  stepLesson = fixture;
+}
+
+/** The lesson a question asked now replays, or "" to ask the tutor. */
+export function stepLessonFixture() {
+  return stepLesson;
+}
+
 /**
  * Ask the tutor panel to send a question. False when no panel is listening.
  * @param {AskRequest} request

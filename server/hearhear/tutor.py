@@ -119,6 +119,11 @@ def is_lesson_name(name: str | None) -> bool:
     return name is not None and name.startswith(LESSON_PREFIX)
 
 
+def is_lesson_id(name: str) -> bool:
+    """The X-Tutor-Fixture value names a lesson by a plain id, recorded or not."""
+    return _LESSON_ID.fullmatch(name.removeprefix(LESSON_PREFIX)) is not None
+
+
 def load_lesson(name: str) -> dict[str, Any] | None:
     """The recorded lesson an X-Tutor-Fixture value names, or None when it
     isn't recorded. Only a plain id can match, so the header can't reach any
