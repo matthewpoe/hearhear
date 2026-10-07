@@ -189,6 +189,27 @@ describe("recordedSong", () => {
     assert.deepEqual(tune.chords, []);
   });
 
+  it("plays a swung take back swung, with straight eighths on the staff", () => {
+    // Swung eighth pairs at 2:1 on a 600 ms beat, tapped.
+    const presses = [0, 400, 600, 1000, 1200, 1600, 1800, 2200].map((t, i) => ({
+      midi: 60 + i,
+      downMs: 1000 + t,
+      upMs: 1100 + t,
+    }));
+    const take = takeNotes(presses, 1000 + 2400);
+    assert.equal(take.swing, true);
+    const swung = recordedSong({ id: newTuneId(4), title: "Swung", ...take });
+    assert.equal(swung.swing, 2);
+    assert.deepEqual(
+      swung.notes.map((n) => n.dur),
+      Array(8).fill(6),
+    );
+    const ajv = new Ajv2020({ allErrors: true });
+    addFormats.default(ajv);
+    assert.ok(ajv.validate(songSchema, swung), JSON.stringify(ajv.errors));
+    assert.equal("swing" in tune, false, "a straight take has no swing");
+  });
+
   it("is remembered and recalled by the tab's song memory", () => {
     const items = new Map();
     const memory = createSongMemory(() => ({

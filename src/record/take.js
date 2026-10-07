@@ -118,14 +118,20 @@ export function takeNotes(presses, endMs, { running = false } = {}) {
   };
 }
 
+/** The swing a swung take plays back with: triplet swing, about 2:1. */
+export const RECORDED_SWING = 2;
+
 /**
  * A recorded tune: 4/4 with no pickup, the tempo from the take, and the key
  * provisional (C, until the key question finds home). Note ids are n1, n2, …
- * @param {{ id: string, title: string, notes: { midi: number, start: number, dur: number }[], tempo: number }} take
+ * A take whose eighth pairs were mostly swung is marked to play back swung
+ * (the notation stays straight eighths).
+ * @param {{ id: string, title: string, notes: { midi: number, start: number, dur: number }[], tempo: number, swing?: boolean }} take
  * @returns {Song}
  */
-export function recordedSong({ id, title, notes, tempo }) {
+export function recordedSong({ id, title, notes, tempo, swing = false }) {
   return {
+    ...(swing ? { swing: RECORDED_SWING } : {}),
     schemaVersion: 1,
     id,
     title,
