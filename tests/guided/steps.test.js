@@ -16,6 +16,7 @@ import {
   numeralAt,
   saveProgress,
   shouldAdvance,
+  stepTarget,
 } from "../../src/guided/steps.js";
 
 /** @import { Song } from "../../src/types.js" */
@@ -229,5 +230,34 @@ describe("lessonExchange", () => {
       level: "answer",
     });
     assert.equal(lessonExchange(plan, "nope"), null);
+  });
+});
+
+describe("stepTarget", () => {
+  /** @param {string} id */
+  const target = (id) =>
+    stepTarget(/** @type {Step} */ (steps.find((s) => s.id === id)), demo().get());
+  /** @param {number} bar @param {number} beat */
+  const noteSelector = (bar, beat) => `#staff [data-note-id="${noteAt(tune, bar, beat)?.id}"]`;
+
+  it("points each step at what it asks the viewer to use", () => {
+    assert.deepEqual(target("load"), { selector: "#song-chooser" });
+    assert.deepEqual(target("listen"), { selector: "#staff", button: "Play" });
+    assert.deepEqual(target("home"), { selector: "#key-prompt", button: "Help me find it" });
+    assert.deepEqual(target("half-cadence"), { selector: noteSelector(4, 3) });
+    assert.deepEqual(target("set-up-ending"), { selector: noteSelector(8, 1) });
+    assert.deepEqual(target("wrong-ish"), { selector: noteSelector(8, 3) });
+    assert.deepEqual(target("land"), { selector: noteSelector(8, 3) });
+    assert.deepEqual(target("ask"), { selector: "#tutor .ask" });
+  });
+
+  it("names nothing for a step without an action or a missing note", () => {
+    const bare = /** @type {Step} */ ({ ...steps[0], action: undefined });
+    assert.equal(stepTarget(bare, tune), null);
+    const off = /** @type {Step} */ ({
+      ...steps[0],
+      action: { type: "openChords", bar: 99, beat: 1, label: "x" },
+    });
+    assert.equal(stepTarget(off, tune), null);
   });
 });

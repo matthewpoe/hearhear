@@ -82,6 +82,21 @@ function stripProblems(page, id) {
   }, selectors);
 }
 
+/**
+ * Whether an element is wholly on screen above the keyboard dock.
+ * @param {import("@playwright/test").Page} page
+ * @param {string} selector
+ */
+function aboveDock(page, selector) {
+  return page.evaluate((selector) => {
+    const el = document.querySelector(selector);
+    const dock = document.querySelector(".keyboard-dock");
+    if (!el || !dock) return false;
+    const r = el.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= dock.getBoundingClientRect().top;
+  }, selector);
+}
+
 /** @param {import("@playwright/test").Page} page */
 async function axe(page) {
   await page.evaluate(() => {
@@ -234,6 +249,16 @@ for (const viewport of [
     await tour.getByRole("button", { name: "Show" }).click();
 
     // Back shows an earlier step as done, without bouncing forward; Next returns.
+    // Each step change brings its target into view, above the dock, even
+    // from the bottom of the page.
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect.poll(() => aboveDock(page, `#staff [data-note-id="${lastNote.id}"]`)).toBe(false);
+    await page.getByRole("button", { name: "Back" }).click();
+    await expect.poll(() => aboveDock(page, `#staff [data-note-id="${lastNote.id}"]`)).toBe(true);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(() => aboveDock(page, "#tutor .ask")).toBe(false);
+    await page.getByRole("button", { name: "Next" }).click();
+    await expect.poll(() => aboveDock(page, "#tutor .ask")).toBe(true);
     await page.getByRole("button", { name: "Back" }).click();
     await expectStep("land");
     await expect(tour.getByText("Done.")).toBeVisible();
