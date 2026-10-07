@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "id": "amazing-grace",
+  "title": "Amazing Grace",
+  "key": {
+    "tonic": "Ab",
+    "mode": "major",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 3,
+    "beatUnit": 4,
+    "pickupTicks": 12,
+    "provisional": false
+  },
+  "tempo": 80,
+  "version": 0,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 63,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 68,
+      "start": 12,
+      "dur": 24
+    },
+    {
+      "id": "n3",
+      "midi": 72,
+      "start": 36,
+      "dur": 6
+    },
+    {
+      "id": "n4",
+      "midi": 68,
+      "start": 42,
+      "dur": 6
+    },
+    {
+      "id": "n5",
+      "midi": 72,
+      "start": 48,
+      "dur": 24
+    },
+    {
+      "id": "n6",
+      "midi": 70,
+      "start": 72,
+      "dur": 12
+    },
+    {
+      "id": "n7",
+      "midi": 68,
+      "start": 84,
+      "dur": 24
+    },
+    {
+      "id": "n8",
+      "midi": 65,
+      "start": 108,
+      "dur": 12
+    },
+    {
+      "id": "n9",
+      "midi": 63,
+      "start": 120,
+      "dur": 24
+    },
+    {
+      "id": "n10",
+      "midi": 63,
+      "start": 144,
+      "dur": 12
+    },
+    {
+      "id": "n11",
+      "midi": 68,
+      "start": 156,
+      "dur": 24
+    },
+    {
+      "id": "n12",
+      "midi": 72,
+      "start": 180,
+      "dur": 6
+    },
+    {
+      "id": "n13",
+      "midi": 68,
+      "start": 186,
+      "dur": 6
+    },
+    {
+      "id": "n14",
+      "midi": 72,
+      "start": 192,
+      "dur": 24
+    },
+    {
+      "id": "n15",
+      "midi": 70,
+      "start": 216,
+      "dur": 6
+    },
+    {
+      "id": "n16",
+      "midi": 68,
+      "start": 222,
+      "dur": 6
+    },
+    {
+      "id": "n17",
+      "midi": 75,
+      "start": 228,
+      "dur": 24
+    },
+    {
+      "id": "n18",
+      "midi": 72,
+      "start": 252,
+      "dur": 9
+    },
+    {
+      "id": "n19",
+      "midi": 75,
+      "start": 261,
+      "dur": 3
+    },
+    {
+      "id": "n20",
+      "midi": 75,
+      "start": 264,
+      "dur": 18
+    },
+    {
+      "id": "n21",
+      "midi": 72,
+      "start": 282,
+      "dur": 6
+    },
+    {
+      "id": "n22",
+      "midi": 75,
+      "start": 288,
+      "dur": 6
+    },
+    {
+      "id": "n23",
+      "midi": 72,
+      "start": 294,
+      "dur": 6
+    },
+    {
+      "id": "n24",
+      "midi": 68,
+      "start": 300,
+      "dur": 24
+    },
+    {
+      "id": "n25",
+      "midi": 65,
+      "start": 324,
+      "dur": 6
+    },
+    {
+      "id": "n26",
+      "midi": 68,
+      "start": 330,
+      "dur": 6
+    },
+    {
+      "id": "n27",
+      "midi": 68,
+      "start": 336,
+      "dur": 18
+    },
+    {
+      "id": "n28",
+      "midi": 70,
+      "start": 354,
+      "dur": 6
+    },
+    {
+      "id": "n29",
+      "midi": 68,
+      "start": 360,
+      "dur": 6
+    },
+    {
+      "id": "n30",
+      "midi": 65,
+      "start": 366,
+      "dur": 6
+    },
+    {
+      "id": "n31",
+      "midi": 63,
+      "start": 372,
+      "dur": 24
+    },
+    {
+      "id": "n32",
+      "midi": 63,
+      "start": 396,
+      "dur": 12
+    },
+    {
+      "id": "n33",
+      "midi": 68,
+      "start": 408,
+      "dur": 24
+    },
+    {
+      "id": "n34",
+      "midi": 72,
+      "start": 432,
+      "dur": 6
+    },
+    {
+      "id": "n35",
+      "midi": 68,
+      "start": 438,
+      "dur": 6
+    },
+    {
+      "id": "n36",
+      "midi": 72,
+      "start": 444,
+      "dur": 24
+    },
+    {
+      "id": "n37",
+      "midi": 70,
+      "start": 468,
+      "dur": 12
+    },
+    {
+      "id": "n38",
+      "midi": 68,
+      "start": 480,
+      "dur": 24
+    }
+  ],
+  "chords": []
+}

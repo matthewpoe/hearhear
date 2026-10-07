@@ -93,6 +93,7 @@ test("a syllable can't break the w: line", () => {
   assert.equal(abcSyllable("two words"), "two~words");
   assert.equal(abcSyllable("in-ner"), "in\\-ner");
   assert.equal(abcSyllable("-"), "*");
+  assert.equal(abcSyllable("a\u0003b\u0000\nc"), "abc");
 });
 
 test("the tutor snapshot carries no lyrics", () => {

@@ -68,21 +68,22 @@
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--ink);
+    border: 2px solid var(--sound);
     border-radius: var(--radius-lg);
     background: var(--surface);
     color: var(--ink);
     cursor: pointer;
     transition: background var(--dur-fast) var(--ease);
   }
+  /* A listening button is a sound control, so it wears --sound. */
   button:hover,
   .playing {
-    background: var(--paper);
+    background: var(--sound-soft);
   }
   .icon {
     width: 0.7rem;
     height: 0.7rem;
-    background: var(--ink);
+    background: var(--sound);
     clip-path: polygon(0 0, 100% 50%, 0 100%);
   }
   .icon.stop {

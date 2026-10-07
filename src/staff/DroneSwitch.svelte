@@ -58,8 +58,14 @@
     border-radius: 50%;
     transition: background var(--dur-fast) var(--ease);
   }
+  /* On, the drone is sounding: its switch takes the --sound color. */
+  .switch[aria-checked="true"] {
+    border-color: var(--sound);
+    background: var(--sound-soft);
+  }
   [aria-checked="true"] .dot {
-    background: currentColor;
+    border-color: var(--sound);
+    background: var(--sound);
   }
   .reason {
     color: var(--ink-muted);
