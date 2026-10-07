@@ -12,6 +12,8 @@ import {
   placeCallout,
   coverage,
   pageFacts,
+  actionParts,
+  plainText,
 } from "../../src/callouts/tour.js";
 
 /** @import { Callout, TourFacts } from "../../src/callouts/tour.js" */
@@ -356,6 +358,24 @@ describe("coverage", () => {
       ]),
       35,
     );
+  });
+});
+
+describe("actionParts", () => {
+  it("splits the marked action from the text around it", () => {
+    assert.deepEqual(actionParts("[[Press Play]] and watch."), [
+      { text: "Press Play", act: true },
+      { text: " and watch.", act: false },
+    ]);
+    assert.deepEqual(actionParts("Not sure? [[Press it]]"), [
+      { text: "Not sure? ", act: false },
+      { text: "Press it", act: true },
+    ]);
+    assert.deepEqual(actionParts("No marker."), [{ text: "No marker.", act: false }]);
+  });
+
+  it("gives plain text for announcements", () => {
+    assert.equal(plainText("[[Press Play]] and watch."), "Press Play and watch.");
   });
 });
 

@@ -142,6 +142,19 @@ for (const viewport of [
     const count = tour.getByText(/^Guided tour · step \d\/\d$/);
     await expect(count).toHaveText(`Guided tour · step 1/${steps.length}`);
     await expect(tour.getByText("Draft", { exact: true })).toBeVisible();
+    // The step's action is in the accent color.
+    const act = tour.locator(".act");
+    await expect(act).toHaveText("Load Ode to Joy");
+    expect(
+      await act.evaluate((el) => {
+        const probe = document.createElement("span");
+        probe.style.color = "var(--accent)";
+        el.append(probe);
+        const accent = getComputedStyle(probe).color;
+        probe.remove();
+        return getComputedStyle(el).color === accent;
+      }),
+    ).toBe(true);
     // The Draft badge carries the placeholder note, for screen readers too.
     await expect(tour.getByText(/placeholder: pending Matthew's ear check/i)).toBeAttached();
     // One action and one way out; nothing else moves the tour on.

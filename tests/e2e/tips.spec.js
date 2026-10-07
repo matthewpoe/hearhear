@@ -129,6 +129,21 @@ async function play(page, key) {
 }
 
 /**
+ * Whether an element's text color is the accent token's color.
+ * @param {import("@playwright/test").Locator} locator
+ */
+function isAccent(locator) {
+  return locator.evaluate((el) => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--accent)";
+    el.append(probe);
+    const accent = getComputedStyle(probe).color;
+    probe.remove();
+    return getComputedStyle(el).color === accent;
+  });
+}
+
+/**
  * Ids of the tips remembered as done.
  * @param {import("@playwright/test").Page} page
  */
@@ -158,6 +173,11 @@ test("each tip waits for its action, and the ways out don't finish it", async ({
   seen.push(await checkTip(page));
   expect(seen).toEqual(["Start here"]);
   await expect(tip.getByRole("button")).toHaveText(["Turn tips off"]);
+  // The action it asks for stands out in the accent color, and what it
+  // points at wears the matching ring.
+  await expect(tip.locator(".act")).toHaveText("Click a tune");
+  expect(await isAccent(tip.locator(".act"))).toBe(true);
+  await expect(page.locator("#song-chooser")).toHaveAttribute("data-tip-target", "");
 
   // Escape folds it into the chip without finishing it; the chip brings it back.
   await tip.focus();

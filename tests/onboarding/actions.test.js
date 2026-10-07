@@ -7,7 +7,18 @@ import { readdir, readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 import callouts from "../../content/callouts.json" with { type: "json" };
 import guided from "../../content/guided-path.json" with { type: "json" };
-import { STORE_FACTS } from "../../src/callouts/tour.js";
+import { STORE_FACTS, actionParts } from "../../src/callouts/tour.js";
+
+/**
+ * How many action markers (`[[...]]`) a string has; unbalanced brackets count
+ * as a failure, not a marker.
+ * @param {string} text
+ */
+function actionCount(text) {
+  const parts = actionParts(text);
+  const stray = parts.some((p) => !p.act && /\[\[|\]\]/.test(p.text));
+  return stray ? -1 : parts.filter((p) => p.act).length;
+}
 
 /** What a guided step's `done` can observe (src/guided/steps.js conditionMet). */
 const CONDITIONS = ["songLoaded", "played", "keyChosen", "keyCommitted", "chordAt", "tutorReplied"];
@@ -44,6 +55,7 @@ describe("every beginner tip waits for an action", () => {
       const when = /** @type {Record<string, boolean>} */ (tip.when ?? {});
       assert.notEqual(when[tip.doneWhen], true);
       for (const key of ["noNext", "next", "nextLabel"]) assert.ok(!(key in tip), key);
+      assert.equal(actionCount(tip.text), 1, "exactly one [[action]] marker");
       for (const fact of Object.keys(when)) assert.ok(facts.has(fact), `when: ${fact}`);
       if (KEY_ONLY_FACTS.includes(tip.doneWhen)) {
         assert.equal(tip.needsHardwareKeyboard, true, "a touch screen could never do it");
@@ -86,6 +98,7 @@ describe("every guided step waits for an action", () => {
     it(`${step.id}: has a done condition, and no Next`, () => {
       assert.ok(CONDITIONS.includes(step.done?.type), "done is what its action produces");
       for (const key of ["next", "text"]) assert.ok(!(key in step), key);
+      assert.equal(actionCount(step.line), 1, "exactly one [[action]] marker");
     });
   }
 });
