@@ -56,6 +56,14 @@ describe("numeralOf", () => {
     assert.equal(numeralOf({ root: "C", type: "7" }, D_MAJOR), "bVII7");
   });
 
+  it("tonicizes only iv, V, and VI in minor, so the minor blues IV7 keeps its name", () => {
+    assert.equal(numeralOf({ root: "A", type: "7" }, E_MINOR), "IV7");
+    assert.equal(numeralOf({ root: "D", type: "7" }, E_MINOR), "VII7");
+    assert.equal(numeralOf({ root: "G", type: "7" }, E_MINOR), "V7/VI");
+    // The same chord on the major 4th degree has always been IV7.
+    assert.equal(numeralOf({ root: "G", type: "7" }, D_MAJOR), "IV7");
+  });
+
   it("only applies to dominant sevenths; triads keep plain numerals", () => {
     assert.equal(numeralOf({ root: "E", type: "M" }, D_MAJOR), "II");
     assert.equal(numeralOf({ root: "D", type: "maj7" }, D_MAJOR), "Imaj7");
@@ -129,7 +137,7 @@ describe("functionOf", () => {
     ]);
     assert.deepEqual(fns(E_MINOR), [
       ...["tonic", "subdominant", "dominant", "tonic", "subdominant"],
-      ...["dominant", "dominant", "dominant", "dominant"],
+      ...["dominant", "dominant", "dominant"],
       ...["other", "other"],
       ...["dominant", "dominant"],
     ]);

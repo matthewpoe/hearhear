@@ -114,7 +114,7 @@ describe("candidates", () => {
       ...["#i°7", "#ii°7", "#iv°7", "#v°7"],
     ]);
     assert.deepEqual(numerals(E_MINOR, true).slice(5), [
-      ...["V7/III", "V7/iv", "V7/V", "V7/VI"],
+      ...["V7/iv", "V7/V", "V7/VI"],
       ...["I", "IV"],
       ...["#iv°7", "#vii°7"],
     ]);

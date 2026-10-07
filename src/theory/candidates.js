@@ -22,7 +22,7 @@ const EXTENDED = {
     ...["iv", "bIII", "bVI", "bVII"],
     ...["#i°7", "#ii°7", "#iv°7", "#v°7"],
   ],
-  minor: [...["V7/III", "V7/iv", "V7/V", "V7/VI"], ...["I", "IV"], ...["#iv°7", "#vii°7"]],
+  minor: [...["V7/iv", "V7/V", "V7/VI"], ...["I", "IV"], ...["#iv°7", "#vii°7"]],
 };
 
 /**

@@ -34,12 +34,14 @@ const NUMERAL_FORMS = [
 
 /**
  * The diatonic chords a secondary dominant can point at, by degree. The tonic
- * is plain V7, and a diminished chord is never tonicized. Minor's degree 5 is
+ * is plain V7, and a diminished chord is never tonicized. Minor tonicizes only
+ * iv, V, and VI, as its blues and New Orleans idioms do: A7 in E minor is the
+ * IV7 of a minor blues, not V7/VII, and D7 is VII7. Minor's degree 5 is
  * written V, matching the dropdown.
  */
 const APPLIED_TARGETS = {
   major: [null, "ii", "iii", "IV", "V", "vi", null],
-  minor: [null, null, "III", "iv", "V", "VI", "VII"],
+  minor: [null, null, null, "iv", "V", "VI", null],
 };
 
 /** The quality mark a chord type keeps when written as its triad. */
