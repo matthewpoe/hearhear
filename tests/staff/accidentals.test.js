@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { accidentalChoices, letterToMidi, pretty } from "../../src/staff/accidentals.js";
+import sgb from "../../content/songs/sweet-georgia-brown.json" with { type: "json" };
 
 const C_MAJOR = { tonic: "C", mode: /** @type {const} */ ("major"), provisional: false };
 const E_MAJOR = { tonic: "E", mode: /** @type {const} */ ("major"), provisional: false };
@@ -74,4 +75,19 @@ test("choices off the piano are marked, not offered as pitches", () => {
   const high = byLabel(accidentalChoices(108, C_MAJOR)); // C8
   assert.equal(high["C♯"].onPiano, false);
   assert.equal(high["C♭"].onPiano, true);
+});
+
+test("with its melody, the menu follows the staff: Sweet Georgia Brown's G# offers G", () => {
+  const index = sgb.notes.findIndex((n) => n.id === "n3");
+  assert.equal(sgb.notes[index].midi, 68); // bar 1's G sharp under E7
+  const key = /** @type {import("../../src/types.js").Key} */ (sgb.key);
+  const menu = accidentalChoices(68, key, { notes: sgb.notes, index });
+  assert.equal(menu.letter, "G");
+  const choices = byLabel(menu);
+  assert.equal(choices["G♯"].current, true);
+  assert.equal(choices["G♯"].shownAs, null);
+  assert.equal(choices["G♮"].midi, 67);
+  assert.equal(choices["G♭"].midi, 66);
+  // Without the melody it falls back to the context-free spelling.
+  assert.equal(accidentalChoices(68, key).letter, "A");
 });
