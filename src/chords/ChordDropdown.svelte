@@ -3,29 +3,53 @@
   // opens on a melody note. The dropdown lists the likely suspects for the
   // current key, best fit first and never pre-selected. Hover or focus
   // auditions an option in the bar around the note and lights its tones on the
-  // keyboard; number keys audition by degree; Enter commits; Escape closes.
+  // keyboard; number keys audition by degree; Enter commits, then the phrase
+  // replays with natural voice leading; Escape closes.
   /** @import { ChordSpec } from "../types.js" */
+  /** @import { KeyboardLights } from "../store/ui.js" */
   /** @import { ChordOption as Option } from "./options.js" */
-  import { tick } from "svelte";
+  /** @import { Passage } from "./passage.js" */
+  import { tick, untrack } from "svelte";
+  import explainers from "../../content/explainers.json" with { type: "json" };
   import { onNoteClick } from "../staff/staffEvents.js";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
   import { suggestions, isStale } from "../store/suggestions.js";
-  import { audioStatus, auditionDebounced, preload, stop } from "../audio/index.js";
-  import { functionOf, positionOf } from "../theory/index.js";
+  import {
+    audioStatus,
+    auditionChord,
+    auditionDebounced,
+    preload,
+    stopAudition,
+  } from "../audio/index.js";
+  import { playWithVisuals } from "../staff/playback.js";
+  import { functionOf } from "../theory/index.js";
   import ChordChipRow from "./ChordChipRow.svelte";
   import ChordOption from "./ChordOption.svelte";
-  import { chordView } from "./chordView.js";
+  import { chordView, whereOf } from "./chordView.js";
   import { chordOptions, degreeOf, describeOption } from "./options.js";
   import { passageAround, voicingIn } from "./passage.js";
 
   const WIDTH_PX = 352;
   const GUTTER_PX = 16;
-  const NO_LIGHTS = { chord: null, melody: [] };
+  /** @type {KeyboardLights} */
+  const NO_LIGHTS = { source: null, chord: null, melody: [] };
+  /** The sticky on-screen piano (App.svelte); the dropdown never covers it. */
+  const DOCK_SELECTOR = ".keyboard-dock";
+  const voiceLeading = explainers.voiceLeading;
 
-  /** @type {{ noteId: string, top: number, left: number, opener: HTMLElement | null } | null} */
+  /**
+   * @type {{
+   *   noteId: string,
+   *   top: number,
+   *   left: number,
+   *   maxHeight: number | null,
+   *   opener: Element | null,
+   * } | null}
+   */
   let open = $state(null);
   let extended = $state(false);
+  let explainerOpen = $state(false);
   /** @type {HTMLElement | undefined} */
   let dialog = $state();
   /** @type {Option | null} */
@@ -34,19 +58,19 @@
   let focused = $state(null);
   /** @type {string | null} */
   let audioError = $state(null);
-  // Plain flags, not state: they record what this component has touched so
+  // Plain values, not state: they record what this component has touched so
   // closing undoes only its own audition and lights.
   let auditioned = false;
-  let lit = false;
+  /** @type {{ lights: KeyboardLights, option: Option, passage: Passage } | null} */
+  let written = null;
 
   const labelMode = $derived(keyLabelMode($song, $ui));
   const passage = $derived(open ? passageAround($song, open.noteId) : null);
   const note = $derived(passage?.note ?? null);
-  const where = $derived.by(() => {
-    if (!note) return "";
-    const { bar, beat } = positionOf(note.start, $song.meter);
-    return `bar ${bar}, beat ${beat}`;
-  });
+  const where = $derived(note ? whereOf(note, $song.meter) : "");
+  const fromCandidate = $derived($ui.auditionVoicing === "from-candidate");
+  // Tracked so hover lights come back when playback releases the keyboard.
+  const lightsSource = $derived($ui.keyboardLights.source);
   const likely = $derived(note ? chordOptions($song, note) : []);
   const more = $derived(note && extended ? chordOptions($song, note, { extended: true }) : []);
   const ideas = $derived(
@@ -69,11 +93,12 @@
 
   $effect(() =>
     onNoteClick(({ noteId, anchorRect }) => {
+      // Staff notes are focusable SVG <g> elements, so accept any Element.
       const active = document.activeElement;
       openAt(
         noteId,
         anchorRect,
-        active instanceof HTMLElement && active !== document.body ? active : null,
+        active instanceof Element && active !== document.body ? active : null,
       );
     }),
   );
@@ -83,32 +108,48 @@
     if (open && !note) close(false);
   });
 
-  // While an option is hovered or focused, the keyboard shows its tones. The
-  // function comes from the numeral, not the view, so this effect doesn't
-  // depend on the ui store it writes.
+  // While an option is hovered or focused, the keyboard shows its tones
+  // (decision D10). Playback outranks hover: nothing is written while it owns
+  // the lights, and they are cleared only while they are still ours. From the
+  // ui store it writes, the effect deliberately tracks only the lights'
+  // source; everything else it reads from ui and song is untracked.
   $effect(() => {
     const option = hovered ?? focused;
-    if (option && passage) {
-      ui.update({
-        keyboardLights: {
+    const source = lightsSource;
+    const at = passage;
+    untrack(() => {
+      if (source === "playback") {
+        written = null;
+        return;
+      }
+      if (option && at) {
+        const current = ui.get().keyboardLights;
+        if (written?.lights === current && written.option === option && written.passage === at)
+          return;
+        const hidden = keyLabelMode(song.get(), ui.get()) === "hidden";
+        /** @type {KeyboardLights} */
+        const lights = {
+          source: "hover",
           chord: {
-            midi: voicingIn(passage, option.chord),
-            fn: labelMode === "hidden" ? "other" : functionOf(option.numeral, $song.key.mode),
+            midi: voicingIn(at, option.chord),
+            fn: hidden ? "other" : functionOf(option.numeral, song.get().key.mode),
           },
-          melody: [passage.note.midi],
-        },
-      });
-      lit = true;
-    } else if (lit) {
-      ui.update({ keyboardLights: NO_LIGHTS });
-      lit = false;
-    }
+          melody: [at.note.midi],
+        };
+        written = { lights, option, passage: at };
+        ui.update({ keyboardLights: lights });
+      } else if (written) {
+        if (source === "hover") ui.update({ keyboardLights: NO_LIGHTS });
+        written = null;
+      }
+    });
   });
 
   /**
    * @param {string} noteId
    * @param {DOMRect} rect viewport coordinates of the note or chip
-   * @param {HTMLElement | null} opener where focus returns on close
+   * @param {Element | null} opener where focus returns on close: a chip
+   *   button or a staff note (an SVG element)
    */
   async function openAt(noteId, rect, opener) {
     const maxLeft = window.scrollX + window.innerWidth - WIDTH_PX - GUTTER_PX;
@@ -116,13 +157,40 @@
       noteId,
       top: rect.bottom + window.scrollY + GUTTER_PX / 2,
       left: Math.max(window.scrollX + GUTTER_PX, Math.min(rect.left + window.scrollX, maxLeft)),
+      maxHeight: null,
       opener,
     };
     extended = false;
+    explainerOpen = false;
     hovered = null;
     focused = null;
     await tick();
+    fitAboveDock(rect);
     dialog?.focus();
+  }
+
+  /**
+   * Keep the dropdown clear of the sticky keyboard dock, which shows the keys
+   * a hover lights: below the anchor if it fits, else above it, else on the
+   * roomier side with its own scroll.
+   * @param {DOMRect} rect the anchor, viewport coordinates
+   */
+  function fitAboveDock(rect) {
+    if (!open || !dialog) return;
+    const dock = document.querySelector(DOCK_SELECTOR)?.getBoundingClientRect().height ?? 0;
+    const roomTop = window.scrollY + GUTTER_PX;
+    const roomBottom = window.scrollY + window.innerHeight - dock - GUTTER_PX;
+    const anchorTop = rect.top + window.scrollY - GUTTER_PX / 2;
+    const height = dialog.offsetHeight;
+    if (open.top + height <= roomBottom) return;
+    if (anchorTop - height >= roomTop) {
+      open.top = anchorTop - height;
+      return;
+    }
+    const spaceBelow = roomBottom - open.top;
+    const spaceAbove = anchorTop - roomTop;
+    if (spaceAbove > spaceBelow) open.top = roomTop;
+    open.maxHeight = Math.max(spaceAbove, spaceBelow);
   }
 
   /** @param {boolean} restoreFocus */
@@ -131,7 +199,9 @@
     open = null;
     hovered = null;
     focused = null;
-    if (restoreFocus && opener?.isConnected) opener.focus();
+    // SVGElement implements focus() as HTMLElement does.
+    if (restoreFocus && opener?.isConnected)
+      /** @type {HTMLElement | SVGElement} */ (opener).focus();
   }
 
   /**
@@ -139,24 +209,50 @@
    * @param {boolean} restoreFocus
    */
   function dismiss(restoreFocus) {
-    if (auditioned) stop();
+    if (auditioned) stopAudition();
     auditioned = false;
     close(restoreFocus);
   }
 
-  /** @param {string} noteId @param {ChordSpec} chord */
-  function audition(noteId, chord) {
+  /**
+   * Hover and focus audition debounced, so sweeping the list sounds only
+   * where the pointer rests.
+   * @param {Passage} at
+   * @param {ChordSpec} chord
+   */
+  function auditionSoon(at, chord) {
+    auditionDebounced(voicingIn(at, chord), at.range, {
+      atTick: at.note.start,
+      neighbors: $ui.auditionVoicing,
+    });
+    auditioned = true;
+  }
+
+  /**
+   * "Hear it" on a tutor idea is a deliberate click, so it sounds at once.
+   * @param {string} noteId
+   * @param {ChordSpec} chord
+   */
+  function hearNow(noteId, chord) {
     const at = passageAround($song, noteId);
     if (!at) return;
-    auditionDebounced(voicingIn(at, chord), at.range, { atTick: at.note.start });
     auditioned = true;
+    // A failed audition already shows through audioStatus.
+    auditionChord(voicingIn(at, chord), at.range, {
+      atTick: at.note.start,
+      neighbors: $ui.auditionVoicing,
+    }).catch(() => {});
   }
 
   /** @param {Option} option @param {"hover" | "focus"} via */
   function preview(option, via) {
     if (via === "hover") hovered = option;
     else focused = option;
-    if (open) audition(open.noteId, option.chord);
+    if (passage) auditionSoon(passage, option.chord);
+  }
+
+  function toggleVoiceLeading() {
+    ui.update({ auditionVoicing: fromCandidate ? "as-song" : "from-candidate" });
   }
 
   /** @param {"hover" | "focus"} via */
@@ -168,9 +264,17 @@
   /** @param {ChordSpec | null} chord */
   function commit(chord) {
     if (!open) return;
+    const range = passage?.range;
     song.setChord(open.noteId, chord && { root: chord.root, type: chord.type });
     auditioned = false;
     close(true);
+    if (chord && range) {
+      // Hear the choice once in context, voiced as the song plays it (D4).
+      // Silence the audition first so the two never overlap. Playback
+      // failures surface through audioStatus.
+      stopAudition();
+      playWithVisuals(range).catch(() => {});
+    }
   }
 
   /** @param {KeyboardEvent} event */
@@ -189,9 +293,8 @@
     const digit = /^Digit([1-7])$/.exec(event.code);
     if (digit && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) {
       // Numbers are scale degrees everywhere: 5 auditions V. Stop the number
-      // row from also playing a melody note.
+      // row from also playing a melody note: it skips defaultPrevented events.
       event.preventDefault();
-      event.stopPropagation();
       if (event.repeat) return;
       const option = likely.find((o) => degreeOf(o) === Number(digit[1]));
       if (option) focusOption(option);
@@ -242,7 +345,7 @@
   <h2>Chords</h2>
   <ChordChipRow
     onopen={(noteId, anchor) => openAt(noteId, anchor.getBoundingClientRect(), anchor)}
-    onhear={audition}
+    onhear={hearNow}
   />
 
   {#if open && note}
@@ -256,6 +359,7 @@
       style:top="{open.top}px"
       style:left="{open.left}px"
       style:width="{WIDTH_PX}px"
+      style:max-height={open.maxHeight === null ? null : `${open.maxHeight}px`}
       {onkeydown}
       {onfocusout}
     >
@@ -328,6 +432,34 @@
         </ul>
       {/if}
 
+      <div class="voicing">
+        <button
+          type="button"
+          class="more"
+          role="switch"
+          aria-checked={fromCandidate}
+          onclick={toggleVoiceLeading}
+        >
+          Voice leading: {fromCandidate ? "on" : "off"}
+        </button>
+        <button
+          type="button"
+          class="link"
+          aria-expanded={explainerOpen}
+          aria-controls="chord-dropdown-voice-leading"
+          onclick={() => (explainerOpen = !explainerOpen)}
+        >
+          {voiceLeading.title}
+        </button>
+      </div>
+      {#if explainerOpen}
+        <div id="chord-dropdown-voice-leading" class="explainer">
+          <p>{voiceLeading.body}</p>
+          <p>{voiceLeading.off}</p>
+          <p>{voiceLeading.on}</p>
+        </div>
+      {/if}
+
       {#if placed}
         <button type="button" class="more" onclick={() => commit(null)}>No chord here</button>
       {/if}
@@ -394,6 +526,30 @@
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .voicing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .link {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--text-sm);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .explainer {
+    display: grid;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+  }
+  .explainer p {
+    margin: 0;
   }
   .more,
   .status button {

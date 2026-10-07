@@ -7,7 +7,7 @@
  * @import { TickRange } from "../audio/index.js"
  */
 
-import { rebar, ticksPerBar, voice } from "../theory/index.js";
+import { passageBelow, rebar, ticksPerBar, voice } from "../theory/index.js";
 
 /**
  * @typedef {{
@@ -19,7 +19,8 @@ import { rebar, ticksPerBar, voice } from "../theory/index.js";
  */
 
 /**
- * The bar around a note, the lowest melody note in it, and the voicing of the
+ * The bar around a note, the lowest melody note starting in it (theory's
+ * passageBelow, the same rule the audio stream uses), and the voicing of the
  * chord placed before the note, if any.
  * @param {Song} song
  * @param {string} noteId
@@ -29,10 +30,8 @@ export function passageAround(song, noteId) {
   const note = song.notes.find((n) => n.id === noteId);
   if (!note) return null;
   const range = barRange(song, note);
-  const inRange = song.notes.filter(
-    (n) => n.start < range.toTick && n.start + n.dur > range.fromTick,
-  );
-  const below = Math.min(...inRange.map((n) => n.midi));
+  // The audio stream voices the passage's other chords under the same note.
+  const below = passageBelow(song, range);
   const before = song.chords
     .map((chord) => ({ chord, start: song.notes.find((n) => n.id === chord.noteId)?.start ?? -1 }))
     .filter(({ start }) => start >= 0 && start < note.start)
