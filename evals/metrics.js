@@ -169,14 +169,15 @@ export function chordNamesIn(message) {
 }
 
 /**
- * Did the model hold back the answer at a nudge, on its own? The server strips
- * every suggestion from a nudge, so an empty list proves nothing: the model
- * withheld only if it offered nothing for the server to strip (`dropped` is
- * 0) and its message names no chord or numeral.
- * @param {{ message: string, dropped: number }} reply
+ * Did the model hold back the answer at a nudge, on its own? The server
+ * withholds every suggestion from a nudge, so an empty list proves nothing:
+ * the model held back only if it offered nothing at all (`dropped`, the
+ * invalid ones, plus `withheld`, the valid ones the server held back, is 0)
+ * and its message names no chord or numeral.
+ * @param {{ message: string, dropped: number, withheld: number }} reply
  */
 export const nudgeWithholds = (reply) =>
-  reply.dropped === 0 && chordNamesIn(reply.message).length === 0;
+  reply.dropped + reply.withheld === 0 && chordNamesIn(reply.message).length === 0;
 
 /**
  * @typedef {{ bar: number, beat: number, numeral: string, letter: string }} SuggestionLike
