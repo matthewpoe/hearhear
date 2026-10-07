@@ -1,0 +1,243 @@
+{
+  "schemaVersion": 1,
+  "id": "greensleeves",
+  "title": "Greensleeves",
+  "key": {
+    "tonic": "E",
+    "mode": "minor",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 6,
+    "beatUnit": 8,
+    "pickupTicks": 6,
+    "provisional": false
+  },
+  "tempo": 84,
+  "version": 0,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 64,
+      "start": 0,
+      "dur": 6
+    },
+    {
+      "id": "n2",
+      "midi": 67,
+      "start": 6,
+      "dur": 12
+    },
+    {
+      "id": "n3",
+      "midi": 69,
+      "start": 18,
+      "dur": 6
+    },
+    {
+      "id": "n4",
+      "midi": 71,
+      "start": 24,
+      "dur": 9
+    },
+    {
+      "id": "n5",
+      "midi": 72,
+      "start": 33,
+      "dur": 3
+    },
+    {
+      "id": "n6",
+      "midi": 71,
+      "start": 36,
+      "dur": 6
+    },
+    {
+      "id": "n7",
+      "midi": 69,
+      "start": 42,
+      "dur": 12
+    },
+    {
+      "id": "n8",
+      "midi": 66,
+      "start": 54,
+      "dur": 6
+    },
+    {
+      "id": "n9",
+      "midi": 62,
+      "start": 60,
+      "dur": 9
+    },
+    {
+      "id": "n10",
+      "midi": 64,
+      "start": 69,
+      "dur": 3
+    },
+    {
+      "id": "n11",
+      "midi": 66,
+      "start": 72,
+      "dur": 6
+    },
+    {
+      "id": "n12",
+      "midi": 67,
+      "start": 78,
+      "dur": 12
+    },
+    {
+      "id": "n13",
+      "midi": 64,
+      "start": 90,
+      "dur": 6
+    },
+    {
+      "id": "n14",
+      "midi": 64,
+      "start": 96,
+      "dur": 9
+    },
+    {
+      "id": "n15",
+      "midi": 63,
+      "start": 105,
+      "dur": 3
+    },
+    {
+      "id": "n16",
+      "midi": 64,
+      "start": 108,
+      "dur": 6
+    },
+    {
+      "id": "n17",
+      "midi": 66,
+      "start": 114,
+      "dur": 18
+    },
+    {
+      "id": "n18",
+      "midi": 59,
+      "start": 132,
+      "dur": 12
+    },
+    {
+      "id": "n19",
+      "midi": 64,
+      "start": 144,
+      "dur": 6
+    },
+    {
+      "id": "n20",
+      "midi": 67,
+      "start": 150,
+      "dur": 12
+    },
+    {
+      "id": "n21",
+      "midi": 69,
+      "start": 162,
+      "dur": 6
+    },
+    {
+      "id": "n22",
+      "midi": 71,
+      "start": 168,
+      "dur": 9
+    },
+    {
+      "id": "n23",
+      "midi": 72,
+      "start": 177,
+      "dur": 3
+    },
+    {
+      "id": "n24",
+      "midi": 71,
+      "start": 180,
+      "dur": 6
+    },
+    {
+      "id": "n25",
+      "midi": 69,
+      "start": 186,
+      "dur": 12
+    },
+    {
+      "id": "n26",
+      "midi": 66,
+      "start": 198,
+      "dur": 6
+    },
+    {
+      "id": "n27",
+      "midi": 62,
+      "start": 204,
+      "dur": 9
+    },
+    {
+      "id": "n28",
+      "midi": 64,
+      "start": 213,
+      "dur": 3
+    },
+    {
+      "id": "n29",
+      "midi": 66,
+      "start": 216,
+      "dur": 6
+    },
+    {
+      "id": "n30",
+      "midi": 67,
+      "start": 222,
+      "dur": 9
+    },
+    {
+      "id": "n31",
+      "midi": 66,
+      "start": 231,
+      "dur": 3
+    },
+    {
+      "id": "n32",
+      "midi": 64,
+      "start": 234,
+      "dur": 6
+    },
+    {
+      "id": "n33",
+      "midi": 63,
+      "start": 240,
+      "dur": 9
+    },
+    {
+      "id": "n34",
+      "midi": 61,
+      "start": 249,
+      "dur": 3
+    },
+    {
+      "id": "n35",
+      "midi": 63,
+      "start": 252,
+      "dur": 6
+    },
+    {
+      "id": "n36",
+      "midi": 64,
+      "start": 258,
+      "dur": 18
+    },
+    {
+      "id": "n37",
+      "midi": 64,
+      "start": 276,
+      "dur": 18
+    }
+  ],
+  "chords": []
+}
