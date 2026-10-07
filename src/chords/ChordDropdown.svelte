@@ -187,6 +187,8 @@
       maxHeight: null,
       opener,
     };
+    // The open note is the selection the chord row assigns to.
+    ui.update({ selectedNoteId: noteId });
     extended = false;
     explainerOpen = false;
     hovered = null;
@@ -251,6 +253,7 @@
   function close(restoreFocus) {
     const opener = open?.opener;
     open = null;
+    ui.update({ selectedNoteId: null });
     hovered = null;
     focused = null;
     tap = NO_TAP;
