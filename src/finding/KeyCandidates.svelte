@@ -5,7 +5,7 @@
    * order shuffled per song so the likeliest isn't always first. Chords are
    * unnamed until one is chosen; choosing commits that key, exactly as its
    * home chip does, and names it. "Try three more" moves to the next three.
-   * Close or Escape collapses it.
+   * Opening moves focus to its heading; Close or Escape collapses it.
    * @import { Key } from "../types.js"
    */
   import explainers from "../../content/explainers.json" with { type: "json" };
@@ -19,9 +19,10 @@
    * @type {{
    *   onpick: (home: Pick<Key, "tonic" | "mode">) => void,
    *   onclose: () => void,
+   *   opener?: HTMLElement,
    * }}
    */
-  let { onpick, onclose } = $props();
+  let { onpick, onclose, opener } = $props();
 
   const { title, body } = explainers.keyFinding;
   // Ranked once when the finder opens, so the chords don't reshuffle under the user.
@@ -39,10 +40,21 @@
 
   /** @type {HTMLElement | undefined} */
   let root = $state();
+  /** @type {HTMLElement | undefined} */
+  let heading = $state();
 
-  /** Escape closes the finder while focus is inside it. @param {KeyboardEvent} event */
+  $effect(() => {
+    heading?.focus();
+  });
+
+  /**
+   * Escape closes the finder while focus is inside it or on what opened it.
+   * @param {KeyboardEvent} event
+   */
   function onkeydown(event) {
-    if (event.key === "Escape" && root?.contains(document.activeElement)) onclose();
+    if (event.key !== "Escape") return;
+    const active = document.activeElement;
+    if (root?.contains(active) || (opener && active === opener)) onclose();
   }
 </script>
 
@@ -56,7 +68,7 @@
   bind:this={root}
 >
   <div class="top">
-    <h4 id="key-finder-title">{title}</h4>
+    <h4 id="key-finder-title" bind:this={heading} tabindex="-1">{title}</h4>
     <button type="button" class="close" onclick={onclose}>
       Close <span class="visually-hidden">the key finder</span>
     </button>

@@ -44,6 +44,8 @@
   let heading = $state();
   /** @type {HTMLButtonElement | undefined} */
   let helpButton = $state();
+  /** The control that opened the finder, where focus returns when it closes. */
+  let opener = /** @type {HTMLElement | undefined} */ ($state());
 
   $effect(() => {
     if (autofocus) heading?.focus();
@@ -67,9 +69,17 @@
     if (key) apply(key);
   }
 
+  /** Open the finder; it takes focus, and gives it back to the focused opener on close. */
+  function openFinder() {
+    const active = document.activeElement;
+    // Safari doesn't focus a clicked button, so fall back to "Help me find it".
+    opener = active instanceof HTMLButtonElement ? active : helpButton;
+    finding = true;
+  }
+
   function closeFinder() {
     finding = false;
-    helpButton?.focus();
+    (opener?.isConnected ? opener : helpButton)?.focus();
   }
 </script>
 
@@ -89,7 +99,7 @@
         bind:this={helpButton}
         aria-expanded={finding}
         aria-controls="key-finder"
-        onclick={() => (finding = !finding)}
+        onclick={() => (finding ? closeFinder() : openFinder())}
       >
         Help me find it
       </button>
@@ -129,11 +139,11 @@
   <p class="visually-hidden" role="status">{announcement}</p>
 
   {#if !$song.key.provisional}
-    <GuessResult guess={$song.key} oncheck={() => (finding = true)} />
+    <GuessResult guess={$song.key} oncheck={openFinder} />
   {/if}
 
   {#if finding}
-    <KeyCandidates onpick={pickHome} onclose={closeFinder} />
+    <KeyCandidates onpick={pickHome} onclose={closeFinder} {opener} />
   {/if}
 
   {#if ondismiss}
