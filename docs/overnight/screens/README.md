@@ -1,6 +1,6 @@
 # Final live screenshots
 
-Taken 2026-10-07 from https://hearhear.up.railway.app, serving main at commit c6296e4 with the tutor in fixture mode. A Playwright script in headless Chromium drove each state from a fresh page load and took viewport shots. Each shot was then cut to a 256-color palette to keep the folder small.
+Taken 2026-10-07 from https://hearhear.up.railway.app, serving main at commit 01d3018 (tag known-good-0752) with the tutor in fixture mode. Before the run, the live bundle (`assets/index-DmXtEjpk.js`) stayed the same for a minute and already had PR #35's change. A Playwright script in headless Chromium drove each state from a fresh page load and took viewport shots. It waits for the staff to render before acting on it. Each shot was then cut to a 256-color palette to keep the folder small.
 
 Names follow `<WxH>-<theme>-<n>-<state>.png`. States 1 to 8 were taken at 1440x900 and 1280x800, in light and dark themes (32 files), plus one phone-width shot.
 
@@ -35,15 +35,22 @@ Each shot recorded three checks: console errors (including page errors), CSP vio
 
 Each cell is console errors / CSP violations / axe violations. All 33 states came back clean.
 
-## Problems found (not fixed here)
+## Problems found and their status
 
-- **The guided tour's "Play the tune" can be ignored.** In step 2, a click on "Play the tune" within about a second of the step appearing does nothing, while the staff's Play is still disabled and shows "Loading the piano...". The step then waits until the viewer clicks again. A click after a second works. The shots wait one second before clicking.
+An earlier pass at c6296e4 found eight problems. PR #35 fixed five of them, and this pass checked each one again at 01d3018.
+
+**Fixed:**
+
+- **The guided tour's "Play the tune" could be ignored.** Clicked the moment step 2 appeared, it now waits for the piano and advances to step 3. The script no longer waits first (`*-7-guided-tour.png`).
+- **The wrong-guess invitation landed under the keyboard dock.** The result now scrolls into view on its own, and the shots are not scrolled by the script (`*-3-wrong-guess.png`). One edge case remains. A guess made before the staff finishes rendering, within about half a second of loading the tune, is scrolled into view before the staff pushes the card down, so it still ends up under the dock.
+- **The dropdown's "More below" fade overlapped an option.** The fade has no text now (`*-4-chord-dropdown.png`).
+- **The tour strip covered the home chips at 1280x800.** Step 3 now scrolls the key card above the strip. The first row of chips is clear, and the B♭/B row sits just above the strip (`1280x800-*-7-guided-tour.png`).
+
+**Still present:**
+
+- **The masthead's top edge is cut off in the V and I shots.** The cause is not Play or a dock click. Picking a chord from the dropdown at bar 8 scrolls the page by 17 px, and clicking the Roman label scrolls it by 62 px (all `*-5-v-i-drone-play.png`).
 - **The "Start here" tip covers part of a card.** On the landing it covers the text of the card below the song cards, so only "…ds under it." shows (all `*-1-landing.png`).
-- **The wrong-guess invitation lands under the keyboard dock.** At both laptop sizes, choosing C leaves the invitation and its buttons below the dock until the viewer scrolls. The `*-3-wrong-guess.png` shots are scrolled to it.
-- **Play scrolls the masthead out of view.** Play scrolls the page by about 17 px, which cuts off the masthead's top edge (all `*-5-v-i-drone-play.png`).
-- **The staff's chord symbols use color and label only.** They are plain colored numerals (red V, blue I) with no shape. The label still carries the meaning, but the chips' shape pairing is missing. Bar 8's "I" also sits just under bar 4's degree row, so it reads as if it belongs to bar 4 (all `*-5-v-i-drone-play.png`).
-- **The dropdown's "More below" fade overlaps an option.** The fade label sits on top of the partly visible next option, at 1440x900 (iii) and at 1280x800 (all `*-4-chord-dropdown.png`).
-- **The tour strip covers the home chips at 1280x800.** At step 3 the strip and dock cover the home-note chips until the viewer scrolls or uses "Open the drone chords" (`1280x800-*-7-guided-tour.png`).
+- **The staff's chord symbols use color and label only.** They are plain colored numerals (red V, blue I) with no shape. The label carries the meaning, so nothing relies on color alone, but the shape pairing that the chips have is missing. Bar 8's "I" also sits just under bar 4's degree row, so it reads as if it belongs to bar 4 (all `*-5-v-i-drone-play.png`).
 - **The staff is tiny at phone width.** At 390x844 the noteheads and the title are very small, and the dock takes about a third of the screen (`390x844-light-ode-loaded.png`).
 
-Keyboard focus was checked once: Tab reaches the home-note chips with a 3 px solid outline.
+Keyboard focus was checked once, at c6296e4: Tab reaches the home-note chips with a 3 px solid outline.
