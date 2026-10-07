@@ -23,7 +23,7 @@ For Matthew. One section per tune: where it came from, what I chose, and what to
 - **Judgment calls:**
   - Bars 15–16 have two notes marked "spoken ad lib". They're left out, so bar 16 is silent.
   - Bars 25–30 carry two verses with different ties. The first verse's attacks are kept.
-  - The last note is the 2nd ending's long G.
+  - The last note is the 2nd ending's long G: tied from bar 31's last eighth through a half note to an eighth on beat 4, then the printed eighth rest under the fermata. It stops half a beat before the bar line, as printed.
   - Bars 1–16 aren't shortened. A 15-bar cut ended on B (degree 3), with home never sounded as a last note.
 - **The key finder can't find this one, by design:**
   - Pitch counts rank E major first and G major seventh, because the chorus sits on E7, A7 and D7 for twelve bars before G arrives.
