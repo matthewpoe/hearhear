@@ -175,11 +175,17 @@ test("the beginner tour walks from the welcome to the tutor without covering a c
   expect(seen.at(-1)).toBe("Hover a chord to hear it under the tune.");
   await clickNote(page, heldE.id);
   await expect(tip).toHaveCount(0);
-  await page
+  // Pick where the option is, as a user does: a locator click scrolls the
+  // page first, and the tips that follow depend on what's on screen.
+  const option = page
     .locator("#chords button")
     .filter({ hasText: /Melody is/ })
-    .first()
-    .click();
+    .first();
+  await expect(option).toBeInViewport();
+  const box = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+    await option.boundingBox()
+  );
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(page.getByRole("list", { name: "Placed chords" }).getByRole("button")).toHaveCount(
     1,
   );

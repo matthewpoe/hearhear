@@ -21,6 +21,7 @@ Four items from Matthew's review of PRs 23–36, on `fix/review-23-36`.
 - **What the 17 px and 62 px were:** the overnight screenshot script clicks with Playwright locators, which scroll their target into view before clicking. Probes at 1280×800 showed the page moving before the pointer went down, and then the plain focus call scrolling it again. In the "V and I" shot, part of the movement is also the guess result's own smooth scroll after the D chip (from PR #35, intended). Clicked in place, a label style didn't move the page at all, so there was nothing to fix there.
 - **The check:** `tests/e2e/scroll.spec.js` runs at 1280×800 and clicks with `page.mouse`, as a user does. It opens the dropdown on bar 4's held E, scrolls the note just off the top with the dropdown still open, picks the first option, and asserts `window.scrollY` is unchanged. Without the fix it fails (241 expected, 179 received). With the fix it passes.
 - Arrow-key moves between notes still scroll the focused note into view, which they should.
+- **tips.spec.js changed with it.** Its chord pick used a locator click, which scrolled the page to 285 px. The old scrolling refocus then pulled the page back near the top, which hid that scroll. With the fix, the page stays at 285. The tour shows only tips whose anchor is on screen, so the tutor tip came before the shapes and toolbar tips, and the test's order check failed (in CI and locally). The spec now picks the option where it is, with `page.mouse`, and the tour order is the same as before.
 
 ## 4. Eval concurrency
 
