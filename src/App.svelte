@@ -5,6 +5,7 @@
   import Staff from "./staff/Staff.svelte";
   import ChordDropdown from "./chords/ChordDropdown.svelte";
   import TutorPanel from "./tutor/TutorPanel.svelte";
+  import TrustPanel from "./trust/TrustPanel.svelte";
   import Piano from "./input/Piano.svelte";
   import ThemeToggle from "./ThemeToggle.svelte";
   import Toolbar from "./toolbar/Toolbar.svelte";
@@ -29,6 +30,7 @@
   {/if}
   <ChordDropdown />
   <TutorPanel />
+  <TrustPanel />
 </main>
 
 <footer class="keyboard-dock">
