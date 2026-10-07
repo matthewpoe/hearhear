@@ -52,6 +52,18 @@ describe("askTutor", () => {
       assert.equal(await failureCode(), "over_budget");
     });
 
+    it("reads a 401 with the access_required envelope as a passphrase prompt, not network", async () => {
+      const body = { error: { code: "access_required", message: "Passphrase needed." } };
+      answer(Response.json(body, { status: 401 }));
+      assert.equal(await failureCode(), "access_required");
+    });
+
+    it("reads a 429 with the access_locked envelope as locked, not rate_limited", async () => {
+      const body = { error: { code: "access_locked", message: "Too many wrong codes." } };
+      answer(Response.json(body, { status: 429 }));
+      assert.equal(await failureCode(), "access_locked");
+    });
+
     const BY_STATUS = [
       [413, "too_large"],
       [422, "invalid_request"],
@@ -79,6 +91,30 @@ describe("askTutor", () => {
         assert.equal(await failureCode(), "network");
       });
     }
+  });
+
+  describe("the passphrase", () => {
+    /** Ask with these options and return the headers the request carried. @param {any} options */
+    async function sentHeaders(options) {
+      const fetch = mock.method(globalThis, "fetch", async () =>
+        stream(
+          `event: suggestions\ndata: ${JSON.stringify({ suggestions: [] })}\n\n` +
+            "event: done\ndata: {}\n\n",
+        ),
+      );
+      await askTutor(REQUEST, { onDelta: () => {}, ...options });
+      return /** @type {any} */ (fetch.mock.calls[0].arguments[1]).headers;
+    }
+
+    it("travels as the X-Tutor-Access header", async () => {
+      const headers = await sentHeaders({ accessCode: "open sesame" });
+      assert.equal(headers["X-Tutor-Access"], "open sesame");
+    });
+
+    it("sends no header when there is no code", async () => {
+      const headers = await sentHeaders({});
+      assert.equal("X-Tutor-Access" in headers, false);
+    });
   });
 
   it("reports a fetch that never reaches the server as network", async () => {

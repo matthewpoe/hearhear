@@ -30,8 +30,8 @@ import { createSseParser } from "./sse.js";
 
 /**
  * A failed exchange. `code` is one of the protocol's error codes
- * (too_large, invalid_request, rate_limited, over_budget, upstream,
- * invalid_output) or a client-side one: `network` (no response) or
+ * (access_required, access_locked, too_large, invalid_request, rate_limited,
+ * over_budget, upstream, invalid_output) or a client-side one: `network` (no response) or
  * `protocol` (a response the client can't read).
  */
 export class TutorError extends Error {
@@ -86,18 +86,23 @@ async function errorFromResponse(response) {
 
 /**
  * Ask the tutor. Calls `onDelta` with each piece of message text as it streams.
+ * `accessCode`, the live tutor's passphrase, travels in the X-Tutor-Access
+ * header so it stays out of the request body and the snapshot Claude sees.
  * @param {TutorRequest} request
- * @param {{ onDelta: (text: string) => void, signal?: AbortSignal }} options
+ * @param {{ onDelta: (text: string) => void, signal?: AbortSignal, accessCode?: string }} options
  * @returns {Promise<SuggestionsEvent>}
  * @throws {TutorError} on an HTTP error, an `error` event, or a broken stream.
  *   An AbortError passes through unchanged when `signal` aborts.
  */
-export async function askTutor(request, { onDelta, signal }) {
+export async function askTutor(request, { onDelta, signal, accessCode = "" }) {
+  /** @type {Record<string, string>} */
+  const headers = { "Content-Type": "application/json", Accept: "text/event-stream" };
+  if (accessCode) headers["X-Tutor-Access"] = accessCode;
   let response;
   try {
     response = await fetch("/api/tutor", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      headers,
       body: JSON.stringify(request),
       signal,
     });
