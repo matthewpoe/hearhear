@@ -1,31 +1,30 @@
 <script>
   // A chord's label with its function shape and color (never color alone).
-  // Confirmed: filled. Tentative: outlined. Hidden: letters only, no function.
+  // Confirmed: filled. Tentative: outlined. Hidden: a neutral mark only, with
+  // no label, color, or shape (decision D2). The shape is the shared
+  // FunctionMark (D8); the color is functionInfo's token for the function.
   /** @import { ChordView } from "./chordView.js" */
+  import FunctionMark from "../lib/FunctionMark.svelte";
 
   /** @type {{ view: ChordView }} */
   const { view } = $props();
 </script>
 
-<span class="badge fn-{view.fn ?? 'hidden'} {view.mode}">
-  {#if view.shape}
-    <svg class="shape" viewBox="0 0 16 16" aria-hidden="true">
-      {#if view.shape === "circle"}
-        <circle cx="8" cy="8" r="6" />
-      {:else if view.shape === "triangle"}
-        <polygon points="8,2 14.5,14 1.5,14" />
-      {:else if view.shape === "square"}
-        <rect x="2" y="2" width="12" height="12" />
-      {:else}
-        <rect x="1.5" y="1.5" width="13" height="13" rx="4" />
-        <text x="8" y="12" text-anchor="middle">?</text>
-      {/if}
-    </svg>
-  {/if}
-  <span class="label"
-    >{view.text}{#if view.sup}<sup>{view.sup}</sup>{/if}</span
+{#if view.fn && view.color}
+  <span
+    class="badge {view.mode}"
+    style:--c="var({view.color})"
+    style:--c-soft="var({view.color}-soft)"
+    style:--c-edge="var({view.color}-edge, var({view.color}))"
   >
-</span>
+    <span class="shape"><FunctionMark fn={view.fn} outline={view.mode === "tentative"} /></span>
+    <span class="label"
+      >{view.text}{#if view.sup}<sup>{view.sup}</sup>{/if}</span
+    >
+  </span>
+{:else}
+  <span class="badge hidden" aria-hidden="true"><span class="neutral"></span></span>
+{/if}
 
 <style>
   .badge {
@@ -47,52 +46,39 @@
       background-color var(--dur-reveal) var(--ease),
       border-color var(--dur-reveal) var(--ease);
   }
-  .fn-tonic {
-    --c: var(--fn-tonic);
-    --c-soft: var(--fn-tonic-soft);
-    --c-edge: var(--fn-tonic);
-  }
-  .fn-subdominant {
-    --c: var(--fn-subdominant);
-    --c-soft: var(--fn-subdominant-soft);
-    --c-edge: var(--fn-subdominant-edge);
-  }
-  .fn-dominant {
-    --c: var(--fn-dominant);
-    --c-soft: var(--fn-dominant-soft);
-    --c-edge: var(--fn-dominant);
-  }
-  .fn-hidden {
-    --c-soft: var(--surface);
-    --c-edge: var(--rule);
-  }
   .tentative {
     border-style: dashed;
     background: transparent;
   }
-  .shape {
+  .hidden {
+    --c-soft: var(--surface);
+    --c-edge: var(--rule);
+    justify-content: center;
+    min-height: 1.75rem;
+  }
+  .neutral {
     width: 1rem;
-    height: 1rem;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--ink-muted);
+  }
+  .shape {
+    --mark-size: 1rem;
+    display: inline-flex;
     flex: none;
-    fill: var(--c);
+    color: var(--c);
+    transition: color var(--dur-reveal) var(--ease);
+  }
+  /* Edge the shape so yellow keeps 3:1 against its soft background. */
+  .shape :global(.mark) {
     stroke: var(--c-edge);
     stroke-width: 1;
-    transition: fill var(--dur-reveal) var(--ease);
   }
   .tentative .shape {
-    fill: none;
-    stroke: var(--c-edge);
-    stroke-width: var(--tentative-stroke);
     opacity: var(--tentative-opacity);
   }
-  .shape text {
-    fill: var(--fn-other-ink);
-    stroke: none;
-    font-size: 10px;
-    font-weight: 700;
-  }
-  .tentative .shape text {
-    fill: var(--c);
+  .tentative .shape :global(.mark) {
+    stroke-width: 1.6;
   }
   sup {
     font-size: 0.7em;

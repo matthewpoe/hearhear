@@ -7,9 +7,8 @@
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
   import { suggestions, isStale } from "../store/suggestions.js";
-  import { positionOf } from "../theory/index.js";
   import ChordBadge from "./ChordBadge.svelte";
-  import { chordView } from "./chordView.js";
+  import { chordView, whereOf } from "./chordView.js";
 
   /**
    * @type {{
@@ -28,8 +27,7 @@
   function placeOf(noteId) {
     const note = $song.notes.find((n) => n.id === noteId);
     if (!note) return null;
-    const { bar, beat } = positionOf(note.start, $song.meter);
-    return { start: note.start, where: `bar ${bar}, beat ${beat}` };
+    return { start: note.start, where: whereOf(note, $song.meter) };
   }
 
   const chips = $derived(

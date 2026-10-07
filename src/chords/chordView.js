@@ -1,15 +1,22 @@
 /**
  * How a chord looks on a chip or option: its label in the user's label style,
  * plus its harmonic function's color and shape, all derived from the chord and
- * the current key hypothesis. Honors the key-label mode: hidden shows only the
- * letter name, with no function, so nothing gives home away.
+ * the current key hypothesis. Honors the key-label mode: hidden shows only a
+ * neutral mark, with no label and no function, because a numeral or even a
+ * letter name gives home away (decision D2).
  *
- * @import { ChordSpec, Key, LabelStyle, HarmonicFunction } from "../types.js"
+ * @import { ChordSpec, Key, LabelStyle, HarmonicFunction, Meter, Note } from "../types.js"
  * @import { KeyLabelMode } from "../store/ui.js"
  */
 
-import contract from "../../contracts/functions.json" with { type: "json" };
-import { functionOf, letterOf, nashvilleOf, numeralOf } from "../theory/index.js";
+import {
+  functionInfo,
+  functionOf,
+  letterOf,
+  nashvilleOf,
+  numeralOf,
+  positionOf,
+} from "../theory/index.js";
 
 /**
  * @typedef {{
@@ -17,12 +24,16 @@ import { functionOf, letterOf, nashvilleOf, numeralOf } from "../theory/index.js
  *   text: string,
  *   sup: string,
  *   fn: HarmonicFunction | null,
- *   shape: string | null,
+ *   color: string | null,
  *   name: string,
  * }} ChordView
- * `sup` is a superscript seventh (Nashville). `fn` and `shape` are null in
- * hidden mode. `name` is the accessible name.
+ * `sup` is a superscript seventh (Nashville). `fn` and `color` (a tokens.css
+ * custom property name, from functionInfo) are null in hidden mode, where
+ * `text` is empty too. `name` is the accessible name.
  */
+
+/** The accessible name of a chord whose label is hidden until the guess. */
+export const HIDDEN_NAME = "Chord, name hidden until you find home";
 
 /** Chord types whose Nashville number ends in a seventh written as a superscript. */
 const SEVENTHS = new Set(["7", "m7", "dim7", "m7b5"]);
@@ -43,10 +54,10 @@ const FUNCTION_NAMES = {
  * @returns {ChordView}
  */
 export function chordView(chord, key, mode, style) {
-  const letters = letterOf(chord);
   if (mode === "hidden") {
-    return { mode, text: letters, sup: "", fn: null, shape: null, name: letters };
+    return { mode, text: "", sup: "", fn: null, color: null, name: HIDDEN_NAME };
   }
+  const letters = letterOf(chord);
   const numeral = numeralOf(chord, key);
   const fn = functionOf(numeral, key.mode);
   const { text, sup } = styledLabel(chord, key, style, numeral, letters);
@@ -56,7 +67,7 @@ export function chordView(chord, key, mode, style) {
     text,
     sup,
     fn,
-    shape: contract.functions[fn].shape,
+    color: functionInfo(fn).color,
     name: `${spoken}, ${FUNCTION_NAMES[fn]}`,
   };
 }
@@ -79,4 +90,15 @@ function styledLabel(chord, key, style, numeral, letters) {
       : { text: number, sup: "" };
   }
   return { text: numeral, sup: "" };
+}
+
+/**
+ * Where a note sits, for labels: "bar 2, beat 3". Bar 0 is the pickup.
+ * @param {Note} note
+ * @param {Meter} meter
+ * @returns {string}
+ */
+export function whereOf(note, meter) {
+  const { bar, beat } = positionOf(note.start, meter);
+  return `bar ${bar}, beat ${beat}`;
 }
