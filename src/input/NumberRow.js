@@ -164,6 +164,8 @@ export function listenToNumberRow(target) {
       return;
     }
     if (event.code === "Escape" && armed.get()) {
+      // One Escape does one thing: record mode leaves an armed flat's Escape alone.
+      event.preventDefault();
       armed.set(false);
       return;
     }

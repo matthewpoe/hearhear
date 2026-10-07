@@ -65,6 +65,7 @@
         <li>
           <button
             type="button"
+            id="record-card"
             class="record-card"
             disabled={busy}
             onclick={() => recorder.record()}
@@ -106,6 +107,7 @@
     </select>
     <button
       type="button"
+      id="record-button"
       class="record"
       disabled={busy}
       aria-label="Record a tune"

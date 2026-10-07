@@ -77,8 +77,9 @@ function isSong(song) {
     typeof id === "string" &&
     /^[a-z0-9-]{1,64}$/.test(id) &&
     typeof title === "string" &&
+    // By code point, as cleanTitle and song.rename count.
     title.length >= 1 &&
-    title.length <= 120 &&
+    Array.from(title).length <= 120 &&
     isObject(key) &&
     typeof key.tonic === "string" &&
     TONIC.test(key.tonic) &&

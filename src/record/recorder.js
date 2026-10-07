@@ -7,7 +7,10 @@
  * reloads the tune with the rhythm guessed so far. After a take the tune is
  * named (`name`), and can be recorded again or discarded:
  * - Record again replaces the tune's notes in one undoable step, so Undo
- *   brings the earlier take back.
+ *   brings the earlier take back. While it runs, the take is shown as a draft
+ *   under its own id (the tune's id and "-take"), so the saved tune and its
+ *   chords are never touched until Stop; a take cut short leaves them as
+ *   they were.
  * - Discard takes a tune off the shelf and goes back to what was open before
  *   it was recorded; `undoDiscard` restores it.
  *
@@ -102,9 +105,25 @@ export function createRecorder({
   let previous = null;
   /** The newest recorded tune's id: Discard goes back to `previous` only from it. */
   let newestId = "";
-  /** A discarded tune, while Undo is offered. @type {{ song: Song, at: number } | null} */
+  /**
+   * A discarded tune, while Undo is offered, with what Discard needs to go
+   * back again after an Undo.
+   * @type {{ song: Song, at: number, previous: Song | null, newestId: string } | null}
+   */
   let discarded = null;
   let previewQueued = false;
+  /** The recorder is switching songs itself, mid-take: not another song opening. */
+  let switching = false;
+
+  /** A re-take's draft id: the tune's own, plus "-take". @param {Song} tune */
+  const draftId = (tune) => `${tune.id}-take`;
+
+  /**
+   * Forget a re-take's draft once this change has been saved, so a save of
+   * the draft that runs after it doesn't bring it back.
+   * @param {string} id
+   */
+  const forgetDraft = (id) => queueMicrotask(() => shelf.forget(id));
 
   /** Clear a view left by the last song: the same reset a fresh demo gets. */
   function resetView() {
@@ -123,7 +142,7 @@ export function createRecorder({
   function show(take) {
     if (base) {
       const { notes } = recordedSong({ id: base.id, title: base.title, ...take });
-      song.load({ ...base, notes, tempo: take.tempo, chords: [] });
+      song.load({ ...base, id: draftId(base), notes, tempo: take.tempo, chords: [] });
     } else {
       song.load(recordedSong({ ...fresh, ...take }));
     }
@@ -230,12 +249,18 @@ export function createRecorder({
       const before = base;
       base = null;
       // Back to the old take, then the new one in one undoable step.
-      song.load(before);
+      switching = true;
+      try {
+        song.load(before);
+      } finally {
+        switching = false;
+      }
       song.replaceTake(
         before.notes.map((n) => n.id),
         take.notes,
         { tempo: take.tempo },
       );
+      forgetDraft(draftId(before));
     } else {
       show(take);
     }
@@ -296,11 +321,13 @@ export function createRecorder({
     if (!isUserTune(current.id)) return;
     if (state.get().status === "armed" || state.get().status === "recording") return;
     const back = current.id === newestId ? previous : null;
+    const wasNewest = current.id === newestId ? { previous: back, newestId: current.id } : null;
     previous = null;
     newestId = "";
     // Switch first: leaving the tune saves it, and only then is it forgotten.
     reopen(back);
-    discarded = shelf.remove(current.id);
+    const removed = shelf.remove(current.id);
+    discarded = removed && { ...removed, previous: null, newestId: "", ...wasNewest };
     state.set({ ...IDLE, discarded: current.title });
   }
 
@@ -308,6 +335,9 @@ export function createRecorder({
   function undoDiscard() {
     if (!discarded) return;
     const { song: tune, at } = discarded;
+    // Discarding it again goes back where the first Discard did.
+    previous = discarded.previous;
+    newestId = discarded.newestId;
     discarded = null;
     shelf.add(tune, at);
     state.set(IDLE);
@@ -326,9 +356,13 @@ export function createRecorder({
   song.subscribe((current) => {
     if (current.id === shownId) return;
     shownId = current.id;
+    if (switching) return;
     const { status } = state.get();
-    if (status === "recording" && current.id !== (base?.id ?? fresh.id)) {
+    if (status === "recording" && current.id !== (base ? draftId(base) : fresh.id)) {
+      // The take is dropped. A re-take only ever wrote its draft, so the saved
+      // tune is as it was; the draft is forgotten.
       quiet();
+      if (base) forgetDraft(draftId(base));
       base = null;
       state.set(IDLE);
     } else if (status === "naming") {

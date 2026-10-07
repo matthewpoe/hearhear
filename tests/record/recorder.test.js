@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import { createSongStore } from "../../src/store/song.js";
 import { createUiStore } from "../../src/store/ui.js";
+import { createSongMemory, installPersistence } from "../../src/store/persist.js";
 import { createShelf } from "../../src/record/shelf.js";
 import { createRecorder } from "../../src/record/recorder.js";
 import { MAX_TAKE_NOTES, isUserTune } from "../../src/record/take.js";
@@ -259,6 +260,92 @@ describe("recorder", () => {
     second.recorder.openTune(tune.id);
     assert.equal(second.song.get().title, "Keeper");
     assert.equal(second.song.get().notes.length, 2);
+  });
+
+  it("a re-take cut short by another song leaves the saved tune and its chords as they were", async () => {
+    const { song, ui, storage, recorder, tap } = setup({ initial: ODE });
+    const memory = installPersistence({
+      song,
+      ui,
+      storage: () => storage,
+      fresh: (tune) => song.load(tune),
+      stop: () => {},
+    });
+    recorder.record();
+    for (const midi of [60, 62, 64]) tap(midi);
+    recorder.stop();
+    recorder.name("Keeper");
+    const id = song.get().id;
+    song.setChord(song.get().notes[0].id, { root: "C", type: "M" });
+    memory.flush();
+
+    recorder.record({ again: true });
+    tap(67);
+    tap(65);
+    // The guided tour's "Try it" opens a demo mid-take.
+    song.open(ODE);
+    await new Promise((resolve) => setImmediate(resolve));
+    memory.flush();
+    assert.equal(recorder.get().status, "idle");
+
+    const saved = createSongMemory(() => storage);
+    const kept = saved.recall(id)?.song;
+    assert.deepEqual(
+      kept?.notes.map((n) => n.midi),
+      [60, 62, 64],
+    );
+    assert.equal(kept?.chords.length, 1);
+    assert.equal(saved.recall(`${id}-take`), null, "the draft is forgotten");
+
+    recorder.openTune(id);
+    assert.deepEqual(
+      song.get().notes.map((n) => n.midi),
+      [60, 62, 64],
+    );
+    assert.equal(song.get().chords.length, 1);
+  });
+
+  it("a finished re-take saves over the tune and forgets its draft", async () => {
+    const { song, ui, storage, recorder, tap } = setup();
+    const memory = installPersistence({
+      song,
+      ui,
+      storage: () => storage,
+      fresh: (tune) => song.load(tune),
+      stop: () => {},
+    });
+    recorder.record();
+    tap(60);
+    recorder.stop();
+    recorder.name("Twice");
+    const id = song.get().id;
+    recorder.record({ again: true });
+    tap(67);
+    tap(65);
+    recorder.stop();
+    await new Promise((resolve) => setImmediate(resolve));
+    memory.flush();
+    const saved = createSongMemory(() => storage);
+    assert.deepEqual(
+      saved.recall(id)?.song.notes.map((n) => n.midi),
+      [67, 65],
+    );
+    assert.equal(saved.recall(`${id}-take`), null);
+    assert.equal(song.get().id, id);
+  });
+
+  it("discards again after an Undo back to the song open before it", () => {
+    const { song, recorder, tap } = setup({ initial: ODE });
+    recorder.record();
+    tap(60);
+    recorder.stop();
+    recorder.name("Twice gone");
+    recorder.discard();
+    assert.equal(song.get().id, "ode-to-joy");
+    recorder.undoDiscard();
+    assert.equal(song.get().title, "Twice gone");
+    recorder.discard();
+    assert.equal(song.get().id, "ode-to-joy", "not the empty welcome");
   });
 
   it("a second tune is offered the next free title", () => {

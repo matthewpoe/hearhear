@@ -197,6 +197,10 @@ describe("recordedSong", () => {
     }));
     memory.save({ song: tune, demoAwaitingGuess: false });
     assert.deepEqual(memory.recall(tune.id)?.song, tune);
+    // A title of 120 code points (240 UTF-16 units) comes back too.
+    const emoji = { ...tune, title: cleanTitle("🎹".repeat(200), "x") };
+    memory.save({ song: emoji, demoAwaitingGuess: false });
+    assert.equal(memory.recall(tune.id)?.song.title, emoji.title);
   });
 
   it("goes to the tutor with its title as data, within the request contract", () => {

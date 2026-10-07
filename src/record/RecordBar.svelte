@@ -7,6 +7,8 @@
    * recording, since the menus it closes elsewhere are shut.
    */
   import { tick } from "svelte";
+  import { get } from "svelte/store";
+  import { flatArmed } from "../input/NumberRow.js";
   import { song } from "../store/song.js";
   import { recorder, shelf } from "./tunes.js";
   import { MAX_TAKE_NOTES, isUserTune } from "./take.js";
@@ -72,11 +74,29 @@
     return "";
   });
 
-  /** @param {KeyboardEvent} event */
-  function onWindowKeydown(event) {
-    if (event.key !== "Escape" || event.defaultPrevented || !live) return;
-    event.preventDefault();
+  /**
+   * Stop the take. Cancelled before its first note, focus goes back to the
+   * Record control that armed it (the masthead's, or the welcome card).
+   */
+  async function stopTake() {
+    const cancelled = recorder.get().status === "armed";
     recorder.stop();
+    if (!cancelled) return;
+    await tick();
+    const back = document.getElementById("record-button") ?? document.getElementById("record-card");
+    back?.focus({ preventScroll: true });
+  }
+
+  /**
+   * Escape stops a take, ahead of every other Escape (it runs in the capture
+   * phase and marks the event handled, so an open tip stays open). One
+   * Escape does one thing: with a flat armed, it disarms the flat instead.
+   * @param {KeyboardEvent} event
+   */
+  function onWindowKeydown(event) {
+    if (event.key !== "Escape" || event.defaultPrevented || !live || get(flatArmed)) return;
+    event.preventDefault();
+    stopTake();
   }
 
   /** @param {SubmitEvent} event */
@@ -87,9 +107,15 @@
     titleButton?.focus({ preventScroll: true });
   }
 
-  function blurName() {
-    // Clicking away keeps what was typed, like pressing Save.
-    if (recorder.get().status === "naming") recorder.name(draft);
+  async function blurName() {
+    // Clicking or tabbing away keeps what was typed, like pressing Save.
+    if (recorder.get().status !== "naming") return;
+    recorder.name(draft);
+    await tick();
+    // Tabbing to Save lands nowhere once the field closes: keep focus on the title.
+    if (!document.activeElement || document.activeElement === document.body) {
+      titleButton?.focus({ preventScroll: true });
+    }
   }
 
   /** @param {KeyboardEvent} event */
@@ -112,7 +138,7 @@
   }
 </script>
 
-<svelte:window onkeydown={onWindowKeydown} />
+<svelte:window onkeydowncapture={onWindowKeydown} />
 
 {#if shown}
   <section id="record-bar" class="record-bar" class:live aria-label="Your tune">
@@ -135,7 +161,7 @@
         type="button"
         class="stop"
         bind:this={stopButton}
-        onclick={() => recorder.stop()}
+        onclick={stopTake}
         aria-keyshortcuts="Escape"
       >
         <span class="square" aria-hidden="true"></span>

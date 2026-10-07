@@ -138,8 +138,15 @@ test("the masthead's Record button starts a new tune beside a demo, and the bar 
   await page.goto("/");
   await page.getByRole("button", { name: "Beginner tips" }).click();
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
-  await page.getByRole("button", { name: "Record a tune" }).click();
+  const record = page.getByRole("button", { name: "Record a tune" });
+  await record.click();
   const bar = page.getByRole("region", { name: "Your tune" });
+  await expect(bar.getByText("Ready to record")).toBeVisible();
+  // Escape before any note cancels, and focus goes back to Record.
+  await page.keyboard.press("Escape");
+  await expect(bar).toHaveCount(0);
+  await expect(record).toBeFocused();
+  await record.click();
   await expect(bar.getByText("Ready to record")).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Song" })).toBeDisabled();
   await tapTune(page, ["Digit1", "Digit3", "Digit5"]);
