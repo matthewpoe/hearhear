@@ -168,6 +168,18 @@ describe("guessRhythm", () => {
     }
   });
 
+  it("keeps dotted quarter and eighth figures dotted, even when they fill most of the take", () => {
+    // Three dotted-quarter + eighth pairs (3:1, two beats each), then two quarters.
+    const onsets = [0, 1.5, 2, 3.5, 4, 5.5, 6, 7, 8];
+    const { notes, beatMs, swing } = guessRhythm(tapAt(onsets, 600), { endMs: 1000 + 9 * 600 });
+    assert.equal(swing, false);
+    assert.ok(Math.abs(beatMs - 600) < 25, `${beatMs}`);
+    assert.deepEqual(
+      notes.map((n) => n.start),
+      onsets.map((t) => t * 12),
+    );
+  });
+
   it("leaves straight eighths and a dotted quarter alone, and calls them unswung", () => {
     const onsets = [0, 1, 1.5, 2, 3, 4.5, 5, 6];
     const { notes, swing } = guessRhythm(tapAt(onsets, 500), { endMs: 1000 + 7 * 500 });

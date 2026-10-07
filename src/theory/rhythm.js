@@ -126,7 +126,9 @@ function swungPairs(gaps, beatMs) {
  * eighths. The beat is the most common gap (moved into a plausible tempo,
  * 50–140 BPM), unless the most common sum of a
  * swung pair explains more of the take (a line of swung eighths alternates
- * two gaps, neither of them the beat). Each swung pair's
+ * two gaps, neither of them the beat). A long-short pair that sums to twice a
+ * gap the take also plays is a dotted figure, never swing, and its half is
+ * the beat if more of the take lands on the grid that way. Each swung pair's
  * gaps are then evened out to half its length.
  * @param {number[]} gaps ms between onsets
  * @returns {{ gaps: number[], beatMs: number, swing: boolean }} `swing`:
@@ -149,10 +151,33 @@ function readSwing(gaps) {
     const onBeat = gaps.filter((g, i) => !inPairs.has(i) && Math.abs(g - beat) <= SAME_GAP * beat);
     return inPairs.size + onBeat.length;
   };
+  /**
+   * How many gaps land on the grid (within a tenth of a beat) in a beat.
+   * @param {number} beat
+   */
+  const onGrid = (beat) =>
+    positive.filter((g) => GRID.some((n) => Math.abs(g / beat - n) <= 0.1)).length;
   let beatMs = straightBeat;
   if (sums.length > 0) {
-    const swingBeat = plausibleBeat(mostCommonGap(sums));
-    if (explained(swingBeat) > explained(straightBeat)) beatMs = swingBeat;
+    const pairSum = mostCommonGap(sums);
+    const swingBeat = plausibleBeat(pairSum);
+    // A pair that sums to twice a gap the take also plays is a dotted figure
+    // (dotted quarter and eighth over two beats), not a swung beat.
+    const pairGaps = new Set(swungPairs(gaps, pairSum).flatMap((i) => [i, i + 1]));
+    const dotted = gaps.some(
+      (g, i) => !pairGaps.has(i) && Math.abs(g - pairSum / 2) <= SAME_GAP * (pairSum / 2),
+    );
+    if (
+      !dotted &&
+      swingBeat < 1.5 * straightBeat &&
+      explained(swingBeat) > explained(straightBeat)
+    ) {
+      beatMs = swingBeat;
+    } else if (dotted) {
+      // The dotted figure's half is the beat when it fits more of the take.
+      const half = plausibleBeat(pairSum / 2);
+      if (onGrid(half) > onGrid(straightBeat)) beatMs = half;
+    }
   }
   const pairs = swungPairs(gaps, beatMs);
   const even = [...gaps];
