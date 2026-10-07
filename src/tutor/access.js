@@ -1,9 +1,11 @@
 /**
  * The live tutor's passphrase, sent as the X-Tutor-Access header (DECISIONS.md,
- * "The live tutor requires a passphrase"). A code the user types lives in
- * memory for the page session only. A code from a `#code=` link is read once
- * on load, kept in sessionStorage for this tab so a refresh still works, and
- * removed from the address bar. Nothing goes to localStorage.
+ * "The live tutor requires a passphrase"). Whether the user types it or it
+ * comes from a `#code=` link, it is kept in sessionStorage for this tab, so a
+ * reload still works (Matthew, overruling the earlier memory-only rule for
+ * typed codes). A link's code is read once on load and removed from the
+ * address bar. A code the server rejects is forgotten. Nothing goes to
+ * localStorage.
  */
 
 const STORAGE_KEY = "hearhear.tutorAccess";
@@ -69,9 +71,10 @@ export function createAccess(page) {
     /** The code to send, or "" for none. */
     get: () => code,
 
-    /** Use a code the user typed. Memory only. @param {string} typed */
+    /** Use a code the user typed, and keep it for this tab. @param {string} typed */
     set(typed) {
       code = typed.trim();
+      store(() => page.sessionStorage.setItem(STORAGE_KEY, code), "keep");
     },
 
     /** The server turned the code away: stop sending it, and don't bring it back on refresh. */
