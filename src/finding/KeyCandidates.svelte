@@ -2,27 +2,34 @@
   /**
    * "Help me find it", the ear finder: the keyFinding explainer verbatim,
    * then rankKeys' top three homes as chords to play under the tune, in an
-   * order shuffled per song so the likeliest isn't always first. Chords are
-   * unnamed until one is chosen; choosing commits that key, exactly as its
-   * home chip does, and names it. "Try three more" moves to the next three.
-   * Opening moves focus to its heading; Close or Escape collapses it.
+   * order shuffled per song so the likeliest isn't always first (on a demo,
+   * the tune's known home is always among them: finderHomes.js). The chords
+   * are unnamed, and the user's current guess is never marked, so the lineup
+   * is a fair test. Choosing one commits its key, exactly as its home chip
+   * does, then names the chords and says how the pick compares with the
+   * earlier choice. "Try three more" moves to the next three, unnamed again.
+   * Opening (and show(), when it's asked for again) scrolls it into view and
+   * moves focus to its heading; Close or Escape collapses it.
    * @import { Key } from "../types.js"
    */
   import explainers from "../../content/explainers.json" with { type: "json" };
   import { song } from "../store/song.js";
   import { rankKeys } from "../theory/index.js";
   import { FINDER_SIZE, finderHomes } from "./finderHomes.js";
-  import { keyName, sameHome } from "./keys.js";
+  import { finderComparison } from "./keyChoice.js";
+  import { finderText } from "./guessFeedback.js";
+  import { keyName } from "./keys.js";
   import ListenButton from "./ListenButton.svelte";
 
   /**
    * @type {{
-   *   onpick: (home: Pick<Key, "tonic" | "mode">) => void,
+   *   onpick: (home: Pick<Key, "tonic" | "mode">, comparison: "first" | "same" | "different") => void,
    *   onclose: () => void,
    *   opener?: HTMLElement,
+   *   known?: Pick<Key, "tonic" | "mode"> | null,
    * }}
    */
-  let { onpick, onclose, opener } = $props();
+  let { onpick, onclose, opener, known = null } = $props();
 
   const { title, body } = explainers.keyFinding;
   // Ranked once when the finder opens, so the chords don't reshuffle under the user.
@@ -30,13 +37,17 @@
   const seed = song.get().id;
 
   let set = $state(0);
-  const homes = $derived(finderHomes(ranked, seed, set));
+  const homes = $derived(finderHomes(ranked, seed, set, known));
   const sets = Math.ceil(ranked.length / FINDER_SIZE);
   /** Chord numbers run on across sets (4, 5, 6 after "Try three more"). */
   const first = $derived((set % sets) * FINDER_SIZE + 1);
 
-  /** @param {Pick<Key, "tonic" | "mode">} home */
-  const chosen = (home) => !$song.key.provisional && sameHome($song.key, home);
+  /**
+   * The chord picked from this set, and how it compared with the earlier
+   * choice. Null until a pick; it reveals the set's names.
+   * @type {{ index: number, comparison: "first" | "same" | "different" } | null}
+   */
+  let picked = $state(null);
 
   /** @type {HTMLElement | undefined} */
   let root = $state();
@@ -44,8 +55,30 @@
   let heading = $state();
 
   $effect(() => {
-    heading?.focus();
+    if (root && heading) show();
   });
+
+  /** Bring the finder into view and focus its heading. */
+  export function show() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    root?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    heading?.focus({ preventScroll: true });
+  }
+
+  /**
+   * @param {Pick<Key, "tonic" | "mode">} home
+   * @param {number} index
+   */
+  function pick(home, index) {
+    const comparison = finderComparison(song.get().key, home);
+    picked = { index, comparison };
+    onpick(home, comparison);
+  }
+
+  function nextSet() {
+    picked = null;
+    set++;
+  }
 
   /**
    * Escape closes the finder while focus is inside it or on what opened it.
@@ -79,13 +112,14 @@
   <ol>
     {#each homes as home, index (`${set}-${index}`)}
       {@const n = first + index}
-      <li class:chosen={chosen(home)}>
+      {@const mine = picked?.index === index}
+      <li class:picked={mine}>
         <span class="name">
-          Chord {n}{#if chosen(home)}: {keyName(home)}{/if}
+          Chord {n}{#if picked}: {keyName(home)}{/if}
         </span>
         <span class="tests">
           <ListenButton label="Play the tune over chord {n}" droneKey={home} />
-          <button type="button" aria-pressed={chosen(home)} onclick={() => onpick(home)}>
+          <button type="button" aria-pressed={mine} onclick={() => pick(home, index)}>
             Chord {n} sounds like home
           </button>
         </span>
@@ -93,9 +127,13 @@
     {/each}
   </ol>
 
+  {#if picked}
+    <p class="verdict">{finderText(picked.comparison)}</p>
+  {/if}
+
   <p class="more">
     None of these sound like home?
-    <button type="button" onclick={() => set++}>Try three more</button>
+    <button type="button" onclick={nextSet}>Try three more</button>
   </p>
 </div>
 
@@ -144,8 +182,12 @@
     border-radius: var(--radius-md);
     background: var(--surface);
   }
-  li.chosen {
+  li.picked {
     border-color: var(--ink);
+  }
+  .verdict {
+    color: var(--ink);
+    font-weight: 500;
   }
   .name {
     min-width: 6rem;
