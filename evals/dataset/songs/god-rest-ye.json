@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "id": "god-rest-ye",
+  "title": "God Rest Ye Merry, Gentlemen",
+  "key": {
+    "tonic": "E",
+    "mode": "minor",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 4,
+    "beatUnit": 4,
+    "pickupTicks": 12,
+    "provisional": false
+  },
+  "tempo": 160,
+  "version": 1,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 64,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 64,
+      "start": 12,
+      "dur": 12
+    },
+    {
+      "id": "n3",
+      "midi": 71,
+      "start": 24,
+      "dur": 12
+    },
+    {
+      "id": "n4",
+      "midi": 71,
+      "start": 36,
+      "dur": 12
+    },
+    {
+      "id": "n5",
+      "midi": 69,
+      "start": 48,
+      "dur": 12
+    },
+    {
+      "id": "n6",
+      "midi": 67,
+      "start": 60,
+      "dur": 12
+    },
+    {
+      "id": "n7",
+      "midi": 66,
+      "start": 72,
+      "dur": 12
+    },
+    {
+      "id": "n8",
+      "midi": 64,
+      "start": 84,
+      "dur": 12
+    },
+    {
+      "id": "n9",
+      "midi": 62,
+      "start": 96,
+      "dur": 12
+    },
+    {
+      "id": "na",
+      "midi": 64,
+      "start": 108,
+      "dur": 12
+    },
+    {
+      "id": "nb",
+      "midi": 66,
+      "start": 120,
+      "dur": 12
+    },
+    {
+      "id": "nc",
+      "midi": 67,
+      "start": 132,
+      "dur": 12
+    },
+    {
+      "id": "nd",
+      "midi": 69,
+      "start": 144,
+      "dur": 12
+    },
+    {
+      "id": "ne",
+      "midi": 71,
+      "start": 156,
+      "dur": 36
+    },
+    {
+      "id": "nf",
+      "midi": 64,
+      "start": 192,
+      "dur": 12
+    }
+  ],
+  "chords": [
+    {
+      "id": "c1",
+      "noteId": "n3",
+      "root": "E",
+      "type": "m"
+    },
+    {
+      "id": "c2",
+      "noteId": "n4",
+      "root": "B",
+      "type": "M"
+    },
+    {
+      "id": "c3",
+      "noteId": "n5",
+      "root": "B",
+      "type": "7"
+    },
+    {
+      "id": "c4",
+      "noteId": "n6",
+      "root": "E",
+      "type": "m"
+    },
+    {
+      "id": "c5",
+      "noteId": "n7",
+      "root": "B",
+      "type": "m"
+    },
+    {
+      "id": "c6",
+      "noteId": "n8",
+      "root": "C",
+      "type": "M"
+    },
+    {
+      "id": "c7",
+      "noteId": "n9",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c8",
+      "noteId": "na",
+      "root": "C",
+      "type": "M"
+    },
+    {
+      "id": "c9",
+      "noteId": "nb",
+      "root": "B",
+      "type": "M"
+    },
+    {
+      "id": "ca",
+      "noteId": "nc",
+      "root": "E",
+      "type": "m"
+    },
+    {
+      "id": "cb",
+      "noteId": "nd",
+      "root": "A",
+      "type": "m"
+    },
+    {
+      "id": "cc",
+      "noteId": "ne",
+      "root": "B",
+      "type": "M"
+    }
+  ]
+}

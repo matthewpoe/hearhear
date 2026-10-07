@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "id": "amazing-grace",
+  "title": "Amazing Grace (New Britain)",
+  "key": {
+    "tonic": "G",
+    "mode": "major",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 3,
+    "beatUnit": 4,
+    "pickupTicks": 12,
+    "provisional": false
+  },
+  "tempo": 100,
+  "version": 1,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 62,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 67,
+      "start": 12,
+      "dur": 24
+    },
+    {
+      "id": "n3",
+      "midi": 71,
+      "start": 36,
+      "dur": 6
+    },
+    {
+      "id": "n4",
+      "midi": 67,
+      "start": 42,
+      "dur": 6
+    },
+    {
+      "id": "n5",
+      "midi": 71,
+      "start": 48,
+      "dur": 24
+    },
+    {
+      "id": "n6",
+      "midi": 69,
+      "start": 72,
+      "dur": 12
+    },
+    {
+      "id": "n7",
+      "midi": 67,
+      "start": 84,
+      "dur": 24
+    },
+    {
+      "id": "n8",
+      "midi": 64,
+      "start": 108,
+      "dur": 12
+    },
+    {
+      "id": "n9",
+      "midi": 62,
+      "start": 120,
+      "dur": 24
+    },
+    {
+      "id": "na",
+      "midi": 62,
+      "start": 144,
+      "dur": 12
+    },
+    {
+      "id": "nb",
+      "midi": 67,
+      "start": 156,
+      "dur": 24
+    },
+    {
+      "id": "nc",
+      "midi": 71,
+      "start": 180,
+      "dur": 6
+    },
+    {
+      "id": "nd",
+      "midi": 67,
+      "start": 186,
+      "dur": 6
+    },
+    {
+      "id": "ne",
+      "midi": 71,
+      "start": 192,
+      "dur": 24
+    },
+    {
+      "id": "nf",
+      "midi": 69,
+      "start": 216,
+      "dur": 12
+    },
+    {
+      "id": "ng",
+      "midi": 74,
+      "start": 228,
+      "dur": 60
+    },
+    {
+      "id": "nh",
+      "midi": 71,
+      "start": 288,
+      "dur": 12
+    }
+  ],
+  "chords": [
+    {
+      "id": "c1",
+      "noteId": "n1",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c2",
+      "noteId": "n6",
+      "root": "D",
+      "type": "7"
+    },
+    {
+      "id": "c3",
+      "noteId": "n7",
+      "root": "E",
+      "type": "m"
+    },
+    {
+      "id": "c4",
+      "noteId": "n8",
+      "root": "C",
+      "type": "M"
+    },
+    {
+      "id": "c5",
+      "noteId": "n9",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c6",
+      "noteId": "nf",
+      "root": "D",
+      "type": "7"
+    },
+    {
+      "id": "c7",
+      "noteId": "ng",
+      "root": "G",
+      "type": "M"
+    }
+  ]
+}
