@@ -10,10 +10,11 @@ import anthropic
 import httpx2
 import pytest
 from fastapi.testclient import TestClient
-from helpers import SNAPSHOT, events, settings_with
+from helpers import ACCESS_CODE, SNAPSHOT, events, settings_with
 
 from hearhear import app as app_module
 from hearhear import live
+from hearhear.access import normalize
 from hearhear.budget import TokenBudget
 from hearhear.models import TutorReply
 
@@ -116,9 +117,13 @@ class FakeClient:
 
 @pytest.fixture
 def live_mode(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    settings = settings_with(tutor_mode="live", daily_token_budget=10_000)
+    """Live mode with a fake SDK client, sending the right access code."""
+    settings = settings_with(
+        tutor_mode="live", daily_token_budget=10_000, access_code=normalize(ACCESS_CODE)
+    )
     monkeypatch.setattr(app_module, "settings", settings)
     monkeypatch.setattr(app_module, "budget", TokenBudget(10_000))
+    client.headers["X-Tutor-Access"] = ACCESS_CODE
     return client
 
 

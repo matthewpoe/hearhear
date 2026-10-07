@@ -2,16 +2,39 @@
 
 import dataclasses
 import json
+import os
+import subprocess
+import sys
+from pathlib import Path
 from typing import Any
 
 from hearhear import app as app_module
 from hearhear.config import Settings
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def import_app(**env: str) -> subprocess.CompletedProcess[str]:
+    """Import the app in a fresh interpreter, as uvicorn does at startup."""
+    clean = {k: v for k, v in os.environ.items() if not k.startswith(("ANTHROPIC_", "TUTOR_"))}
+    return subprocess.run(
+        [sys.executable, "-c", "import hearhear.app"],
+        cwd=REPO_ROOT / "server",
+        env={**clean, **env},
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
 
 
 def settings_with(**overrides: Any) -> Settings:
     """The app's current settings with some fields replaced."""
     return dataclasses.replace(app_module.settings, **overrides)
 
+
+# A made-up passphrase for tests. The real one is set only on Railway.
+ACCESS_CODE = "Treble Clef 42"
 
 SNAPSHOT: dict[str, Any] = {
     "version": 7,
