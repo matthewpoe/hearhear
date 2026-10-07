@@ -68,7 +68,13 @@
       "id": "n9",
       "midi": 64,
       "start": 66,
-      "dur": 42
+      "dur": 6
+    },
+    {
+      "id": "n1c",
+      "midi": 64,
+      "start": 72,
+      "dur": 36
     },
     {
       "id": "na",

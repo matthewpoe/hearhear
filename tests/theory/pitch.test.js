@@ -57,7 +57,7 @@ describe("spell", () => {
       ["F#4", "F#4", "G4", "A4", "A4", "G4", "F#4", "E4", "D4"],
     );
     assert.deepEqual(
-      stJames.notes.slice(9, 15).map((n) => spell(n.midi, E_MINOR)),
+      stJames.notes.slice(10, 16).map((n) => spell(n.midi, E_MINOR)),
       ["B4", "B4", "E5", "C5", "B4", "B4"],
     );
   });

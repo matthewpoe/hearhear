@@ -48,7 +48,11 @@ export function retryAfterSeconds(header) {
  *   suggestionsEvent: Record<string, any> | null,
  *   ms: number,
  *   firstDeltaMs: number | null,
+ *   events: TimedEvent[],
  * }} Exchange
+ *
+ * Every event in the order it arrived, `atMs` after the request was sent.
+ * @typedef {{ event: string, data: Record<string, any>, atMs: number }} TimedEvent
  */
 
 /** @param {number} ms */
@@ -99,6 +103,7 @@ export async function callTutor(baseUrl, body, accessCode) {
         suggestionsEvent: null,
         ms: 0,
         firstDeltaMs: null,
+        events: [],
       };
     }
     return readStream(response.body, started);
@@ -118,8 +123,11 @@ async function readStream(stream, started) {
   let suggestionsEvent = null;
   /** @type {string | null} */
   let errorCode = null;
+  /** @type {TimedEvent[]} */
+  const events = [];
   const parser = createSseParser((event, data) => {
     const payload = JSON.parse(data);
+    events.push({ event, data: payload, atMs: performance.now() - started });
     if (event === "message") {
       firstDeltaMs ??= performance.now() - started;
       message += payload.delta;
@@ -138,5 +146,6 @@ async function readStream(stream, started) {
     suggestionsEvent,
     ms: performance.now() - started,
     firstDeltaMs,
+    events,
   };
 }
