@@ -303,7 +303,14 @@
               </span>
             {/if}
             {#if binding && !chordKey}
-              <kbd>{bindingLabel(binding)}</kbd>
+              {@const label = bindingLabel(binding)}
+              {@const shifted = label.startsWith("⇧")}
+              <!-- Jost has no ⇧, so the arrow comes from a system font. -->
+              <kbd
+                >{#if shifted}<span class="shift">⇧</span>{/if}{shifted
+                  ? label.slice(1)
+                  : label}</kbd
+              >
             {/if}
           </span>
         </button>
@@ -533,6 +540,11 @@
   }
   .black kbd {
     font-size: 0.5625rem;
+  }
+  .shift {
+    font-family: system-ui, sans-serif;
+    font-size: 1.15em;
+    line-height: 1;
   }
 
   /* Before a demo guess nothing key-relative shows; confirming fades it in. */
