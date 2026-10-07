@@ -21,7 +21,17 @@ import { createReadable } from "../lib/readable.js";
  *   keyboardLights: KeyboardLights,
  *   auditionVoicing: AuditionVoicing,
  *   calloutsOn: boolean,
+ *   bottomRow: BottomRow,
  * }} UiState
+ */
+
+/**
+ * What the A–J row of the computer keyboard plays (Stream R).
+ * "chords": the diatonic chord on each scale degree (A is the home chord), the
+ * default, so a melody can be harmonized from the keyboard.
+ * "notes": single notes two octaves under the number row, as the PRD's fixed
+ * rows describe.
+ * @typedef {"chords" | "notes"} BottomRow
  */
 
 /**
@@ -91,6 +101,7 @@ export function initialUi() {
     keyboardLights: { source: null, chord: null, melody: [] },
     auditionVoicing: "as-song",
     calloutsOn: true,
+    bottomRow: "chords",
   };
 }
 
