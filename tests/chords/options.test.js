@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { emptySong } from "../../src/store/song.js";
 import { candidates, fit } from "../../src/theory/index.js";
-import { chordOptions, degreeOf } from "../../src/chords/options.js";
+import { chordOptions, degreeOf, ideaLetter } from "../../src/chords/options.js";
 import { HIDDEN_NAME, chordView } from "../../src/chords/chordView.js";
 
 /** @param {{ root: string, type: string }} c */
@@ -206,5 +206,12 @@ describe("applied dominants in the main list", () => {
         assert.equal(now, byNote[note.id], `${songId} ${note.id}`);
       }
     }
+  });
+});
+
+describe("ideaLetter", () => {
+  it("letters the tutor's ideas A, B, C in order", () => {
+    assert.deepEqual([0, 1, 2].map(ideaLetter), ["A", "B", "C"]);
+    assert.equal(ideaLetter(26), "27");
   });
 });

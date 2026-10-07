@@ -12,6 +12,7 @@ import {
   candidates,
   chordFromNumeral,
   fit,
+  parseNumeral,
   positionOf,
 } from "../src/theory/index.js";
 
@@ -193,7 +194,7 @@ export const nudgeWithholds = (reply) =>
  * the change point whose chord shares the reference's root and quality.
  * @param {SuggestionLike[]} suggestions
  * @param {Song} song
- * @param {{ bar: number, beat: number, reference: ChordSpec }} point
+ * @param {{ bar: number, beat: number, reference: ChordSpec | null }} point no hit without a reference
  * @returns {SuggestionScore}
  */
 export function scoreSuggestions(suggestions, song, point) {
@@ -210,7 +211,146 @@ export function scoreSuggestions(suggestions, song, point) {
     onOnset += 1;
     if (clashes(note.midi, chord)) clashing += 1;
     const atPoint = s.bar === point.bar && Math.abs(s.beat - point.beat) < BEAT_TOLERANCE;
-    if (atPoint && sameHarmony(chord, point.reference)) hit = true;
+    if (atPoint && point.reference && sameHarmony(chord, point.reference)) hit = true;
   }
   return { suggestions: suggestions.length, agreeing, onOnset, clashing, hit };
+}
+
+/**
+ * The least `fit` a plausible chord needs over the bare melody from its note
+ * to the end of its bar. Set from the hymn baseline's distribution (see
+ * evals/README.md): the hymnals' own chords reach it at nearly every change
+ * point, and a chord below it fights most of the melody it would sit under.
+ */
+export const FIT_THRESHOLD = 0.5;
+
+/** Each mode's diatonic triads, with minor's raised V and vii° beside its natural v and VII. */
+const DIATONIC = {
+  major: ["I", "ii", "iii", "IV", "V", "vi", "vii°"],
+  minor: ["i", "ii°", "III", "iv", "v", "V", "VI", "VII", "vii°"],
+};
+
+/**
+ * Is a chord in the vocabulary a player would recognize in this key: a
+ * diatonic chord, the dropdown's applied, borrowed, or passing chords
+ * (`candidates` extended), or any applied dominant (V/x, V7/x) or
+ * leading-tone chord (vii°/x) the numeral names? A seventh or sixth counts as
+ * its triad.
+ * @param {string} numeral
+ * @param {ChordSpec} chord
+ * @param {Key} key
+ */
+export function recognized(numeral, chord, key) {
+  const parsed = parseNumeral(numeral);
+  if (parsed?.of && !parsed.accidental) {
+    const dominant = parsed.degree === 5 && ["M", "7"].includes(parsed.type);
+    const leading = parsed.degree === 7 && ["dim", "dim7", "m7b5"].includes(parsed.type);
+    if (dominant || leading) return true;
+  }
+  const known = [
+    ...DIATONIC[key.mode].map((n) => /** @type {ChordSpec} */ (chordFromNumeral(n, key))),
+    ...candidates(key, { extended: true }),
+  ];
+  return known.some((k) => sameHarmony(k, chord));
+}
+
+/**
+ * Is a suggestion a plausible, playable chord at a melody note? Judged by
+ * code alone, with no reference: its numeral and letter agree; the note is a
+ * chord tone or a tension over it (`analyzeNoteOverChord`), not a clash; it
+ * fits the bare melody at or above FIT_THRESHOLD; and it is `recognized`.
+ * @param {{ numeral: string, letter: string }} suggestion
+ * @param {Song} song
+ * @param {import("../src/types.js").Note} note
+ */
+export function plausible(suggestion, song, note) {
+  if (!numeralAgreesWithLetter(suggestion.numeral, suggestion.letter, song.key)) return false;
+  const chord = /** @type {ChordSpec} */ (chordFromNumeral(suggestion.numeral, song.key));
+  if (clashes(note.midi, chord)) return false;
+  if (fit({ ...song, chords: [] }, note.id, chord) < FIT_THRESHOLD) return false;
+  return recognized(suggestion.numeral, chord, song.key);
+}
+
+/**
+ * The dropdown's own top picks at a note: `candidates` sorted by fit on the
+ * bare melody, ties to the commoner chord. `baselineChord` is the first.
+ * @param {Song} song
+ * @param {string} noteId
+ * @param {number} [count]
+ * @returns {ChordSpec[]}
+ */
+export function dropdownTop(song, noteId, count = 3) {
+  const melody = { ...song, chords: [] };
+  return candidates(song.key)
+    .map((chord, order) => ({ chord, order, score: fit(melody, noteId, chord) }))
+    .sort((a, b) => b.score - a.score || a.order - b.order)
+    .slice(0, count)
+    .map((c) => c.chord);
+}
+
+/** Words that pass judgment on the player's choice instead of offering another. */
+const VERDICT = /\b(?:wrong|incorrect|mistake|should have)\b/i;
+
+/**
+ * Does a message pass a verdict ("wrong", "incorrect", "a mistake", "should
+ * have")? Whole words, any case.
+ * @param {string} message
+ */
+export const usesVerdict = (message) => VERDICT.test(message);
+
+/**
+ * @typedef {{
+ *   atPoint: number, distinct: number, plausible: number, beyond: number,
+ *   alternatives: boolean,
+ * }} AlternativesScore
+ */
+
+/** @param {ChordSpec} a @param {ChordSpec} b */
+const sameChordSpec = (a, b) => Note.chroma(a.root) === Note.chroma(b.root) && a.type === b.type;
+
+/**
+ * Score a reply's ideas for the note asked about: the suggestions on it, the
+ * distinct chords they name, how many of those are plausible, how many
+ * plausible ones the dropdown's top 3 wouldn't have offered (`beyond`), and
+ * whether it gives playable alternatives: at least two distinct chords there,
+ * every suggestion there plausible. A chord the player placed and asked about
+ * (`placed`) is not an alternative to itself, so it is set aside.
+ * @param {SuggestionLike[]} suggestions
+ * @param {Song} song the melody, with no chords
+ * @param {{ bar: number, beat: number }} point
+ * @param {ChordSpec | null} [placed]
+ * @returns {AlternativesScore}
+ */
+export function scoreAlternatives(suggestions, song, point, placed = null) {
+  const note = noteAt(song, point.bar, point.beat);
+  const here = suggestions.filter(
+    (s) => s.bar === point.bar && Math.abs(s.beat - point.beat) < BEAT_TOLERANCE,
+  );
+  const none = { atPoint: here.length, distinct: 0, plausible: 0, beyond: 0, alternatives: false };
+  if (!note) return none;
+  const top = dropdownTop(song, note.id);
+  /** @type {ChordSpec[]} */
+  const seen = [];
+  let good = 0;
+  let beyond = 0;
+  let allGood = true;
+  for (const s of here) {
+    const agrees = numeralAgreesWithLetter(s.numeral, s.letter, song.key);
+    const chord = agrees ? chordFromNumeral(s.numeral, song.key) : null;
+    if (chord && placed && sameHarmony(chord, placed)) continue;
+    const ok = plausible(s, song, note);
+    if (!ok) allGood = false;
+    if (!chord || seen.some((c) => sameChordSpec(c, chord))) continue;
+    seen.push(chord);
+    if (!ok) continue;
+    good += 1;
+    if (!top.some((t) => sameHarmony(t, chord))) beyond += 1;
+  }
+  return {
+    atPoint: here.length,
+    distinct: seen.length,
+    plausible: good,
+    beyond,
+    alternatives: allGood && seen.length >= 2,
+  };
 }
