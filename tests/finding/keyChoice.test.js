@@ -5,6 +5,7 @@ import {
   afterHomeClick,
   afterModeChange,
   chosenTonic,
+  finderComparison,
 } from "../../src/finding/keyChoice.js";
 import { PROVISIONAL_C } from "../../src/finding/keys.js";
 
@@ -84,6 +85,31 @@ describe("afterFinderPick", () => {
 
   it("confirms, never takes back, the home already chosen", () => {
     assert.equal(afterFinderPick(D_MAJOR, { tonic: "D", mode: "major" }), null);
+  });
+});
+
+describe("finderComparison", () => {
+  it("is the first choice when nothing was chosen yet", () => {
+    assert.equal(finderComparison(PROVISIONAL_C, { tonic: "D", mode: "major" }), "first");
+  });
+
+  it("matches the earlier choice, enharmonics included", () => {
+    assert.equal(finderComparison(D_MAJOR, { tonic: "D", mode: "major" }), "same");
+    assert.equal(
+      finderComparison(
+        { tonic: "C#", mode: "minor", provisional: false },
+        {
+          tonic: "Db",
+          mode: "minor",
+        },
+      ),
+      "same",
+    );
+  });
+
+  it("differs from another home, or the same home in the other mode", () => {
+    assert.equal(finderComparison(D_MAJOR, { tonic: "A", mode: "major" }), "different");
+    assert.equal(finderComparison(D_MAJOR, { tonic: "D", mode: "minor" }), "different");
   });
 });
 

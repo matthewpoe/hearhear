@@ -48,6 +48,19 @@ export function afterFinderPick(key, home) {
 }
 
 /**
+ * How a chord chosen in the ear finder compares with the guess before it,
+ * shown once the finder reveals the chords' names: "first" when nothing was
+ * chosen yet, "same" when it's the committed home, "different" otherwise.
+ * @param {Key} key the song's key before the pick
+ * @param {Pick<Key, "tonic" | "mode">} home the chord's home
+ * @returns {"first" | "same" | "different"}
+ */
+export function finderComparison(key, home) {
+  if (key.provisional) return "first";
+  return sameHome(key, home) ? "same" : "different";
+}
+
+/**
  * The key after major or minor is chosen: the same home in the new mode if a
  * home is chosen, or null when there's nothing to re-key (no guess yet, or
  * the mode is unchanged).
