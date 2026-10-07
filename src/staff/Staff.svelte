@@ -1,21 +1,28 @@
 <script>
   // The staff: the song rendered by abcjs, redrawn only when the song or its
-  // notation changes. Playhead and hover toggle classes on the mapped SVG
-  // elements (staffEvents.js) and never redraw.
-  import abcjs from "abcjs";
+  // notation changes (and once when a web font finishes loading, since abcjs
+  // lays text out with the metrics it measures). Playhead and hover toggle
+  // classes on the mapped SVG elements (staffEvents.js) and never redraw.
+  // abcjs loads on demand (decision D16), so the main bundle stays small.
   import { untrack } from "svelte";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
   import { describeNote, songToAbc } from "./abc.js";
   import { mapDrawnNotes } from "./noteMap.js";
-  import { chordFunctions, drawChordChips, revealLabels } from "./chordChips.js";
+  import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
   import "../print.css";
 
+  /** @typedef {typeof import("abcjs").default} Abcjs */
+
   /** @type {HTMLDivElement} */
   let host;
+  let abcjs = $state(/** @type {Abcjs | null} */ (null));
+  let loadError = $state(false);
   let drawError = $state(/** @type {string | null} */ (null));
+  /** Bumped when a web font finishes loading, to redraw with its metrics. */
+  let fontLoads = $state(0);
 
   const mode = $derived(keyLabelMode($song, $ui));
   const labelStyle = $derived($ui.labelStyle);
@@ -25,23 +32,52 @@
   /** Note groups in reading order; one per note (its first glyph). */
   let noteButtons = /** @type {Element[]} */ ([]);
 
+  function loadAbcjs() {
+    loadError = false;
+    import("abcjs")
+      .then((module) => (abcjs = module.default))
+      .catch((error) => {
+        console.error("The staff's notation library failed to load", error);
+        loadError = true;
+      });
+  }
+
+  $effect(() => {
+    loadAbcjs();
+    const onFontsLoaded = () => fontLoads++;
+    document.fonts?.addEventListener("loadingdone", onFontsLoaded);
+    return () => document.fonts?.removeEventListener("loadingdone", onFontsLoaded);
+  });
+
   // Redraw whenever the song (its version) or the notation changes.
   $effect(() => {
     const current = $song;
     const { abc, pieces } = notation;
     const view = { mode, labelStyle, showDegrees };
-    untrack(() => draw(current, abc, pieces, view));
+    const library = abcjs;
+    void fontLoads;
+    if (library) untrack(() => draw(library, current, abc, pieces, view));
   });
 
   /**
+   * @param {Abcjs} library
    * @param {import("../types.js").Song} current
    * @param {string} abc
    * @param {import("./abc.js").NotePiece[]} pieces
    * @param {import("./abc.js").StaffView} view
    */
-  function draw(current, abc, pieces, view) {
+  function draw(library, current, abc, pieces, view) {
+    // Remember the keyboard user's place: the focused note, else the selection.
+    const focused = host.contains(document.activeElement)
+      ? (document.activeElement?.closest("[data-note-id]") ?? null)
+      : null;
+    const place = {
+      noteId: focused?.getAttribute("data-note-id") ?? ui.get().selectedNoteId,
+      index: focused ? noteButtons.indexOf(focused) : -1,
+      hadFocus: focused !== null,
+    };
     try {
-      const [tune] = abcjs.renderAbc(host, abc, {
+      const [tune] = library.renderAbc(host, abc, {
         add_classes: true,
         responsive: "resize",
         staffwidth: 760,
@@ -50,8 +86,8 @@
       });
       const { notes, chords } = mapDrawnNotes(tune, pieces);
       registerNoteElements(notes);
-      labelNotes(current, notes, view);
-      if (view.mode !== "hidden") drawChordChips(chords, chordFunctions(current));
+      labelNotes(current, notes, view, place);
+      if (view.mode !== "hidden") colorChordSymbols(chords, chordFunctions(current));
       const svg = host.querySelector("svg");
       svg?.setAttribute("role", "group");
       svg?.setAttribute("aria-label", `Notation: ${current.title}`);
@@ -61,18 +97,22 @@
     } catch (error) {
       console.error("Staff failed to draw", error);
       registerNoteElements(new Map());
+      noteButtons = [];
       drawError = error instanceof Error ? error.message : String(error);
     }
   }
 
   /**
    * Make each note a keyboard-reachable button with an accessible name. One
-   * tab stop for the whole staff (roving tabindex); arrows move between notes.
+   * tab stop for the whole staff (roving tabindex); arrows move between
+   * notes. The tab stop stays on the note the user was on (or the note now at
+   * its place, if it was deleted), and focus follows it across the redraw.
    * @param {import("../types.js").Song} current
    * @param {Map<string, Element[]>} notes
    * @param {import("./abc.js").StaffView} view
+   * @param {{ noteId: string | null, index: number, hadFocus: boolean }} place
    */
-  function labelNotes(current, notes, view) {
+  function labelNotes(current, notes, view, place) {
     const chordByNote = new Map(current.chords.map((c) => [c.noteId, c]));
     noteButtons = [];
     for (const note of current.notes) {
@@ -81,16 +121,22 @@
       const [first] = groups;
       if (!first) continue;
       first.setAttribute("role", "button");
-      first.setAttribute("tabindex", noteButtons.length === 0 ? "0" : "-1");
+      first.setAttribute("tabindex", "-1");
       first.setAttribute(
         "aria-label",
         describeNote(note, chordByNote.get(note.id) ?? null, current.key, view),
       );
       noteButtons.push(first);
     }
+    if (noteButtons.length === 0) return;
+    const byId = noteButtons.findIndex((b) => b.getAttribute("data-note-id") === place.noteId);
+    const index = byId >= 0 ? byId : Math.min(Math.max(place.index, 0), noteButtons.length - 1);
+    const stop = noteButtons[index];
+    stop.setAttribute("tabindex", "0");
+    if (place.hadFocus && stop instanceof SVGElement) stop.focus();
   }
 
-  // The reveal: the first time labels turn confirmed, chips and labels grow in.
+  // The reveal: the first time labels turn confirmed, colors and degrees grow in.
   let previousMode = untrack(() => mode);
   $effect(() => {
     if (mode === "confirmed" && previousMode !== "confirmed") revealLabels(host);
@@ -118,11 +164,18 @@
       noteClick(noteButtons[index]);
       return;
     }
-    const moves = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: -1 };
+    const last = noteButtons.length - 1;
+    // Clamped at both ends: arrows never wrap around the song.
+    const moves = {
+      ArrowLeft: Math.max(0, index - 1),
+      ArrowRight: Math.min(last, index + 1),
+      Home: 0,
+      End: last,
+    };
     if (!(event.key in moves)) return;
     event.preventDefault();
-    const next = noteButtons.at(moves[/** @type {keyof typeof moves} */ (event.key)]);
-    if (!next || !(next instanceof SVGElement)) return;
+    const next = noteButtons[moves[/** @type {keyof typeof moves} */ (event.key)]];
+    if (!(next instanceof SVGElement)) return;
     for (const button of noteButtons) button.setAttribute("tabindex", "-1");
     next.setAttribute("tabindex", "0");
     next.focus();
@@ -142,8 +195,18 @@
 <section id="staff" class="staff" aria-label="Staff">
   <div class="toolbar">
     <Transport />
-    <button type="button" class="print" onclick={() => window.print()}>Print lead sheet</button>
+    <button type="button" class="print" onclick={() => window.print()} disabled={!abcjs}>
+      Print lead sheet
+    </button>
   </div>
+  {#if loadError}
+    <p class="error" role="alert">
+      The staff didn't load.
+      <button type="button" class="link" onclick={loadAbcjs}>Retry</button>
+    </p>
+  {:else if !abcjs}
+    <p class="loading" role="status">Loading the staff…</p>
+  {/if}
   {#if drawError}
     <p class="error" role="alert">
       The staff couldn't draw this song ({drawError}). Undo the last change to get it back.
@@ -174,9 +237,27 @@
     color: var(--ink);
     cursor: pointer;
   }
-  .error {
+  .print:disabled {
+    color: var(--ink-muted);
+    cursor: not-allowed;
+  }
+  .error,
+  .loading {
     margin: var(--space-3) 0 0;
+  }
+  .error {
     color: var(--fn-dominant);
+  }
+  .loading {
+    color: var(--ink-muted);
+  }
+  .link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   /* abcjs draws with currentColor, so the staff is --ink in both themes. */
@@ -219,59 +300,18 @@
     paint-order: stroke;
   }
 
-  /* Chord chips: shape + color by function (chordChips.js). */
-  .notation :global(.chord-chip),
-  .notation :global(.chord-mark) {
-    transform-box: fill-box;
-    transform-origin: center;
+  /* Chord letters colored by function, like a lead sheet (decision D3):
+     chordChips.js sets --chord-color from theory's functionInfo. Tentative
+     keeps the full color (reduced opacity would fail text contrast) and
+     marks itself with italics. Hidden mode tags nothing: a neutral mark. */
+  .mode-confirmed :global(.chord-text) {
+    fill: var(--chord-color);
   }
-  .mode-confirmed :global(.chord-chip.fn-tonic) {
-    fill: var(--fn-tonic);
+  .mode-tentative :global(.chord-text) {
+    fill: var(--chord-color);
+    font-style: italic;
   }
-  .mode-confirmed :global(.chord-chip.fn-subdominant) {
-    fill: var(--fn-subdominant);
-    stroke: var(--fn-subdominant-edge);
-  }
-  .mode-confirmed :global(.chord-chip.fn-dominant) {
-    fill: var(--fn-dominant);
-  }
-  .mode-confirmed :global(.chord-chip.fn-other) {
-    fill: var(--fn-other);
-  }
-  .mode-confirmed :global(.fn-tonic:is(.chord-text, .chord-mark)) {
-    fill: var(--fn-tonic-ink);
-  }
-  .mode-confirmed :global(.fn-subdominant:is(.chord-text, .chord-mark)) {
-    fill: var(--fn-subdominant-ink);
-  }
-  .mode-confirmed :global(.fn-dominant:is(.chord-text, .chord-mark)) {
-    fill: var(--fn-dominant-ink);
-  }
-  .mode-confirmed :global(.fn-other.chord-text) {
-    fill: var(--fn-other-ink);
-  }
-
-  /* Tentative: outlined in the function color, no fill, lighter. */
-  .mode-tentative :global(.chord-chip) {
-    fill: none;
-    stroke-width: var(--tentative-stroke);
-    opacity: var(--tentative-opacity);
-  }
-  .mode-tentative :global(.chord-mark) {
-    fill: none;
-    stroke-width: 1.5px;
-    opacity: var(--tentative-opacity);
-  }
-  .mode-tentative :global(.fn-tonic:is(.chord-chip, .chord-mark)) {
-    stroke: var(--fn-tonic);
-  }
-  .mode-tentative :global(.fn-subdominant:is(.chord-chip, .chord-mark)) {
-    stroke: var(--fn-subdominant-edge);
-  }
-  .mode-tentative :global(.fn-dominant:is(.chord-chip, .chord-mark)) {
-    stroke: var(--fn-dominant);
-  }
-  .mode-tentative :global(.fn-other:is(.chord-chip, .chord-mark)) {
-    stroke: var(--fn-other);
+  .mode-hidden :global(.abcjs-chord) {
+    fill: var(--ink-muted);
   }
 </style>

@@ -1,54 +1,21 @@
 /**
- * Color the staff's chord symbols by harmonic function. abcjs can't style one
- * chord symbol from ABC, so after it renders we draw a chip behind each
- * symbol's text element (found via noteMap.js) with the function's shape at
- * its left: tonic circle, subdominant triangle, dominant square. The colors
- * live in Staff.svelte's styles, keyed on these classes and the label mode,
- * so tentative/confirmed switches without redrawing.
+ * Color the staff's chord letter names by harmonic function, the way a lead
+ * sheet colors them (decision D3): no shapes and no chip boxes on the staff;
+ * those, and the numerals, live only in the chord chip row (Stream D2).
+ * abcjs can't style one chord symbol from ABC, so after it renders we give
+ * each symbol's text element (found via noteMap.js) its function's color
+ * token from theory's functionInfo. Staff.svelte's styles apply it per label
+ * mode, so tentative and confirmed switch without redrawing, and hidden mode
+ * shows no function color at all.
  *
  * @import { HarmonicFunction, Song } from "../types.js"
  */
 
-import { functionOf, numeralOf } from "../theory/index.js";
-
-const SVG = "http://www.w3.org/2000/svg";
-const PAD_X = 4;
-const PAD_Y = 1;
-const MARK = 7;
-const GAP = 3;
+import { functionInfo, functionOf, numeralOf } from "../theory/index.js";
 
 /**
- * @param {number} cx
- * @param {number} cy
- * @param {HarmonicFunction} fn
- * @returns {SVGElement | null} the function's shape, or null for "other"
- */
-function shape(cx, cy, fn) {
-  const r = MARK / 2;
-  if (fn === "tonic") {
-    return svg("circle", { cx, cy, r });
-  }
-  if (fn === "subdominant") {
-    return svg("path", { d: `M${cx} ${cy - r}L${cx + r} ${cy + r}L${cx - r} ${cy + r}Z` });
-  }
-  if (fn === "dominant") {
-    return svg("rect", { x: cx - r, y: cy - r, width: MARK, height: MARK });
-  }
-  return null;
-}
-
-/**
- * @param {string} tag
- * @param {Record<string, number | string>} attributes
- */
-function svg(tag, attributes) {
-  const el = document.createElementNS(SVG, tag);
-  for (const [name, value] of Object.entries(attributes)) el.setAttribute(name, String(value));
-  return el;
-}
-
-/**
- * Each chord's function under the song's key hypothesis.
+ * Each chord's function under the song's key hypothesis. The one place the
+ * staff and the transport derive it, once per draw or per play.
  * @param {Song} song
  * @returns {Map<string, HarmonicFunction>} chord id → function
  */
@@ -57,38 +24,28 @@ export function chordFunctions(song) {
 }
 
 /**
- * Draw a function chip behind each chord symbol.
+ * Tag each chord symbol with its function and color token. The text color is
+ * the token's `-edge` variant when it has one (yellow subdominant is too
+ * light to read as text on paper), else the token itself.
  * @param {Map<string, Element>} symbols chord id → abcjs's chord text element
  * @param {Map<string, HarmonicFunction>} functions chord id → its function
  */
-export function drawChordChips(symbols, functions) {
+export function colorChordSymbols(symbols, functions) {
   for (const [chordId, text] of symbols) {
     const fn = functions.get(chordId) ?? "other";
-    const box = /** @type {SVGGraphicsElement} */ (text).getBBox();
-    const mark = shape(box.x - GAP - MARK / 2, box.y + box.height / 2, fn);
-    const left = box.x - PAD_X - (mark ? MARK + GAP : 0);
-    const chip = svg("rect", {
-      x: left,
-      y: box.y - PAD_Y,
-      width: box.x + box.width + PAD_X - left,
-      height: box.height + 2 * PAD_Y,
-      rx: 4,
-    });
-    chip.setAttribute("class", `chord-chip fn-${fn}`);
-    chip.setAttribute("aria-hidden", "true");
+    const { color } = functionInfo(fn);
     text.classList.add("chord-text", `fn-${fn}`);
-    text.before(chip);
-    if (mark) {
-      mark.setAttribute("class", `chord-mark fn-${fn}`);
-      mark.setAttribute("aria-hidden", "true");
-      text.before(mark);
-    }
+    /** @type {SVGElement} */ (text).style.setProperty(
+      "--chord-color",
+      `var(${color}-edge, var(${color}))`,
+    );
   }
 }
 
 /**
- * The reveal when the key is confirmed: chips and key-relative labels grow
- * in over --dur-reveal (0 under prefers-reduced-motion, via tokens.css).
+ * The reveal when the key is confirmed: chord letters take their color and
+ * degree lyrics fade in over --dur-reveal (0 under prefers-reduced-motion,
+ * via tokens.css).
  * @param {Element} host the notation container
  */
 export function revealLabels(host) {
@@ -96,19 +53,12 @@ export function revealLabels(host) {
   const duration = parseFloat(style.getPropertyValue("--dur-reveal")) || 0;
   if (duration === 0) return;
   const easing = style.getPropertyValue("--ease").trim() || "ease-out";
-  for (const el of host.querySelectorAll(".chord-chip, .chord-mark")) {
-    el.animate(
-      [
-        { opacity: 0, transform: "scale(0.6)" },
-        { opacity: 1, transform: "none" },
-      ],
-      {
-        duration,
-        easing,
-      },
-    );
+  // From the plain ink color to the function color (an implicit end keyframe).
+  const ink = style.color;
+  for (const el of host.querySelectorAll(".chord-text")) {
+    el.animate([{ fill: ink }], { duration, easing });
   }
-  for (const el of host.querySelectorAll(".abcjs-annotation, .abcjs-lyric")) {
+  for (const el of host.querySelectorAll(".abcjs-lyric")) {
     el.animate([{ opacity: 0 }, { opacity: 1 }], { duration, easing });
   }
 }
