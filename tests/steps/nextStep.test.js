@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
-import { meterSummary, nextStep } from "../../src/steps/nextStep.js";
+import { meterSummary, nextStep, rhythmSource } from "../../src/steps/nextStep.js";
 
 /** @type {import("../../src/types.js").Song} */
 const settled = /** @type {any} */ ({ ...ode, chords: [] });
@@ -52,5 +52,10 @@ describe("nextStep", () => {
       meterSummary({ beatsPerBar: 3, beatUnit: 4, pickupTicks: 0, provisional: false }, 100),
       "3/4, set from the tune",
     );
+  });
+
+  it("calls a recording a recording, and typed notes your notes", () => {
+    assert.equal(rhythmSource(true), "The recording reads as");
+    assert.equal(rhythmSource(false), "Your notes read as");
   });
 });

@@ -33,6 +33,15 @@ export function meterSummary(meter, tempo) {
 }
 
 /**
+ * The Rhythm step's opening words: a recorded tune is "the recording";
+ * notes typed in free play are "your notes".
+ * @param {boolean} recorded the song is a tune the user recorded
+ */
+export function rhythmSource(recorded) {
+  return recorded ? "The recording reads as" : "Your notes read as";
+}
+
+/**
  * Every step's status and summary, and the current step.
  * @param {Song} song
  * @param {StepView} view
