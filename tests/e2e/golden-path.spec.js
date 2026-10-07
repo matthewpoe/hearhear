@@ -1,7 +1,8 @@
 // The golden path, end to end on fixtures, as a reviewer would click it:
-// load a tune, find home (the ear finder, then one click on a chip), audition
-// and choose a chord under the melody, place another from the chord row,
-// switch songs and come back to the same work, and hear from the tutor.
+// load a tune, find home (the ear finder, one click on a chip, a guess most
+// ears don't share, and a check by ear), audition and choose a chord under the
+// melody, place another from the chord row, switch songs and come back to the
+// same work, and hear from the tutor.
 // Fails on any console error (which includes CSP violations and the chord
 // dropdown's containing-block guard) and on any axe violation, in both themes
 // and with the chord dropdown open.
@@ -77,29 +78,64 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await finder.getByRole("button", { name: "Close" }).click();
   await expect(finder).toHaveCount(0);
 
-  // 3. One click on D commits D major; again takes it back; a third re-commits.
-  const d = question.getByRole("group", { name: "Home note" }).getByRole("button", {
-    name: "D",
-    exact: true,
-  });
+  // 3. No mode is chosen until the user picks one or a home.
+  const bright = question.getByRole("radio", { name: "Bright (major)" });
+  const dark = question.getByRole("radio", { name: "Dark (minor)" });
+  await expect(bright).not.toBeChecked();
+  await expect(dark).not.toBeChecked();
+
+  // One click on D commits D major, which most ears hear; again takes it back.
+  const homes = question.getByRole("group", { name: "Home note" });
+  const d = homes.getByRole("button", { name: "D", exact: true });
+  const chose = "You chose D major as home.";
+  const match = "That's the home most ears hear in this tune.";
   await d.click();
   await expect(d).toHaveAttribute("aria-pressed", "true");
-  await expect(question).toContainText("Home is D major.");
+  await expect(question).toContainText(chose);
+  await expect(question).toContainText(match);
+  await expect(bright).toBeChecked();
+  await expect(question).toContainText("Major unless you pick Dark.");
+  await expect(question.getByRole("button", { name: "Hide this card" })).toBeVisible();
   await d.click();
   await expect(d).toHaveAttribute("aria-pressed", "false");
-  await expect(question).not.toContainText("Home is D major.");
+  await expect(question).not.toContainText(chose);
+
+  // A home most ears don't hear gets a gentle invitation, never a verdict.
+  await homes.getByRole("button", { name: "C", exact: true }).click();
+  await expect(question).toContainText("You chose C major as home.");
+  await expect(question).toContainText("Most ears hear home somewhere else in this tune.");
+  await expect(question).not.toContainText(/wrong/i);
+  await expect(question).not.toContainText(match);
+  const keep = question.getByRole("button", { name: "Keep my choice" });
+  await keep.click();
+  await expect(keep).toHaveCount(0);
+  await expect(question.getByRole("status")).toHaveText("Keeping C major as home.");
+  await expect(question.getByRole("button", { name: "Check it by ear" })).toBeFocused();
+
+  // D again: still confirmed as the home most ears hear.
   await d.click();
   await expect(d).toHaveAttribute("aria-pressed", "true");
-  await expect(question).toContainText("Home is D major.");
+  await expect(question).toContainText(chose);
+  await expect(question).toContainText(match);
 
-  // "Check it by ear", then the chord already chosen: confirms, never un-commits.
+  // "Check it by ear" marks no chord. Picking the one that is D major (second
+  // in Ode to Joy's lineup) reveals the set and confirms the home, never
+  // un-commits it, and the finder stays open until closed.
   const check = question.getByRole("button", { name: "Check it by ear" });
   await check.click();
-  await finder.locator('button[aria-pressed="true"]').click();
-  await expect(finder).toHaveCount(0);
+  await expect(finder.locator('button[aria-pressed="true"]')).toHaveCount(0);
+  await finder.getByRole("button", { name: "Chord 2 sounds like home" }).click();
+  await expect(finder).toBeVisible();
+  await expect(finder).toContainText("Chord 1: F# minor");
+  await expect(finder).toContainText("Chord 2: D major");
+  await expect(finder).toContainText("Chord 3: A major");
   await expect(d).toHaveAttribute("aria-pressed", "true");
+  await expect(question.getByRole("status")).toHaveText(
+    "Same as your choice. Home is still D major.",
+  );
+  await finder.getByRole("button", { name: "Close" }).click();
+  await expect(finder).toHaveCount(0);
   await expect(check).toBeFocused();
-  await expect(question.getByRole("status")).toHaveText("Home is still D major.");
 
   // A focused radio (a label style) keeps only its arrows: number keys still play.
   // The radios are visually hidden inside their labels, so click the label as a viewer does.
@@ -149,12 +185,18 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(placed).toHaveCount(0);
   await picker.getByRole("button", { name: "Ode to Joy" }).click();
   await expect(d).toHaveAttribute("aria-pressed", "true");
-  await expect(question).toContainText("Home is D major.");
+  await expect(question).toContainText(chose);
+  await expect(question).toContainText(match);
   await expect(placed).toHaveCount(2);
 
-  // 7. Ask the tutor; the fixture reply ends with numbered listening steps,
-  // each on its own line.
-  await page.getByRole("button", { name: "Ask", exact: true }).click();
+  // 7. Ask the tutor, which says it is replaying recorded replies; the fixture
+  // reply ends with numbered listening steps, each on its own line.
+  const tutor = page.locator("#tutor");
+  await expect(tutor.getByText(/^Demo mode:/)).toBeVisible();
+  const ask = tutor.getByRole("button", { name: "Ask", exact: true });
+  await expect(ask).toBeDisabled();
+  await tutor.getByLabel("Your question").fill("Why does bar 4 feel unfinished?");
+  await ask.click();
   const reply = page.locator("#tutor .turn.tutor p").last();
   await expect(reply).toContainText("3.", { timeout: 10_000 });
   // innerText follows layout: the steps keep their line breaks only if they render.
