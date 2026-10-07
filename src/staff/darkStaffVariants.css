@@ -1,0 +1,112 @@
+/*
+ * EXPERIMENT (branch experiment/dark-staff, not for main): four candidate dark
+ * staff panels, compared side by side. Each applies only in the dark theme and
+ * only while <html data-staff-variant="vN"> is set (main.js reads ?staff=vN).
+ * Every variant re-declares the staff's own tokens on the notation frame, so
+ * the rules in Staff.svelte (ink, muted degrees and lyrics, function-colored
+ * chord symbols, hover, focus and playhead) pick them up unchanged. The
+ * controls above the music stay in the dark UI.
+ *
+ * New tokens: --staff-panel (the panel), --staff-line (staff, ledger and bar
+ * lines), --staff-playhead (the halo on the playing note). Contrast numbers
+ * live in the scratchpad notes.json for the comparison.
+ */
+
+@media screen {
+  :root[data-theme="dark"][data-staff-variant] #staff .frame {
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--staff-panel);
+  }
+  :root[data-theme="dark"][data-staff-variant] #staff .notation :is(.abcjs-staff, .abcjs-ledger) {
+    fill: var(--staff-line);
+    stroke: var(--staff-line);
+  }
+  :root[data-theme="dark"][data-staff-variant] #staff .notation .abcjs-bar {
+    fill: var(--staff-line-strong, var(--staff-line));
+    stroke: var(--staff-line-strong, var(--staff-line));
+  }
+  :root[data-theme="dark"][data-staff-variant] #staff .notation .is-playing .abcjs-notehead,
+  :root[data-theme="dark"][data-staff-variant] #staff .notation .is-hovered .abcjs-notehead {
+    stroke: var(--staff-playhead);
+  }
+
+  /* 1. Warm paper card: sheet music on a dark music stand. A muted cream,
+     well below white, with warm dark ink and the light theme's function
+     colors, deepened a step for the cream. */
+  :root[data-theme="dark"][data-staff-variant="v1"] #staff .frame {
+    --staff-panel: #e9e1cf;
+    --staff-line: #8a7f6c;
+    --staff-line-strong: #6f6555;
+    --staff-playhead: #1e7a4c;
+    --ink: #2b2520;
+    --ink-muted: #5a5045;
+    --focus: #7a2a9e;
+    --fn-tonic: #1d4596;
+    --fn-subdominant: #f4c430;
+    --fn-subdominant-edge: #6e5300;
+    --fn-dominant: #a3261c;
+    --fn-other: #5a5a63;
+    color-scheme: light;
+    box-shadow:
+      inset 0 0 0 1px #d6ccb6,
+      0 1px 0 rgb(0 0 0 / 0.4);
+  }
+
+  /* 2. Dimmed ivory on charcoal: a warm charcoal panel, lines that recede to
+     just above 3:1, noteheads in soft ivory rather than white. */
+  :root[data-theme="dark"][data-staff-variant="v2"] #staff .frame {
+    --staff-panel: #26231f;
+    --staff-line: #757064;
+    --staff-line-strong: #8a8476;
+    --staff-playhead: #6fd6a0;
+    --ink: #ddd4c2;
+    --ink-muted: #b3ab9c;
+    --fn-tonic: #7aa5f5;
+    --fn-subdominant: #f4c430;
+    --fn-subdominant-edge: #f4c430;
+    --fn-dominant: #f2837a;
+    --fn-other: #9d9da8;
+  }
+
+  /* 3. Deep violet slate: an aubergine from the Mardi Gras palette, warm
+     off-white notes, faint violet lines. */
+  :root[data-theme="dark"][data-staff-variant="v3"] #staff .frame {
+    --staff-panel: #2b2135;
+    --staff-line: #7d6d91;
+    --staff-line-strong: #918199;
+    --staff-playhead: #6fd6a0;
+    --ink: #eee4d4;
+    --ink-muted: #c2b6cc;
+    --fn-tonic: #8db1f7;
+    --fn-subdominant: #f4c430;
+    --fn-subdominant-edge: #f4c430;
+    --fn-dominant: #f68f86;
+    --fn-other: #a8a3b3;
+  }
+
+  /* 4. Lamp-lit: an umber panel warmed by a soft pool of light at its center,
+     parchment ink, brass lines. Ink is parchment, not gold, so it stays clear
+     of the subdominant yellow and the coming melody gold. Contrast is
+     measured against the brightest point of the pool. */
+  :root[data-theme="dark"][data-staff-variant="v4"] #staff .frame {
+    --staff-panel: radial-gradient(
+      ellipse 70% 90% at 50% 45%,
+      #3a2e20 0%,
+      #2c2318 70%,
+      #241d14 100%
+    );
+    --staff-line: #8f7a55;
+    --staff-line-strong: #a48d63;
+    --staff-playhead: #6fd6a0;
+    --ink: #eadcbc;
+    --ink-muted: #c9b898;
+    --fn-tonic: #8db1f7;
+    --fn-subdominant: #f4c430;
+    --fn-subdominant-edge: #f4c430;
+    --fn-dominant: #f68f86;
+    --fn-other: #aaa49a;
+    box-shadow: inset 0 0 0 1px #4a3c29;
+  }
+}
