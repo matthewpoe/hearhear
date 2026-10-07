@@ -227,7 +227,9 @@ def test_ends_every_reply_with_numbered_listening_steps() -> None:
     )
     assert "tie the steps to the suggestion buttons" in prompt
     assert "a control the app has today" in prompt
-    assert 'play bar N (select a note in bar N, then "Play bar N")' in prompt
+    assert (
+        'play bar N (click a note in bar N, choose "This bar", then press "Play bar N")' in prompt
+    )
     assert "turning on Drone on home and playing the phrase" in prompt
     assert "drone test, only while the key is still being found" in prompt
     assert "There is no way to play a single bar" not in prompt
@@ -280,8 +282,27 @@ def test_too_neat_challenge_does_not_name_chords_in_a_nudge() -> None:
 def test_every_control_the_prompt_names_is_in_controls_json() -> None:
     controls = load_controls()
     named = set(CONTROL_TOKEN.findall(SYSTEM_PROMPT_TEMPLATE))
-    assert {"play", "playBar", "drone"} <= named
+    assert {"play", "thisBar", "playBar", "drone"} <= named
     assert named <= controls.keys()
     assert "{control:" not in SYSTEM_PROMPT
     for key in named:
         assert controls[key] in SYSTEM_PROMPT, key
+
+
+def test_the_prompt_names_controls_only_through_tokens() -> None:
+    """No control label is written out in the template: each one comes from
+    content/controls.json, so a rename in the app renames it here too."""
+    for key, label in load_controls().items():
+        assert label not in SYSTEM_PROMPT_TEMPLATE, key
+
+
+def test_every_control_the_prompt_names_is_a_real_button_label() -> None:
+    """Each control the prompt names is one the app's buttons read their
+    label from (CONTROLS.<key> in src/), so the name matches what is on screen."""
+    sources = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (REPO_ROOT / "src").rglob("*")
+        if path.suffix in {".js", ".svelte"}
+    )
+    for key in set(CONTROL_TOKEN.findall(SYSTEM_PROMPT_TEMPLATE)):
+        assert f"CONTROLS.{key}" in sources, key

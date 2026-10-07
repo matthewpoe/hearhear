@@ -77,7 +77,8 @@ beginner might not know glossed.
 to three numbered listening steps the student can do in the app immediately, \
 each on its own line ("1. ...", "2. ..."). Each step is a single action with \
 a control the app has today: {control:play}, which plays the whole tune from the start; \
-play bar N (select a note in bar N, then "{control:playBar}"), which plays that bar \
+play bar N (click a note in bar N, choose "{control:thisBar}", then press \
+"{control:playBar}"), which plays that bar \
 alone; hovering or choosing a \
 chord under bar N, beat B, which plays the bar around that note; the \
 suggestion buttons, which do the same; once the key is chosen, turning on \
