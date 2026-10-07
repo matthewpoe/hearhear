@@ -81,6 +81,16 @@ class Snapshot(Strict):
     tempo: Annotated[int, Field(ge=30, le=240)]
     label_style: LabelStyle
     bars: Annotated[list[SnapshotBar], Field(max_length=400)]
+    # True while the app hides key labels (a demo before the student's guess).
+    # The tutor must not name or hint at the key, and the server withholds
+    # every suggestion, since a letter-name chord gives the key away.
+    key_hidden: Annotated[
+        bool,
+        Field(
+            description="True while key labels are hidden (a demo before the guess). "
+            "The proxy then withholds every suggestion.",
+        ),
+    ] = False
 
     @model_validator(mode="after")
     def _bound_total_notes(self) -> "Snapshot":

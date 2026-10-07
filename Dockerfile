@@ -23,6 +23,8 @@ RUN uv sync --frozen --no-dev
 COPY --from=web /app/dist ./dist
 RUN useradd --create-home app
 USER app
-# One worker so the in-memory rate limit and token budget are global; proxy
-# headers so slowapi sees the real client IP behind Railway's proxy.
+# One worker so the in-memory rate limit and token budget are global. The
+# rate limit reads X-Forwarded-For itself (hearhear/limits.py); the proxy-header
+# flags only give uvicorn's access log, and the limiter's no-header fallback,
+# the client address Railway's proxy forwards.
 CMD ["sh", "-c", "exec .venv/bin/uvicorn hearhear.app:app --app-dir server --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips '*'"]
