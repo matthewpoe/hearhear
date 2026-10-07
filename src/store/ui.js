@@ -3,7 +3,7 @@
  * it never bumps the song version, never enters undo history, and never
  * re-renders the staff (the staff toggles CSS classes instead).
  *
- * @import { LabelStyle } from "../types.js"
+ * @import { LabelStyle, HarmonicFunction } from "../types.js"
  */
 
 import { createReadable } from "../lib/readable.js";
@@ -18,8 +18,21 @@ import { createReadable } from "../lib/readable.js";
  *   labelStyle: LabelStyle,
  *   showDegrees: boolean,
  *   demoAwaitingGuess: boolean,
+ *   keyboardLights: KeyboardLights,
  *   calloutsOn: boolean,
  * }} UiState
+ */
+
+/**
+ * Keys to light on the on-screen piano (Stream D1 renders them). Chord tones
+ * glow in their function color; melody notes in a neutral highlight. Written
+ * by the chord dropdown on hover (D2), by the transport during playback (C),
+ * and by the key-finding tests, e.g. the drone (D3). D1 lights its own
+ * pressed keys itself.
+ * @typedef {{
+ *   chord: { midi: number[], fn: HarmonicFunction } | null,
+ *   melody: number[],
+ * }} KeyboardLights
  */
 
 /**
@@ -59,6 +72,7 @@ export function initialUi() {
     labelStyle: "roman",
     showDegrees: true,
     demoAwaitingGuess: false,
+    keyboardLights: { chord: null, melody: [] },
     calloutsOn: true,
   };
 }
