@@ -102,7 +102,7 @@
 
     {#if headline.excluded}
       <p class="meta">
-        {headline.excluded} replies written by a fallback model, not {run.model}, were left out.
+        {headline.excluded} replies that a fallback model helped write were left out.
       </p>
     {/if}
   {/if}

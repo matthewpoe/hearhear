@@ -9,10 +9,10 @@ import { percentile, rate } from "./metrics.js";
 
 /**
  * One request and what came back.
- * `outcome`: "ok" (a suggestions event), "excluded" (served by a model other
- * than the one under test, such as the refusal fallback), "invalid" (the
- * server caught output that broke the reply schema), or "failed" (anything
- * else: an HTTP error, an upstream error, a broken stream).
+ * `outcome`: "ok" (a suggestions event), "excluded" (`fallback: true`: the
+ * refusal fallback wrote some of it), "invalid" (the server caught output
+ * that broke the reply schema), or "failed" (anything else: an HTTP error,
+ * an upstream error, a broken stream).
  * @typedef {{
  *   tune: string, level: "nudge" | "comparison" | "answer",
  *   bar: number, beat: number, reference: string,
