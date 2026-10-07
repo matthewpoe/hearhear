@@ -32,6 +32,12 @@ const SAMPLE_NAMES = ["C", "Ds", "Fs", "A"];
  */
 const TRANSPORT_LOOK_AHEAD = 0.05;
 
+/**
+ * How long wake() waits for the context to resume. Chrome leaves resume()
+ * pending, not rejected, without a user gesture, so waiting longer would hang.
+ */
+const RESUME_TIMEOUT_MS = 1000;
+
 /** Sample loading state; `failed` clears on the next `loadSamples`. */
 export const status = createReadable(/** @type {AudioStatus} */ ("idle"));
 
@@ -91,6 +97,21 @@ export function loadEngine() {
 }
 
 /**
+ * @param {ToneModule} Tone
+ * @returns {Promise<import("tone").ToneAudioBuffers>}
+ */
+function fetchSamples(Tone) {
+  return new Promise((resolve, reject) => {
+    const buffers = new Tone.ToneAudioBuffers({
+      urls: sampleUrls(),
+      baseUrl: SAMPLE_BASE_URL,
+      onload: () => resolve(buffers),
+      onerror: reject,
+    });
+  });
+}
+
+/**
  * Fetch and decode the piano samples once; safe to call again, and calling it
  * after a failure is the retry. Resolves either way: `status` says which.
  * @returns {Promise<void>}
@@ -99,27 +120,17 @@ export function loadSamples() {
   if (loadingSamples) return loadingSamples;
   status.set("loading");
   loadingSamples = loadEngine()
+    .then((loaded) => fetchSamples(loaded.Tone).then((buffers) => ({ loaded, buffers })))
     .then(
-      ({ Tone }) =>
-        new Promise((resolve, reject) => {
-          const buffers = new Tone.ToneAudioBuffers({
-            urls: sampleUrls(),
-            baseUrl: SAMPLE_BASE_URL,
-            onload: () => resolve(buffers),
-            onerror: reject,
-          });
-        }),
-    )
-    .then(
-      (buffers) => {
-        const { Tone } = /** @type {Engine} */ (engine);
+      ({ loaded, buffers }) => {
+        const { Tone } = loaded;
         /** @type {Record<number, import("tone").ToneAudioBuffer>} */
         const urls = {};
         for (const midi of Object.keys(sampleUrls())) urls[Number(midi)] = buffers.get(midi);
         // Two samplers on the same buffers, so stopping playback never cuts
         // a key the user is holding.
         const sampler = () => new Tone.Sampler({ urls, release: 1 }).toDestination();
-        /** @type {Engine} */ (engine).pianos = { live: sampler(), phrase: sampler() };
+        loaded.pianos = { live: sampler(), phrase: sampler() };
         status.set("ready");
       },
       (error) => {
@@ -134,19 +145,32 @@ export function loadSamples() {
 /**
  * Everything needed to make sound: Tone, a running context, and the samples.
  * Starting the context needs a user gesture somewhere before this call.
- * Resolves to null if Tone failed to load or start, and to an engine with
- * `pianos: null` if only the samples failed (`status` says which).
+ * Resolves to null if Tone failed to load or the context is still suspended
+ * (no gesture yet), and to an engine with `pianos: null` if the samples
+ * failed. After a failed sample load it does not refetch: preload() is the
+ * one retry, so an offline user's key presses don't each fire 17 requests.
  * @returns {Promise<Engine | null>}
  */
 export async function wake() {
+  /** @type {Engine} */
+  let loaded;
   try {
-    const { Tone } = await loadEngine();
-    await Tone.start();
+    loaded = await loadEngine();
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timer;
+    const timeout = new Promise((resolve) => {
+      timer = setTimeout(resolve, RESUME_TIMEOUT_MS);
+    });
+    await Promise.race([loaded.Tone.start(), timeout]).finally(() => clearTimeout(timer));
   } catch (error) {
     console.error("Audio failed to start", error);
     status.set("failed");
     return null;
   }
-  await loadSamples();
-  return engine;
+  if (loaded.Tone.getContext().state !== "running") {
+    console.error("Audio is suspended: call unlock() from a user gesture first");
+    return null;
+  }
+  if (status.get() !== "failed") await loadSamples();
+  return loaded;
 }

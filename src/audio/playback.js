@@ -1,7 +1,9 @@
 /**
  * Plays cue lists on Tone's Transport, one at a time. Starting a playback
  * stops the one before; visuals fire through Tone.Draw so they land with the
- * sound, not when the Transport schedules it.
+ * sound, not when the Transport schedules it. Completion (the `end` event and
+ * the promise) runs on the audio clock instead, because Draw waits for an
+ * animation frame and a background tab has none.
  *
  * @import { Engine, Pianos } from "./engine.js"
  * @import { Cue } from "./passage.js"
@@ -46,7 +48,8 @@ function sound({ click }, pianos, cue, seconds, time) {
 
 /**
  * Schedule cues and start the Transport. Resolves when the last cue ends or
- * playback is stopped; either way `onEvent` gets a final `end`.
+ * playback is stopped; either way `onEvent` gets a final `end`. Note and chord
+ * events still waiting on an animation frame at the end are dropped.
  * @param {Engine} engine
  * @param {Pianos} pianos
  * @param {{ cues: Cue[], fromTick: number, toTick: number, secondsPerTick: number }} passage
@@ -81,7 +84,12 @@ export function play(engine, pianos, { cues, fromTick, toTick, secondsPerTick },
         if (event && onEvent) draw.schedule(() => onEvent(event), time);
       }, at(cue.tick));
     }
-    transport.schedule((time) => draw.schedule(() => mine.finish(), time), at(toTick));
+    // The Transport calls back look-ahead early; wait for the audio clock to
+    // reach the end so the release doesn't cut the last notes short.
+    transport.schedule((time) => {
+      const wait = Math.max(0, time - Tone.getContext().currentTime) * 1000;
+      setTimeout(() => mine.finish(), wait);
+    }, at(toTick));
     transport.start();
   });
 }
