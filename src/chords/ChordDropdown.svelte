@@ -187,6 +187,8 @@
       maxHeight: null,
       opener,
     };
+    // The open note is the selection the chord row assigns to.
+    ui.update({ selectedNoteId: noteId });
     extended = false;
     explainerOpen = false;
     hovered = null;
@@ -250,14 +252,23 @@
   /** @param {boolean} restoreFocus */
   function close(restoreFocus) {
     const opener = open?.opener;
+    const noteId = open?.noteId;
     open = null;
+    ui.update({ selectedNoteId: null });
     hovered = null;
     focused = null;
     tap = NO_TAP;
     tapHint = "";
+    if (!restoreFocus) return;
+    // A chord placed from the keyboard redraws the staff, replacing the note
+    // that opened the dropdown; its successor keeps the same data-note-id.
+    const target = opener?.isConnected
+      ? opener
+      : noteId
+        ? document.querySelector(`#staff [data-note-id="${CSS.escape(noteId)}"]`)
+        : null;
     // SVGElement implements focus() as HTMLElement does.
-    if (restoreFocus && opener?.isConnected)
-      /** @type {HTMLElement | SVGElement} */ (opener).focus();
+    /** @type {HTMLElement | SVGElement | null} */ (target)?.focus();
   }
 
   /**

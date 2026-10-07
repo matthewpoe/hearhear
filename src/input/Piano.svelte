@@ -6,7 +6,8 @@
    * both following keyLabelMode. Keys light from ui.keyboardLights (chord
    * tones in their function color, melody neutral) while a writer owns
    * them, and sink while held. The number row listens from here, since this
-   * is the instrument.
+   * is the instrument. While the bottom row plays chords, its keys' labels
+   * name their chords, and a held chord lights in its function color.
    */
   import { audioStatus, preload } from "../audio/index.js";
   import FunctionMark from "../lib/FunctionMark.svelte";
@@ -18,11 +19,13 @@
     LOWEST,
     bindingLabel,
     bindingSpoken,
+    chordRowKeys,
     clampWindow,
     keyBindings,
   } from "./keyBindings.js";
+  import { chordForCode, chordKeyLabel } from "./chordRow.js";
   import { heldNotes, press, release } from "./liveNotes.js";
-  import { flatArmed, listenToNumberRow } from "./NumberRow.js";
+  import { flatArmed, heldChord, listenToNumberRow } from "./NumberRow.js";
 
   const BLACK = new Set([1, 3, 6, 8, 10]);
   /** How long a screen-reader activation (a click with no press) holds the note. */
@@ -46,11 +49,29 @@
   $effect(() => listenToNumberRow(window));
 
   const mode = $derived(keyLabelMode($song, $ui));
-  const bindings = $derived(keyBindings($song.key, $ui.windowOctave));
+  const chordsOnBottomRow = $derived($ui.bottomRow === "chords");
+  const bindings = $derived(keyBindings($song.key, $ui.windowOctave, $ui.bottomRow));
+  /** MIDI → the chord-row key labelled there and its chord's short name. */
+  const chordKeys = $derived.by(() => {
+    if (!chordsOnBottomRow) return new Map();
+    const placed = chordRowKeys($song.key, $ui.windowOctave);
+    return new Map(
+      [...placed].map(([midi, code]) => {
+        const { chord } = /** @type {NonNullable<ReturnType<typeof chordForCode>>} */ (
+          chordForCode(code, $song.key)
+        );
+        return [
+          midi,
+          { key: code.replace(/^Key/, ""), name: chordKeyLabel(chord, $song.key, $ui.labelStyle) },
+        ];
+      }),
+    );
+  });
   const degrees = $derived(new Map(KEYS.map((k) => [k.midi, midiToDegree(k.midi, $song.key)])));
   // Lights show only while a writer (playback or hover) owns them.
   const lights = $derived($ui.keyboardLights.source ? $ui.keyboardLights : null);
-  const chord = $derived(lights?.chord ?? null);
+  // A chord held on the chord row lights in its function color when no writer owns the lights.
+  const chord = $derived(lights?.chord ?? $heldChord);
   const chordTones = $derived(new Set(chord?.midi ?? []));
   const melody = $derived(new Set(lights?.melody ?? []));
 
@@ -95,14 +116,24 @@
   /** @param {number} midi */
   function accessibleName(midi) {
     const pitch = speakPitch(spell(midi, $song.key));
-    if (mode === "hidden") return pitch;
+    const chordKey = chordKeys.get(midi);
+    if (mode === "hidden") return chordKey ? `${pitch}, key ${chordKey.key} plays a chord` : pitch;
     const { degree, accidental, octave } = /** @type {import("../types.js").ScaleDegree} */ (
       degrees.get(midi)
     );
     const binding = bindings.get(midi);
-    const played = binding ? `, key ${bindingSpoken(binding)}` : "";
+    const played = chordKey
+      ? `, key ${chordKey.key} plays chord ${chordKey.name}`
+      : binding
+        ? `, key ${bindingSpoken(binding)}`
+        : "";
     const tentative = mode === "tentative" ? ", tentative" : "";
     return `${pitch}, degree ${ACCIDENTAL[accidental].spoken}${degree}${speakOctave(octave)}${played}${tentative}`;
+  }
+
+  /** @param {"chords" | "notes"} bottomRow */
+  function setBottomRow(bottomRow) {
+    ui.update({ bottomRow });
   }
 
   // Pointer and touch: each pointer holds the key it went down on, captured so
@@ -201,6 +232,18 @@
     <p class="status" aria-live="polite">
       {windowText}{#if $flatArmed}<span class="armed">♭ next note</span>{/if}
     </p>
+    <div class="switch" role="group" aria-label="Bottom row">
+      <span class="switch-label" aria-hidden="true">Bottom row:</span>
+      <button type="button" aria-pressed={chordsOnBottomRow} onclick={() => setBottomRow("chords")}
+        >Chords</button
+      >
+      <button type="button" aria-pressed={!chordsOnBottomRow} onclick={() => setBottomRow("notes")}
+        >Notes</button
+      >
+    </div>
+    {#if chordsOnBottomRow}
+      <p class="help">Bottom row plays chords: A is the home chord (1), F is 4, G is 5.</p>
+    {/if}
     {#if $audioStatus === "failed"}
       <p class="sound" role="alert">
         Couldn't load the piano sound.
@@ -222,6 +265,7 @@
       {#each KEYS as k, i (k.midi)}
         {@const degree = degrees.get(k.midi)}
         {@const binding = bindings.get(k.midi)}
+        {@const chordKey = chordKeys.get(k.midi)}
         {@const inChord = chordTones.has(k.midi)}
         <button
           bind:this={buttons[i]}
@@ -247,14 +291,17 @@
             {#if inChord && chord && mode !== "hidden"}
               <FunctionMark fn={chord.fn} outline={mode === "tentative"} />
             {/if}
-            {#if degree}
+            {#if chordKey}
+              <span class="chord-name">{chordKey.name}</span>
+              <kbd>{chordKey.key}</kbd>
+            {:else if degree}
               <span class="degree">
                 <span class="dots">{"•".repeat(Math.max(0, degree.octave))}</span>
                 <span class="number">{ACCIDENTAL[degree.accidental].glyph}{degree.degree}</span>
                 <span class="dots">{"•".repeat(Math.max(0, -degree.octave))}</span>
               </span>
             {/if}
-            {#if binding}
+            {#if binding && !chordKey}
               <kbd>{bindingLabel(binding)}</kbd>
             {/if}
           </span>
@@ -265,26 +312,52 @@
 </section>
 
 <style>
+  /* Compact: about 150px tall at desktop width, so the staff keeps the room. */
   .piano {
-    padding: var(--space-2) var(--space-4) var(--space-3);
+    padding: var(--space-1) var(--space-3) var(--space-2);
   }
   .bar {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-2) var(--space-4);
-    margin-bottom: var(--space-2);
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    margin-bottom: var(--space-1);
   }
   h2 {
     margin: 0;
-    font-size: var(--text-md);
+    font-size: var(--text-sm);
     font-weight: 500;
   }
   .status,
-  .sound {
+  .sound,
+  .help {
     margin: 0;
     font-size: var(--text-sm);
     color: var(--ink-muted);
+  }
+  .switch {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+  }
+  .switch-label {
+    color: var(--ink-muted);
+  }
+  .switch button {
+    min-height: 2rem;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+  }
+  .switch button[aria-pressed="true"] {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--surface);
   }
   .armed {
     margin-left: var(--space-3);
@@ -312,7 +385,7 @@
     --white-width: calc(100% / var(--whites));
     position: relative;
     min-width: calc(var(--whites) * 1.75rem);
-    height: 8.5rem;
+    height: 5.5rem;
   }
 
   .key {
@@ -325,7 +398,7 @@
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    padding: 0 0 var(--space-2);
+    padding: 0 0 var(--space-1);
     border: 1px solid var(--key-edge);
     border-radius: 0 0 var(--radius-sm) var(--radius-sm);
     background: var(--key-white);
@@ -439,7 +512,12 @@
     align-items: center;
     font-weight: 500;
   }
-  [data-mode="tentative"] .degree {
+  .chord-name {
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+  [data-mode="tentative"] .degree,
+  [data-mode="tentative"] .chord-name {
     font-style: italic;
   }
   .dots {

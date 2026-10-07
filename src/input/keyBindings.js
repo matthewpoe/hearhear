@@ -5,9 +5,11 @@
  * display and keeps it on the piano.
  *
  * @import { Key, ScaleDegree } from "../types.js"
+ * @import { BottomRow } from "../store/ui.js"
  */
 
 import { degreeToMidi, keyEventToDegree } from "../theory/index.js";
+import { CHORD_CODES } from "./chordRow.js";
 
 /** The on-screen piano and the samples: C2 to C6. */
 export const LOWEST = 36;
@@ -83,16 +85,20 @@ export function clampWindow(key, windowOctave) {
 /**
  * Map each piano pitch to the computer key that plays it. Keys whose pitch
  * falls off the piano are left out; the number row doesn't play them either.
+ * While the bottom row plays chords, its keys play no single note.
  * @param {Key} key
  * @param {number} windowOctave
+ * @param {BottomRow} [bottomRow]
  * @returns {Map<number, KeyBinding>}
  */
-export function keyBindings(key, windowOctave) {
+export function keyBindings(key, windowOctave, bottomRow = "notes") {
   const window = clampWindow(key, windowOctave);
+  const codes =
+    bottomRow === "chords" ? NOTE_CODES.filter((c) => !CHORD_CODES.includes(c)) : NOTE_CODES;
   /** @type {Map<number, KeyBinding>} */
   const bindings = new Map();
   for (const modifier of MODIFIERS) {
-    for (const code of NOTE_CODES) {
+    for (const code of codes) {
       const degree = keyEventToDegree(code, { shift: modifier === "shift", alt: false });
       if (!degree) continue;
       const midi = degreeToMidi(degree, key, window);
@@ -100,6 +106,29 @@ export function keyBindings(key, windowOctave) {
     }
   }
   return bindings;
+}
+
+/**
+ * Where each chord-row key's label goes on the piano: the root of its chord,
+ * on the key that row plays as single notes (two octaves under the number
+ * row), so every column still reads as one degree. Roots off the piano are
+ * left out.
+ * @param {Key} key
+ * @param {number} windowOctave
+ * @returns {Map<number, string>} MIDI → KeyboardEvent.code
+ */
+export function chordRowKeys(key, windowOctave) {
+  const window = clampWindow(key, windowOctave);
+  /** @type {Map<number, string>} */
+  const keys = new Map();
+  for (const code of CHORD_CODES) {
+    const degree = /** @type {ScaleDegree} */ (
+      keyEventToDegree(code, { shift: false, alt: false })
+    );
+    const midi = degreeToMidi(degree, key, window);
+    if (onPiano(midi)) keys.set(midi, code);
+  }
+  return keys;
 }
 
 /** How each modifier reads on a key cap and aloud. */

@@ -6,14 +6,20 @@
  * windowBounds). Keys are read by physical position (KeyboardEvent.code),
  * since Shift+3 arrives as "#" and Option+3 on a Mac as "£".
  *
+ * With ui.bottomRow set to "chords" (the default), the A–J row plays the
+ * diatonic chord on each degree instead (see chordRow.js), held while the key
+ * is held. With a staff note selected and the key confirmed, it also places
+ * that chord on the note, and Backspace or Delete clears it.
+ *
  * Another handler that consumes a key (the chord dropdown auditioning by
  * degree, say) calls preventDefault, and the number row leaves it alone.
  */
 
 import { createReadable } from "../lib/readable.js";
 import { song } from "../store/song.js";
-import { ui } from "../store/ui.js";
-import { degreeToMidi, keyEventToDegree } from "../theory/index.js";
+import { keyLabelMode, ui } from "../store/ui.js";
+import { degreeToMidi, keyEventToDegree, voice } from "../theory/index.js";
+import { CHORD_CODES, chordForCode, chordRowAction, clearsChord, liveVoicing } from "./chordRow.js";
 import { clampWindow, onPiano } from "./keyBindings.js";
 import { press, release } from "./liveNotes.js";
 
@@ -29,6 +35,18 @@ const armed = createReadable(false);
 
 /** True while `-` has armed a flat for the next note. */
 export const flatArmed = { subscribe: armed.subscribe };
+
+/**
+ * @typedef {{ code: string, midi: number[], fn: import("../types.js").HarmonicFunction }} HeldChord
+ */
+const lastChord = createReadable(/** @type {HeldChord | null} */ (null));
+
+/**
+ * The chord-row chord held right now (the latest, if several), for the piano
+ * to light in its function color. Kept here rather than in ui.keyboardLights,
+ * whose writers are playback and the chord dropdown.
+ */
+export const heldChord = { subscribe: lastChord.subscribe };
 
 /**
  * Form fields own their keystrokes: typing to the tutor never plays notes,
@@ -55,15 +73,61 @@ function shiftWindow(delta) {
 const source = (code) => `key:${code}`;
 
 /**
+ * Backspace or Delete: clear the selected note's chord, when the chord row
+ * could have placed one there. True when it did.
+ */
+function clearSelectedChord() {
+  const current = song.get();
+  const { selectedNoteId } = ui.get();
+  if (!clearsChord({ mode: keyLabelMode(current, ui.get()), selectedNoteId })) return false;
+  if (!current.chords.some((c) => c.noteId === selectedNoteId)) return false;
+  song.setChord(/** @type {string} */ (selectedNoteId), null);
+  return true;
+}
+
+/** What a chord-row key does right now (see chordRowAction). */
+function currentChordRowAction() {
+  const state = ui.get();
+  return chordRowAction({
+    bottomRow: state.bottomRow,
+    mode: keyLabelMode(song.get(), state),
+    selectedNoteId: state.selectedNoteId,
+  });
+}
+
+/**
+ * Play a chord-row key, and place its chord on the selected note when the
+ * action is "assign". An assigned chord sounds under its note, with the note
+ * on top; a live one sounds under home.
+ * @param {string} code a chord-row key
+ * @param {"assign" | "play"} action
+ * @returns {{ midi: number[], fn: import("../types.js").HarmonicFunction }}
+ */
+function chordRowPress(code, action) {
+  const current = song.get();
+  const { selectedNoteId, windowOctave } = ui.get();
+  const { chord, fn } = /** @type {NonNullable<ReturnType<typeof chordForCode>>} */ (
+    chordForCode(code, current.key)
+  );
+  const note = current.notes.find((n) => n.id === selectedNoteId);
+  if (action === "assign" && note) {
+    song.setChord(note.id, chord);
+    return { midi: [...voice(chord, null, { below: note.midi }), note.midi], fn };
+  }
+  return { midi: liveVoicing(chord, current.key, clampWindow(current.key, windowOctave)), fn };
+}
+
+/**
  * Listen for the number row on a target (the window, in the app).
  * @param {Window} target
  * @returns {() => void} stops listening and releases any held notes
  */
 export function listenToNumberRow(target) {
   /**
-   * The pitch each held key started, so its release stops the right note even
-   * if the song's key or the octave window changed meanwhile.
-   * @type {Map<string, number>}
+   * The pitches each held key started (one for a note, several for a chord),
+   * so its release stops the right notes even if the song's key or the octave
+   * window changed meanwhile.
+   * @type {Map<string, number[]>}
    */
   const held = new Map();
 
@@ -86,6 +150,23 @@ export function listenToNumberRow(target) {
       armed.set(false);
       return;
     }
+    if (event.code === "Backspace" || event.code === "Delete") {
+      if (clearSelectedChord()) event.preventDefault();
+      return;
+    }
+
+    const action = CHORD_CODES.includes(event.code) ? currentChordRowAction() : "notes";
+    if (action !== "notes") {
+      // Shift and Alt change nothing on the chord row; claim the key either way.
+      event.preventDefault();
+      if (event.repeat || held.has(event.code)) return;
+      const chord = chordRowPress(event.code, action);
+      const pitches = chord.midi.filter(onPiano);
+      held.set(event.code, pitches);
+      for (const midi of pitches) press(midi, source(event.code));
+      lastChord.set({ code: event.code, midi: pitches, fn: chord.fn });
+      return;
+    }
 
     const alt = event.altKey || armed.get();
     const degree = keyEventToDegree(event.code, { shift: event.shiftKey, alt });
@@ -99,22 +180,27 @@ export function listenToNumberRow(target) {
     const midi = degreeToMidi(degree, key, clampWindow(key, ui.get().windowOctave));
     // Off the piano there is no key to light and no sample to play.
     if (!onPiano(midi)) return;
-    held.set(event.code, midi);
+    held.set(event.code, [midi]);
     press(midi, source(event.code));
+  }
+
+  /** @param {string} code */
+  function releaseKey(code) {
+    const pitches = held.get(code);
+    if (pitches === undefined) return;
+    held.delete(code);
+    for (const midi of pitches) release(midi, source(code));
+    if (lastChord.get()?.code === code) lastChord.set(null);
   }
 
   /** @param {KeyboardEvent} event */
   function onKeyUp(event) {
-    const midi = held.get(event.code);
-    if (midi === undefined) return;
-    held.delete(event.code);
-    release(midi, source(event.code));
+    releaseKey(event.code);
   }
 
   // Key-ups never arrive after the window loses focus, so let go of everything.
   function releaseAll() {
-    for (const [code, midi] of held) release(midi, source(code));
-    held.clear();
+    for (const code of [...held.keys()]) releaseKey(code);
   }
 
   target.addEventListener("keydown", onKeyDown);
