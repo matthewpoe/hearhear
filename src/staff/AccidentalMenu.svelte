@@ -9,7 +9,8 @@
   // An accidental or Delete closes the menu; the steps keep it open, so they
   // repeat. Shift+Up and Shift+Down step the pitch from anywhere in it (plain
   // arrows move between items, as in any menu), and Shift+Backspace or
-  // Shift+Delete deletes. It sits like the chord dropdown: inside the
+  // Shift+Delete deletes. The current accidental is the menu's one tab stop,
+  // so the menu, which scrolls when tall, stays keyboard-reachable. It sits like the chord dropdown: inside the
   // visible area, above the keyboard dock (placement.js decides the side).
   /** @import { PlacementInput, Side } from "../chords/placement.js" */
   /** @import { AccidentalChoice } from "./accidentals.js" */
@@ -271,7 +272,7 @@
           aria-label={choice.name +
             (choice.shownAs ? `, shows as ${spokenNote(choice.shownAs)} in this key` : "") +
             (choice.onPiano ? "" : ", off the piano")}
-          tabindex="-1"
+          tabindex={choice.current ? 0 : -1}
           onclick={() => pick(choice)}
         >
           <span class="label">{choice.label}</span>

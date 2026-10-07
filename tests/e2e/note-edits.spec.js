@@ -152,13 +152,13 @@ test("the note menu moves, lengthens, shortens and deletes a note", async ({ pag
   const longer = menu.getByRole("menuitem", { name: /^Longer/ });
   const shorter = menu.getByRole("menuitem", { name: /^Shorter/ });
   await longer.click();
-  await expect(status).toHaveText("G 4, a dotted quarter note");
+  await expect(status).toHaveText("G4, a dotted quarter note");
   await shorter.click();
   await shorter.click();
-  await expect(status).toHaveText("G 4, an eighth note");
+  await expect(status).toHaveText("G4, an eighth note");
   await expect(shorter).toHaveAttribute("aria-disabled", "true");
-  await shorter.click();
-  await expect(status).toHaveText("G 4, an eighth note");
+  await shorter.click({ force: true }); // disabled: nothing changes
+  await expect(status).toHaveText("G4, an eighth note");
   await longer.click();
   await expect(shorter).toHaveAttribute("aria-disabled", "false");
 
@@ -167,7 +167,7 @@ test("the note menu moves, lengthens, shortens and deletes a note", async ({ pag
   await expect(menu).toHaveCount(0);
   await expect(staffNotes(page)).toHaveCount(count - 1);
   await expect(note).toHaveCount(0);
-  await expect(status).toHaveText("Deleted G 4. Its time is a rest.");
+  await expect(status).toHaveText("Deleted G4. Its time is a rest.");
   await expect(page.locator('#staff [role="button"][data-note-id="n4"]')).toBeFocused();
   // One Undo brings it back.
   const undo = page.getByRole("group", { name: "History" }).getByRole("button", { name: "Undo" });
@@ -180,7 +180,7 @@ test("the note menu moves, lengthens, shortens and deletes a note", async ({ pag
   await expect(staffNotes(page)).toHaveCount(count);
   await page.keyboard.press("Shift+Backspace");
   await expect(staffNotes(page)).toHaveCount(count - 1);
-  await expect(status).toHaveText("Deleted G 4. Its time is a rest.");
+  await expect(status).toHaveText("Deleted G4. Its time is a rest.");
 
   // 7. Dark theme.
   await page.locator('#staff [role="button"][data-note-id="n4"]').focus();
