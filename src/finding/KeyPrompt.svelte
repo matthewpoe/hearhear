@@ -21,6 +21,9 @@
   import { TONICS, keyName } from "./keys.js";
   import KeyCandidates from "./KeyCandidates.svelte";
   import GuessResult from "./GuessResult.svelte";
+  import Transpose from "./Transpose.svelte";
+  import DroneSwitch from "../staff/DroneSwitch.svelte";
+  import DegreesSwitch from "../toolbar/DegreesSwitch.svelte";
 
   /**
    * @type {{
@@ -204,6 +207,13 @@
     {/each}
   </div>
 
+  {#if !$song.key.provisional}
+    <p class="hint" id="rekey-hint">
+      <strong>Choose a different home</strong> with the chips above: the notes stay exactly as you hear
+      them; only home moves, so the numbers and colors change.
+    </p>
+  {/if}
+
   {#if majorByDefault && !$song.key.provisional}
     <p class="hint">Major unless you pick Dark.</p>
   {/if}
@@ -220,6 +230,16 @@
     />
   {/if}
 
+  <!-- Settings that count from home sit with the key. -->
+  <div class="settings" role="group" aria-label="Hear it from home">
+    <DroneSwitch />
+    <DegreesSwitch />
+  </div>
+
+  {#if !$song.key.provisional}
+    <Transpose />
+  {/if}
+
   {#if finding}
     <KeyCandidates
       bind:this={finder}
@@ -232,7 +252,7 @@
 
   {#if ondismiss}
     <button type="button" class="quiet" onclick={ondismiss}>
-      {$song.key.provisional ? "Not now" : "Hide this card"}
+      {$song.key.provisional ? "Not now" : "Done: on to chords"}
     </button>
   {/if}
 </div>
@@ -260,7 +280,17 @@
     color: var(--ink);
     font-weight: 500;
   }
+  .settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+  }
+  .hint strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
   .hint {
+    max-width: 34rem;
     margin: 0;
     color: var(--ink-muted);
   }
