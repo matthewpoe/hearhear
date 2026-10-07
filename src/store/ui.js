@@ -24,6 +24,7 @@ import { createReadable } from "../lib/readable.js";
  *   guidedActive: boolean,
  *   bottomRow: BottomRow,
  *   droneOn: boolean,
+ *   showWords: boolean,
  * }} UiState
  */
 
@@ -32,6 +33,10 @@ import { createReadable } from "../lib/readable.js";
  * the key is confirmed, playing the song as written (Play, a bar, a chord
  * audition) holds the home chord underneath (src/staff/homeDrone.js). Off by
  * default.
+ *
+ * showWords is the staff header's "Words" switch (src/staff/WordsSwitch.svelte),
+ * shown only when the song has syllables: while on, the staff writes them on a
+ * lyric line under the notes. On by default.
  */
 
 /**
@@ -114,6 +119,7 @@ export function initialUi() {
     guidedActive: false,
     bottomRow: "chords",
     droneOn: false,
+    showWords: true,
   };
 }
 

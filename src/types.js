@@ -4,7 +4,8 @@
  *
  * @typedef {{ tonic: string, mode: "major" | "minor", provisional: boolean }} Key
  * @typedef {{ beatsPerBar: number, beatUnit: 4 | 8, pickupTicks: number, provisional: boolean }} Meter
- * @typedef {{ id: string, midi: number, start: number, dur: number }} Note
+ * @typedef {{ id: string, midi: number, start: number, dur: number, lyric?: string }} Note
+ *   `lyric` is the optional sung syllable on the note; a split word carries hyphens ("syl-", "-la-", "-ble").
  * @typedef {{ root: string, type: string }} ChordSpec   A chord with no placement.
  * @typedef {ChordSpec & { id: string, noteId: string }} Chord
  * @typedef {{
