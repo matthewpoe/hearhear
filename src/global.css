@@ -14,6 +14,15 @@ body {
   line-height: 1.5;
 }
 
+/* The page fills the window, so the docked keyboard sits at the bottom even
+   when there's little above it. A flex column creates no containing block,
+   so the chord dropdown's page coordinates still hold. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 /* App.svelte measures the docked keyboard into --dock-height, so focus and
    scrollIntoView stop above it instead of under it. */
 html {

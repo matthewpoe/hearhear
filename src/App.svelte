@@ -100,6 +100,8 @@
      in page coordinates and audits its ancestors for containing blocks. */
   .workspace {
     display: grid;
+    flex: 1 0 auto;
+    width: 100%;
     gap: var(--space-3);
     max-width: 80rem;
     margin: 0 auto;
