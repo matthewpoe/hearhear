@@ -146,38 +146,18 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
     .click();
   await expect(page.getByRole("radio", { name: "Roman", exact: true })).toBeChecked();
 
-  // Every option in the tool row has a tooltip, shown on hover and on
-  // keyboard focus, and named by aria-describedby: one gloss per option
-  // (content/explainers.json). Voice leading has no separate info bubble.
-  const voice = page.getByRole("switch", { name: "Voice leading" });
-  await expect(voice).toHaveAccessibleDescription(/^Voice leading is how a pianist moves/);
-  await expect(page.locator('[aria-controls="voice-leading-explainer"]')).toHaveCount(0);
+  // Every option in the tool row has a tooltip, named by aria-describedby:
+  // one gloss per option (content/explainers.json).
   await expect(page.getByRole("radio", { name: "Nashville" })).toHaveAccessibleDescription(
     /plain numbers for the same idea/,
   );
-  const voiceTip = page.locator("#voice-leading-tip");
-  await expect(voiceTip).toBeHidden();
-  await voice.hover();
-  await expect(voiceTip).toBeVisible();
-  await axe(page);
-  await page.mouse.move(0, 0);
-  await expect(voiceTip).toBeHidden();
-  await voice.focus();
-  await page.keyboard.press("Shift+Tab");
-  await page.keyboard.press("Tab");
-  await expect(voice).toBeFocused();
-  await expect(voiceTip).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(voiceTip).toBeHidden();
 
-  // The tool row: Play and its scope, the label style, the Swing and Voice
-  // leading switches (Words too, on a song with words), Undo/Redo, and Print
-  // under "More", which opens and closes by keyboard. Drone and degrees sit
-  // with the key.
+  // The tool row: Play and Stop, the label style, Words (only on a song with
+  // words, so none here), Undo/Redo, and Print under "More", which opens and
+  // closes by keyboard. The drone sits with the key; Voice leading in the
+  // chord dropdown.
   const row = page.locator("#staff .header");
-  await expect(row.getByRole("switch")).toHaveCount(2);
-  await expect(row.getByRole("switch", { name: "Swing" })).toBeVisible();
-  await expect(row.getByRole("switch", { name: "Voice leading" })).toBeVisible();
+  await expect(row.getByRole("switch")).toHaveCount(0);
   const more = row.getByRole("button", { name: "More" });
   await more.focus();
   await page.keyboard.press("Enter");
@@ -186,7 +166,6 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(row.getByRole("button", { name: "Print lead sheet" })).toBeHidden();
   await expect(more).toBeFocused();
   await expect(question.getByRole("switch", { name: "Drone on home" })).toBeVisible();
-  await expect(question.getByRole("switch", { name: "Scale degrees" })).toBeVisible();
 
   // All key handling is in the key box: "Play it in another key" transposes
   // there, and the old toolbar section is gone.
@@ -210,6 +189,10 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   const options = page.locator("#chords button").filter({ hasText: /Melody is/ });
   await expect(options.first()).toContainText("V");
   await expect(options.first()).toBeInViewport();
+  // Voice leading lives in the dropdown, off: only the tested chord changes.
+  const voice = page.locator("#chords").getByRole("switch", { name: "Voice leading" });
+  await expect(voice).toHaveAttribute("aria-checked", "false");
+  await expect(voice).toHaveAccessibleDescription(/^Voice leading is how a pianist moves/);
   await axe(page);
   await options.first().hover();
   await options.first().click();

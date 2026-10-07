@@ -15,8 +15,8 @@ describe("nextStep", () => {
   it("starts at the key, with a demo's rhythm already settled", () => {
     const path = nextStep(unkeyed, { keyOpen: false });
     assert.equal(path.current, "key");
-    assert.deepEqual(statuses(path), ["key:current", "rhythm:done", "chords:todo"]);
-    assert.equal(path.steps[0].summary, "Where's home?");
+    assert.deepEqual(statuses(path), ["song:done", "key:current", "chords:todo"]);
+    assert.equal(path.steps[1].summary, "Where's home?");
   });
 
   it("keeps the key current while its question is open, even once chosen", () => {
@@ -26,16 +26,15 @@ describe("nextStep", () => {
   it("collapses a chosen key to its name and moves on to chords", () => {
     const path = nextStep(settled, { keyOpen: false });
     assert.equal(path.current, "chords");
-    assert.deepEqual(statuses(path), ["key:done", "rhythm:done", "chords:current"]);
-    assert.equal(path.steps[0].summary, "D major");
-    assert.equal(path.steps[1].summary, "4/4, set from the tune");
+    assert.deepEqual(statuses(path), ["song:done", "key:done", "chords:current"]);
+    assert.equal(path.steps[1].summary, "D major");
   });
 
   it("asks a recorded tune to confirm its rhythm guess before chords", () => {
     const path = nextStep(recorded, { keyOpen: false });
     assert.equal(path.current, "rhythm");
-    assert.deepEqual(statuses(path), ["key:done", "rhythm:current", "chords:todo"]);
-    assert.match(path.steps[1].summary, /^4\/4 at 90 beats a minute\?/);
+    assert.deepEqual(statuses(path), ["song:done", "key:done", "rhythm:current"]);
+    assert.match(path.steps[2].summary, /^4\/4 at 90 beats a minute\?/);
   });
 
   it("counts placed chords", () => {
