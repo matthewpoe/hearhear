@@ -1,7 +1,17 @@
-"""Shared test data and an SSE parser."""
+"""Shared test data, an SSE parser, and a settings override."""
 
+import dataclasses
 import json
 from typing import Any
+
+from hearhear import app as app_module
+from hearhear.config import Settings
+
+
+def settings_with(**overrides: Any) -> Settings:
+    """The app's current settings with some fields replaced."""
+    return dataclasses.replace(app_module.settings, **overrides)
+
 
 SNAPSHOT: dict[str, Any] = {
     "version": 7,

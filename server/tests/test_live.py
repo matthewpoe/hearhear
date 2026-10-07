@@ -9,7 +9,7 @@ import anthropic
 import httpx2
 import pytest
 from fastapi.testclient import TestClient
-from helpers import SNAPSHOT, events
+from helpers import SNAPSHOT, events, settings_with
 
 from hearhear import app as app_module
 from hearhear import live
@@ -104,9 +104,7 @@ class FakeClient:
 
 @pytest.fixture
 def live_mode(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    settings = app_module.settings.__class__(
-        **{**app_module.settings.__dict__, "tutor_mode": "live", "daily_token_budget": 10_000}
-    )
+    settings = settings_with(tutor_mode="live", daily_token_budget=10_000)
     monkeypatch.setattr(app_module, "settings", settings)
     monkeypatch.setattr(app_module, "budget", TokenBudget(10_000))
     return client

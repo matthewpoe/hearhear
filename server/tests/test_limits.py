@@ -3,7 +3,7 @@ from collections.abc import Iterator
 
 import pytest
 from fastapi.testclient import TestClient
-from helpers import SNAPSHOT
+from helpers import SNAPSHOT, settings_with
 from starlette.requests import Request
 
 from hearhear import app as app_module
@@ -65,10 +65,7 @@ def test_body_at_exactly_the_cap_is_accepted(client: TestClient) -> None:
 
 @pytest.fixture
 def two_per_minute(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    settings = app_module.settings.__class__(
-        **{**app_module.settings.__dict__, "rate_limit": "2/minute"}
-    )
-    monkeypatch.setattr(app_module, "settings", settings)
+    monkeypatch.setattr(app_module, "settings", settings_with(rate_limit="2/minute"))
     return client
 
 

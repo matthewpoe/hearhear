@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from helpers import settings_with
 
 from hearhear import app as app_module
 from hearhear.budget import TokenBudget
@@ -14,9 +15,7 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     (tmp_path / "assets").mkdir()
     (tmp_path / "assets" / "app.js").write_text("console.log('hi')")
     (tmp_path / "index.html").write_text("<!doctype html><title>Hear Hear</title>")
-    settings = app_module.settings.__class__(
-        **{**app_module.settings.__dict__, "dist_dir": tmp_path, "tutor_mode": "fixture"}
-    )
+    settings = settings_with(dist_dir=tmp_path, tutor_mode="fixture")
     monkeypatch.setattr(app_module, "settings", settings)
     monkeypatch.setattr(app_module, "budget", TokenBudget(settings.daily_token_budget))
     app_module.limiter.reset()
