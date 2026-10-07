@@ -25,9 +25,11 @@ const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
 
 /**
  * @param {Song} song
- * @param {{ labelStyle: LabelStyle }} view
+ * @param {{ labelStyle: LabelStyle, keyHidden?: boolean }} view `keyHidden` is
+ *   true while key labels are hidden (`keyLabelMode` is "hidden"). The tutor then
+ *   avoids naming the key, and the server withholds every suggestion.
  */
-export function toTutorSnapshot(song, { labelStyle }) {
+export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
   const { key, meter } = song;
   const beatTicks = ticksPerBeat(meter);
   const notesById = new Map(song.notes.map((n) => [n.id, n]));
@@ -75,5 +77,6 @@ export function toTutorSnapshot(song, { labelStyle }) {
     tempo: song.tempo,
     label_style: labelStyle,
     bars,
+    key_hidden: keyHidden,
   };
 }

@@ -47,10 +47,18 @@ describe("toTutorSnapshot", () => {
     assert.equal(snap.label_style, "nashville");
   });
 
+  it("sends key_hidden, false unless the view says the key is hidden", () => {
+    assert.equal(snap.key_hidden, false);
+    const hidden = toTutorSnapshot(song, { labelStyle: "nashville", keyHidden: true });
+    assert.equal(hidden.key_hidden, true);
+    assert.deepEqual({ ...hidden, key_hidden: false }, snap, "nothing else changes");
+  });
+
   it("validates against the request contract generated from the Pydantic models", () => {
     const validate = new Ajv2020({ strict: false }).compile(requestSchema);
     for (const s of [
       snap,
+      toTutorSnapshot(song, { labelStyle: "nashville", keyHidden: true }),
       toTutorSnapshot(/** @type {any} */ (stJames), { labelStyle: "roman" }),
     ]) {
       assert.ok(validate({ snapshot: s, hint_level: "nudge" }), JSON.stringify(validate.errors));
