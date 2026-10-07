@@ -6,14 +6,77 @@
     {
       "event": "message",
       "data": {
-        "delta": "Try IV under bar 3 and listen "
+        "delta": "Try IV under bar 3 and listen for "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "for the lift."
+        "delta": "the lift. The melody starts bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "3 on 1, which is the fifth of IV, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "so home gets a brighter, more open "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "color just as the line begins to "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "climb again.\n\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "1. Try the IV suggestion under bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "3, beat 1, and listen to the bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "it plays.\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "2. See whether the start of bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "3 feels lifted or settled."
       },
       "delayMs": 45
     },

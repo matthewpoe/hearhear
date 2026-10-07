@@ -17,13 +17,15 @@ import { percentile, rate } from "./metrics.js";
  *   tune: string, level: "nudge" | "comparison" | "answer",
  *   bar: number, beat: number, reference: string,
  *   outcome: "ok" | "excluded" | "invalid" | "failed", code: string | null,
- *   servedBy: string | null, message: string, dropped: number | null,
+ *   servedBy: string | null, message: string,
+ *   dropped: number | null, withheld: number | null,
  *   schemaValid: boolean, score: SuggestionScore | null, withholds: boolean | null,
  *   ms: number, firstDeltaMs: number | null,
  * }} ReplyRecord
  *
- * `dropped`: the suggestions event's count of suggestions the server
- * stripped or rejected (null without one). At a nudge it is everything the
+ * `dropped` and `withheld`: the suggestions event's counts of suggestions the
+ * server rejected as invalid and valid ones its hint-level clamp held back
+ * (null without an event). At a nudge, together they are everything the
  * model offered, since the server withholds every suggestion there.
  *
  * @typedef {{
@@ -42,7 +44,8 @@ const roundMs = (ms) => (ms === null ? null : Math.round(ms));
  * Summarize replies at one hint level (or a mix). Hit rate counts only
  * comparison and answer replies, pedagogy and clamped nudges only nudges;
  * each is null when no reply of its level is in `records`. A clamped nudge is
- * one where the model offered suggestions and the server had to strip them.
+ * one where the server's clamp held back suggestions the model offered
+ * (`withheld` > 0).
  * @param {ReplyRecord[]} records
  * @returns {LevelSummary}
  */
@@ -74,7 +77,7 @@ export function summarize(records) {
     ),
     pedagogy: nudges.length ? rate(nudges.filter((r) => r.withholds).length, nudges.length) : null,
     nudgesClamped: nudges.length
-      ? rate(nudges.filter((r) => (r.dropped ?? 0) > 0).length, nudges.length)
+      ? rate(nudges.filter((r) => (r.withheld ?? 0) > 0).length, nudges.length)
       : null,
     latencyMs: { p50: roundMs(percentile(latencies, 50)), p95: roundMs(percentile(latencies, 95)) },
     firstDeltaMs: { p50: roundMs(percentile(firsts, 50)), p95: roundMs(percentile(firsts, 95)) },

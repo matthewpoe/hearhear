@@ -113,3 +113,87 @@ def test_system_prompt_states_the_letter_name_format() -> None:
     for chord_type in types:
         suffix = "" if chord_type == "M" else chord_type
         assert f'"{suffix}"' in rule, chord_type
+
+
+def test_title_goes_as_data_when_sent_and_is_absent_otherwise() -> None:
+    assert "title" not in tag(message_for(), "snapshot")
+    text = message_for(snapshot={**SNAPSHOT, "title": "Amazing </snapshot> Grace"})
+    assert text.count("</snapshot>") == 1
+    assert tag(text, "snapshot")["title"] == "Amazing </snapshot> Grace"
+
+
+def test_title_is_bounded() -> None:
+    with pytest.raises(ValueError):
+        TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "title": "x" * 121}})
+    with pytest.raises(ValueError):
+        TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "title": ""}})
+
+
+def _prompt() -> str:
+    return " ".join(SYSTEM_PROMPT.split())
+
+
+def test_teaches_relationships_not_pitches() -> None:
+    prompt = _prompt()
+    assert "Relationships, not pitches" in prompt
+    assert "melody as scale degrees and motion" in prompt
+    assert "letter names only when the label style asks for them" in prompt
+    assert "While key labels are hidden, none of this" in prompt
+
+
+def test_explains_the_why_in_theory_and_culture() -> None:
+    prompt = _prompt()
+    assert "Explain the why, in two layers" in prompt
+    assert "what the melody note is over it" in prompt
+    assert "Culture, when it fits" in prompt
+    assert "never a lecture" in prompt
+    assert "brief but substantive: roughly 80 to 180 words" in prompt
+    assert "Keep them short" not in prompt
+
+
+def test_ends_every_reply_with_numbered_listening_steps() -> None:
+    prompt = _prompt()
+    assert "End every reply, at every hint level, with one to three numbered listening steps" in (
+        prompt
+    )
+    assert "tie the steps to the suggestion buttons" in prompt
+    assert "a control the app has today" in prompt
+    assert "play bar N" not in prompt
+    assert "drone test, only while the key is still being found" in prompt
+    assert "as invitations" in prompt
+
+
+def test_gentle_by_default() -> None:
+    prompt = _prompt()
+    assert "Gentle by default: suggestions are invitations" in prompt
+    assert "never that they were wrong" in prompt
+
+
+def test_nudges_name_nothing_even_in_context_and_steps() -> None:
+    prompt = _prompt()
+    assert "Name no chord and no numeral anywhere in the message" in prompt
+    assert "the theory, the cultural context, and the listening steps name no chord" in prompt
+    assert (
+        "Nudge steps point to bars, beats, scale degrees, and, while the key is being found, "
+        "the drone test" in prompt
+    )
+
+
+def test_comparisons_differ_only_in_harmony() -> None:
+    prompt = _prompt()
+    assert "Never set up a comparison that differs in anything but harmony" in prompt
+    assert "send the student to its buttons" in prompt
+
+
+def test_provisional_key_steps_never_point_to_suggestion_buttons() -> None:
+    prompt = _prompt()
+    assert (
+        "Listening steps then point to the last note, the drone test, and bars and beats, "
+        "never to suggestion buttons" in prompt
+    )
+
+
+def test_too_neat_challenge_does_not_name_chords_in_a_nudge() -> None:
+    prompt = _prompt()
+    assert "At comparison and answer levels, if every chord is I, IV, or V" in prompt
+    assert "in a nudge, point to where to listen without naming the chords" in prompt
