@@ -53,6 +53,9 @@ export const STORE_FACTS = /** @type {const} */ ([
  *   its subject is on screen and makes sense.
  * - doneWhen: the fact the tip's action produces; once it holds, the tip is
  *   done.
+ * - needsHardwareKeyboard: its action needs a physical keyboard (the A–J
+ *   chord row), so it is skipped on touch screens, where it could never be
+ *   done.
  * @typedef {{
  *   id: string,
  *   anchor: string,
@@ -60,6 +63,7 @@ export const STORE_FACTS = /** @type {const} */ ([
  *   title: string,
  *   text: string,
  *   needsKeyLabels?: boolean,
+ *   needsHardwareKeyboard?: boolean,
  *   when?: Partial<TourFacts>,
  *   doneWhen: Fact,
  * }} Callout
@@ -108,23 +112,29 @@ export function isDue(callout, facts) {
 
 /**
  * The first callout, in content order, that hasn't been dismissed, whose
- * moment has come (`when`), whose anchor is on screen, and that doesn't
- * explain key labels while a demo hides them.
+ * moment has come (`when`), whose anchor is on screen, that doesn't explain
+ * key labels while a demo hides them, and that doesn't ask for a physical
+ * key where there is no keyboard (`noHardwareKeyboard`).
  * @param {Callout[]} callouts
  * @param {{
  *   dismissed: ReadonlySet<string>,
  *   hasAnchor: (callout: Callout) => boolean,
  *   labelsHidden: boolean,
+ *   noHardwareKeyboard?: boolean,
  *   facts: TourFacts,
  * }} context
  * @returns {Callout | null}
  */
-export function nextCallout(callouts, { dismissed, hasAnchor, labelsHidden, facts }) {
+export function nextCallout(
+  callouts,
+  { dismissed, hasAnchor, labelsHidden, noHardwareKeyboard = false, facts },
+) {
   return (
     callouts.find(
       (callout) =>
         !dismissed.has(callout.id) &&
         !(labelsHidden && callout.needsKeyLabels) &&
+        !(noHardwareKeyboard && callout.needsHardwareKeyboard) &&
         isDue(callout, facts) &&
         hasAnchor(callout),
     ) ?? null

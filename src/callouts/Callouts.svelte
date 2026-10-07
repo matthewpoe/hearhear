@@ -128,6 +128,8 @@
   let chip = $state();
 
   const labelsHidden = $derived(keyLabelMode($song, $ui) === "hidden");
+  /** A touch screen: tips whose action is a physical key are skipped. */
+  const noHardwareKeyboard = !matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   /** @type {TourFacts} */
   const facts = $derived.by(() => {
@@ -151,7 +153,13 @@
    */
   function upNext(ids, hasAnchor) {
     void pageChanges;
-    return nextCallout(callouts, { dismissed: ids, labelsHidden, facts, hasAnchor });
+    return nextCallout(callouts, {
+      dismissed: ids,
+      labelsHidden,
+      noHardwareKeyboard,
+      facts,
+      hasAnchor,
+    });
   }
 
   // A tip shows once its subject is in view. The guided tour hushes the tips
@@ -361,7 +369,7 @@
   {#if current && open}Tip: {current.title
       ? `${current.title} `
       : ""}{current.text}{:else if current && folded.has(current.id)}Tip folded; press Tip to show
-    it again.{/if}
+    it again.{:else if waiting}A tip is waiting; press Tip to go to it.{/if}
 </p>
 
 {#if current && open}

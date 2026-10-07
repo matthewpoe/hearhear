@@ -1,8 +1,8 @@
 {
-  "$comment": "Beginner tips. Each names one thing to do and waits until the user does it: there is no Next. One shows at a time: the first in this order that isn't done yet, whose moment has come (when: facts that must hold), and whose anchor (an element id, or with part, a selector inside it) is on screen. doneWhen: the fact the tip's action produces; once it holds (with the rest of `when`), the tip is done, even if it never showed. Facts: songLoaded, keyChosen, playing, notePlaying (a single note held on the piano or number row), chordKeyHeld (a chord held on the A–J row), chordRow (the A–J row plays chords), dropdownOpen, chordPlaced (TourFacts in src/callouts/tour.js), plus every name in pageFacts below: true while an element matching its selector is on the page. A new tip, with a new pageFact if it needs one, is a content change only. Selectors that test attributes may use id, open, hidden, disabled, aria-pressed, aria-expanded, aria-selected, aria-checked, and aria-busy, which the tips re-check when they change. needsKeyLabels: true skips it while a demo hides key labels. Matthew owns this wording. Revised drafts by Claude, Oct 7, 2026, for action and concision: an imperative first, at most one clause of why, a 2–4 word title.",
+  "$comment": "Beginner tips. Each names one thing to do and waits until the user does it: there is no Next. One shows at a time: the first in this order that isn't done yet, whose moment has come (when: facts that must hold), and whose anchor (an element id, or with part, a selector inside it) is on screen. doneWhen: the fact the tip's action produces; once it holds (with the rest of `when`), the tip is done, even if it never showed. Facts: songLoaded, keyChosen, playing, notePlaying (a single note held on the piano or number row), chordKeyHeld (a chord held on the A–J row), chordRow (the A–J row plays chords), dropdownOpen, chordPlaced (TourFacts in src/callouts/tour.js), plus every name in pageFacts below: true while an element matching its selector is on the page. A new tip, with a new pageFact if it needs one, is a content change only. Selectors that test attributes may use id, open, hidden, disabled, aria-pressed, aria-expanded, aria-selected, aria-checked, and aria-busy, which the tips re-check when they change. needsKeyLabels: true skips it while a demo hides key labels. needsHardwareKeyboard: true skips it on a touch screen, for a tip whose only action is a physical key. Matthew owns this wording. Revised drafts by Claude, Oct 7, 2026, for action and concision: an imperative first, at most one clause of why, a 2–4 word title.",
   "pageFacts": {
     "finderOpen": "#key-finder",
-    "toolsOpen": "#toolbar details[open]",
+    "toolsOpen": "#toolbar details[open], details#toolbar[open]",
     "tutorAsked": "#tutor .turn.student, #tutor .gate"
   },
   "callouts": [
@@ -55,6 +55,7 @@
       "title": "Chords by color",
       "text": "Press A to J to play chords. Blue circle means home; red square means tension.",
       "needsKeyLabels": true,
+      "needsHardwareKeyboard": true,
       "when": { "keyChosen": true, "dropdownOpen": false, "chordRow": true },
       "doneWhen": "chordKeyHeld"
     },
@@ -62,7 +63,7 @@
       "id": "toolbar",
       "anchor": "toolbar",
       "title": "Same tune, any key",
-      "text": "Open Change key or transpose to move the tune; the numbers stay the same.",
+      "text": "Open Play it in another key, in the key box, to move the tune; the numbers stay the same.",
       "when": { "keyChosen": true, "dropdownOpen": false },
       "doneWhen": "toolsOpen"
     },

@@ -65,6 +65,16 @@ describe("nextCallout", () => {
     assert.equal(nextCallout(callouts, ctx)?.id, "d");
   });
 
+  it("skips physical-key callouts on a touch screen, and only there", () => {
+    const keys = [
+      { id: "k", anchor: "piano", text: "K", needsHardwareKeyboard: true },
+      callouts[3],
+    ];
+    assert.equal(nextCallout(keys, context({ noHardwareKeyboard: true }))?.id, "d");
+    assert.equal(nextCallout(keys, context({ noHardwareKeyboard: false }))?.id, "k");
+    assert.equal(nextCallout(keys, context())?.id, "k", "a keyboard is assumed by default");
+  });
+
   it("returns null when every callout is dismissed or unanchored", () => {
     assert.equal(nextCallout(callouts, context({ dismissed: new Set(["a", "b", "d"]) })), null);
   });
