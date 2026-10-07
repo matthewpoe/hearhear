@@ -3,8 +3,9 @@
   // opens on a melody note. The dropdown lists the likely suspects for the
   // current key, best fit first and never pre-selected. Hover or focus
   // auditions an option in the bar around the note and lights its tones on the
-  // keyboard; number keys audition by degree; Enter commits, then the phrase
-  // replays with natural voice leading; Escape closes.
+  // keyboard; on touch, the first tap does the same and a second tap on that
+  // option commits. Number keys audition by degree; Enter or a click commits,
+  // then the phrase replays with natural voice leading; Escape closes.
   /** @import { ChordSpec } from "../types.js" */
   /** @import { KeyboardLights } from "../store/ui.js" */
   /** @import { ChordOption as Option } from "./options.js" */
@@ -29,6 +30,7 @@
   import { chordView, whereOf } from "./chordView.js";
   import { chordOptions, degreeOf, describeOption } from "./options.js";
   import { passageAround, voicingIn } from "./passage.js";
+  import { NO_TAP, activate } from "./tap.js";
 
   const WIDTH_PX = 352;
   const GUTTER_PX = 16;
@@ -58,6 +60,9 @@
   let focused = $state(null);
   /** @type {string | null} */
   let audioError = $state(null);
+  let tap = $state(NO_TAP);
+  /** Announced when a tap previews an option, since the visible cue isn't read. */
+  let tapHint = $state("");
   // Plain values, not state: they record what this component has touched so
   // closing undoes only its own audition and lights.
   let auditioned = false;
@@ -164,6 +169,8 @@
     explainerOpen = false;
     hovered = null;
     focused = null;
+    tap = NO_TAP;
+    tapHint = "";
     await tick();
     fitAboveDock(rect);
     dialog?.focus();
@@ -199,6 +206,8 @@
     open = null;
     hovered = null;
     focused = null;
+    tap = NO_TAP;
+    tapHint = "";
     // SVGElement implements focus() as HTMLElement does.
     if (restoreFocus && opener?.isConnected)
       /** @type {HTMLElement | SVGElement} */ (opener).focus();
@@ -249,6 +258,24 @@
     if (via === "hover") hovered = option;
     else focused = option;
     if (passage) auditionSoon(passage, option.chord);
+  }
+
+  /**
+   * Click, tap, or Enter on an option. A mouse click or Enter chooses it. A tap
+   * previews it, since a finger can't hover and its focus and click arrive
+   * together; a second tap on the same option chooses it.
+   * @param {Option} option
+   * @param {string} pointerType
+   */
+  function onactivate(option, pointerType) {
+    const next = activate(tap, option.key, pointerType);
+    tap = next.state;
+    if (next.choose) {
+      commit(option.chord);
+      return;
+    }
+    preview(option, "focus");
+    tapHint = `${viewOf(option.chord).name}. Tap again to choose.`;
   }
 
   function toggleVoiceLeading() {
@@ -365,9 +392,10 @@
     >
       <h3 id="chord-dropdown-title">Chord at {where}</h3>
       <p id="chord-dropdown-help" class="help">
-        Hover or focus a chord to hear it under the tune. Number keys play chords by degree; Enter
-        chooses; Escape closes.
+        Hover, focus, or tap a chord to hear it under the tune. Number keys play chords by degree;
+        Enter, a click, or a second tap chooses; Escape closes.
       </p>
+      <p class="visually-hidden" role="status">{tapHint}</p>
 
       <ul aria-label="Likely chords">
         {#each likely as option (option.key)}
@@ -378,7 +406,8 @@
               current={isPlaced(option.chord)}
               onpreview={preview}
               onunpreview={unpreview}
-              onchoose={(o) => commit(o.chord)}
+              tapped={tap.previewed === option.key}
+              {onactivate}
             />
           </li>
         {/each}
@@ -399,7 +428,8 @@
                 current={isPlaced(option.chord)}
                 onpreview={preview}
                 onunpreview={unpreview}
-                onchoose={(o) => commit(o.chord)}
+                tapped={tap.previewed === option.key}
+                {onactivate}
               />
             </li>
           {/each}
@@ -425,7 +455,8 @@
                 current={isPlaced(option.chord)}
                 onpreview={preview}
                 onunpreview={unpreview}
-                onchoose={(o) => commit(o.chord)}
+                tapped={tap.previewed === option.key}
+                {onactivate}
               />
             </li>
           {/each}
