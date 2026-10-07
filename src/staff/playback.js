@@ -49,7 +49,12 @@ let owner = null;
  * @returns {Promise<void>}
  */
 export async function playWithVisuals(range, { chords, drone = null } = {}) {
-  if (owner) stop();
+  if (owner) {
+    // Let go of the earlier run's home drone now, before this run's own drone
+    // starts: released later, from its finally, it would silence this one.
+    releaseHome(owner);
+    stop();
+  }
   const run = {};
   owner = run;
   const owns = () => owner === run;
@@ -106,7 +111,7 @@ export async function playWithVisuals(range, { chords, drone = null } = {}) {
     await playPhrase(range, { ...(chords ? { chords } : {}), onEvent: show });
   } finally {
     unwatch();
-    releaseHome(run);
+    releaseHome(run); // a no-op if a newer run released it already
     if (owns()) {
       owner = null;
       if (drone !== null) holdDrone(null);
