@@ -7,17 +7,26 @@
   import TutorPanel from "./tutor/TutorPanel.svelte";
   import Piano from "./input/Piano.svelte";
   import ThemeToggle from "./ThemeToggle.svelte";
+  import Toolbar from "./toolbar/Toolbar.svelte";
+  import Callouts from "./callouts/Callouts.svelte";
+  import { song } from "./store/song.js";
 </script>
 
 <header class="masthead">
   <h1>Hear Hear</h1>
   <p class="tagline">Think in relationships, not pitches.</p>
-  <ThemeToggle />
+  <div class="masthead-tools">
+    <Callouts />
+    <ThemeToggle />
+  </div>
 </header>
 
 <main class="workspace">
   <Landing />
   <Staff />
+  {#if $song.notes.length > 0}
+    <Toolbar />
+  {/if}
   <ChordDropdown />
   <TutorPanel />
   <p class="credits">
@@ -35,6 +44,7 @@
 <style>
   .masthead {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
@@ -47,6 +57,13 @@
   .tagline {
     margin: 0;
     color: var(--ink-muted);
+  }
+  .masthead-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
   }
   .workspace {
     display: grid;
