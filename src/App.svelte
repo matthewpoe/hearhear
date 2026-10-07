@@ -11,7 +11,6 @@
   import TrustPanel from "./trust/TrustPanel.svelte";
   import Piano from "./input/Piano.svelte";
   import ThemeToggle from "./ThemeToggle.svelte";
-  import StaffPanelToggle from "./StaffPanelToggle.svelte";
   import SongPicker from "./toolbar/SongPicker.svelte";
   import GuidedEntry from "./guided/GuidedEntry.svelte";
   import GuidedPath from "./guided/GuidedPath.svelte";
@@ -61,7 +60,6 @@
   {/if}
   <div class="masthead-tools">
     <ThemeToggle />
-    <StaffPanelToggle />
   </div>
   <GuidedEntry />
 </header>
@@ -78,12 +76,15 @@
       <Landing />
       <ChordDropdown />
     </div>
-    <div class="side">
-      <TutorPanel />
-      <TrustPanel />
-    </div>
+    <!-- Before a song is picked the page is step 1 alone: the song list. -->
+    {#if $song.notes.length > 0}
+      <div class="side">
+        <TutorPanel />
+        <TrustPanel />
+      </div>
+    {/if}
   </div>
-  <p class="credits">
+  <p class="credits" hidden={$song.notes.length === 0}>
     Piano samples: Salamander Grand Piano by Alexander Holm,
     <a href="https://creativecommons.org/licenses/by/3.0/" rel="license noopener" target="_blank"
       >CC BY 3.0</a
