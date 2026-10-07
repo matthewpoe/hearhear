@@ -9,14 +9,14 @@
 import { Note as TNote } from "tonal";
 import { DEGREE_INTERVALS, degreeOf } from "./pitch.js";
 
-export const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
 
 /**
  * How each chord type in contracts/song.schema.json is written as a numeral:
  * case (lowercase = minor-third family) and suffix.
  * @type {{ type: string, lower: boolean, suffix: string, nashville: string }[]}
  */
-export const NUMERAL_FORMS = [
+const NUMERAL_FORMS = [
   { type: "M", lower: false, suffix: "", nashville: "" },
   { type: "7", lower: false, suffix: "7", nashville: "7" },
   { type: "maj7", lower: false, suffix: "maj7", nashville: "maj7" },
@@ -41,6 +41,9 @@ const APPLIED_TARGETS = {
   major: [null, "ii", "iii", "IV", "V", "vi", null],
   minor: [null, null, "III", "iv", "V", "VI", "VII"],
 };
+
+/** The quality mark a chord type keeps when written as its triad. */
+const TRIAD_MARKS = { dim: "°", dim7: "°", m7b5: "°", aug: "+" };
 
 /** @param {number} accidental */
 const accidentalPrefix = (accidental) => (accidental === -1 ? "b" : accidental === 1 ? "#" : "");
@@ -81,11 +84,29 @@ export function parseNumeral(text) {
 }
 
 /**
+ * Write a parsed numeral out; the one formatter, so parseNumeral, numeralOf,
+ * and functionOf can never disagree. `triad` keeps only the triad's quality
+ * mark and drops any target (iiø7 → "ii°", V7 → "V"), the way
+ * contracts/functions.json lists chords.
+ * @param {ParsedNumeral} parsed
+ * @param {{ triad?: boolean }} [options]
+ * @returns {string} e.g. "bVI", "V7/IV"; "?" for a type with no numeral form
+ */
+export function formatNumeral(parsed, { triad = false } = {}) {
+  const form = NUMERAL_FORMS.find((f) => f.type === parsed.type);
+  if (!form) return "?";
+  const roman = ROMAN[parsed.degree - 1];
+  const head = accidentalPrefix(parsed.accidental) + (form.lower ? roman.toLowerCase() : roman);
+  if (triad) return head + (TRIAD_MARKS[/** @type {keyof TRIAD_MARKS} */ (parsed.type)] ?? "");
+  return head + form.suffix + (parsed.of ? `/${formatNumeral(parsed.of)}` : "");
+}
+
+/**
  * The diatonic chord a dominant seventh resolves to by fifth, if it is a
- * secondary dominant in this key: D7 in D major → "IV".
+ * secondary dominant in this key: D7 in D major → IV.
  * @param {ChordSpec} chord
  * @param {Key} key
- * @returns {string | null}
+ * @returns {ParsedNumeral | null}
  */
 function appliedTarget(chord, key) {
   if (chord.type !== "7") return null;
@@ -93,7 +114,8 @@ function appliedTarget(chord, key) {
   const degree = DEGREE_INTERVALS[key.mode].findIndex(
     (interval) => TNote.transpose(key.tonic, interval) === resolution,
   );
-  return degree >= 0 ? APPLIED_TARGETS[key.mode][degree] : null;
+  const target = degree >= 0 ? APPLIED_TARGETS[key.mode][degree] : null;
+  return target ? parseNumeral(target) : null;
 }
 
 /**
@@ -107,12 +129,15 @@ function appliedTarget(chord, key) {
  */
 export function numeralOf(chord, key) {
   const target = appliedTarget(chord, key);
-  if (target) return `V7/${target}`;
+  if (target) return formatNumeral({ degree: 5, accidental: 0, type: "7", of: target });
   const { degree, accidental } = degreeOf(chord.root, key);
-  const form = NUMERAL_FORMS.find((f) => f.type === chord.type);
-  if (!form || Math.abs(accidental) > 1) return "?";
-  const roman = ROMAN[degree - 1];
-  return accidentalPrefix(accidental) + (form.lower ? roman.toLowerCase() : roman) + form.suffix;
+  if (Math.abs(accidental) > 1) return "?";
+  return formatNumeral({
+    degree,
+    accidental: /** @type {ParsedNumeral["accidental"]} */ (accidental),
+    type: chord.type,
+    of: null,
+  });
 }
 
 /**
@@ -150,13 +175,21 @@ export function letterOf(chord) {
  */
 export function chordFromNumeral(numeral, key) {
   const parsed = parseNumeral(numeral);
-  if (!parsed) return null;
-  // An applied chord is measured from its target's root, as if that root were a major tonic.
-  const home = parsed.of ? chordFromNumeral(numeral.split("/")[1], key) : null;
-  const tonic = home ? home.root : key.tonic;
-  const mode = home ? "major" : key.mode;
+  return parsed ? { root: resolveRoot(parsed, key), type: parsed.type } : null;
+}
+
+/**
+ * The root a parsed numeral names in a key. An applied chord is measured from
+ * its target's root, as if that root were a major tonic.
+ * @param {ParsedNumeral} parsed
+ * @param {Key} key
+ * @returns {string} a pitch class
+ */
+function resolveRoot(parsed, key) {
+  const { tonic, mode } = parsed.of
+    ? { tonic: resolveRoot(parsed.of, key), mode: /** @type {const} */ ("major") }
+    : key;
   const diatonic = TNote.transpose(tonic, DEGREE_INTERVALS[mode][parsed.degree - 1]);
   const shift = { "-1": "-1A", 0: "1P", 1: "1A" }[parsed.accidental];
-  const root = TNote.pitchClass(TNote.transpose(diatonic, shift));
-  return { root, type: parsed.type };
+  return TNote.pitchClass(TNote.transpose(diatonic, shift));
 }
