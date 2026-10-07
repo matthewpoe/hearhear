@@ -98,14 +98,17 @@ export function noteAt(song, bar, beat) {
 
 /**
  * The deterministic dropdown's pick: the candidate that fits the melody best,
- * with ties going to the commoner chord, as the dropdown orders them.
+ * with ties going to the commoner chord, as the dropdown orders them. It is
+ * judged on the bare melody, like the tutor, so a reference chord placed
+ * later in the song can't shorten the span it is fitted over.
  * @param {Song} song
  * @param {string} noteId
  * @returns {ChordSpec}
  */
 export function baselineChord(song, noteId) {
+  const melody = { ...song, chords: [] };
   return candidates(song.key)
-    .map((chord, order) => ({ chord, order, score: fit(song, noteId, chord) }))
+    .map((chord, order) => ({ chord, order, score: fit(melody, noteId, chord) }))
     .sort((a, b) => b.score - a.score || a.order - b.order)[0].chord;
 }
 
@@ -124,14 +127,23 @@ const ROMAN_CHORD = new RegExp(
 const LETTER_CHORD =
   /^[A-G][#b♯♭]?(?:m7b5|maj7|min|maj|dim7?|aug|sus[24]|m7|m6|M7|m|7|6|°7?|ø7?|\+)$/;
 const NASHVILLE_CHORD = /^[b#♭♯]?[1-7](?:m7?|maj7|°7?|ø7?|\+|sus[24])$/;
-const LETTER_PHRASE = /\b[A-G][#b♯♭]?(?: (?:major|minor))? chord\b/;
+const CHORD_NOUN = "(?:chord|triad|seventh)";
+const LETTER_PHRASE = new RegExp(
+  `\\b[A-G][#b♯♭]? (?:(?:major|minor|diminished|augmented)(?: ${CHORD_NOUN})?|${CHORD_NOUN})\\b`,
+  "g",
+);
+const ENDS_IN_CHORD_NOUN = new RegExp(`${CHORD_NOUN}$`);
+/** "in G major", "the key of E minor", "G major scale": naming the key, not a chord. */
+const KEY_BEFORE = /\b(?:in|key of|key is)\s+$/i;
+const KEY_AFTER = /^\s+(?:key|scale)\b/i;
 
 /**
  * Chord names and numerals in a tutor message, which a nudge must not give.
  * Rule-checked, so it errs toward letting prose through: a bare "I" or "i" is
  * read as the pronoun, a bare letter as a melody note ("the long E"), and a
- * bare digit as a scale degree or bar number. Anything with a chord suffix
- * (Em, A7, 6m, V7/IV), any other Roman numeral, or "G chord" is flagged.
+ * bare digit as a scale degree or bar number, and "in G major" names the key.
+ * Anything with a chord suffix (Em, A7, 6m, V7/IV), any other Roman numeral,
+ * "G chord", or "D major" (with or without "triad" after it) is flagged.
  * @param {string} message
  * @returns {string[]} the offending words, empty when the message gives none
  */
@@ -143,8 +155,17 @@ export function chordNamesIn(message) {
       w !== "i" &&
       (ROMAN_CHORD.test(w) || LETTER_CHORD.test(w) || NASHVILLE_CHORD.test(w)),
   );
-  const phrase = LETTER_PHRASE.exec(message);
-  return phrase ? [...named, phrase[0]] : named;
+  const phrases = [...message.matchAll(LETTER_PHRASE)]
+    .filter(
+      (m) =>
+        ENDS_IN_CHORD_NOUN.test(m[0]) ||
+        !(
+          KEY_BEFORE.test(message.slice(0, m.index)) ||
+          KEY_AFTER.test(message.slice(m.index + m[0].length))
+        ),
+    )
+    .map((m) => m[0]);
+  return [...named, ...phrases];
 }
 
 /**

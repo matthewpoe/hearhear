@@ -73,6 +73,17 @@ test("chordNamesIn flags numerals, chord symbols, and Nashville chords", () => {
   assert.deepEqual(chordNamesIn("Is that a G chord?"), ["G chord"]);
 });
 
+test("chordNamesIn flags every letter-and-quality phrase, but not the key's name", () => {
+  assert.deepEqual(chordNamesIn("Try D major there, or E minor."), ["D major", "E minor"]);
+  assert.deepEqual(chordNamesIn("Hold a D major triad under it."), ["D major triad"]);
+  assert.deepEqual(chordNamesIn("An F# diminished seventh, then C augmented."), [
+    "F# diminished seventh",
+    "C augmented",
+  ]);
+  assert.deepEqual(chordNamesIn("We are in G major."), []);
+  assert.deepEqual(chordNamesIn("The key of E minor, and the G major scale."), []);
+});
+
 test("chordNamesIn lets ordinary prose, notes, degrees, and bars through", () => {
   const nudge =
     "Before I say anything, listen to the long E in bar 4. I think it wants to rest. " +
@@ -89,6 +100,13 @@ test("a nudge withholds when it has no suggestions and names no chord", () => {
 test("baselineChord picks the best-fitting candidate", () => {
   // B A G D under bar 1: G major holds B, G, and D; only A is outside it.
   assert.deepEqual(baselineChord(song, "n1"), { root: "G", type: "M" });
+});
+
+test("baselineChord ignores chords already placed in the song", () => {
+  // Fitted over A G D, G wins; a chord on the G would cut the span to A alone, where D wins.
+  const placed = { ...song, chords: [{ id: "c1", noteId: "n3", root: "G", type: "M" }] };
+  assert.deepEqual(baselineChord(song, "n2"), { root: "G", type: "M" });
+  assert.deepEqual(baselineChord(placed, "n2"), { root: "G", type: "M" });
 });
 
 test("scoreSuggestions counts agreement, onsets, clashes, and a hit at the change point", () => {
