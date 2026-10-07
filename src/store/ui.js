@@ -21,7 +21,17 @@ import { createReadable } from "../lib/readable.js";
  *   keyboardLights: KeyboardLights,
  *   auditionVoicing: AuditionVoicing,
  *   calloutsOn: boolean,
+ *   bottomRow: BottomRow,
  * }} UiState
+ */
+
+/**
+ * What the A–J row of the computer keyboard plays (Stream R).
+ * "chords": the diatonic chord on each scale degree (A is the home chord), the
+ * default, so a melody can be harmonized from the keyboard.
+ * "notes": single notes two octaves under the number row, as the PRD's fixed
+ * rows describe.
+ * @typedef {"chords" | "notes"} BottomRow
  */
 
 /**
@@ -29,7 +39,8 @@ import { createReadable } from "../lib/readable.js";
  * "as-song": they hold still, voiced exactly as in the song, so only the
  * candidate changes: the cleanest test of fit, and the default.
  * "from-candidate": they flow from the candidate, the way a pianist would
- * play it. The toggle lives in the chord dropdown with a beginner explainer
+ * play it. The toggle is the staff header's "Voice leading" switch
+ * (src/toolbar/VoiceLeading.svelte), with a beginner explainer
  * (content/explainers.json). After a commit the phrase replays with natural
  * voice leading either way.
  * @typedef {"as-song" | "from-candidate"} AuditionVoicing
@@ -91,6 +102,7 @@ export function initialUi() {
     keyboardLights: { source: null, chord: null, melody: [] },
     auditionVoicing: "as-song",
     calloutsOn: true,
+    bottomRow: "chords",
   };
 }
 

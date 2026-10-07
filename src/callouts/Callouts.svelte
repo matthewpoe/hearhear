@@ -9,13 +9,48 @@
   import content from "../../content/callouts.json";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
-  import { nextCallout, dismiss, placeCallout } from "./tour.js";
+  import { nextCallout, dismiss, placeCallout, scrollForTip } from "./tour.js";
   import { loadOn, saveOn, loadDismissed, saveDismissed } from "./memory.js";
 
   /** @import { Callout } from "./tour.js" */
 
   /** @type {Callout[]} */
   const callouts = content.callouts;
+
+  /**
+   * Controls a tip must never cover: the key question's choices and guess
+   * buttons, Play, the masthead toggles (this one included), and the music,
+   * whose notes are buttons the staff tip tells the viewer to click.
+   */
+  const KEEP_CLEAR = [
+    "#key-prompt button",
+    "#key-prompt label",
+    "#staff [aria-label='Playback']",
+    "#staff svg",
+    ".masthead-tools",
+  ].join(",");
+
+  /**
+   * An element's viewport box as a plain object (a DOMRect's fields are
+   * getters, so spreading one copies nothing).
+   * @param {Element} el
+   */
+  function rectOf(el) {
+    const { top, left, bottom, right } = el.getBoundingClientRect();
+    return { top, left, bottom, right };
+  }
+
+  /** The visible area (above the keyboard dock) and the controls to keep clear. */
+  function measure() {
+    return {
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        bottom: document.querySelector(".keyboard-dock")?.getBoundingClientRect().top,
+      },
+      avoid: [...document.querySelectorAll(KEEP_CLEAR)].map(rectOf),
+    };
+  }
 
   ui.update({ calloutsOn: loadOn() });
 
@@ -83,10 +118,10 @@
     const callout = box;
     if (!anchor) return;
     const place = () => {
-      position = placeCallout(anchor.getBoundingClientRect(), callout.getBoundingClientRect(), {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        bottom: document.querySelector(".keyboard-dock")?.getBoundingClientRect().top,
+      const { viewport, avoid } = measure();
+      position = placeCallout(rectOf(anchor), callout.getBoundingClientRect(), viewport, {
+        avoid,
+        inDock: anchor.closest(".keyboard-dock") !== null,
       });
     };
     place();
@@ -105,8 +140,26 @@
     dismissed = dismiss(dismissed, current.id);
     saveDismissed(dismissed);
     await tick();
-    // The viewer asked for the next tip, so take them to it.
-    (box ?? toggle)?.focus();
+    // The viewer asked for the next tip, so take them to it: scroll its
+    // anchor into view, as block: "nearest" would, or further when that would
+    // leave the tip covering a control. The dock never scrolls, so an anchor
+    // in it needs none.
+    const anchor = current && document.getElementById(current.anchor);
+    if (anchor && box && !anchor.closest(".keyboard-dock")) {
+      const { viewport, avoid } = measure();
+      const { scrollY, innerHeight } = window;
+      const room = {
+        up: -scrollY,
+        down: document.documentElement.scrollHeight - innerHeight - scrollY,
+      };
+      const top = scrollForTip(rectOf(anchor), box.getBoundingClientRect(), viewport, {
+        avoid,
+        room,
+      });
+      const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (top !== 0) window.scrollBy({ top, behavior: smooth ? "smooth" : "auto" });
+    }
+    (box ?? toggle)?.focus({ preventScroll: true });
   }
 
   /** Remember this tip as seen and put the tips away until the next visit. */
