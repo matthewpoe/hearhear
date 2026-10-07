@@ -17,6 +17,8 @@ const TUNES = [
   // and V; Greensleeves's bar-4 F sharp (degree 2, the half cadence) is V's 5th.
   { song: load("amazing-grace"), home: "A flat", dark: false, cadence: "n9", top: ["I", "V"] },
   { song: load("greensleeves"), home: "E", dark: true, cadence: "n17", top: ["V"] },
+  // The Saints' held G in bar 7 (degree 2) ends the first half on V.
+  { song: load("when-the-saints"), home: "F", dark: false, cadence: "n16", top: ["V"] },
 ];
 
 for (const { song, home, dark, cadence, top } of TUNES) {

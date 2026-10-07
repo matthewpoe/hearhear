@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "id": "when-the-saints",
+  "title": "When the Saints Go Marching In",
+  "key": {
+    "tonic": "F",
+    "mode": "major",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 4,
+    "beatUnit": 4,
+    "pickupTicks": 36,
+    "provisional": false
+  },
+  "tempo": 104,
+  "version": 0,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 65,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 69,
+      "start": 12,
+      "dur": 12
+    },
+    {
+      "id": "n3",
+      "midi": 70,
+      "start": 24,
+      "dur": 12
+    },
+    {
+      "id": "n4",
+      "midi": 72,
+      "start": 36,
+      "dur": 36
+    },
+    {
+      "id": "n5",
+      "midi": 65,
+      "start": 96,
+      "dur": 12
+    },
+    {
+      "id": "n6",
+      "midi": 69,
+      "start": 108,
+      "dur": 12
+    },
+    {
+      "id": "n7",
+      "midi": 70,
+      "start": 120,
+      "dur": 12
+    },
+    {
+      "id": "n8",
+      "midi": 72,
+      "start": 132,
+      "dur": 36
+    },
+    {
+      "id": "n9",
+      "midi": 65,
+      "start": 192,
+      "dur": 12
+    },
+    {
+      "id": "n10",
+      "midi": 69,
+      "start": 204,
+      "dur": 12
+    },
+    {
+      "id": "n11",
+      "midi": 70,
+      "start": 216,
+      "dur": 12
+    },
+    {
+      "id": "n12",
+      "midi": 72,
+      "start": 228,
+      "dur": 24
+    },
+    {
+      "id": "n13",
+      "midi": 69,
+      "start": 252,
+      "dur": 24
+    },
+    {
+      "id": "n14",
+      "midi": 65,
+      "start": 276,
+      "dur": 24
+    },
+    {
+      "id": "n15",
+      "midi": 69,
+      "start": 300,
+      "dur": 24
+    },
+    {
+      "id": "n16",
+      "midi": 67,
+      "start": 324,
+      "dur": 36
+    },
+    {
+      "id": "n17",
+      "midi": 67,
+      "start": 384,
+      "dur": 12
+    },
+    {
+      "id": "n18",
+      "midi": 69,
+      "start": 396,
+      "dur": 12
+    },
+    {
+      "id": "n19",
+      "midi": 67,
+      "start": 408,
+      "dur": 12
+    },
+    {
+      "id": "n20",
+      "midi": 65,
+      "start": 420,
+      "dur": 36
+    },
+    {
+      "id": "n21",
+      "midi": 65,
+      "start": 456,
+      "dur": 12
+    },
+    {
+      "id": "n22",
+      "midi": 69,
+      "start": 468,
+      "dur": 24
+    },
+    {
+      "id": "n23",
+      "midi": 72,
+      "start": 492,
+      "dur": 24
+    },
+    {
+      "id": "n24",
+      "midi": 72,
+      "start": 516,
+      "dur": 12
+    },
+    {
+      "id": "n25",
+      "midi": 70,
+      "start": 528,
+      "dur": 24
+    },
+    {
+      "id": "n26",
+      "midi": 70,
+      "start": 576,
+      "dur": 12
+    },
+    {
+      "id": "n27",
+      "midi": 69,
+      "start": 588,
+      "dur": 12
+    },
+    {
+      "id": "n28",
+      "midi": 70,
+      "start": 600,
+      "dur": 12
+    },
+    {
+      "id": "n29",
+      "midi": 72,
+      "start": 612,
+      "dur": 24
+    },
+    {
+      "id": "n30",
+      "midi": 69,
+      "start": 636,
+      "dur": 24
+    },
+    {
+      "id": "n31",
+      "midi": 65,
+      "start": 660,
+      "dur": 24
+    },
+    {
+      "id": "n32",
+      "midi": 67,
+      "start": 684,
+      "dur": 24
+    },
+    {
+      "id": "n33",
+      "midi": 65,
+      "start": 708,
+      "dur": 48
+    }
+  ],
+  "chords": []
+}

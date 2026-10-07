@@ -17,12 +17,13 @@ const songs = files.map((f) => JSON.parse(readFileSync(new URL(f, dir), "utf8"))
 const demoSource = readFileSync(new URL("../../src/finding/demoTunes.js", import.meta.url), "utf8");
 
 describe("bundled songs", () => {
-  it("are the four demo tunes", () => {
+  it("are the demo tunes", () => {
     assert.deepEqual(songs.map((s) => s.id).sort(), [
       "amazing-grace",
       "greensleeves",
       "ode-to-joy",
       "st-james-infirmary",
+      "when-the-saints",
     ]);
   });
 
