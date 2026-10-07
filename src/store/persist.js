@@ -16,7 +16,7 @@
  */
 
 import songSchema from "../../contracts/song.schema.json" with { type: "json" };
-import { isSwing, validateSong } from "./song.js";
+import { isLyric, isSwing, validateSong } from "./song.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
 export const STORE_VERSION = 1;
@@ -117,7 +117,8 @@ function isSong(song) {
         NOTE_ID.test(n.id) &&
         isInt(n.midi, noteRules.midi) &&
         isInt(n.start, noteRules.start) &&
-        isInt(n.dur, noteRules.dur),
+        isInt(n.dur, noteRules.dur) &&
+        (n.lyric === undefined || isLyric(n.lyric)),
     ) &&
     isList(
       chords,
