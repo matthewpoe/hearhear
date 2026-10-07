@@ -7,13 +7,15 @@
    * key prompt appears when a demo is waiting for a guess, or in free play
    * once there's about a phrase on the provisional C. It owns the piano's
    * warm-up (decision D19): preload on mount, unlock with the sound-check
-   * chord on the first click anywhere.
+   * chord on the first click anywhere. Once a tune is loaded that first click
+   * starts audio silently instead, so a C chord never sounds over a tune in
+   * another key (say, a note click on a demo before the key guess).
    * @import { Key } from "../types.js"
    */
   import { onMount } from "svelte";
   import { song } from "../store/song.js";
   import { ui } from "../store/ui.js";
-  import { audioStatus, preload, unlock } from "../audio/index.js";
+  import { audioStatus, preload, resume, unlock } from "../audio/index.js";
   import SongPicker from "../toolbar/SongPicker.svelte";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
@@ -76,7 +78,8 @@
 
   async function startSound() {
     try {
-      await unlock();
+      if ($song.notes.length > 0) await resume();
+      else await unlock();
       soundBlocked = false;
     } catch (error) {
       console.error("Audio unlock failed", error);

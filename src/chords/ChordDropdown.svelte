@@ -21,8 +21,8 @@
     auditionChord,
     auditionDebounced,
     preload,
+    resume,
     stopAudition,
-    unlock,
   } from "../audio/index.js";
   import { playWithVisuals } from "../staff/playback.js";
   import { functionOf } from "../theory/index.js";
@@ -206,15 +206,13 @@
 
   /**
    * Opening the dropdown is a user gesture (a click, or Enter on a note), and
-   * the next thing it does is audition on hover, which is not one. If audio
-   * hasn't started yet (no earlier click unlocked it, or that unlock timed
-   * out), start it now so the first hover sounds. unlock() also plays the
-   * sound-check chord, so it runs only while the audio context isn't running.
+   * the next thing it does is audition on hover, which is not one. Start audio
+   * now so the first hover sounds. resume() is silent: no sound-check chord
+   * over a tune that may be in another key, even before the key is chosen.
    */
   async function wakeAudio() {
     try {
-      const { getContext } = await import("tone");
-      if (getContext().state !== "running") await unlock();
+      await resume();
     } catch (error) {
       console.error("Audio didn't start from the note click", error);
       audioError = error instanceof Error ? error.message : String(error);
