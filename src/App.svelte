@@ -6,11 +6,13 @@
   import ChordDropdown from "./chords/ChordDropdown.svelte";
   import TutorPanel from "./tutor/TutorPanel.svelte";
   import Piano from "./input/Piano.svelte";
+  import ThemeToggle from "./ThemeToggle.svelte";
 </script>
 
 <header class="masthead">
   <h1>Hear Hear</h1>
   <p class="tagline">Think in relationships, not pitches.</p>
+  <ThemeToggle />
 </header>
 
 <main class="workspace">
