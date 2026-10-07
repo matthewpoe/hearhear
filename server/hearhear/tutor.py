@@ -13,8 +13,8 @@ from typing import Any
 from hearhear.models import TutorRequest
 
 FIXTURE_NAMES = frozenset({"nudge", "comparison", "answer", "malformed", "over-budget"})
-# `served_by` in fixture mode. No model served the reply, so the eval harness,
-# which counts only replies served by TUTOR_MODEL, never counts a fixture.
+# `served_by` in fixture mode: no model served the reply. The eval harness
+# runs against live mode, so it never sees one.
 FIXTURE_SERVED_BY = "fixture"
 
 
@@ -29,8 +29,12 @@ def suggestions_data(
     suggestions: list[dict[str, Any]],
     dropped: int,
     served_by: str,
+    fallback: bool,
 ) -> tuple[dict[str, Any], int]:
     """The `suggestions` event's data, and how many suggestions it withheld.
+
+    `fallback` is true when the refusal fallback served any of the reply; the
+    eval harness excludes those replies on this flag, not by comparing ids.
 
     While the snapshot's key is hidden, every suggestion is withheld and
     counted in `dropped`. A letter-name chord gives the key away, and the
@@ -43,6 +47,7 @@ def suggestions_data(
         "snapshot_version": request.snapshot.version,
         "dropped": dropped + withheld,
         "served_by": served_by,
+        "fallback": fallback,
     }
     return data, withheld
 
@@ -66,5 +71,6 @@ async def replay_fixture(
                 suggestions=data["suggestions"],
                 dropped=data["dropped"],
                 served_by=FIXTURE_SERVED_BY,
+                fallback=False,
             )
         yield sse(step["event"], data)

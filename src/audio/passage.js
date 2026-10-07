@@ -1,0 +1,167 @@
+/**
+ * What a passage sounds like, as a list of timed cues: melody notes, chords,
+ * and clicks. Pure (no Tone, no store) so the scheduling rules read in one
+ * place: which chords sound, how they are voiced, and when the click accents.
+ *
+ * @import { Chord, Meter, Song } from "../types.js"
+ * @import { TickRange } from "./index.js"
+ */
+
+import { TICKS_PER_QUARTER, ticksPerBar, ticksPerBeat, voice } from "../theory/index.js";
+
+/**
+ * @typedef {{ tick: number, dur: number, tones: number[] } & (
+ *   | { kind: "note", noteId: string }
+ *   | { kind: "chord", chordId?: string }
+ *   | { kind: "click", accent: boolean }
+ * )} Cue
+ *
+ * A chord placed at a tick. `voicing` is given for overrides and auditions;
+ * otherwise the chord is voiced in passage order with theory's voice().
+ * @typedef {{ tick: number, chordId?: string, chord?: Chord, voicing?: number[] }} Placement
+ */
+
+/** @param {Song} song */
+export const secondsPerTick = (song) => 60 / (song.tempo * TICKS_PER_QUARTER);
+
+/**
+ * Melody notes sounding inside the range, clipped to it. A note held into the
+ * range from before it comes in on the first tick with what remains of it,
+ * the same way the chord already sounding does.
+ * @param {Song} song
+ * @param {TickRange} range
+ * @returns {Cue[]}
+ */
+export function melodyCues(song, { fromTick, toTick }) {
+  return song.notes
+    .filter((n) => n.start < toTick && n.start + n.dur > fromTick)
+    .map((n) => {
+      const tick = Math.max(n.start, fromTick);
+      return {
+        kind: "note",
+        noteId: n.id,
+        tick,
+        dur: Math.min(n.start + n.dur, toTick) - tick,
+        tones: [n.midi],
+      };
+    });
+}
+
+/**
+ * Place chords at their notes' onsets, in time order. Chords on missing notes
+ * are skipped.
+ * @param {Song} song
+ * @param {{ chord: Chord, voicing?: number[] }[]} chords
+ * @returns {Placement[]}
+ */
+export function placeChords(song, chords) {
+  const onset = new Map(song.notes.map((n) => [n.id, n.start]));
+  return chords
+    .filter(({ chord }) => onset.has(chord.noteId))
+    .map(({ chord, voicing }) => ({
+      tick: /** @type {number} */ (onset.get(chord.noteId)),
+      chordId: chord.id,
+      chord,
+      voicing,
+    }))
+    .sort((a, b) => a.tick - b.tick);
+}
+
+/**
+ * Placements with a candidate in place of whatever chord sits at `atTick` (or
+ * added there, if none does).
+ * @param {Placement[]} placements in time order
+ * @param {number[]} voicing
+ * @param {number} atTick
+ * @returns {Placement[]}
+ */
+export function withCandidate(placements, voicing, atTick) {
+  const others = placements.filter((p) => p.tick !== atTick);
+  return [...others, { tick: atTick, voicing }].sort((a, b) => a.tick - b.tick);
+}
+
+/**
+ * Chord cues for a range. The chord already sounding when the range starts
+ * comes in on its first tick; each chord holds until the next one or the end.
+ * Chords without a voicing are voiced under `below` (theory's passageBelow),
+ * leading from the chord before, so every chord in the passage shares a register.
+ * @param {Placement[]} placements in time order
+ * @param {TickRange} range
+ * @param {number} below MIDI ceiling for the voicings
+ * @returns {Cue[]}
+ */
+export function chordCues(placements, { fromTick, toTick }, below) {
+  const sounding = placements.filter((p) => p.tick <= fromTick).at(-1);
+  const inRange = placements.filter((p) => p.tick > fromTick && p.tick < toTick);
+  const chosen = sounding ? [{ ...sounding, tick: fromTick }, ...inRange] : inRange;
+
+  /** @type {number[] | null} */
+  let previous = null;
+  return chosen.map((p, i) => {
+    const tones = p.voicing ?? voice(/** @type {Chord} */ (p.chord), previous, { below });
+    previous = tones;
+    const end = chosen[i + 1]?.tick ?? toTick;
+    return { kind: "chord", chordId: p.chordId, tick: p.tick, dur: end - p.tick, tones };
+  });
+}
+
+/**
+ * Chord cues for an audition: the song's chords with a candidate at `atTick`
+ * (decision D4). With "as-song", every other chord is voiced exactly as
+ * playback voices the song (the passage is voiced first, then the candidate
+ * is swapped in), so two auditions differ only in the candidate. With
+ * "from-candidate", the chords after it voice-lead from the candidate. A
+ * candidate outside the range does not sound.
+ * @param {Placement[]} placements the song's chords, in time order
+ * @param {number[]} voicing the candidate, MIDI
+ * @param {TickRange} range
+ * @param {{ atTick: number, neighbors?: "as-song" | "from-candidate" }} placement
+ * @param {number} below MIDI ceiling for the voicings
+ * @returns {Cue[]}
+ */
+export function auditionChordCues(
+  placements,
+  voicing,
+  range,
+  { atTick, neighbors = "as-song" },
+  below,
+) {
+  if (atTick < range.fromTick || atTick >= range.toTick) return chordCues(placements, range, below);
+  if (neighbors === "from-candidate") {
+    return chordCues(withCandidate(placements, voicing, atTick), range, below);
+  }
+  const song = chordCues(placements, range, below);
+  /** @type {Cue} */
+  const candidate = { kind: "chord", tick: atTick, dur: 0, tones: voicing };
+  const kept = song.filter((c) => c.tick !== atTick);
+  const after = kept.find((c) => c.tick > atTick);
+  candidate.dur = (after?.tick ?? range.toTick) - atTick;
+  return [
+    ...kept
+      .filter((c) => c.tick < atTick)
+      .map((c) => ({ ...c, dur: Math.min(c.dur, atTick - c.tick) })),
+    candidate,
+    ...kept.filter((c) => c.tick > atTick),
+  ];
+}
+
+/**
+ * One click per beat of the meter across the range, accented on each
+ * downbeat. Beats are counted from the first downbeat (after the pickup), so
+ * an anacrusis clicks unaccented and 6/8 clicks in eighths.
+ * @param {Meter} meter
+ * @param {TickRange} range
+ * @returns {Cue[]}
+ */
+export function clickCues(meter, { fromTick, toTick }) {
+  const beat = ticksPerBeat(meter);
+  const bar = ticksPerBar(meter);
+  const offset = (((meter.pickupTicks - fromTick) % beat) + beat) % beat;
+  /** @type {Cue[]} */
+  const cues = [];
+  for (let tick = fromTick + offset; tick < toTick; tick += beat) {
+    const accent = (((tick - meter.pickupTicks) % bar) + bar) % bar === 0;
+    cues.push({ kind: "click", accent, tick, dur: 1, tones: [] });
+  }
+  return cues;
+}

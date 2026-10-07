@@ -10,13 +10,26 @@
  * writers of keyboardLights clear only what they wrote.
  *
  * CONTRACT: exported names and shapes are frozen (see contracts/README.md).
- * Bodies marked STUB(C) are placeholders that call the audio API without visuals.
  *
- * @import { Chord } from "../types.js"
- * @import { TickRange } from "../audio/index.js"
+ * @import { Chord, HarmonicFunction } from "../types.js"
+ * @import { PlaybackEvent, TickRange } from "../audio/index.js"
+ * @import { KeyboardLights } from "../store/ui.js"
  */
 
-import { drone as holdDrone, playPhrase } from "../audio/index.js";
+import { drone as holdDrone, playPhrase, stop } from "../audio/index.js";
+import { song } from "../store/song.js";
+import { keyLabelMode, ui } from "../store/ui.js";
+import { chordFunctions } from "./chordChips.js";
+import { clearHighlight, highlight } from "./staffEvents.js";
+
+const PLAYING = "is-playing";
+
+/**
+ * The playback that currently owns the visuals; a fresh object per call, so
+ * an earlier call can tell it has been superseded.
+ * @type {object | null}
+ */
+let owner = null;
 
 /**
  * Play part of the song with the playhead and keyboard lights following.
@@ -32,11 +45,57 @@ import { drone as holdDrone, playPhrase } from "../audio/index.js";
  * @returns {Promise<void>}
  */
 export async function playWithVisuals(range, { chords, drone = null } = {}) {
-  // STUB(C): no visuals yet.
+  if (owner) stop();
+  const run = {};
+  owner = run;
+  const owns = () => owner === run;
+
+  const played = song.get();
+  const playedChords = chords ? chords.map((c) => c.chord) : played.chords;
+  // Hidden mode shows no function colors anywhere, the keyboard included.
+  const hidden = keyLabelMode(played, ui.get()) === "hidden";
+  /** @type {Map<string, HarmonicFunction>} computed once per play */
+  const functions = hidden ? new Map() : chordFunctions({ ...played, chords: playedChords });
+  const midiById = new Map(played.notes.map((n) => [n.id, n.midi]));
+  const droneLight = drone === null ? [] : [drone];
+
+  /** @type {KeyboardLights} */
+  let lights = { source: "playback", chord: null, melody: droneLight };
+  clearHighlight(PLAYING);
+  ui.update({ playheadNoteId: null, keyboardLights: lights });
+
+  /** @param {PlaybackEvent} event */
+  const show = (event) => {
+    if (!owns() || event.type === "end") return;
+    if (event.type === "note" && event.noteId !== undefined) {
+      const midi = midiById.get(event.noteId);
+      if (midi === undefined) return;
+      clearHighlight(PLAYING);
+      highlight([event.noteId], PLAYING);
+      lights = { ...lights, melody: [...droneLight, midi] };
+      ui.update({ playheadNoteId: event.noteId, keyboardLights: lights });
+    } else if (event.type === "chord" && event.chordId !== undefined && event.tones) {
+      const fn = functions.get(event.chordId) ?? "other";
+      lights = { ...lights, chord: { midi: event.tones, fn } };
+      ui.update({ keyboardLights: lights });
+    }
+  };
+
   if (drone !== null) holdDrone(drone);
   try {
-    await playPhrase(range, chords ? { chords } : {});
+    await playPhrase(range, { ...(chords ? { chords } : {}), onEvent: show });
   } finally {
-    if (drone !== null) holdDrone(null);
+    if (owns()) {
+      owner = null;
+      if (drone !== null) holdDrone(null);
+      clearHighlight(PLAYING);
+      const current = ui.get();
+      ui.update({
+        playheadNoteId: null,
+        ...(current.keyboardLights.source === "playback"
+          ? { keyboardLights: { source: null, chord: null, melody: [] } }
+          : {}),
+      });
+    }
   }
 }
