@@ -172,7 +172,8 @@
             midi: voicingIn(at, option.chord),
             fn: hidden ? "other" : functionOf(option.numeral, song.get().key.mode),
           },
-          melody: [...drone, at.note.midi],
+          melody: [at.note.midi],
+          drone,
         };
         written = { lights, option, passage: at, drone };
         ui.update({ keyboardLights: lights });

@@ -62,7 +62,8 @@ import { createReadable } from "../lib/readable.js";
 
 /**
  * Keys to light on the on-screen piano (Stream D1 renders them). Chord tones
- * glow in their function color; melody notes in a neutral highlight. D1
+ * glow in their function color; melody notes (the note sounding now) in
+ * gold; drone notes (`drone`, held under the tune) with a green bar. D1
  * lights its own pressed keys itself.
  *
  * `source` says who owns the lights. Playback (playWithVisuals, which also
@@ -73,6 +74,7 @@ import { createReadable } from "../lib/readable.js";
  *   source: "playback" | "hover" | null,
  *   chord: { midi: number[], fn: HarmonicFunction } | null,
  *   melody: number[],
+ *   drone?: number[],
  * }} KeyboardLights
  */
 
