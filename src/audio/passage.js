@@ -9,9 +9,6 @@
 
 import { TICKS_PER_QUARTER, ticksPerBar, ticksPerBeat, voice } from "../theory/index.js";
 
-/** Voicing ceiling when a passage has no melody notes to sit under (middle C). */
-const DEFAULT_BELOW = 60;
-
 /**
  * @typedef {{ tick: number, dur: number, tones: number[] } & (
  *   | { kind: "note", noteId: string }
@@ -28,21 +25,26 @@ const DEFAULT_BELOW = 60;
 export const secondsPerTick = (song) => 60 / (song.tempo * TICKS_PER_QUARTER);
 
 /**
- * Melody notes that start inside the range, clipped to its end.
+ * Melody notes sounding inside the range, clipped to it. A note held into the
+ * range from before it comes in on the first tick with what remains of it,
+ * the same way the chord already sounding does.
  * @param {Song} song
  * @param {TickRange} range
  * @returns {Cue[]}
  */
 export function melodyCues(song, { fromTick, toTick }) {
   return song.notes
-    .filter((n) => n.start >= fromTick && n.start < toTick)
-    .map((n) => ({
-      kind: "note",
-      noteId: n.id,
-      tick: n.start,
-      dur: Math.min(n.dur, toTick - n.start),
-      tones: [n.midi],
-    }));
+    .filter((n) => n.start < toTick && n.start + n.dur > fromTick)
+    .map((n) => {
+      const tick = Math.max(n.start, fromTick);
+      return {
+        kind: "note",
+        noteId: n.id,
+        tick,
+        dur: Math.min(n.start + n.dur, toTick) - tick,
+        tones: [n.midi],
+      };
+    });
 }
 
 /**
@@ -66,33 +68,29 @@ export function placeChords(song, chords) {
 }
 
 /**
- * The song's chords with a candidate in place of whatever chord sits at
- * `atTick` (or added there, if none does).
- * @param {Song} song
+ * Placements with a candidate in place of whatever chord sits at `atTick` (or
+ * added there, if none does).
+ * @param {Placement[]} placements in time order
  * @param {number[]} voicing
  * @param {number} atTick
  * @returns {Placement[]}
  */
-export function withCandidate(song, voicing, atTick) {
-  const others = placeChords(
-    song,
-    song.chords.map((chord) => ({ chord })),
-  ).filter((p) => p.tick !== atTick);
+export function withCandidate(placements, voicing, atTick) {
+  const others = placements.filter((p) => p.tick !== atTick);
   return [...others, { tick: atTick, voicing }].sort((a, b) => a.tick - b.tick);
 }
 
 /**
  * Chord cues for a range. The chord already sounding when the range starts
  * comes in on its first tick; each chord holds until the next one or the end.
- * Chords without a voicing are voiced under the passage's lowest melody note,
+ * Chords without a voicing are voiced under `below` (theory's passageBelow),
  * leading from the chord before, so every chord in the passage shares a register.
  * @param {Placement[]} placements in time order
  * @param {TickRange} range
- * @param {Cue[]} melody the passage's melody cues
+ * @param {number} below MIDI ceiling for the voicings
  * @returns {Cue[]}
  */
-export function chordCues(placements, { fromTick, toTick }, melody) {
-  const below = melody.length ? Math.min(...melody.map((c) => c.tones[0])) : DEFAULT_BELOW;
+export function chordCues(placements, { fromTick, toTick }, below) {
   const sounding = placements.filter((p) => p.tick <= fromTick).at(-1);
   const inRange = placements.filter((p) => p.tick > fromTick && p.tick < toTick);
   const chosen = sounding ? [{ ...sounding, tick: fromTick }, ...inRange] : inRange;
@@ -105,6 +103,46 @@ export function chordCues(placements, { fromTick, toTick }, melody) {
     const end = chosen[i + 1]?.tick ?? toTick;
     return { kind: "chord", chordId: p.chordId, tick: p.tick, dur: end - p.tick, tones };
   });
+}
+
+/**
+ * Chord cues for an audition: the song's chords with a candidate at `atTick`
+ * (decision D4). With "as-song", every other chord is voiced exactly as
+ * playback voices the song (the passage is voiced first, then the candidate
+ * is swapped in), so two auditions differ only in the candidate. With
+ * "from-candidate", the chords after it voice-lead from the candidate. A
+ * candidate outside the range does not sound.
+ * @param {Placement[]} placements the song's chords, in time order
+ * @param {number[]} voicing the candidate, MIDI
+ * @param {TickRange} range
+ * @param {{ atTick: number, neighbors?: "as-song" | "from-candidate" }} placement
+ * @param {number} below MIDI ceiling for the voicings
+ * @returns {Cue[]}
+ */
+export function auditionChordCues(
+  placements,
+  voicing,
+  range,
+  { atTick, neighbors = "as-song" },
+  below,
+) {
+  if (atTick < range.fromTick || atTick >= range.toTick) return chordCues(placements, range, below);
+  if (neighbors === "from-candidate") {
+    return chordCues(withCandidate(placements, voicing, atTick), range, below);
+  }
+  const song = chordCues(placements, range, below);
+  /** @type {Cue} */
+  const candidate = { kind: "chord", tick: atTick, dur: 0, tones: voicing };
+  const kept = song.filter((c) => c.tick !== atTick);
+  const after = kept.find((c) => c.tick > atTick);
+  candidate.dur = (after?.tick ?? range.toTick) - atTick;
+  return [
+    ...kept
+      .filter((c) => c.tick < atTick)
+      .map((c) => ({ ...c, dur: Math.min(c.dur, atTick - c.tick) })),
+    candidate,
+    ...kept.filter((c) => c.tick > atTick),
+  ];
 }
 
 /**
