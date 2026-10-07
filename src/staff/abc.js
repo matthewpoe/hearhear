@@ -2,11 +2,13 @@
  * Song model → ABC notation for abcjs. The staff, the lead sheet, and print
  * all render this one string, so notation can never drift from the song.
  *
- * Layout: letter-name chord symbols above the staff, the chord's numeral (in
- * the user's label style) as an annotation below, and scale degrees on a
- * lyric line with jianpu octave dots. In "hidden" label mode nothing
- * key-relative is written, and the key signature is C with accidentals on
- * the notes, so the notation doesn't give the key away.
+ * Layout: letter-name chord symbols above the staff, like a lead sheet (the
+ * staff colors them by function after rendering; numerals, shapes, and chips
+ * live only in the chord chip row, decision D3), and scale degrees on a lyric
+ * line with jianpu octave dots. In "hidden" label mode nothing key-relative
+ * is written: the key signature is C with accidentals on the notes, and each
+ * chord is a neutral mark with no letter name (decision D2), so the notation
+ * doesn't give the key away.
  *
  * All theory comes from src/theory; this module only formats it.
  *
@@ -14,16 +16,7 @@
  * @import { KeyLabelMode } from "../store/ui.js"
  */
 
-import {
-  degreeToMidi,
-  letterOf,
-  midiToDegree,
-  nashvilleOf,
-  numeralOf,
-  spell,
-  ticksPerBar,
-  ticksPerBeat,
-} from "../theory/index.js";
+import { letterOf, midiToDegree, spell, ticksPerBar, ticksPerBeat } from "../theory/index.js";
 
 /**
  * Note lengths abcjs can draw as one glyph, in ticks (12 per quarter, written
@@ -32,6 +25,14 @@ import {
 const DRAWABLE = [72, 48, 36, 24, 18, 12, 9, 6, 3];
 
 const BARS_PER_LINE = 4;
+
+/** What a chord shows in hidden mode: a neutral mark, no name (decision D2). */
+export const HIDDEN_CHORD_MARK = "•";
+
+/** Circle-of-fifths position of each natural letter's major key (C = 0). */
+const LETTER_FIFTHS = { F: -1, C: 0, G: 1, D: 2, A: 3, E: 4, B: 5 };
+const SHARP_ORDER = ["F", "C", "G", "D", "A", "E", "B"];
+const FLAT_ORDER = ["B", "E", "A", "D", "G", "C", "F"];
 
 const ABC_ACCIDENTAL = { "-2": "__", "-1": "_", 0: "=", 1: "^", 2: "^^" };
 const DEGREE_ACCIDENTAL = { "-1": "♭", 0: "", 1: "♯" };
@@ -59,10 +60,11 @@ const DOT_BELOW = "̣";
  * @returns {{ abc: string, pieces: NotePiece[] }} `pieces` lists every drawn
  *   note glyph in order (rests excluded), to map abcjs's output back to ids.
  */
-export function songToAbc(song, { mode, labelStyle, showDegrees }) {
+export function songToAbc(song, { mode, showDegrees }) {
   const { key, meter } = song;
   const hidden = mode === "hidden";
-  const signature = hidden ? new Map() : keySignature(key);
+  const fifths = hidden ? null : keyFifths(key);
+  const signature = fifths === null ? new Map() : keySignature(fifths);
   const barTicks = ticksPerBar(meter);
   const beatTicks = ticksPerBeat(meter);
   const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
@@ -127,7 +129,7 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
     const chord = chordByNote.get(note.id) ?? null;
     const pitch = parseSpelling(spell(note.midi, key));
     segment(note.start, note.start + note.dur, (start, ticks, isFirst, isLast) => {
-      const labels = isFirst && chord ? chordLabels(chord, key, mode, labelStyle) : "";
+      const labels = isFirst && chord ? `"${chordSymbol(chord, mode)}"` : "";
       const tie = isLast ? "" : "-";
       append(labels + abcPitch(pitch, signature, inForce) + ticks + tie, start, ticks);
       bar.syllables.push(isFirst && showDegrees && !hidden ? degreeLabel(note.midi, key) : "*");
@@ -143,7 +145,7 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
     `T:${safeTitle(song.title)}`,
     `M:${meter.beatsPerBar}/${meter.beatUnit}`,
     "L:1/48",
-    `K:${hidden ? "C" : key.tonic + (key.mode === "minor" ? "m" : "")}`,
+    `K:${fifths === null ? "C" : key.tonic + (key.mode === "minor" ? "m" : "")}`,
   ];
   const lines = [];
   for (let i = 0; i < bars.length; i += BARS_PER_LINE) {
@@ -157,8 +159,10 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
 }
 
 /**
- * Split a length into drawable glyph lengths, longest first. A remainder no
- * glyph can draw (a triplet) is written as-is, and abcjs approximates it.
+ * Split a length into drawable glyph lengths, longest first, as tied pieces.
+ * Known gap: a length no sum of these glyphs makes (a triplet, 4 or 8 ticks)
+ * ends in a remainder abcjs cannot draw as one glyph (a 4-tick triplet eighth
+ * becomes a dotted sixteenth tied to a 1/48). Real tuplets (`(3`) are wave 2.
  * @param {number} ticks
  * @returns {number[]}
  */
@@ -187,18 +191,34 @@ function parseSpelling(name) {
 }
 
 /**
- * The key signature as letter → accidental, from the key's own scale.
+ * The key's place on the circle of fifths (sharps positive, flats negative),
+ * the same number abcjs derives from the `K:` header. Minor keys use their
+ * relative major. Null for a theoretical key beyond seven sharps or flats
+ * (G# major, Fb minor), which ABC can't write as a signature: the staff then
+ * uses K:C with accidentals on the notes, which is still correct notation.
  * @param {Key} key
+ * @returns {number | null}
+ */
+function keyFifths(key) {
+  const m = key.tonic.match(/^([A-G])(#|b)?$/);
+  if (!m) return null;
+  const letter = /** @type {keyof typeof LETTER_FIFTHS} */ (m[1]);
+  const shift = m[2] === "#" ? 7 : m[2] === "b" ? -7 : 0;
+  const fifths = LETTER_FIFTHS[letter] + shift - (key.mode === "minor" ? 3 : 0);
+  return Math.abs(fifths) <= 7 ? fifths : null;
+}
+
+/**
+ * The key signature as letter → accidental, derived the way abcjs reads `K:`
+ * (not from the speller), so a bare note is always drawn at the pitch the
+ * signature gives it and any spelling outside it gets an explicit accidental.
+ * @param {number} fifths
  * @returns {Map<string, number>}
  */
-function keySignature(key) {
-  const signature = new Map();
-  for (const degree of /** @type {const} */ ([1, 2, 3, 4, 5, 6, 7])) {
-    const midi = degreeToMidi({ degree, accidental: 0, octave: 0 }, key);
-    const { letter, accidental } = parseSpelling(spell(midi, key));
-    signature.set(letter, accidental);
-  }
-  return signature;
+function keySignature(fifths) {
+  const letters = fifths >= 0 ? SHARP_ORDER : FLAT_ORDER;
+  const accidental = fifths >= 0 ? 1 : -1;
+  return new Map(letters.slice(0, Math.abs(fifths)).map((letter) => [letter, accidental]));
 }
 
 /**
@@ -224,42 +244,28 @@ function abcPitch({ letter, accidental, octave }, signature, inForce) {
 }
 
 /**
- * The chord symbol above (letter name), and below it the numeral in the
- * user's label style. Nothing key-relative in hidden mode.
+ * The text of a chord symbol: its letter name, or a neutral mark in hidden
+ * mode. The text is quoted into ABC, so it is limited to what a chord name
+ * can contain (a root letter, then no quote, newline, `%`, or backslash);
+ * anything else reads as "?" rather than reaching the ABC.
  * @param {import("../types.js").ChordSpec} chord
- * @param {Key} key
  * @param {KeyLabelMode} mode
- * @param {LabelStyle} labelStyle
  */
-function chordLabels(chord, key, mode, labelStyle) {
-  const below = numeralLabel(chord, key, mode, labelStyle);
-  return `"${letterOf(chord)}"` + (below ? `"_${below}"` : "");
-}
-
-/**
- * The chord's key-relative label in the user's style, or "" when there is
- * none (hidden mode, or letters only).
- * @param {import("../types.js").ChordSpec} chord
- * @param {Key} key
- * @param {KeyLabelMode} mode
- * @param {LabelStyle} labelStyle
- */
-function numeralLabel(chord, key, mode, labelStyle) {
-  if (mode === "hidden" || labelStyle === "letters") return "";
-  return labelStyle === "nashville"
-    ? nashvilleOf(chord, key).replace(/7$/, "⁷")
-    : numeralOf(chord, key);
+export function chordSymbol(chord, mode) {
+  if (mode === "hidden") return HIDDEN_CHORD_MARK;
+  const name = letterOf(chord).replace(/["%\\\r\n]/g, "");
+  return /^[A-G]/.test(name) ? name : "?";
 }
 
 /**
  * The accessible name of a note on the staff, e.g. "F sharp 4, degree 3,
- * chord D, I". Says only what the staff shows, so hidden mode stays hidden.
+ * chord D". Says only what the staff shows, so hidden mode stays hidden.
  * @param {import("../types.js").Note} note
  * @param {import("../types.js").ChordSpec | null} chord
  * @param {Key} key
  * @param {StaffView} view
  */
-export function describeNote(note, chord, key, { mode, labelStyle, showDegrees }) {
+export function describeNote(note, chord, key, { mode, showDegrees }) {
   const pitch = parseSpelling(spell(note.midi, key));
   const parts = [`${pitch.letter}${SPOKEN_ACCIDENTAL[pitch.accidental]} ${pitch.octave}`];
   if (mode !== "hidden" && showDegrees) {
@@ -271,10 +277,7 @@ export function describeNote(note, chord, key, { mode, labelStyle, showDegrees }
         : ` ${octaves} octave${octaves > 1 ? "s" : ""} ${octave > 0 ? "up" : "down"}`;
     parts.push(`degree${SPOKEN_ACCIDENTAL[accidental]} ${degree}${where}`);
   }
-  if (chord) {
-    const numeral = numeralLabel(chord, key, mode, labelStyle);
-    parts.push(`chord ${letterOf(chord)}` + (numeral ? ` (${numeral})` : ""));
-  }
+  if (chord) parts.push(mode === "hidden" ? "chord" : `chord ${chordSymbol(chord, mode)}`);
   return parts.join(", ");
 }
 
