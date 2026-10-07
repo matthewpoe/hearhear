@@ -193,3 +193,37 @@ test("the accessible name says only what the staff shows", () => {
   );
   assert.equal(describeNote(n, chord, key, HIDDEN), "F sharp 4, chord");
 });
+
+test("6/8 beams flagged notes in two groups of three, counted from the downbeat", () => {
+  const { abc } = songToAbc(
+    song(
+      { tonic: "E", mode: "minor" },
+      [
+        note("p", 64, 0, 6),
+        note("a", 67, 6, 6),
+        note("b", 69, 12, 6),
+        note("c", 71, 18, 6),
+        note("d", 72, 24, 9),
+        note("e", 71, 33, 3),
+        note("f", 69, 36, 6),
+      ],
+      [],
+      { beatsPerBar: 6, beatUnit: 8, pickupTicks: 6 },
+    ),
+    CONFIRMED,
+  );
+  assert.deepEqual(body(abc), ["E6 | G6A6B6 c9B3A6 |]"]);
+});
+
+test("a quarter in 6/8 is not beamed to its neighbours", () => {
+  const { abc } = songToAbc(
+    song(
+      { tonic: "E", mode: "minor" },
+      [note("a", 67, 0, 12), note("b", 69, 12, 6), note("c", 71, 18, 18)],
+      [],
+      { beatsPerBar: 6, beatUnit: 8 },
+    ),
+    CONFIRMED,
+  );
+  assert.deepEqual(body(abc), ["G12 A6 B18 |]"]);
+});

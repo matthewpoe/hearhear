@@ -9,6 +9,8 @@
 
 import odeToJoy from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import stJames from "../../content/songs/st-james-infirmary.json" with { type: "json" };
+import amazingGrace from "../../content/songs/amazing-grace.json" with { type: "json" };
+import greensleeves from "../../content/songs/greensleeves.json" with { type: "json" };
 import { song } from "../store/song.js";
 import { ui } from "../store/ui.js";
 import { stop } from "../audio/index.js";
@@ -24,6 +26,14 @@ export const DEMO_TUNES = [
   {
     song: /** @type {Song} */ (stJames),
     blurb: "A slow New Orleans lament from 1930.",
+  },
+  {
+    song: /** @type {Song} */ (amazingGrace),
+    blurb: "A hymn in three: one pickup note, then long notes to land on.",
+  },
+  {
+    song: /** @type {Song} */ (greensleeves),
+    blurb: "An old English tune that lilts in sixes, with a pickup.",
   },
 ];
 
