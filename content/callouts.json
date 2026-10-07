@@ -1,4 +1,55 @@
 {
-  "$comment": "Beginner callouts as data, anchored to element ids. Shape owned by Stream D3.",
-  "callouts": []
+  "$comment": "Beginner callouts, shown one at a time in this order, each beside the element whose id is its anchor. A callout whose anchor isn't on the page is skipped. needsKeyLabels: true skips it while a demo hides key labels (before the user's guess). Matthew owns this wording; Stream K renders it. Drafts by Claude, Oct 7, 2026.",
+  "callouts": [
+    {
+      "id": "welcome",
+      "anchor": "landing",
+      "title": "Start here",
+      "text": "Turn your sound on and pick a tune. Every sound also shows on screen, so you can follow along with it off."
+    },
+    {
+      "id": "key-prompt",
+      "anchor": "key-prompt",
+      "title": "Where is home?",
+      "text": "Most tunes keep coming back to one note and resting there. That note is home, and a key is just a name for where home is. Your answer is a guess, and you can change it any time."
+    },
+    {
+      "id": "number-keys",
+      "anchor": "piano",
+      "title": "These number keys are notes. 1 is home.",
+      "text": "Press 1 to 7 on your computer's top row to climb the scale, the ladder of notes a tune is built from. The row below plays the same steps an octave lower: the same notes, sung in a deeper voice.",
+      "needsKeyLabels": true
+    },
+    {
+      "id": "staff",
+      "anchor": "staff",
+      "title": "The tune, written out",
+      "text": "Read it left to right; higher on the lines means a higher note. As it plays, each note lights up, so you can follow by eye."
+    },
+    {
+      "id": "audition",
+      "anchor": "chords",
+      "title": "Hover a chord to hear it under the tune.",
+      "text": "A chord is a few notes played together by the left hand, underneath the melody (the part you'd hum). Try a few and keep the one that sounds right to you."
+    },
+    {
+      "id": "function-shapes",
+      "anchor": "chords",
+      "title": "Blue circle means home; red square means tension.",
+      "text": "Each chord's shape and color say what it does. Blue circle: home, at rest. Yellow triangle: stepping away. Red square: tension that wants to come home. Hear how red pulls back to blue?",
+      "needsKeyLabels": true
+    },
+    {
+      "id": "toolbar",
+      "anchor": "toolbar",
+      "title": "Your controls",
+      "text": "Play and stop the tune, and choose how chords are named. Transpose moves the whole tune higher or lower: the sound changes, but the numbers stay the same, because they count from home."
+    },
+    {
+      "id": "tutor",
+      "anchor": "tutor",
+      "title": "Stuck? Ask the tutor.",
+      "text": "It's an AI music teacher. It points you to where to listen rather than handing you the answer, and you can ask for options or its best guess whenever you want more."
+    }
+  ]
 }
