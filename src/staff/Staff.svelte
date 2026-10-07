@@ -11,6 +11,8 @@
   import { ui, keyLabelMode } from "../store/ui.js";
   import { describeNote, hasLyrics, songToAbc } from "./abc.js";
   import { spellMelody } from "../theory/index.js";
+  import { spokenNote } from "../theory/noteDisplay.js";
+  import { fieldOwnsKey } from "../lib/fieldOwnsKey.js";
   import { mapDrawnNotes } from "./noteMap.js";
   import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
@@ -20,6 +22,8 @@
   import AccidentalMenu from "./AccidentalMenu.svelte";
   import History from "../toolbar/History.svelte";
   import LabelControls from "../toolbar/LabelControls.svelte";
+  import { recorder } from "../record/tunes.js";
+  import { isUserTune } from "../record/take.js";
   import "../print.css";
 
   /** @typedef {typeof import("abcjs").default} Abcjs */
@@ -27,7 +31,7 @@
   /** Extra clickable margin around each note, in the staff's SVG units. */
   const HIT_PADDING = 3;
   /** Each note's tooltip: how to reach both of its menus. */
-  const NOTE_TIP = "Click for chords · right-click to change the accidental";
+  const NOTE_TIP = "Click for chords · right-click to edit the note";
 
   /** @type {HTMLDivElement} */
   let host;
@@ -118,6 +122,7 @@
       const svg = host.querySelector("svg");
       svg?.setAttribute("role", "group");
       svg?.setAttribute("aria-label", `Notation: ${current.title}`);
+      markRenamable(current);
       const playhead = ui.get().playheadNoteId;
       if (playhead) highlight([playhead], "is-playing");
       drawError = null;
@@ -208,6 +213,23 @@
     group.prepend(title);
   }
 
+  /**
+   * A user's own tune renames from its title on the staff too: a click opens
+   * the record bar's title field (recorder.rename), where Enter saves and
+   * Escape cancels. Demo titles stay plain text. Pointer only, so the staff
+   * keeps its one tab stop: the record bar's title button is the keyboard's
+   * way to the same field.
+   * @param {import("../types.js").Song} current
+   */
+  function markRenamable(current) {
+    const heading = host.querySelector(".abcjs-title");
+    if (!heading || !isUserTune(current.id)) return;
+    heading.classList.add("renamable");
+    const tip = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    tip.textContent = "Click to rename";
+    heading.prepend(tip);
+  }
+
   // The reveal: the first time labels turn confirmed, colors and degrees grow in.
   let previousMode = untrack(() => mode);
   $effect(() => {
@@ -223,7 +245,12 @@
 
   /** @param {MouseEvent} event */
   function onClick(event) {
-    const group = /** @type {Element} */ (event.target).closest("[data-note-id]");
+    const target = /** @type {Element} */ (event.target);
+    if (target.closest(".renamable")) {
+      recorder.rename();
+      return;
+    }
+    const group = target.closest("[data-note-id]");
     if (group) noteClick(group);
   }
 
@@ -258,13 +285,52 @@
   async function closeAccidentals(restoreFocus) {
     const noteId = accidentalMenu?.noteId;
     accidentalMenu = null;
-    if (!restoreFocus || !noteId) return;
+    if (restoreFocus && noteId) await focusAfterEdit(noteId);
+  }
+
+  /**
+   * Focus a note once an edit has redrawn the staff, found by id. A deleted
+   * note's focus goes to the note now in its place (the next, else the last).
+   * Call it before the redraw, while the note is still on the staff.
+   * @param {string} noteId
+   */
+  async function focusAfterEdit(noteId) {
+    const byId = (/** @type {Element} */ b) => b.getAttribute("data-note-id") === noteId;
+    const was = noteButtons.findIndex(byId);
     await tick();
-    const target = noteButtons.find((b) => b.getAttribute("data-note-id") === noteId);
+    const target =
+      noteButtons.find(byId) ??
+      (was >= 0 ? noteButtons[Math.min(was, noteButtons.length - 1)] : undefined);
     if (!(target instanceof SVGElement)) return;
     for (const button of noteButtons) button.setAttribute("tabindex", "-1");
     target.setAttribute("tabindex", "0");
     target.focus();
+  }
+
+  /**
+   * Shift+Backspace or Shift+Delete deletes a note: the focused staff note,
+   * or the one the chord dropdown is open on. Like the note menu's Delete
+   * note, it leaves a rest (makeRest), so later bars don't shift. Plain
+   * Backspace and Delete stay the number row's: they clear the selected
+   * note's chord, and a second press must not go on to delete the note
+   * (DECISIONS.md).
+   * @param {KeyboardEvent} event
+   */
+  function onWindowKeydown(event) {
+    if (event.defaultPrevented || !event.shiftKey || event.altKey || event.ctrlKey) return;
+    if (event.metaKey || (event.key !== "Backspace" && event.key !== "Delete")) return;
+    if (fieldOwnsKey(event.target, event.code)) return;
+    const active = document.activeElement;
+    const focused = active && host.contains(active) ? active.closest("[data-note-id]") : null;
+    const noteId = focused?.getAttribute("data-note-id") ?? ui.get().selectedNoteId;
+    const current = song.get();
+    const index = current.notes.findIndex((n) => n.id === noteId);
+    if (!noteId || index < 0) return;
+    event.preventDefault();
+    const named = spokenNote(spellMelody(current.notes, current.key)[index] ?? "");
+    song.makeRest(noteId);
+    pitchStatus = `Deleted ${named}. Its time is a rest.`;
+    void focusAfterEdit(noteId);
   }
 
   /** @param {KeyboardEvent} event */
@@ -310,6 +376,8 @@
     };
   });
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <section id="staff" class="staff" aria-label="Staff">
   <!-- One short row of controls over the music: Play/Pause and Stop | the
@@ -468,6 +536,12 @@
   }
   .notation :global(.abcjs-title) {
     font-weight: 500;
+  }
+  .notation :global(.abcjs-title.renamable) {
+    cursor: text;
+  }
+  .notation :global(.abcjs-title.renamable:hover) {
+    text-decoration: underline dotted;
   }
   .notation :global(.abcjs-chord) {
     font-weight: 500;

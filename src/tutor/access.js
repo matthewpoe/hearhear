@@ -26,6 +26,18 @@ export function codeFromFragment(hash) {
 }
 
 /**
+ * Whether the tutor panel shows its passphrase form. A live server with no
+ * saved code asks up front, before the first question; so does a student who
+ * chose to change theirs. A request the server turned away asks in any mode.
+ * @param {{ live: boolean, hasCode: boolean, changing: boolean, failure: string }} state
+ *   `failure` is the failed request's code, or "" when nothing has failed
+ * @returns {boolean}
+ */
+export function asksForCode({ live, hasCode, changing, failure }) {
+  return failure === "access_required" || (live && (!hasCode || changing));
+}
+
+/**
  * The page's access to the live tutor.
  * @param {{
  *   location: { pathname: string, search: string, hash: string },
