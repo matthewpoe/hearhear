@@ -60,6 +60,13 @@
     scope = "whole";
   });
 
+  // With no place left (its note deleted, the song switched), "This bar" has
+  // nothing to point at: back to the top, so a later note click never turns
+  // Play into "Play bar N" unasked.
+  $effect(() => {
+    if (place === null) scope = "whole";
+  });
+
   // Arrowing along the staff's notes moves the place too.
   $effect(() => {
     /** @param {FocusEvent} event */
