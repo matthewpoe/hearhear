@@ -1,0 +1,134 @@
+// The accidental menu on staff notes: a right-click offers the note's letter
+// with each accidental, a choice changes the pitch (and Undo brings it back),
+// the keyboard reaches it with Shift+F10, and it passes axe in both themes.
+// Fails on any console error.
+
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+/** Ode to Joy's third note: G4, in D major once the key is chosen. */
+const G = "n3";
+
+/**
+ * A note's head, aimed above its middle (a head on a line has the staff line
+ * across its middle).
+ * @param {import("@playwright/test").Page} page
+ * @param {string} id
+ */
+async function noteHead(page, id) {
+  const head = page.locator(`#staff [role="button"][data-note-id="${id}"] .abcjs-notehead`);
+  const box = await head.boundingBox();
+  if (!box) throw new Error(`note ${id} isn't on the staff`);
+  return { head, position: { x: box.width / 2, y: box.height / 4 } };
+}
+
+/** @param {import("@playwright/test").Page} page */
+async function axe(page) {
+  // Let theme transitions settle, so contrast is measured on final colors.
+  await page.evaluate(() => {
+    const finite = document
+      .getAnimations()
+      .filter((a) => a.effect?.getComputedTiming().endTime !== Infinity);
+    const settled = Promise.allSettled(finite.map((a) => a.finished));
+    return Promise.race([settled, new Promise((resolve) => setTimeout(resolve, 2000))]);
+  });
+  const { violations } = await new AxeBuilder({ page }).analyze();
+  expect(
+    violations.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target).join(" | ")})`),
+  ).toEqual([]);
+}
+
+test("right-click a note to change its accidental, by mouse and keyboard", async ({ page }) => {
+  /** @type {string[]} */
+  const problems = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") problems.push(msg.text());
+  });
+  page.on("pageerror", (error) => problems.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: /Ode to Joy/ }).click();
+  // Home is D, so G4 is a plain G and G sharp is written as one.
+  await page
+    .locator("#key-prompt")
+    .getByRole("group", { name: "Home note" })
+    .getByRole("button", { name: "D", exact: true })
+    .click();
+
+  const note = page.locator(`#staff [role="button"][data-note-id="${G}"]`);
+  await expect(note).toHaveAccessibleName(/^G 4\b/);
+  // The tooltip says how to reach both menus.
+  await expect(note.locator("> title")).toHaveText(
+    "Click for chords · right-click to change the accidental",
+  );
+
+  // 1. Right-click: the menu lists G with each accidental, natural checked.
+  const { head, position } = await noteHead(page, G);
+  await head.click({ button: "right", position });
+  const menu = page.getByRole("menu", { name: "Change G4" });
+  await expect(menu).toBeVisible();
+  await expect(menu).toBeInViewport();
+  // Anchored to the note: just below it (or just above), not drifted away.
+  const noteBox = await note.boundingBox();
+  const menuBox = await page.locator(".accidentals").boundingBox();
+  if (!noteBox || !menuBox) throw new Error("note or menu has no box");
+  const gap = Math.min(
+    Math.abs(menuBox.y - (noteBox.y + noteBox.height)),
+    Math.abs(noteBox.y - (menuBox.y + menuBox.height)),
+  );
+  expect(gap).toBeLessThan(16);
+  const items = menu.getByRole("menuitemradio");
+  await expect(items).toHaveText(["G♯", /^G♭\s*Shows as F♯ in this key$/, "G♮", /^G𝄪/, /^G𝄫/]);
+  await expect(menu.getByRole("menuitemradio", { checked: true })).toHaveAccessibleName(
+    "G natural",
+  );
+  await expect(menu.getByRole("menuitemradio", { name: "G natural" })).toBeFocused();
+  // The chord dropdown stays shut: right-click is not a click.
+  await expect(page.locator("#chords [role='dialog']")).toHaveCount(0);
+  await axe(page);
+  // The theme toggle is outside the menu, so pressing it closes the menu.
+  const darkMode = page.getByRole("button", { name: "Dark mode" });
+  await darkMode.click();
+  await expect(menu).toHaveCount(0);
+  await head.click({ button: "right", position });
+  await expect(menu).toBeVisible();
+  await axe(page);
+  await darkMode.click();
+  await head.click({ button: "right", position });
+
+  // 2. Choose sharp: the staff writes G sharp, the change is announced, and
+  // focus is back on the note.
+  await menu.getByRole("menuitemradio", { name: "G sharp" }).click();
+  await expect(menu).toHaveCount(0);
+  await expect(note).toHaveAccessibleName(/^G sharp 4\b/);
+  await expect(page.locator("#staff .pitch-status")).toHaveText("G♯4");
+  await expect(note).toBeFocused();
+
+  // 3. Undo restores the natural.
+  await page.getByRole("group", { name: "History" }).getByRole("button", { name: "Undo" }).click();
+  await expect(note).toHaveAccessibleName(/^G 4\b/);
+
+  // 4. The keyboard: Shift+F10 on the focused note, arrows, Enter.
+  await note.focus();
+  await page.keyboard.press("Shift+F10");
+  await expect(menu.getByRole("menuitemradio", { name: "G natural" })).toBeFocused();
+  await page.keyboard.press("ArrowUp");
+  await expect(menu.getByRole("menuitemradio", { name: /^G flat/ })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(menu).toHaveCount(0);
+  await expect(note).toBeFocused();
+  // G flat in D major is the F sharp that's already in the key.
+  await expect(note).toHaveAccessibleName(/^F sharp 4\b/);
+  await expect(page.locator("#staff .pitch-status")).toHaveText("G♭4, shown as F♯4");
+
+  // 5. Escape closes without a change and returns focus; the ContextMenu key opens it too.
+  await page.keyboard.press("ContextMenu");
+  await expect(page.getByRole("menu", { name: "Change F♯4" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(note).toBeFocused();
+  await expect(note).toHaveAccessibleName(/^F sharp 4\b/);
+
+  expect(problems).toEqual([]);
+});

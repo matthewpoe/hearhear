@@ -6,7 +6,7 @@
   // abcjs loads on demand (decision D16), so the main bundle stays small.
   // App.svelte shows the staff only once a song has notes, so the empty
   // landing has no Play, Print, or blank staff.
-  import { untrack } from "svelte";
+  import { tick, untrack } from "svelte";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
   import { describeNote, songToAbc } from "./abc.js";
@@ -14,6 +14,7 @@
   import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
+  import AccidentalMenu from "./AccidentalMenu.svelte";
   import History from "../toolbar/History.svelte";
   import LabelControls from "../toolbar/LabelControls.svelte";
   import VoiceLeading from "../toolbar/VoiceLeading.svelte";
@@ -24,6 +25,8 @@
 
   /** Extra clickable margin around each note, in the staff's SVG units. */
   const HIT_PADDING = 3;
+  /** Each note's tooltip: how to reach both of its menus. */
+  const NOTE_TIP = "Click for chords · right-click to change the accidental";
 
   /** @type {HTMLDivElement} */
   let host;
@@ -40,6 +43,10 @@
 
   /** Note groups in reading order; one per note (its first glyph). */
   let noteButtons = /** @type {Element[]} */ ([]);
+  /** The open accidental menu's note, and where it was on screen. */
+  let accidentalMenu = $state(/** @type {{ noteId: string, rect: DOMRect } | null} */ (null));
+  /** The polite announcement of a changed pitch. */
+  let pitchStatus = $state("");
 
   function loadAbcjs() {
     loadError = false;
@@ -133,6 +140,7 @@
       for (const group of groups) {
         group.setAttribute("data-note-id", note.id);
         addHitArea(group);
+        addTooltip(group);
       }
       const [first] = groups;
       if (!first) continue;
@@ -180,6 +188,17 @@
     group.prepend(rect);
   }
 
+  /**
+   * A native tooltip on the note. SVG takes it from a <title> child, which
+   * assistive tech reads as the note's description.
+   * @param {Element} group
+   */
+  function addTooltip(group) {
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = NOTE_TIP;
+    group.prepend(title);
+  }
+
   // The reveal: the first time labels turn confirmed, colors and degrees grow in.
   let previousMode = untrack(() => mode);
   $effect(() => {
@@ -199,6 +218,46 @@
     if (group) noteClick(group);
   }
 
+  /**
+   * Open the accidental menu on a note, anchored to the whole note.
+   * @param {Element} group
+   */
+  function openAccidentals(group) {
+    const noteId = group.getAttribute("data-note-id");
+    if (!noteId || accidentalMenu?.noteId === noteId) return;
+    const button = noteButtons.find((b) => b.getAttribute("data-note-id") === noteId) ?? group;
+    accidentalMenu = { noteId, rect: button.getBoundingClientRect() };
+  }
+
+  /**
+   * Right-click, ctrl-click on a Mac, or a long-press: the accidental menu,
+   * in place of the browser's own menu on notes only.
+   * @param {MouseEvent} event
+   */
+  function onContextMenu(event) {
+    const group = /** @type {Element} */ (event.target).closest("[data-note-id]");
+    if (!group) return;
+    event.preventDefault();
+    openAccidentals(group);
+  }
+
+  /**
+   * Close the accidental menu; with restoreFocus, focus its note. The staff
+   * may have redrawn under the menu, so find the note by id after the redraw.
+   * @param {boolean} restoreFocus
+   */
+  async function closeAccidentals(restoreFocus) {
+    const noteId = accidentalMenu?.noteId;
+    accidentalMenu = null;
+    if (!restoreFocus || !noteId) return;
+    await tick();
+    const target = noteButtons.find((b) => b.getAttribute("data-note-id") === noteId);
+    if (!(target instanceof SVGElement)) return;
+    for (const button of noteButtons) button.setAttribute("tabindex", "-1");
+    target.setAttribute("tabindex", "0");
+    target.focus();
+  }
+
   /** @param {KeyboardEvent} event */
   function onKeydown(event) {
     const index = noteButtons.indexOf(/** @type {Element} */ (event.target));
@@ -206,6 +265,11 @@
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       noteClick(noteButtons[index]);
+      return;
+    }
+    if (event.key === "ContextMenu" || (event.key === "F10" && event.shiftKey)) {
+      event.preventDefault();
+      openAccidentals(noteButtons[index]);
       return;
     }
     const last = noteButtons.length - 1;
@@ -229,9 +293,11 @@
   $effect(() => {
     host.addEventListener("click", onClick);
     host.addEventListener("keydown", onKeydown);
+    host.addEventListener("contextmenu", onContextMenu);
     return () => {
       host.removeEventListener("click", onClick);
       host.removeEventListener("keydown", onKeydown);
+      host.removeEventListener("contextmenu", onContextMenu);
     };
   });
 </script>
@@ -266,6 +332,12 @@
   <div class="frame">
     <div class="notation mode-{mode}" bind:this={host}></div>
   </div>
+  <AccidentalMenu
+    request={accidentalMenu}
+    onclose={closeAccidentals}
+    onannounce={(text) => (pitchStatus = text)}
+  />
+  <p class="visually-hidden pitch-status" role="status">{pitchStatus}</p>
 </section>
 
 <style>
