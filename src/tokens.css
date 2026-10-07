@@ -92,6 +92,24 @@
   --key-edge: #b9b6ae;
   --key-glow-melody: #b9b9c2;
 
+  /* The melody sounding now is gold, the third Mardi Gras color beside
+     violet (what you do) and green (what you hear: controls and the drone).
+     Gold is an ochre fill with a glow, never a flat edge or a shape, and it
+     is darker than subdominant yellow: --melody vs --fn-subdominant is 1.85
+     (1.89 protan, 1.83 deutan, 1.79 tritan). Key labels on --melody are
+     5.7 (--key-black, light) and 6.5 (dark). --melody-soft is only the top of
+     the gradient, above the labels. The drone is a pale green tint with a
+     green bar across the top of a key: the bar is 4.3 on its white-key tint
+     and 5.7 on its black-key tint; key labels on the tints are 13.7 / 15.7
+     (white keys) and 10.1 / 8.0 (black keys, light / dark). */
+  --melody: #c08a2c;
+  --melody-soft: #f3e4bf;
+  --melody-glow: #c08a2c8c;
+  --drone-on-white-key: #1e7a4c;
+  --drone-on-black-key: #6fd6a0;
+  --drone-tint-white-key: #d3ecdd;
+  --drone-tint-black-key: #1f4a35;
+
   color-scheme: light;
 
   /* Type */
@@ -137,6 +155,7 @@
   --dur-fast: 120ms;
   --dur-land: 400ms;
   --dur-reveal: 700ms;
+  --dur-melody-out: 280ms;
 }
 
 @media screen {
@@ -178,6 +197,8 @@
     --key-black: #0b0b0e;
     --key-edge: #4a4a55;
     --key-glow-melody: #8a8a96;
+    --melody-soft: #ead39a;
+    --melody-glow: #e0ac4ab3;
 
     color-scheme: dark;
   }
@@ -188,5 +209,6 @@
     --dur-fast: 0ms;
     --dur-land: 0ms;
     --dur-reveal: 0ms;
+    --dur-melody-out: 0ms;
   }
 }
