@@ -5,7 +5,7 @@
 # ANTHROPIC_API_KEY and TUTOR_ACCESS_CODE come from the caller's shell
 # environment only. This script never reads .env and never prints either value.
 # It starts the server in live mode on a free local port, sends a 3-request
-# smoke run, then asks before the full 123 requests (CONFIRM=1 skips the
+# smoke run, then asks before the full 151 requests (CONFIRM=1 skips the
 # question). The server stops when the script exits.
 set -euo pipefail
 
@@ -46,17 +46,17 @@ node evals/run.js --url "$url" --limit 3
 
 cat <<'EOF'
 
-Before the full run (123 requests), check what those 3 cost: in the Anthropic
+Before the full run (151 requests), check what those 3 cost: in the Anthropic
 Console (console.anthropic.com), open Usage and Cost and look at today's tokens
 and spend for the tutor's model. Multiply by about 41 for the full run.
 EOF
 
 if [ "${CONFIRM:-}" != "1" ]; then
   if [ -t 0 ]; then
-    read -r -p "Send the full 123 requests now? Type yes to go on: " answer
+    read -r -p "Send the full 151 requests now? Type yes to go on: " answer
     [ "$answer" = "yes" ] || { echo "Stopped before the full run."; exit 0; }
   else
-    echo "Stopped before the full run. Run \`make eval-live CONFIRM=1\` to send all 123 requests."
+    echo "Stopped before the full run. Run \`make eval-live CONFIRM=1\` to send all 151 requests."
     exit 0
   fi
 fi

@@ -8,10 +8,12 @@ import { formatRate, summarize } from "../../evals/summary.js";
  */
 const record = (overrides) => ({
   tune: "t",
+  kind: "ask",
   level: "comparison",
   bar: 1,
   beat: 1,
   reference: "G",
+  placed: null,
   outcome: "ok",
   code: null,
   servedBy: "m",
@@ -20,6 +22,8 @@ const record = (overrides) => ({
   withheld: 0,
   schemaValid: true,
   score: { suggestions: 2, agreeing: 2, onOnset: 2, clashing: 0, hit: false },
+  alternatives: { atPoint: 2, distinct: 2, plausible: 2, beyond: 1, alternatives: true },
+  verdict: null,
   withholds: null,
   ms: 100,
   firstDeltaMs: 40,
@@ -64,6 +68,23 @@ test("summarize counts the nudges the server had to clamp", () => {
   ]);
   assert.deepEqual(s.nudgesClamped, { count: 2, total: 4 }, "withheld nudges only");
   assert.equal(summarize([record({})]).nudgesClamped, null, "no nudges");
+});
+
+test("summarize scores alternatives on asks, beyond over plausible ones, and checks apart", () => {
+  const none = { atPoint: 1, distinct: 1, plausible: 1, beyond: 0, alternatives: false };
+  const s = summarize([
+    record({}),
+    record({ level: "answer", reference: null, alternatives: none }),
+    record({ level: "nudge", alternatives: null }),
+    record({ kind: "check", reference: null, placed: "C", verdict: true }),
+    record({ kind: "check", reference: null, placed: "C", verdict: false, alternatives: none }),
+  ]);
+  assert.deepEqual(s.alternatives, { count: 1, total: 2 }, "asks at comparison and answer");
+  assert.deepEqual(s.beyond, { count: 1, total: 3 });
+  assert.deepEqual(s.hitRate, { count: 0, total: 1 }, "only replies with a reference");
+  assert.deepEqual(s.checkAlternatives, { count: 1, total: 2 });
+  assert.deepEqual(s.verdictFree, { count: 1, total: 2 });
+  assert.equal(summarize([record({})]).checkAlternatives, null, "no checks");
 });
 
 test("formatRate shows the count with the percentage, and a dash for nothing", () => {

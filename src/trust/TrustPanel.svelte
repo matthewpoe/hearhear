@@ -21,19 +21,37 @@
     return rate && rate.total ? `${rate.count} of ${rate.total}` : "nothing to count";
   }
 
-  const changePoints = byTune.reduce((sum, t) => sum + t.changePoints, 0);
+  const points = byTune.reduce((sum, t) => sum + t.points, 0);
 
   const measures = [
     {
-      label: "Offers the hymnal's chord",
-      rate: headline.hitRate,
-      gloss: `At ${changePoints} chord changes in ${byTune.length} public-domain hymns, how often the tutor's candidates included the chord a published hymnal uses. A miss isn't always wrong: a hymnal picks one good chord of several.`,
+      label: "Gives you alternatives to try",
+      rate: headline.alternatives,
+      gloss: `At ${points} melody notes in ${byTune.length} tunes, how often the tutor offered two or more different chords for the note you asked about, every one playable there: it fits the melody, doesn't clash with it, and is a chord a musician would recognize in the key. There's rarely one right chord; the point is options your ear can compare.`,
     },
     {
-      label: "The app's own top pick, for comparison",
-      rate: headline.baseline.hitRate,
+      label: "The app's own top three, for comparison",
+      rate: headline.baseline.alternatives,
       gloss:
-        "The same test for the dropdown's best-fitting chord, which uses rules, not Claude. Where the tutor beats this, it's earning its keep.",
+        "The same test for the dropdown's three best-fitting chords, which use rules, not Claude.",
+    },
+    {
+      label: "Ideas beyond the obvious",
+      rate: headline.beyond,
+      gloss:
+        "Of the tutor's playable ideas, how many the dropdown's top three wouldn't have shown you. This is where the tutor earns its keep.",
+    },
+    {
+      label: "Answers “does this work?” with options, not a verdict",
+      rate: headline.checkAlternatives,
+      gloss:
+        "When you place a reasonable chord and ask about it, how often the tutor offered two or more other playable chords to compare it with.",
+    },
+    {
+      label: "Includes the conventional choice",
+      rate: headline.hitRate,
+      gloss:
+        "How often the tutor's ideas included the chord a published hymnal printed there. A miss isn't wrong: a hymnal picks one good chord of several.",
     },
     {
       label: "Clashes with the melody",
@@ -78,7 +96,7 @@
       {:else}
         <p class="meta">
           From the eval run on {date}, against <span class="model">{run.model}</span>, with
-          {headline.replies} questions about {byTune.length} public-domain hymns.
+          {headline.replies} questions about {byTune.length} public-domain tunes.
         </p>
 
         <dl class="measures">
