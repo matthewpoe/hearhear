@@ -4,20 +4,45 @@ Same-origin serving, so there is no CORS middleware; in development the Vite
 dev server proxies /api here.
 """
 
+import uuid
+from functools import cache
 from typing import Annotated
 
+from anthropic import AsyncAnthropic, Timeout
 from fastapi import FastAPI, Header, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from hearhear.budget import TokenBudget
 from hearhear.config import load_settings
-from hearhear.models import TutorRequest
+from hearhear.errors import error_response
+from hearhear.limits import BodySizeLimit, client_ip
+from hearhear.live import stream_live
+from hearhear.log import log_event
+from hearhear.models import MAX_BODY_BYTES, TutorRequest
 from hearhear.tutor import replay_fixture
 
 settings = load_settings()
+budget = TokenBudget(settings.daily_token_budget)
+limiter = Limiter(key_func=client_ip)
 app = FastAPI(title="Hear Hear", docs_url=None, redoc_url=None, openapi_url=None)
+app.state.limiter = limiter
+
+
+@cache
+def anthropic_client() -> AsyncAnthropic:
+    """One shared client. The SDK reads ANTHROPIC_API_KEY itself. One retry,
+    and a read timeout well inside Railway's 5-minute idle cutoff."""
+    return AsyncAnthropic(max_retries=1, timeout=Timeout(120.0, connect=5.0))
+
+
+if settings.tutor_mode == "live":
+    anthropic_client()  # A client that can't be built fails the deploy, not a question.
+
 
 # Self only, with two narrow exceptions. Tone.js runs its clock in a Worker
 # built from a blob: URL, and the demo-video recorder plays back blob: media.
@@ -68,6 +93,9 @@ class SecurityHeaders:
         await self.app(scope, receive, send_with_headers)
 
 
+# Starlette runs the last-added middleware first: security headers wrap
+# everything, including the 413 the body cap returns.
+app.add_middleware(BodySizeLimit, max_bytes=MAX_BODY_BYTES)
 app.add_middleware(SecurityHeaders)
 
 
@@ -77,10 +105,18 @@ async def invalid_request(_request: Request, exc: RequestValidationError) -> JSO
     never the submitted value."""
     first = exc.errors()[0]
     where = ".".join(str(part) for part in first["loc"][1:]) or "body"
-    return JSONResponse(
-        status_code=422,
-        content={"error": {"code": "invalid_request", "message": f"{where}: {first['msg']}"}},
-    )
+    return error_response(422, "invalid_request", f"{where}: {first['msg']}")
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limited(_request: Request, _exc: RateLimitExceeded) -> JSONResponse:
+    log_event("request_rejected", code="rate_limited")
+    message = "That's a lot of questions at once. Give the tutor a minute and try again."
+    return error_response(429, "rate_limited", message)
+
+
+def _rate_limit() -> str:
+    return settings.rate_limit
 
 
 @app.api_route("/api/health", methods=["GET", "HEAD"])
@@ -88,17 +124,34 @@ def health() -> dict[str, str]:
     return {"status": "ok", "tutor_mode": settings.tutor_mode}
 
 
-@app.post("/api/tutor")
+@app.post("/api/tutor", response_model=None)
+@limiter.limit(_rate_limit)
 async def tutor(
+    request: Request,
     body: TutorRequest,
     x_tutor_fixture: Annotated[str | None, Header()] = None,
-) -> StreamingResponse:
-    # Phase 0: fixture mode only. Stream E adds live mode, limits, and budget.
-    return StreamingResponse(
-        replay_fixture(body, settings.fixtures_dir, x_tutor_fixture),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-store"},
-    )
+) -> StreamingResponse | JSONResponse:
+    """Order of checks: body cap (413, middleware), validation (422), rate
+    limit (429), daily budget (503), then the stream."""
+    request_id = uuid.uuid4().hex
+    headers = {"Cache-Control": "no-store", "X-Request-Id": request_id}
+    if settings.tutor_mode == "fixture":
+        log_event("tutor_fixture", request_id=request_id, hint_level=body.hint_level)
+        stream = replay_fixture(body, settings.fixtures_dir, x_tutor_fixture)
+    elif budget.exhausted():
+        log_event("request_rejected", code="over_budget", request_id=request_id)
+        message = "The live tutor is out of budget for today; the recorded lessons still work."
+        return error_response(503, "over_budget", message, headers)
+    else:
+        # X-Tutor-Fixture is ignored here: live mode never replays fixtures.
+        stream = stream_live(
+            body,
+            client=anthropic_client(),
+            model=settings.tutor_model,
+            budget=budget,
+            request_id=request_id,
+        )
+    return StreamingResponse(stream, media_type="text/event-stream", headers=headers)
 
 
 @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)

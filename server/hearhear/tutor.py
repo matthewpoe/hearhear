@@ -1,8 +1,7 @@
-"""The tutor endpoint's streaming body (protocol: contracts/tutor-sse.md).
+"""SSE framing and fixture mode (protocol: contracts/tutor-sse.md).
 
-Phase 0 ships fixture mode only: it replays a shape fixture chosen by the
-request's hint level. Stream E adds live mode (structured output, partial-JSON
-parsing, validation), limits, and the token budget.
+Fixture mode, the default, replays a shape fixture chosen by the request's
+hint level, so the app and tests run with no API key. Live mode is in live.py.
 """
 
 import asyncio

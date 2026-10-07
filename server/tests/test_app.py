@@ -1,46 +1,8 @@
-import json
-from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-
-from hearhear import app as app_module
-
-SNAPSHOT: dict[str, Any] = {
-    "version": 7,
-    "key": {"tonic": "D", "mode": "major", "provisional": False},
-    "meter": {"beats_per_bar": 4, "beat_unit": 4, "pickup_beats": 0, "provisional": False},
-    "tempo": 108,
-    "label_style": "roman",
-    "bars": [
-        {
-            "bar": 1,
-            "notes": [{"beat": 1, "pitch": "F#4", "degree": "3", "beats": 1}],
-            "chords": [{"beat": 1, "numeral": "I", "nashville": "1", "letter": "D"}],
-        }
-    ],
-}
-
-
-@pytest.fixture
-def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    (tmp_path / "assets").mkdir()
-    (tmp_path / "assets" / "app.js").write_text("console.log('hi')")
-    (tmp_path / "index.html").write_text("<!doctype html><title>Hear Hear</title>")
-    settings = app_module.settings.__class__(
-        **{**app_module.settings.__dict__, "dist_dir": tmp_path}
-    )
-    monkeypatch.setattr(app_module, "settings", settings)
-    return TestClient(app_module.app)
-
-
-def events(body: str) -> list[tuple[str, dict[str, Any]]]:
-    parsed = []
-    for block in body.strip().split("\n\n"):
-        event_line, data_line = block.split("\n")
-        parsed.append((event_line.removeprefix("event: "), json.loads(data_line[6:])))
-    return parsed
+from helpers import SNAPSHOT, events
 
 
 def test_health(client: TestClient) -> None:
