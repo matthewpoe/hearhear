@@ -52,8 +52,8 @@ export const audioStatus = { subscribe: status.subscribe };
 
 /** Keys held down right now, so auto-repeat and double presses sound once. */
 const held = new Set();
-/** The drone's pitch, or null when silent. */
-let droneMidi = /** @type {number | null} */ (null);
+/** The drone's pitches, empty when silent: a new array per drone() call. */
+let droneTones = /** @type {number[]} */ ([]);
 /** Bumped by every playback request and by stop(), so a superseded start never plays. */
 let request = 0;
 /** @type {ReturnType<typeof setTimeout> | undefined} */
@@ -247,17 +247,19 @@ export function stopAudition() {
 }
 
 /**
- * Hold a tonic under the melody (the drone test), or stop it with null.
- * @param {number | null} midi
+ * Hold a chord (or one note) under the melody, the key finder's test, or stop
+ * it with null. A new call replaces whatever is held.
+ * @param {number | number[] | null} tones MIDI
  */
-export function drone(midi) {
-  if (midi === droneMidi) return;
+export function drone(tones) {
+  const next = tones === null ? [] : typeof tones === "number" ? [tones] : [...tones];
+  if (next.length === droneTones.length && next.every((m, i) => m === droneTones[i])) return;
   const engine = current();
-  if (droneMidi !== null) engine?.drone.triggerRelease();
-  droneMidi = midi;
-  if (midi === null) return;
+  if (droneTones.length > 0) engine?.drone.releaseAll();
+  droneTones = next;
+  if (next.length === 0) return;
   void wake().then((woken) => {
-    if (droneMidi === midi) woken?.drone.triggerAttack(hz(midi));
+    if (droneTones === next) woken?.drone.triggerAttack(next.map(hz));
   });
 }
 

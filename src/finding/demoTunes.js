@@ -3,7 +3,7 @@
  * a demo"): the tune loads on the provisional C with key labels hidden, and
  * its true key stays in the content file, for the guided path's hints.
  *
- * @import { Key, Song } from "../types.js"
+ * @import { Song } from "../types.js"
  */
 
 import odeToJoy from "../../content/songs/ode-to-joy.json" with { type: "json" };
@@ -11,6 +11,7 @@ import stJames from "../../content/songs/st-james-infirmary.json" with { type: "
 import { song } from "../store/song.js";
 import { ui } from "../store/ui.js";
 import { stop } from "../audio/index.js";
+import { PROVISIONAL_C } from "./keys.js";
 
 /** Blurbs say nothing about key or mode: that's the user's to find. */
 export const DEMO_TUNES = [
@@ -23,9 +24,6 @@ export const DEMO_TUNES = [
     blurb: "A slow New Orleans lament from 1930.",
   },
 ];
-
-/** @type {Key} */
-const PROVISIONAL_C = { tonic: "C", mode: "major", provisional: true };
 
 /**
  * Load a demo tune on the provisional C and wait for the user's guess.

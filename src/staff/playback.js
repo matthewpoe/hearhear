@@ -39,9 +39,10 @@ let owner = null;
  * @param {TickRange} range
  * @param {{
  *   chords?: { chord: Chord, voicing: number[] }[],
- *   drone?: number | null,
+ *   drone?: number | number[] | null,
  * }} [options] chords replaces the song's chords for this playback (an empty
- *   array plays none); drone holds that MIDI note underneath until the end.
+ *   array plays none); drone holds and lights that MIDI note, or every note
+ *   of a chord, underneath until the end.
  * @returns {Promise<void>}
  */
 export async function playWithVisuals(range, { chords, drone = null } = {}) {
@@ -57,7 +58,7 @@ export async function playWithVisuals(range, { chords, drone = null } = {}) {
   /** @type {Map<string, HarmonicFunction>} computed once per play */
   const functions = hidden ? new Map() : chordFunctions({ ...played, chords: playedChords });
   const midiById = new Map(played.notes.map((n) => [n.id, n.midi]));
-  const droneLight = drone === null ? [] : [drone];
+  const droneLight = drone === null ? [] : [].concat(drone);
 
   /** @type {KeyboardLights} */
   let lights = { source: "playback", chord: null, melody: droneLight };

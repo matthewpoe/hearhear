@@ -1,14 +1,14 @@
 <script>
   /**
-   * One listening test: the melody alone, or over a drone. One button plays and
-   * stops, so keyboard focus stays on it as playback starts and ends. If
-   * playback fails it says so and offers a retry.
+   * One listening test: the melody over a candidate key's chord. One button
+   * plays and stops, so keyboard focus stays on it as playback starts and
+   * ends. If playback fails it says so and offers a retry.
    * @import { Key } from "../types.js"
    */
   import { listen, stopListening } from "./listen.js";
 
-  /** @type {{ label: string, droneKey?: Pick<Key, "tonic" | "mode"> | null }} */
-  let { label, droneKey = null } = $props();
+  /** @type {{ label: string, droneKey: Pick<Key, "tonic" | "mode"> }} */
+  let { label, droneKey } = $props();
 
   /** @type {"idle" | "playing" | "failed"} */
   let status = $state("idle");
