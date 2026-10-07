@@ -23,10 +23,11 @@
     "key": { "$ref": "#/$defs/key" },
     "meter": { "$ref": "#/$defs/meter" },
     "tempo": {
-      "description": "Quarter-note beats per minute.",
+      "description": "Quarter-note beats per minute. The default is a new song's tempo, and a recording's when it has no beat to measure.",
       "type": "integer",
       "minimum": 30,
-      "maximum": 240
+      "maximum": 240,
+      "default": 96
     },
     "version": {
       "description": "Bumped by every store action. Tutor suggestions are tied to the version they were made against.",

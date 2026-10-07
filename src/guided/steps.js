@@ -1,8 +1,9 @@
 /**
- * The guided path's pure logic (Stream G): what each step's condition reads
- * from the song, which note a bar and beat names, when a step advances on its
- * own, and the progress a viewer leaves and resumes. No DOM or store imports;
- * the component passes in the app state it read.
+ * The guided walkthrough's pure logic: what each step's condition reads from
+ * the app (a step advances once its condition holds), which steps are skipped
+ * here, which note a bar and beat names, and the progress a viewer leaves and
+ * resumes. No DOM or store imports; the component passes in the app state it
+ * read.
  *
  * @import { Song, Note } from "../types.js"
  */
@@ -10,38 +11,69 @@
 import { numeralOf, positionOf } from "../theory/index.js";
 
 /**
- * When a step is done (content/guided-path.json).
+ * When a step is done (content/guided-path.json): what its action produces.
  * @typedef {{ type: "songLoaded", song: string }
  *   | { type: "keyChosen", tonic: string, mode: "major" | "minor" }
- *   | { type: "keyCommitted" }
  *   | { type: "chordAt", bar: number, beat: number, numeral: string }
  *   | { type: "played" }
- *   | { type: "tutorReplied" }} Condition
+ *   | { type: "degrees", degrees: number[] }
+ *   | { type: "fact", fact: string }} Condition
  *
- * A step's "Try this" button. `label` is the button's text.
- * @typedef {({ type: "loadSong", song: string }
- *   | { type: "press", within: string, name: string }
- *   | { type: "openChords", bar: number, beat: number }
- *   | { type: "audition", bar: number, beat: number, numeral: string }
- *   | { type: "askTutor", lesson: string }) & { label: string }} Action
+ * `degrees`: the last notes played (number row or piano) were these scale
+ * degrees, in order, counted from home.
+ *
+ * A `fact` is one of FACTS, read from the stores, or a name in the content's
+ * `pageFacts` (a selector; true while something on the page matches it).
+ *
+ * The real control a step asks the viewer to use, which the tour spotlights:
+ * a demo tune's card on the welcome (else the song select), a button by its
+ * accessible name inside an element id, any element, or a note on the staff.
+ * @typedef {{ type: "song", song: string }
+ *   | { type: "button", within: string, name: string }
+ *   | { type: "element", selector: string }
+ *   | { type: "note", bar: number, beat: number }
+ *   | { type: "keys", codes: string[] }} Target
+ *
+ * `keys`: the piano keys the number row plays for those computer keys
+ * (KeyboardEvent codes, like "Digit3").
  *
  * @typedef {{
  *   id: string,
  *   title: string,
  *   line: string,
- *   text: string,
  *   done: Condition,
  *   hint?: { when: Condition, text: string },
- *   action?: Action,
+ *   target: Target,
+ *   sendOff?: boolean,
  * }} Step
+ *
+ * `sendOff`: the closing line, not a step to complete. Finish ends the
+ * walkthrough there, and doing its action ends it too.
  *
  * @typedef {{ status: string, song: string, steps: Step[] }} GuidedPath
  *
  * What the conditions read: the song on the staff, whether it has been
- * played since it was loaded, and how many replies the tutor has given in
- * its conversation.
- * @typedef {{ song: Song, played: boolean, tutorReplies: number }} AppState
+ * played since it was loaded, whether a tune was loaded since this run of the tour
+ * started (so a fresh tour never skips its load step), the scale degrees of
+ * the last notes played, and the facts.
+ * @typedef {{
+ *   song: Song,
+ *   played: boolean,
+ *   loadedThisTour: boolean,
+ *   recentDegrees?: number[],
+ *   facts?: Record<string, boolean>,
+ * }} AppState
  */
+
+/**
+ * The facts the component reads from the stores, as opposed to the page:
+ * any home is chosen (the key isn't provisional), the tour's tune now sounds
+ * in another key or octave, and the recorder is armed or recording.
+ */
+export const FACTS = /** @type {const} */ (["keyCommitted", "transposed", "recordStarted"]);
+
+/** How many recent degrees the component keeps, for `degrees` conditions. */
+export const RECENT_DEGREES = 8;
 
 /**
  * The note that starts at a bar and beat, if any.
@@ -77,27 +109,51 @@ export function numeralAt(song, bar, beat) {
  * @param {AppState} state
  * @returns {boolean}
  */
-export function conditionMet(condition, { song, played, tutorReplies }) {
+export function conditionMet(
+  condition,
+  { song, played, loadedThisTour, recentDegrees = [], facts },
+) {
   switch (condition.type) {
     case "songLoaded":
-      return song.id === condition.song && song.notes.length > 0;
+      return loadedThisTour && song.id === condition.song && song.notes.length > 0;
     case "keyChosen":
       return (
         !song.key.provisional &&
         song.key.tonic === condition.tonic &&
         song.key.mode === condition.mode
       );
-    case "keyCommitted":
-      return song.notes.length > 0 && !song.key.provisional;
     case "chordAt":
       return numeralAt(song, condition.bar, condition.beat) === condition.numeral;
     case "played":
       return played && song.notes.length > 0;
-    case "tutorReplied":
-      return tutorReplies > 0;
+    case "degrees":
+      return endsWith(recentDegrees, condition.degrees);
+    case "fact":
+      return facts?.[condition.fact] === true;
     default:
       return false;
   }
+}
+
+/**
+ * Whether `list` ends with `tail`, item for item.
+ * @param {readonly number[]} list
+ * @param {readonly number[]} tail
+ */
+function endsWith(list, tail) {
+  if (tail.length === 0 || list.length < tail.length) return false;
+  const start = list.length - tail.length;
+  return tail.every((item, i) => list[start + i] === item);
+}
+
+/**
+ * The degrees list after one more note: its scale degree (1–7, or 0 for a
+ * note off the scale), keeping the last RECENT_DEGREES.
+ * @param {readonly number[]} list
+ * @param {{ degree: number, accidental: number }} played
+ */
+export function pushDegree(list, played) {
+  return [...list, played.accidental === 0 ? played.degree : 0].slice(-RECENT_DEGREES);
 }
 
 /**
@@ -112,38 +168,29 @@ export function hintFor(step, state) {
 }
 
 /**
- * A step advances on its own when its condition becomes true while it's
- * showing. One already true when the viewer arrives shows as done and waits
- * for Next, so stepping Back never bounces forward again.
- * @param {boolean} wasMet
- * @param {boolean} isMet
- */
-export function shouldAdvance(wasMet, isMet) {
-  return !wasMet && isMet;
-}
-
-/**
- * What a step asks the viewer to use, for the strip to scroll into view: a
- * selector, and for a "press" action the button's accessible name inside it.
- * Null when the step names nothing on the page (or a note the song lacks).
+ * Where a step's target is, for the strip to spotlight and scroll to: a
+ * selector, with a button's accessible name inside it, a demo tune's id (its
+ * card or the song select, which the component resolves), or a note's id.
+ * Null when the target is a note the song lacks.
  * @param {Step} step
  * @param {Song} song
- * @returns {{ selector: string, button?: string } | null}
+ * @returns {{ selector?: string, button?: string, songId?: string, noteId?: string, codes?: string[] } | null}
  */
 export function stepTarget(step, song) {
-  const action = step.action;
-  switch (action?.type) {
-    case "loadSong":
-      return { selector: "#song-chooser" };
-    case "press":
-      return { selector: `#${action.within}`, button: action.name };
-    case "openChords":
-    case "audition": {
-      const note = noteAt(song, action.bar, action.beat);
-      return note ? { selector: `#staff [data-note-id=${JSON.stringify(note.id)}]` } : null;
+  const target = step.target;
+  switch (target.type) {
+    case "song":
+      return { songId: target.song };
+    case "button":
+      return { selector: `#${target.within}`, button: target.name };
+    case "element":
+      return { selector: target.selector };
+    case "note": {
+      const note = noteAt(song, target.bar, target.beat);
+      return note ? { noteId: note.id } : null;
     }
-    case "askTutor":
-      return { selector: "#tutor .ask" };
+    case "keys":
+      return { codes: target.codes };
     default:
       return null;
   }
@@ -170,7 +217,7 @@ export function checkPath(path, song) {
   /** @type {string[]} */
   const problems = [];
   for (const step of path.steps) {
-    for (const part of [step.done, step.hint?.when, step.action]) {
+    for (const part of [step.done, step.hint?.when, step.target]) {
       if (part && "bar" in part && !noteAt(song, part.bar, part.beat)) {
         problems.push(`${step.id}: no note at bar ${part.bar} beat ${part.beat} in ${song.id}`);
       }
@@ -208,20 +255,4 @@ export function saveProgress(index, storage) {
   } catch {
     // Storage blocked or full: the path still runs, it just forgets on reload.
   }
-}
-
-/**
- * The exchange a lesson names in content/lessons/plan.json: its question and
- * hint level.
- * @param {{ exchanges: { id: string, question: string, hint_level: string }[] }} plan
- * @param {string} lesson
- * @returns {{ question: string, level: "nudge" | "comparison" | "answer" } | null}
- */
-export function lessonExchange(plan, lesson) {
-  const exchange = plan.exchanges.find((e) => e.id === lesson);
-  if (!exchange) return null;
-  const level = ["nudge", "comparison", "answer"].includes(exchange.hint_level)
-    ? /** @type {"nudge" | "comparison" | "answer"} */ (exchange.hint_level)
-    : "nudge";
-  return { question: exchange.question, level };
 }
