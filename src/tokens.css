@@ -1,0 +1,87 @@
+/*
+ * Design tokens: the only place colors are defined. Every color conveys an
+ * idea: the three function colors are Kandinsky's 1923 Bauhaus pairing
+ * (tonic blue circle, subdominant yellow triangle, dominant red square).
+ * Keyboard and staff stay black and white.
+ *
+ * Contrast on --paper (WCAG AA text needs 4.5:1): --fn-tonic 7.5, --fn-dominant
+ * 5.0, --fn-other 4.8, --ink-muted 7.1. White text on tonic 7.8, dominant 5.3,
+ * other 5.0. --fn-subdominant is 1.6 and fails as text, so yellow chips use
+ * --fn-subdominant-ink text (11.0 on yellow) and a --fn-subdominant-edge
+ * outline (4.9, above the 3:1 non-text minimum).
+ */
+
+@font-face {
+  font-family: "Jost";
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/jost/jost-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Jost";
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/jost/jost-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Jost";
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/jost/jost-700.woff2") format("woff2");
+}
+
+:root {
+  /* Surfaces and ink */
+  --paper: #fbfaf7;
+  --surface: #ffffff;
+  --ink: #16161a;
+  --ink-muted: #55555e;
+  --rule: #d9d6cf;
+  --focus: #16161a;
+
+  /* Harmonic function */
+  --fn-tonic: #1d4fa3;
+  --fn-tonic-soft: #dce6f6;
+  --fn-subdominant: #f4c430;
+  --fn-subdominant-soft: #fdf3d2;
+  --fn-subdominant-ink: #16161a;
+  --fn-subdominant-edge: #8a6a00;
+  --fn-dominant: #c7362b;
+  --fn-dominant-soft: #f8dedb;
+  --fn-other: #6e6e78;
+  --fn-other-soft: #ececef;
+
+  /* Keyboard and staff (black and white by design) */
+  --key-white: #ffffff;
+  --key-black: #1b1b1f;
+  --key-glow-melody: #b9b9c2;
+
+  /* Type */
+  --font: "Jost", "Futura", "Avenir Next", system-ui, sans-serif;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+
+  /* Space and shape */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-land: 400ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-land: 0ms;
+  }
+}
