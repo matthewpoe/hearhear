@@ -159,3 +159,11 @@ export function degreeOf(option) {
   const parsed = parseNumeral(option.numeral);
   return parsed && parsed.accidental === 0 && !parsed.of ? parsed.degree : null;
 }
+
+/**
+ * The letter a tutor idea goes by in the dropdown's A/B/C: A for the first,
+ * then B, C, and on (past Z, a number; a reply carries at most 8).
+ * @param {number} index
+ */
+export const ideaLetter = (index) =>
+  index < 26 ? String.fromCharCode(65 + index) : `${index + 1}`;
