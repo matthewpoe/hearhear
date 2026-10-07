@@ -25,7 +25,7 @@ The tutor proxy reads these from the environment (Railway variables in productio
 | `TUTOR_MODE`               | `fixture`           | `fixture` replays recorded shapes with no key; `live` calls Claude.                       |
 | `TUTOR_MODEL`              | `claude-opus-5-5`   | The model live mode asks for.                                                             |
 | `ANTHROPIC_API_KEY`        | (none)              | Required when `TUTOR_MODE=live`; the server refuses to start without it. Never logged.    |
-| `TUTOR_DAILY_TOKEN_BUDGET` | `2000000`           | Input plus output tokens per UTC day, in memory. The hard cap is the Console spend limit. |
+| `TUTOR_DAILY_TOKEN_BUDGET` | `500000`            | Input plus output tokens per UTC day, in memory. The hard cap is the Console spend limit. |
 | `TUTOR_RATE_LIMIT`         | `10/minute;100/day` | Per-client-IP limit on `/api/tutor`, in slowapi syntax. The eval harness raises it.       |
 
 ## Where things are
