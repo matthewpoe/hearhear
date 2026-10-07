@@ -8,7 +8,8 @@ install:
 
 dev:
 	@echo "API on :8000, app on :5173"
-	uv run uvicorn hearhear.app:app --app-dir server --reload --port 8000 & npm run dev; kill %1
+	@uv run uvicorn hearhear.app:app --app-dir server --reload --port 8000 & api=$$!; \
+	trap 'kill $$api' EXIT INT TERM; npm run dev
 
 test:
 	npm test
