@@ -38,6 +38,12 @@
           "maxItems": 400,
           "title": "Bars",
           "type": "array"
+        },
+        "key_hidden": {
+          "default": false,
+          "description": "True while key labels are hidden (a demo before the guess). The proxy then withholds every suggestion.",
+          "title": "Key Hidden",
+          "type": "boolean"
         }
       },
       "required": [
