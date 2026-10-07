@@ -250,9 +250,11 @@ export function createSongStore(initial = emptySong()) {
     /**
      * Transpose: move melody, chords, and tonic together. Same numbers, new sound.
      * @param {number} semitones ±12 is the octave control
+     * @param {{ prefer?: "sharps" | "flats" }} [options] which enharmonic key
+     *   to name the new tonic with (F# or Gb major), passed to transposeSong
      */
-    transpose(semitones) {
-      commit((s) => transposeSong(s, semitones));
+    transpose(semitones, { prefer } = {}) {
+      commit((s) => transposeSong(s, semitones, { prefer }));
     },
 
     /**
