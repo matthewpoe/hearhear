@@ -17,18 +17,14 @@ test("the app loads under the production CSP, with every region and no a11y viol
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hear Hear", level: 1 })).toBeVisible();
-  // The empty landing has no staff: nothing to play or print yet.
-  for (const region of [
-    "Welcome",
-    "Chords",
-    "Tutor",
-    "How much should you trust the tutor?",
-    "Keyboard",
-  ]) {
+  // The empty landing is step 1 alone: the song list, and the keyboard. No
+  // staff, chords or tutor until a song is picked.
+  for (const region of ["Pick a song", "Keyboard"]) {
     await expect(page.getByRole("region", { name: region, exact: true })).toBeVisible();
   }
   const staff = page.getByRole("region", { name: "Staff", exact: true });
   await expect(staff).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Tutor", exact: true })).toHaveCount(0);
 
   // Light by default.
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
@@ -48,6 +44,9 @@ test("the app loads under the production CSP, with every region and no a11y viol
   // A tune brings the staff.
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
   await expect(staff).toBeVisible();
+  for (const region of ["Chords", "Tutor", "How much should you trust the tutor?"]) {
+    await expect(page.getByRole("region", { name: region, exact: true })).toBeVisible();
+  }
   await axe(page);
 
   expect(problems).toEqual([]);

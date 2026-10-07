@@ -55,10 +55,10 @@ for (const [width, height] of [
     await expect(page.locator("#piano .key.held")).toHaveCount(1);
     await page.keyboard.up("Digit1");
 
-    // The step path: the key is current, rhythm settled from the meter.
+    // The step path: the song done, the key current (a demo's rhythm is given).
     const steps = page.getByRole("list", { name: "Steps" });
     await expect(steps.locator('[aria-current="step"]')).toContainText("Key");
-    await expect(steps).toContainText("4/4, set from the tune");
+    await expect(steps).toContainText("Ode to Joy");
 
     // Settle the key, then collapse it: chords become current, and the key
     // reopens from its one-line summary.
@@ -71,7 +71,7 @@ for (const [width, height] of [
     await expect(question).toHaveCount(0);
     await expect(steps.locator('[aria-current="step"]')).toContainText("Chords");
     await expect(steps).toContainText("D major");
-    // Focus lands on the collapsed row, and the drone and degrees stay there.
+    // Focus lands on the collapsed row, and the drone stays there.
     await expect(steps.getByRole("button", { name: "Change the key" })).toBeFocused();
     const drone = steps.getByRole("switch", { name: "Drone on home" });
     await expect(drone).toHaveAttribute("aria-checked", "false");
@@ -79,7 +79,6 @@ for (const [width, height] of [
     await expect(drone).toHaveAttribute("aria-checked", "true");
     await drone.click();
     await expect(drone).toHaveAttribute("aria-checked", "false");
-    await expect(steps.getByRole("switch", { name: "Scale degrees" })).toBeVisible();
     await steps.getByRole("button", { name: "Change the key" }).click();
     await expect(question).toBeVisible();
 
@@ -144,6 +143,8 @@ test("a recorded tune asks Rhythm to confirm its guess once the key is chosen", 
   await expect(rhythm).toContainText(/The recording reads as\s+\d\/\d at \d+ beats a minute/);
   await rhythm.getByRole("button", { name: "Sounds right" }).click();
   await expect(steps.locator('[aria-current="step"]')).toContainText("Chords");
-  await expect(steps).toContainText("set from the tune");
+  // The card moves straight on to step 3's prompt: never an empty card.
+  await expect(page.locator("#chords-step")).toContainText("Try a chord under");
+  await expect(page.locator('#staff [role="button"].is-start')).toHaveCount(1);
   await axe(page);
 });

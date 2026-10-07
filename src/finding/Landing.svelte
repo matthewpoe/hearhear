@@ -21,7 +21,12 @@
   import KeyPrompt from "./KeyPrompt.svelte";
   import { nextStep, rhythmSource } from "../steps/nextStep.js";
   import DroneSwitch from "../staff/DroneSwitch.svelte";
-  import DegreesSwitch from "../toolbar/DegreesSwitch.svelte";
+  import { describePlacement, placedChord, startingNote } from "../steps/chordFeedback.js";
+  import { positionOf } from "../theory/index.js";
+  import { whereOf } from "../chords/where.js";
+  import { barRange } from "../staff/bars.js";
+  import { mark } from "../staff/staffEvents.js";
+  import { playWithVisuals } from "../staff/playback.js";
   import { recorder, shelf } from "../record/tunes.js";
   import { isUserTune } from "../record/take.js";
 
@@ -63,6 +68,58 @@
 
   /** The step path: Key, Rhythm, Chords, with the key current while its question shows. */
   const path = $derived(nextStep($song, { keyOpen: view === "prompt" }));
+
+  /** Step 3's suggested place to start: one specific note with no chord yet. */
+  const start = $derived(path.current === "chords" ? startingNote($song) : null);
+  const startWords = $derived.by(() => {
+    if (!start) return "";
+    const { bar, beat } = positionOf(start.start, $song.meter);
+    return bar >= 1 && beat === 1
+      ? `the first note of bar ${bar}`
+      : `the note at ${whereOf(start, $song.meter)}`;
+  });
+
+  // The start note wears a ring on the staff while it's the suggestion; a
+  // mark stays through the staff's redraws (staffEvents.js).
+  $effect(() => {
+    const id = start?.id;
+    if (!id) return;
+    mark("is-start", [id]);
+    return () => mark("is-start", []);
+  });
+
+  /**
+   * What the chord the user just placed does, described, never graded
+   * (chordFeedback.js). Set when one chord is placed; a new song, or that
+   * chord taken away, clears it.
+   * @type {{ noteId: string, relation: string, does: string } | null}
+   */
+  let placement = $state(null);
+  let before = song.get();
+  $effect(() =>
+    song.subscribe((now) => {
+      const was = before;
+      before = now;
+      const placed = placedChord(was, now);
+      if (placed && !now.key.provisional) {
+        const said = describePlacement(now, placed.noteId, placed.chord);
+        placement = said && { noteId: placed.noteId, relation: said.relation, does: said.does };
+        return;
+      }
+      const id = placement?.noteId;
+      if (now.id !== was.id || !now.chords.some((c) => c.noteId === id)) placement = null;
+    }),
+  );
+
+  /** "Hear it again": the placed chord's bar, as the song plays it. */
+  function hearPlacement() {
+    const now = song.get();
+    const note = now.notes.find((n) => n.id === placement?.noteId);
+    if (!note) return;
+    playWithVisuals(barRange(now, note).range).catch((error) =>
+      console.error("Playing the bar failed", error),
+    );
+  }
 
   /** A recorded tune's rhythm guess, taken as it is (the 3-vs-4 question is parked). */
   function confirmRhythm() {
@@ -141,14 +198,12 @@
   }
 </script>
 
-<section id="landing" class:empty aria-label={empty ? "Welcome" : "Next step"}>
+<section id="landing" class:empty aria-label={empty ? "Pick a song" : "Next step"}>
   {#if empty}
-    <h2>Hear a tune. Find where home is.</h2>
-    <p class="invite">
-      Pick a song, listen, and guess which note feels like home. Your ear does the finding; Hear
-      Hear makes every guess quick to test.
-    </p>
+    <!-- Step 1 alone: the song list and nothing else. -->
+    <h2><span class="num" aria-hidden="true">1</span> Pick a song</h2>
     <SongPicker hero />
+    <p class="invite">You can record your own once you get the hang of it.</p>
   {/if}
 
   <div class="sound" role="status">
@@ -169,7 +224,7 @@
     <ol class="path" aria-label="Steps">
       {#each path.steps as step, i (step.id)}
         <li class={step.status} aria-current={step.status === "current" ? "step" : undefined}>
-          <span class="num" aria-hidden="true">{i + 1}</span>
+          <span class="num" aria-hidden="true">{step.status === "done" ? "✓" : i + 1}</span>
           <span class="name">{step.label}</span>
           <span class="summary">{step.summary}</span>
           {#if step.id === "key" && view !== "prompt"}
@@ -185,7 +240,6 @@
                  collapsed: a drone left on keeps sounding. -->
             <span class="key-tools" role="group" aria-label="Hear it from home">
               <DroneSwitch />
-              <DegreesSwitch />
             </span>
           {/if}
         </li>
@@ -235,6 +289,23 @@
         </fieldset>
       {/if}
       <button type="button" onclick={confirmRhythm}>Sounds right</button>
+    </div>
+  {:else if path.current === "chords"}
+    <div id="chords-step" class="chords-step" role="group" aria-labelledby="chords-step-title">
+      <h2 id="chords-step-title">Start placing chords</h2>
+      {#if start}
+        <p class="start">
+          Try a chord under <strong>{startWords}</strong>: click it on the staff, then hover or tap
+          each chord to hear it under the tune.
+        </p>
+      {/if}
+      <div class="placement" role="status">
+        {#if placement}
+          <p>{placement.relation}</p>
+          <p class="does">{placement.does}</p>
+          <button type="button" onclick={hearPlacement}>Hear it again</button>
+        {/if}
+      </div>
     </div>
   {/if}
 </section>
@@ -342,6 +413,59 @@
   .sound p {
     margin: 0;
     color: var(--ink-muted);
+  }
+  .chords-step {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+  .chords-step h2 {
+    font-size: var(--text-lg);
+  }
+  .chords-step p {
+    max-width: 40rem;
+    margin: 0;
+  }
+  .start strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .placement {
+    display: grid;
+    gap: var(--space-1);
+    justify-items: start;
+  }
+  .placement:empty {
+    display: none;
+  }
+  .does {
+    color: var(--ink-muted);
+  }
+  .placement button {
+    padding: var(--space-1) var(--space-3);
+    border: 2px solid var(--sound);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  /* Step 3's suggested note: a dashed accent ring, apart from the lesson's
+     pulsing spotlight. */
+  :global(#staff .is-start .abcjs-notehead) {
+    stroke: var(--accent);
+    stroke-width: 5px;
+    stroke-dasharray: 3 2;
+    paint-order: stroke;
+  }
+  .empty h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .empty h2 .num {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .rhythm {
     display: grid;
