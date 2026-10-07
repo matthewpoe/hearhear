@@ -21,8 +21,8 @@ import {
   melodyDegree,
   spell,
   spellMelody,
+  pulseTicks,
   ticksPerBar,
-  ticksPerBeat,
 } from "../theory/index.js";
 import { chordView } from "../chords/chordView.js";
 
@@ -76,7 +76,7 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
   const fifths = hidden ? null : keyFifths(key);
   const signature = fifths === null ? new Map() : keySignature(fifths);
   const barTicks = ticksPerBar(meter);
-  const beamTicks = beamGroupTicks(meter);
+  const beamTicks = pulseTicks(meter);
   const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
 
   /** @param {number} tick */
@@ -171,17 +171,6 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
     if (syllables.some((s) => s !== "*")) lines.push(`w:${syllables.join(" ")}`);
   }
   return { abc: [...header, ...lines].join("\n") + "\n", pieces };
-}
-
-/**
- * Ticks in one beam group: a beat in simple meter, and three eighths (a
- * dotted quarter) in compound meter (3/8, 6/8, 9/8, 12/8), so 6/8 beams in
- * two groups of three rather than one flag per eighth.
- * @param {import("../types.js").Meter} meter
- */
-export function beamGroupTicks(meter) {
-  const compound = meter.beatUnit === 8 && meter.beatsPerBar % 3 === 0;
-  return compound ? ticksPerBeat(meter) * 3 : ticksPerBeat(meter);
 }
 
 /**

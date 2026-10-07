@@ -18,5 +18,12 @@ export { fit } from "./fit.js";
 export { rankKeys } from "./keyFinding.js";
 export { guessRhythm } from "./rhythm.js";
 export { voice, passageBelow } from "./voicing.js";
-export { TICKS_PER_QUARTER, positionOf, rebar, ticksPerBar, ticksPerBeat } from "./meter.js";
+export {
+  TICKS_PER_QUARTER,
+  positionOf,
+  pulseTicks,
+  rebar,
+  ticksPerBar,
+  ticksPerBeat,
+} from "./meter.js";
 export { transposeSong, rekeySong } from "./keyChange.js";

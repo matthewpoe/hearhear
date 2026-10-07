@@ -7,7 +7,7 @@
  * @import { TickRange } from "./index.js"
  */
 
-import { TICKS_PER_QUARTER, ticksPerBar, ticksPerBeat, voice } from "../theory/index.js";
+import { TICKS_PER_QUARTER, pulseTicks, ticksPerBar, voice } from "../theory/index.js";
 
 /**
  * @typedef {{ tick: number, dur: number, tones: number[] } & (
@@ -146,15 +146,16 @@ export function auditionChordCues(
 }
 
 /**
- * One click per beat of the meter across the range, accented on each
- * downbeat. Beats are counted from the first downbeat (after the pickup), so
- * an anacrusis clicks unaccented and 6/8 clicks in eighths.
+ * One click per pulse of the meter across the range, accented on each
+ * downbeat. Pulses are counted from the first downbeat (after the pickup), so
+ * an anacrusis clicks unaccented, and 6/8 clicks twice a bar, on the dotted
+ * quarters, as it is felt.
  * @param {Meter} meter
  * @param {TickRange} range
  * @returns {Cue[]}
  */
 export function clickCues(meter, { fromTick, toTick }) {
-  const beat = ticksPerBeat(meter);
+  const beat = pulseTicks(meter);
   const bar = ticksPerBar(meter);
   const offset = (((meter.pickupTicks - fromTick) % beat) + beat) % beat;
   /** @type {Cue[]} */
