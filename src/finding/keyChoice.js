@@ -21,6 +21,16 @@ export function chosenTonic(key) {
 }
 
 /**
+ * Whether `home` is the committed home: false while the key is provisional.
+ * @param {Key} key the song's key
+ * @param {Pick<Key, "tonic" | "mode">} home
+ * @returns {boolean}
+ */
+export function isHome(key, home) {
+  return !key.provisional && sameHome(key, home);
+}
+
+/**
  * The key after a home chip is clicked. Clicking the home already chosen
  * un-commits it: the same key, provisional again. It keeps the tonic and mode
  * rather than going back to the demo's provisional C, because the tune may
@@ -30,7 +40,7 @@ export function chosenTonic(key) {
  * @returns {Key}
  */
 export function afterHomeClick(key, home) {
-  if (!key.provisional && sameHome(key, home)) return { ...key, provisional: true };
+  if (isHome(key, home)) return { ...key, provisional: true };
   return { tonic: home.tonic, mode: home.mode, provisional: false };
 }
 
@@ -43,7 +53,7 @@ export function afterHomeClick(key, home) {
  * @returns {Key | null}
  */
 export function afterFinderPick(key, home) {
-  if (!key.provisional && sameHome(key, home)) return null;
+  if (isHome(key, home)) return null;
   return { tonic: home.tonic, mode: home.mode, provisional: false };
 }
 

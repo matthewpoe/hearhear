@@ -16,7 +16,7 @@
   import { song } from "../store/song.js";
   import { rankKeys } from "../theory/index.js";
   import { FINDER_SIZE, finderHomes } from "./finderHomes.js";
-  import { finderComparison } from "./keyChoice.js";
+  import { finderComparison, isHome } from "./keyChoice.js";
   import { finderText } from "./guessFeedback.js";
   import { keyName } from "./keys.js";
   import ListenButton from "./ListenButton.svelte";
@@ -48,6 +48,12 @@
    * @type {{ index: number, comparison: "first" | "same" | "different" } | null}
    */
   let picked = $state(null);
+
+  // A pick stands only while it's home: once a chip moves the key elsewhere
+  // (or takes the guess back), the finder drops its mark and its verdict.
+  $effect(() => {
+    if (picked && !isHome($song.key, homes[picked.index])) picked = null;
+  });
 
   /** @type {HTMLElement | undefined} */
   let root = $state();
@@ -112,7 +118,7 @@
   <ol>
     {#each homes as home, index (`${set}-${index}`)}
       {@const n = first + index}
-      {@const mine = picked?.index === index}
+      {@const mine = picked !== null && isHome($song.key, home)}
       <li class:picked={mine}>
         <span class="name">
           Chord {n}{#if picked}: {keyName(home)}{/if}

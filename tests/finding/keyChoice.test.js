@@ -6,6 +6,7 @@ import {
   afterModeChange,
   chosenTonic,
   finderComparison,
+  isHome,
 } from "../../src/finding/keyChoice.js";
 import { PROVISIONAL_C } from "../../src/finding/keys.js";
 
@@ -22,6 +23,22 @@ describe("chosenTonic", () => {
   it("shows the committed home in its mode's chip spelling", () => {
     assert.equal(chosenTonic(D_MAJOR), "D");
     assert.equal(chosenTonic({ tonic: "D#", mode: "minor", provisional: false }), "Eb");
+  });
+});
+
+describe("isHome", () => {
+  it("names the committed home, in any spelling", () => {
+    assert.equal(isHome(D_MAJOR, { tonic: "D", mode: "major" }), true);
+    assert.equal(
+      isHome({ tonic: "D#", mode: "minor", provisional: false }, { tonic: "Eb", mode: "minor" }),
+      true,
+    );
+  });
+
+  it("drops a home once the key moves away or goes back to a guess", () => {
+    assert.equal(isHome(D_MAJOR, { tonic: "A", mode: "major" }), false);
+    assert.equal(isHome(D_MAJOR, { tonic: "D", mode: "minor" }), false);
+    assert.equal(isHome({ ...D_MAJOR, provisional: true }, { tonic: "D", mode: "major" }), false);
   });
 });
 
