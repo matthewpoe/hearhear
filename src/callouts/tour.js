@@ -67,17 +67,19 @@ const MARGIN = 8;
  * A tip must never cover the controls someone is about to use (`avoid`: the
  * key question's choices, Play, the masthead toggles). If the first choice
  * would, it tries beside the anchor (right, then left, where there's room),
- * then above and below, then over the anchor itself or in a gap between
+ * then above and below (at the anchor's left edge, then its right), then over the anchor itself or in a gap between
  * the controls, and takes the
  * first spot that covers none; if every spot covers some, the one that
- * covers least.
+ * covers least. An anchor inside the keyboard dock (`inDock`) puts its tip
+ * just above the dock, on the right (over the tutor column) first, then at
+ * the anchor's left, before any of the above.
  * @param {Rect} anchor
  * @param {{ width: number, height: number }} size
  * @param {{ width: number, height: number, bottom?: number }} viewport
- * @param {{ avoid?: Rect[] }} [options]
+ * @param {{ avoid?: Rect[], inDock?: boolean }} [options]
  * @returns {Position}
  */
-export function placeCallout(anchor, size, viewport, { avoid = [] } = {}) {
+export function placeCallout(anchor, size, viewport, { avoid = [], inDock = false } = {}) {
   const floor = Math.min(viewport.bottom ?? viewport.height, viewport.height) - MARGIN;
   const fit = (/** @type {number} */ top, /** @type {number} */ left) => ({
     top: clamp(top, MARGIN, floor - size.height),
@@ -86,12 +88,19 @@ export function placeCallout(anchor, size, viewport, { avoid = [] } = {}) {
   const right = anchor.right + GAP;
   const left = anchor.left - GAP - size.width;
   const candidates = [
+    ...(inDock
+      ? [fit(floor - size.height, viewport.width), fit(floor - size.height, anchor.left)]
+      : []),
     fit(firstChoiceTop(anchor, size, floor), anchor.left),
     // Beside the anchor only when it really fits beside it.
     ...(right + size.width <= viewport.width - MARGIN ? [fit(anchor.top, right)] : []),
     ...(left >= MARGIN ? [fit(anchor.top, left)] : []),
     fit(anchor.top - GAP - size.height, anchor.left),
     fit(anchor.bottom + GAP, anchor.left),
+    // A wide anchor (the staff): below or above it at its right edge, over the
+    // tutor column rather than the key question's controls on the left.
+    fit(anchor.bottom + GAP, anchor.right - size.width),
+    fit(anchor.top - GAP - size.height, anchor.right - size.width),
     // Last resorts: over the anchor's own top (its controls are in `avoid`),
     // or in a gap between the controls.
     fit(anchor.top, anchor.left),

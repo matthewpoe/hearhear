@@ -19,12 +19,14 @@
 
   /**
    * Controls a tip must never cover: the key question's choices and guess
-   * buttons, Play, and the masthead toggles (this one included).
+   * buttons, Play, the masthead toggles (this one included), and the music,
+   * whose notes are buttons the staff tip tells the viewer to click.
    */
   const KEEP_CLEAR = [
     "#key-prompt button",
     "#key-prompt label",
     "#staff [aria-label='Playback']",
+    "#staff svg",
     ".masthead-tools",
   ].join(",");
 
@@ -117,7 +119,10 @@
     if (!anchor) return;
     const place = () => {
       const { viewport, avoid } = measure();
-      position = placeCallout(rectOf(anchor), callout.getBoundingClientRect(), viewport, { avoid });
+      position = placeCallout(rectOf(anchor), callout.getBoundingClientRect(), viewport, {
+        avoid,
+        inDock: anchor.closest(".keyboard-dock") !== null,
+      });
     };
     place();
     // Capture, so scrolling inside any panel moves the tip with its anchor.
@@ -137,9 +142,10 @@
     await tick();
     // The viewer asked for the next tip, so take them to it: scroll its
     // anchor into view, as block: "nearest" would, or further when that would
-    // leave the tip covering a control.
+    // leave the tip covering a control. The dock never scrolls, so an anchor
+    // in it needs none.
     const anchor = current && document.getElementById(current.anchor);
-    if (anchor && box) {
+    if (anchor && box && !anchor.closest(".keyboard-dock")) {
       const { viewport, avoid } = measure();
       const { scrollY, innerHeight } = window;
       const room = {

@@ -89,6 +89,28 @@ describe("placeCallout", () => {
     assert.equal(placeCallout(rect(900, 1000), size, docked).top, 492);
   });
 
+  it("goes below a wide anchor at its right edge when its left side is busy", () => {
+    const wide = { top: 50, bottom: 300, left: 20, right: 980 };
+    const music = { top: 60, bottom: 290, left: 100, right: 900 };
+    const busyLeft = [music, { top: 310, bottom: 420, left: 20, right: 500 }];
+    assert.deepEqual(placeCallout(wide, size, viewport, { avoid: busyLeft }), {
+      top: 312,
+      left: 680,
+    });
+  });
+
+  it("puts a dock anchor's tip just above the dock, on the right when that's clear", () => {
+    const docked = { ...viewport, bottom: 600 };
+    const key = rect(610, 700, 20);
+    assert.deepEqual(placeCallout(key, size, docked, { inDock: true }), { top: 492, left: 692 });
+    // Something to keep clear on the right: above the dock at the anchor's left.
+    const onRight = [{ top: 480, bottom: 590, left: 650, right: 990 }];
+    assert.deepEqual(placeCallout(key, size, docked, { inDock: true, avoid: onRight }), {
+      top: 492,
+      left: 20,
+    });
+  });
+
   it("stays inside the viewport horizontally", () => {
     assert.equal(placeCallout(rect(100, 200, 900), size, viewport).left, 692);
     assert.equal(placeCallout(rect(100, 200, -50), size, viewport).left, 8);
