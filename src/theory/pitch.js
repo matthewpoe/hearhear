@@ -1,11 +1,12 @@
 /**
  * Pitches relative to a key: spelling, scale degrees, and the fixed octave
- * rows. Degrees are found by letter name, so spelling decides the degree.
+ * rows. A melody pitch's degree follows the key's convention for its pitch
+ * class (CHROMATIC); a spelled name's degree (a chord root) follows its letter.
  *
  * @import { Key, ScaleDegree } from "../types.js"
  */
 
-import { Note as TNote } from "tonal";
+import { Interval, Note as TNote } from "tonal";
 
 /** Semitones above the tonic for degrees 1–7. Minor is natural minor. */
 export const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
@@ -30,12 +31,17 @@ export const CONVENTIONAL_TONICS = {
  * How notes outside the scale are spelled, by semitones above the tonic, as
  * [preferred, fallback] intervals. Major uses the blues and borrowed flats
  * (b2, b3, b6, b7) and #4; minor uses b2, #4, and the raised 3rd, 6th, and
- * 7th (Shift+7 is the leading tone). The fallback avoids a double accidental.
- * @type {Record<"major" | "minor", Record<number, [string, string]>>}
+ * 7th (Shift+7 is the leading tone). The preferred interval names the degree,
+ * and `midiToDegree` always reads it, so a label follows the number row's
+ * modifier in every key. `spell` uses the fallback when the preferred name
+ * needs a double accidental (G, not Abb, in Gb major). Minor's raised degrees
+ * have no fallback: harmonic and melodic minor write them with a double sharp
+ * (F## is G# minor's leading tone), so the staff does too.
+ * @type {Record<"major" | "minor", Record<number, [string, string?]>>}
  */
 const CHROMATIC = {
   major: { 1: ["2m", "1A"], 3: ["3m", "2A"], 6: ["4A", "5d"], 8: ["6m", "5A"], 10: ["7m", "6A"] },
-  minor: { 1: ["2m", "1A"], 4: ["3M", "4d"], 6: ["4A", "5d"], 9: ["6M", "7d"], 11: ["7M", "8d"] },
+  minor: { 1: ["2m", "1A"], 4: ["3M"], 6: ["4A"], 9: ["6M"], 11: ["7M"] },
 };
 
 const LETTERS = "CDEFGAB";
@@ -68,7 +74,7 @@ export function spellPitchClass(chroma, key) {
   if (diatonic >= 0) return TNote.transpose(key.tonic, DEGREE_INTERVALS[key.mode][diatonic]);
   const [preferred, fallback] = CHROMATIC[key.mode][semis];
   const name = TNote.transpose(key.tonic, preferred);
-  return /##|bb/.test(name) ? TNote.transpose(key.tonic, fallback) : name;
+  return fallback && /##|bb/.test(name) ? TNote.transpose(key.tonic, fallback) : name;
 }
 
 /**
@@ -117,17 +123,25 @@ export function degreeToMidi({ degree, accidental, octave }, key, windowOctave =
 
 /**
  * The inverse of degreeToMidi: which degree (and octave dot) a pitch is in a
- * key, read from its key-aware spelling, so 63 in C major is b3, not #2.
+ * key, by the key's convention for its pitch class (CHROMATIC), so 63 in
+ * C major is b3, not #2. Every conventional Shift or Alt keystroke reads back
+ * as itself in every key, even where `spell` avoids a double accidental
+ * (Alt+3 in Gb major is b3, spelled A).
  * @param {number} midi
  * @param {Key} key
  * @returns {ScaleDegree}
  */
 export function midiToDegree(midi, key) {
-  const { degree, accidental } = degreeOf(spellPitchClass(mod(midi, 12), key), key);
-  const natural = tonicMidi(key) + SCALES[key.mode][degree - 1];
+  const semis = mod(midi - tonicMidi(key), 12);
+  const diatonic = SCALES[key.mode].indexOf(semis);
+  const index =
+    diatonic >= 0 ? diatonic : Number(Interval.get(CHROMATIC[key.mode][semis][0]).num) - 1;
+  const step = SCALES[key.mode][index];
+  // Within ±1 by construction: the preferred interval is one semitone off the scale.
+  const accidental = /** @type {ScaleDegree["accidental"]} */ (mod(semis - step + 6, 12) - 6);
   return {
-    degree,
-    accidental: /** @type {ScaleDegree["accidental"]} */ (accidental),
-    octave: Math.round((midi - accidental - natural) / 12),
+    degree: /** @type {ScaleDegree["degree"]} */ (index + 1),
+    accidental,
+    octave: Math.round((midi - accidental - tonicMidi(key) - step) / 12),
   };
 }

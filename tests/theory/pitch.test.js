@@ -43,6 +43,14 @@ describe("spell", () => {
     assert.equal(spell(69, dbMajor), "A4", "b6 would be Bbb");
   });
 
+  it("writes minor's raised degrees as harmonic minor does, double sharps included", () => {
+    const minor = (/** @type {string} */ tonic) => ({ tonic, mode: "minor", provisional: false });
+    assert.equal(spell(67, minor("G#")), "F##4", "G# minor's leading tone");
+    assert.equal(spell(62, minor("D#")), "C##4", "D# minor's leading tone");
+    assert.equal(spell(67, minor("D#")), "F##4", "D# minor's raised 3rd");
+    assert.equal(spell(67, minor("C#")), "F##4", "C# minor's raised 4th");
+  });
+
   it("spells every note of the real songs in their keys", () => {
     assert.deepEqual(
       ode.notes.slice(0, 9).map((n) => spell(n.midi, D_MAJOR)),
@@ -96,6 +104,42 @@ describe("degreeToMidi and midiToDegree", () => {
         }
       }
     }
+  });
+
+  it("reads every conventional keystroke back as itself, in every key", () => {
+    // The modifier each chromatic pitch class is conventionally played with.
+    const chromatic = {
+      major: ["b2", "b3", "#4", "b6", "b7"],
+      minor: ["b2", "#3", "#4", "#6", "#7"],
+    };
+    const tonics = {
+      major: ["C", "Db", "C#", "D", "Eb", "E", "F", "F#", "Gb", "G", "Ab", "A", "Bb", "B", "Cb"],
+      minor: ["C", "C#", "D", "D#", "Eb", "E", "F", "F#", "G", "G#", "Ab", "A", "A#", "Bb", "B"],
+    };
+    for (const mode of /** @type {const} */ (["major", "minor"])) {
+      const labels = [..."1234567", ...chromatic[mode]];
+      for (const tonic of tonics[mode]) {
+        const key = { tonic, mode, provisional: false };
+        for (const label of labels) {
+          const accidental = label.startsWith("b") ? -1 : label.startsWith("#") ? 1 : 0;
+          const degree = Number(label.at(-1));
+          for (const octave of [-2, -1, 0, 1]) {
+            const d = /** @type {any} */ ({ degree, accidental, octave });
+            assert.deepEqual(
+              midiToDegree(degreeToMidi(d, key), key),
+              d,
+              `${label} in ${tonic} ${mode}`,
+            );
+          }
+        }
+      }
+    }
+  });
+
+  it("labels the keystroke even where the spelling avoids a double flat", () => {
+    assert.equal(spell(69, GB_MAJOR), "A4");
+    assert.equal(degreeLabel(69, GB_MAJOR), "b3");
+    assert.equal(degreeLabel(67, { tonic: "G#", mode: "minor", provisional: false }), "#7");
   });
 
   it("reads the real songs as scale degrees", () => {
