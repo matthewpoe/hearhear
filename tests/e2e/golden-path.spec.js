@@ -32,6 +32,8 @@ async function clickNote(page, id) {
 }
 
 test("golden path: tune, key by ear and by chip, chords, song memory, tutor", async ({ page }) => {
+  // The whole path runs about 30 s alone, at the default limit; give it room.
+  test.setTimeout(60_000);
   /** @type {string[]} */
   const problems = [];
   page.on("console", (msg) => {
