@@ -117,6 +117,8 @@ for (const tune of await loadTunes()) {
         message: exchange.message,
         suggestions: event.suggestions,
       };
+      // Suggestions the server stripped or rejected; at a nudge, all the model offered.
+      const dropped = typeof event?.dropped === "number" ? event.dropped : null;
       /** @type {ReplyRecord["outcome"]} */
       let outcome = "failed";
       if (exchange.outcome === "ok") outcome = event?.fallback === true ? "excluded" : "ok";
@@ -132,9 +134,13 @@ for (const tune of await loadTunes()) {
         code: exchange.code,
         servedBy,
         message: exchange.message,
+        dropped,
         schemaValid: Boolean(reply && checkReply(reply)),
         score: scored ? scoreSuggestions(reply.suggestions, song, point) : null,
-        withholds: scored && level === "nudge" ? nudgeWithholds(reply) : null,
+        withholds:
+          scored && level === "nudge"
+            ? nudgeWithholds({ message: reply.message, dropped: dropped ?? 0 })
+            : null,
         ms: Math.round(exchange.ms),
         firstDeltaMs: exchange.firstDeltaMs === null ? null : Math.round(exchange.firstDeltaMs),
       });

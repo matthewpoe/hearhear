@@ -45,7 +45,7 @@
       label: "Holds back at a nudge",
       rate: headline.pedagogy,
       gloss:
-        "How often the first hint pointed you where to listen without naming a chord. The tutor is meant to leave the guess to you.",
+        "How often the first hint pointed you where to listen without naming or offering a chord: the model's own restraint. The app holds chords back at a nudge anyway, so you never see one early.",
     },
     {
       label: "Replies the app could read",

@@ -17,15 +17,19 @@ import { percentile, rate } from "./metrics.js";
  *   tune: string, level: "nudge" | "comparison" | "answer",
  *   bar: number, beat: number, reference: string,
  *   outcome: "ok" | "excluded" | "invalid" | "failed", code: string | null,
- *   servedBy: string | null, message: string,
+ *   servedBy: string | null, message: string, dropped: number | null,
  *   schemaValid: boolean, score: SuggestionScore | null, withholds: boolean | null,
  *   ms: number, firstDeltaMs: number | null,
  * }} ReplyRecord
  *
+ * `dropped`: the suggestions event's count of suggestions the server
+ * stripped or rejected (null without one). At a nudge it is everything the
+ * model offered, since the server withholds every suggestion there.
+ *
  * @typedef {{
  *   replies: number, excluded: number, failed: number,
  *   schemaValidity: Rate, agreement: Rate, hitRate: Rate | null, clashRate: Rate,
- *   pedagogy: Rate | null,
+ *   pedagogy: Rate | null, nudgesClamped: Rate | null,
  *   latencyMs: { p50: number | null, p95: number | null },
  *   firstDeltaMs: { p50: number | null, p95: number | null },
  * }} LevelSummary
@@ -36,8 +40,9 @@ const roundMs = (ms) => (ms === null ? null : Math.round(ms));
 
 /**
  * Summarize replies at one hint level (or a mix). Hit rate counts only
- * comparison and answer replies, pedagogy only nudges; either is null when
- * no reply of its level is in `records`.
+ * comparison and answer replies, pedagogy and clamped nudges only nudges;
+ * each is null when no reply of its level is in `records`. A clamped nudge is
+ * one where the model offered suggestions and the server had to strip them.
  * @param {ReplyRecord[]} records
  * @returns {LevelSummary}
  */
@@ -68,6 +73,9 @@ export function summarize(records) {
       sum((s) => s.onOnset),
     ),
     pedagogy: nudges.length ? rate(nudges.filter((r) => r.withholds).length, nudges.length) : null,
+    nudgesClamped: nudges.length
+      ? rate(nudges.filter((r) => (r.dropped ?? 0) > 0).length, nudges.length)
+      : null,
     latencyMs: { p50: roundMs(percentile(latencies, 50)), p95: roundMs(percentile(latencies, 95)) },
     firstDeltaMs: { p50: roundMs(percentile(firsts, 50)), p95: roundMs(percentile(firsts, 95)) },
   };
@@ -104,6 +112,7 @@ export function resultsTable(results) {
     "Hit rate",
     "Clash rate",
     "Nudge withholds",
+    "Nudges clamped",
     "Latency p50",
     "Latency p95",
   ];
@@ -119,6 +128,7 @@ export function resultsTable(results) {
     formatRate(s.hitRate),
     formatRate(s.clashRate),
     formatRate(s.pedagogy),
+    formatRate(s.nudgesClamped),
     formatMs(s.latencyMs.p50),
     formatMs(s.latencyMs.p95),
   ];
@@ -136,7 +146,7 @@ export function resultsTable(results) {
     ...Array(5).fill(dash),
     formatRate(b.hitRate),
     formatRate(b.clashRate),
-    ...Array(3).fill(dash),
+    ...Array(4).fill(dash),
   ];
   for (const t of results.byTune) rows.push(baselineRow(t.id, t.baseline));
   rows.push(baselineRow("**all**", results.headline.baseline));
