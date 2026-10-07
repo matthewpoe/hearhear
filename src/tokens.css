@@ -90,6 +90,22 @@
   --radius-md: 12px;
   --radius-lg: 20px;
 
+  /* Function colors on piano keys. Keys stay ivory and black in both themes,
+     so these are theme-independent and checked against all four key
+     surfaces (WCAG non-text needs 3:1). On white keys: tonic 7.8 / 6.2,
+     subdominant 5.1 / 4.0, dominant 5.3 / 4.2, other 5.0 / 4.0 (light white /
+     dark ivory). On black keys: tonic 7.0 / 8.0, subdominant 10.5 / 12.0,
+     dominant 6.8 / 7.8, other 6.4 / 7.3. Tentative outlines on keys use these
+     at full opacity: --tentative-opacity would drop some below 3:1. */
+  --fn-tonic-on-white-key: #1d4fa3;
+  --fn-subdominant-on-white-key: #8a6a00;
+  --fn-dominant-on-white-key: #c7362b;
+  --fn-other-on-white-key: #6e6e78;
+  --fn-tonic-on-black-key: #7aa5f5;
+  --fn-subdominant-on-black-key: #f4c430;
+  --fn-dominant-on-black-key: #f2837a;
+  --fn-other-on-black-key: #9d9da8;
+
   /* Tentative labels (free play before a key is confirmed): function shapes
      drawn as outlines in their color, with no fill, at reduced opacity. */
   --tentative-opacity: 0.6;
