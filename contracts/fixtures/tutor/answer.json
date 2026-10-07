@@ -6,56 +6,154 @@
     {
       "event": "message",
       "data": {
-        "delta": "My best guess is V under the "
+        "delta": "My best guess is V under the long "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "long E in bar 4, then V to I "
+        "delta": "2 in bar 4, then V to I in bar 8. "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "in bar 8. Bar 4 is a half cadence: "
+        "delta": "In bar 4 the held 2 is the fifth "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "it pauses on the dominant, the "
+        "delta": "of V, so the first phrase pauses "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "red square, so the second phrase "
+        "delta": "on the dominant, the red square: "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "can answer it and come home. "
+        "delta": "a half cadence, a question left "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "I'm fairly confident, but play "
+        "delta": "open. Bar 8 asks the same question "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "it and see if it lands for you. "
+        "delta": "and answers it. The 2 over V on "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "beat 1 is tension, and when the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "melody falls to 1 on beat 3, I puts "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "that 1 at its root and the phrase "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "comes home. That V to I close ends "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "countless hymns and folk songs. "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "I'm fairly confident, but play it "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "and see if it lands for you.\n\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "1. Try the V suggestion under bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "4, beat 3, and play bars 3 and 4. "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "Listen for the pause.\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "2. Try the V and I suggestions in "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "bar 8 and play bars 7 and 8.\n"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "3. Hold the drone on 1 and see whether "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "the last note of bar 8 settles."
       },
       "delayMs": 45
     },
