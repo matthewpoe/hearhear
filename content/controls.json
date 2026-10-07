@@ -10,6 +10,8 @@
     "degrees": "Scale degrees",
     "printLeadSheet": "Print lead sheet",
     "transpose": "Play it in another key",
-    "rekey": "Choose a different home"
+    "rekey": "Choose a different home",
+    "swing": "Swing",
+    "words": "Words"
   }
 }

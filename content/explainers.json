@@ -30,6 +30,10 @@
     "letters": "Letters are the chord's actual name in this key. Example: C F G.",
     "roman+letters": "Both at once: the step from home, with the chord's actual name beside it. Example: I (C).",
     "fromTop": "Play plays the whole tune, from the first note to the last.",
+    "playKeys": "Space: play from the top, pause, or resume. ←: back to the bar's start; ←← to the top.",
+    "pause": "Pauses where it is. Resume picks up there; Stop goes back to the top.",
+    "resume": "Resumes from the note where it paused.",
+    "stop": "Stops playback and goes back to the top.",
     "thisBar": "Play plays only the bar of the note you last clicked. Click a note to choose the bar.",
     "voiceLeading": "Voice leading is how a pianist moves from one chord to the next with as little hand movement as possible. Off: only the chord you're testing changes. On: everything flows, which can flatter a weak choice.",
     "drone": "Holds the home chord under the tune while it plays, so you can hear which notes settle and which rub.",
@@ -38,7 +42,9 @@
     "bottomRowNotes": "The bottom row of letter keys plays the scale's notes an octave below the number row.",
     "undo": "Takes back your last change. Cmd or Ctrl+Z.",
     "redo": "Puts back what you took back. Shift+Cmd or Ctrl+Z.",
+    "swing": "Plays each pair of eighth notes long-short, the jazz feel. The notation stays in straight eighths.",
     "words": "Shows the song's words under the staff, one syllable per note.",
+    "more": "Less common actions, like printing the lead sheet.",
     "print": "Prints the tune as a lead sheet: the staff with its chord symbols."
   }
 }
