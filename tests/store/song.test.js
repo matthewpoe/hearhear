@@ -106,6 +106,33 @@ describe("song store", () => {
     assert.deepEqual(store.get().chords, []);
   });
 
+  it("setPitch changes one note's pitch, keeps its chord, and undoes", () => {
+    const store = storeWith();
+    store.setChord("n1", { root: "D", type: "M" });
+    const before = store.get();
+    const { midi } = before.notes[0];
+    store.setPitch("n1", midi + 1);
+    const after = store.get();
+    assert.equal(after.notes[0].midi, midi + 1);
+    assert.deepEqual(after.notes.slice(1), before.notes.slice(1));
+    assert.deepEqual(after.chords, before.chords);
+    assert.equal(after.version, before.version + 1);
+    store.undo();
+    assert.equal(store.get().notes[0].midi, midi);
+  });
+
+  it("setPitch refuses a pitch off the piano or a missing note", () => {
+    const store = storeWith();
+    const before = store.get();
+    for (const midi of [20, 109, 60.5]) {
+      assert.throws(() => store.setPitch("n1", midi), RangeError);
+    }
+    assert.throws(() => store.setPitch("nope", 60));
+    store.setPitch("n1", 21);
+    store.setPitch("n1", 108);
+    assert.equal(store.get().version, before.version + 2);
+  });
+
   it("rekey changes labels' basis but not what was heard", () => {
     const store = storeWith();
     const notes = store.get().notes;
