@@ -130,7 +130,7 @@ test("play the whole tune or bar N, and the drone on home", async ({ page }) => 
   await expect(thisBar).toBeChecked();
   const barOnly = transport.getByRole("button", { name: "Play bar 4", exact: true });
   await barOnly.click();
-  await expect(transport.getByRole("button", { name: "Stop" })).toBeVisible();
+  await expect(transport.getByRole("button", { name: "Pause" })).toBeVisible();
   await expect(barOnly).toBeVisible({ timeout: 10_000 });
   const played = await seen();
   expect(played.length).toBeGreaterThan(0);

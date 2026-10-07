@@ -9,7 +9,7 @@ import { axe } from "./axe.js";
 test("Swing and Voice leading toggle from the tool row, which stays one line", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
-  await page.getByRole("button", { name: "Beginner tips" }).click();
+  await page.getByRole("button", { name: "Leave lesson" }).click();
   await page.getByRole("button", { name: /St\. James Infirmary/ }).click();
   await expect(page.locator("#staff svg")).toBeVisible();
   const row = page.locator("#staff .header");
