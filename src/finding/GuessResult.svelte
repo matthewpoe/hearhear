@@ -20,9 +20,13 @@
    *   oncheck: () => void,
    *   onkeep: () => void,
    *   onnext?: () => void,
+   *   next?: "rhythm" | "chords",
    * }}
    */
-  let { guess, feedback, oncheck, onkeep, onnext } = $props();
+  let { guess, feedback, oncheck, onkeep, onnext, next = "chords" } = $props();
+
+  /** The step path's next step names the advance. */
+  const NEXT = { rhythm: "Next: check the rhythm", chords: "Next: find the chords" };
 
   const invite = $derived(feedback === "mismatch" || feedback === "otherMode");
 
@@ -42,6 +46,16 @@
     card?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
   }
 
+  /**
+   * Focus the card's first button ("Check it by ear" when it shows), for a
+   * finder that closes after its opener left. False if there's none.
+   */
+  export function focus() {
+    const target = checkButton ?? card?.querySelector("button");
+    target?.focus();
+    return target !== undefined && target !== null;
+  }
+
   /** "Keep my choice" removes itself, so focus moves to the "Check it by ear" that stays. */
   async function keepChoice() {
     onkeep();
@@ -51,40 +65,42 @@
 </script>
 
 <div class="result" bind:this={card}>
-  <p class="home">
-    <span class="eyebrow">{before.trim()}</span>
-    <span class="key">{key}</span>
-    <span class="visually-hidden">{after}</span>
-  </p>
+  <div class="headline">
+    <p class="home">
+      <span class="eyebrow">{before.trim()}</span>
+      <span class="key">{key}</span>
+      <span class="visually-hidden">{after}</span>
+    </p>
+    {#if onnext}
+      <button type="button" class="primary" onclick={onnext}>{NEXT[next]}</button>
+    {/if}
+  </div>
   {#if invite}
     <p>{COPY[feedback === "otherMode" ? "otherMode" : "mismatch"]}</p>
     <p class="actions">
       <button type="button" class="secondary" onclick={oncheck}>{COPY.check}</button>
       <button type="button" class="secondary" onclick={keepChoice}>{COPY.keep}</button>
     </p>
-  {:else if feedback === "match"}
-    <p class="verdict">{COPY.match}</p>
-  {/if}
-  <div class="actions">
-    {#if onnext}
-      <button type="button" class="primary" onclick={onnext}>Next: find the chords</button>
-    {/if}
-    {#if !invite}
+  {:else}
+    <p>
+      {#if feedback === "match"}<span class="verdict">{COPY.match}</span>{/if}
       <span class="check">
         Not sure? <button type="button" class="link" bind:this={checkButton} onclick={oncheck}
           >{COPY.check}</button
         >
       </span>
-    {/if}
-  </div>
-  <p class="hint">Then click a note on the staff, or play chords with the keys A to J.</p>
+    </p>
+  {/if}
+  {#if next === "chords"}
+    <p class="hint">Then click a note on the staff, or play chords with the keys A to J.</p>
+  {/if}
 </div>
 
 <style>
   .result {
     display: grid;
     gap: var(--space-2);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-2) var(--space-4) var(--space-3);
     border-left: var(--band) solid var(--accent);
     border-radius: var(--radius-md);
     background: var(--accent-soft);
@@ -93,6 +109,14 @@
   p {
     margin: 0;
     color: var(--ink);
+  }
+  /* The key and the step's one action share a row. */
+  .headline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
   }
   .home {
     display: grid;
@@ -111,6 +135,7 @@
     line-height: 1.15;
   }
   .verdict {
+    margin-right: var(--space-2);
     font-weight: 500;
   }
   .hint {

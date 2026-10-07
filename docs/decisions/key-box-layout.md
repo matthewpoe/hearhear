@@ -19,3 +19,8 @@ Matthew said the key box after choosing D major "looks like a jumble of text" an
   - **Renamed:** "Done: on to chords" is now "Next: find the chords". `layout.spec.js` and `golden-path.spec.js` use the new name.
   - **Test fix:** two non-exact `"Next"` locators in `guided-path.spec.js` now use `exact: true`, so they don't also match the new button.
   - **Style:** the current step's number in the step path is violet now, not ink.
+- **2026-10-07 — Review fixes.**
+  - **The advance names the real next step.** Landing passes it in from the step path: "Next: check the rhythm" for a recorded tune whose meter is still a guess, otherwise "Next: find the chords". The A–J and staff hint shows only when chords are next.
+  - **The button shares a row with the key name,** so it sits higher in the card. At 1440×900 and 1280×800, once the card scrolls into view, the button is about 270px above the dock.
+  - **Focus after a pick in the ear finder.** A pick in the finder chooses the key, which removes "Help me find it". Closing the finder now gives focus to the result card's "Check it by ear", falling back to the heading, instead of dropping it to the page.
+  - **Undo works** and was not a regression: choosing a key and then pressing Undo, by button or by shortcut, brings back the open question. The live region, though, still said "You chose D major as home." after the undo, which reads as if the undo failed. It now says "No home chosen yet." `key-box.spec.js` covers both undos and the finder focus.

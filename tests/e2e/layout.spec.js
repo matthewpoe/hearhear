@@ -137,7 +137,7 @@ test("a recorded tune asks Rhythm to confirm its guess once the key is chosen", 
     .getByRole("group", { name: "Home note" })
     .getByRole("button", { name: "C", exact: true })
     .click();
-  await question.getByRole("button", { name: "Next: find the chords" }).click();
+  await question.getByRole("button", { name: "Next: check the rhythm" }).click();
   const steps = page.getByRole("list", { name: "Steps" });
   await expect(steps.locator('[aria-current="step"]')).toContainText("Rhythm");
   const rhythm = page.getByRole("group", { name: "Does this rhythm sound right?" });

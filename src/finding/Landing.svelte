@@ -108,7 +108,7 @@
   /** @type {HTMLButtonElement | undefined} */
   let reopenButton = $state();
 
-  /** "Next: find the chords" or "Not now": collapse the key step, keeping focus on its row. */
+  /** "Next: …" or "Not now": collapse the key step, keeping focus on its row. */
   async function collapseKey() {
     intent = "dismissed";
     await tick();
@@ -186,6 +186,7 @@
       <KeyPrompt
         onkey={rekey}
         ondismiss={canDismiss ? collapseKey : undefined}
+        next={$song.meter.provisional ? "rhythm" : "chords"}
         autofocus={(demo && $song.key.provisional && intent === "ask") || intent === "reopened"}
       />
     {/key}

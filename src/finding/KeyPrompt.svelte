@@ -31,9 +31,10 @@
    *   onkey: (key: Key) => void,
    *   ondismiss?: () => void,
    *   autofocus?: boolean,
+   *   next?: "rhythm" | "chords",
    * }}
    */
-  let { onkey, ondismiss, autofocus = false } = $props();
+  let { onkey, ondismiss, autofocus = false, next = "chords" } = $props();
 
   const MODES = /** @type {const} */ ([
     { mode: "major", label: "Bright (major)" },
@@ -68,11 +69,20 @@
   let opener = /** @type {HTMLElement | undefined} */ ($state());
   /** @type {{ show: () => void } | undefined} */
   let finder = $state();
-  /** @type {{ show: () => void } | undefined} */
+  /** @type {{ show: () => void, focus: () => boolean } | undefined} */
   let result = $state();
 
   $effect(() => {
     if (autofocus) heading?.focus();
+  });
+
+  // An undo (or anything outside this card) that takes the key back leaves no
+  // stale "You chose…" in the live region.
+  let wasChosen = !song.get().key.provisional;
+  $effect(() => {
+    const chosenNow = !$song.key.provisional;
+    if (wasChosen && !chosenNow) announcement = "No home chosen yet.";
+    wasChosen = chosenNow;
   });
 
   /**
@@ -148,9 +158,17 @@
     finding = true;
   }
 
-  function closeFinder() {
+  /**
+   * Close the finder and give focus back: to its opener, or, when a pick in
+   * the finder chose a key and "Help me find it" left with the two ways in,
+   * to the result card, or the heading.
+   */
+  async function closeFinder() {
     finding = false;
-    (opener?.isConnected ? opener : helpButton)?.focus();
+    await tick();
+    if (opener?.isConnected) opener.focus();
+    else if (helpButton?.isConnected) helpButton.focus();
+    else if (!result?.focus()) heading?.focus();
   }
 </script>
 
@@ -238,6 +256,7 @@
       oncheck={openFinder}
       onkeep={keepChoice}
       onnext={ondismiss}
+      {next}
     />
   {/if}
 
@@ -270,7 +289,7 @@
 <style>
   .prompt {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-3);
     justify-items: stretch;
   }
   h2 {
