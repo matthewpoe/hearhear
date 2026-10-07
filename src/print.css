@@ -1,0 +1,42 @@
+/*
+ * Lead sheet export (Stream C): printing the page prints only the staff, the
+ * same abcjs rendering as on screen, on a light page. tokens.css applies the
+ * dark theme to screens only, so print always uses the light tokens.
+ */
+
+@media print {
+  @page {
+    margin: 15mm;
+  }
+
+  html,
+  body {
+    background: var(--surface);
+  }
+
+  /* Everything but the staff: masthead, other regions, keyboard dock. */
+  body header,
+  body footer,
+  main > :not(#staff),
+  #staff .toolbar {
+    display: none !important;
+  }
+
+  main {
+    display: block !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  #staff {
+    padding: 0;
+    border: none;
+    background: none;
+    /* Keep the function colors on the chord letters. */
+    print-color-adjust: exact;
+  }
+
+  #staff [data-note-id] {
+    outline: none;
+  }
+}
