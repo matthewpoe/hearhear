@@ -1,0 +1,9 @@
+node_modules
+.venv
+dist
+media
+.git
+.remember
+.env
+test-results
+playwright-report
