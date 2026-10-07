@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 MAX_NOTES = 400
 MAX_HISTORY_TURNS = 12
 MAX_MESSAGE_CHARS = 1000
+MAX_TITLE_CHARS = 120
 MAX_BODY_BYTES = 128 * 1024
 
 HintLevel = Literal["nudge", "comparison", "answer"]
@@ -81,6 +82,19 @@ class Snapshot(Strict):
     tempo: Annotated[int, Field(ge=30, le=240)]
     label_style: LabelStyle
     bars: Annotated[list[SnapshotBar], Field(max_length=400)]
+    # Context for cultural grounding in the live app. The eval leaves it out,
+    # so the model judges the melody rather than recalling a hymnal.
+    title: (
+        Annotated[
+            str,
+            Field(
+                min_length=1,
+                max_length=MAX_TITLE_CHARS,
+                description="The song's title, for context. Optional; the eval omits it.",
+            ),
+        ]
+        | None
+    ) = None
     # True while the app hides key labels (a demo before the student's guess).
     # The tutor must not name or hint at the key, and the server withholds
     # every suggestion, since a letter-name chord gives the key away.

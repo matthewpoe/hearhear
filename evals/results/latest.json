@@ -1,9 +1,9 @@
 {
   "run": {
-    "date": "2026-10-07T05:37:36.588Z",
+    "date": "2026-10-07T06:23:45.889Z",
     "mode": "fixture",
     "model": "fixture",
-    "endpoint": "http://127.0.0.1:8762/api/tutor",
+    "endpoint": "http://127.0.0.1:8763/api/tutor",
     "note": "Fixture run: the server replayed canned replies about a different song, so these numbers measure the plumbing (requests, streaming, parsing, scoring), not the model."
   },
   "headline": {
@@ -15,8 +15,9 @@
     "hitRate": { "count": 0, "total": 41 },
     "clashRate": { "count": 0, "total": 0 },
     "pedagogy": { "count": 41, "total": 41 },
-    "latencyMs": { "p50": 355, "p95": 403 },
-    "firstDeltaMs": { "p50": 48, "p95": 50 },
+    "nudgesClamped": { "count": 0, "total": 41 },
+    "latencyMs": { "p50": 1061, "p95": 1113 },
+    "firstDeltaMs": { "p50": 49, "p95": 51 },
     "baseline": {
       "hitRate": { "count": 20, "total": 41 },
       "clashRate": { "count": 0, "total": 41 }
@@ -38,8 +39,9 @@
           "hitRate": null,
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": { "count": 7, "total": 7 },
-          "latencyMs": { "p50": 355, "p95": 371 },
-          "firstDeltaMs": { "p50": 49, "p95": 57 }
+          "nudgesClamped": { "count": 0, "total": 7 },
+          "latencyMs": { "p50": 968, "p95": 974 },
+          "firstDeltaMs": { "p50": 49, "p95": 51 }
         },
         "comparison": {
           "replies": 7,
@@ -50,8 +52,9 @@
           "hitRate": { "count": 0, "total": 7 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 310, "p95": 313 },
-          "firstDeltaMs": { "p50": 49, "p95": 50 }
+          "nudgesClamped": null,
+          "latencyMs": { "p50": 1110, "p95": 1113 },
+          "firstDeltaMs": { "p50": 49, "p95": 52 }
         },
         "answer": {
           "replies": 7,
@@ -62,8 +65,9 @@
           "hitRate": { "count": 0, "total": 7 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 401, "p95": 403 },
-          "firstDeltaMs": { "p50": 48, "p95": 49 }
+          "nudgesClamped": null,
+          "latencyMs": { "p50": 1059, "p95": 1066 },
+          "firstDeltaMs": { "p50": 49, "p95": 49 }
         }
       },
       "baseline": {
@@ -86,8 +90,9 @@
           "hitRate": null,
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": { "count": 6, "total": 6 },
-          "latencyMs": { "p50": 355, "p95": 358 },
-          "firstDeltaMs": { "p50": 48, "p95": 51 }
+          "nudgesClamped": { "count": 0, "total": 6 },
+          "latencyMs": { "p50": 967, "p95": 973 },
+          "firstDeltaMs": { "p50": 49, "p95": 51 }
         },
         "comparison": {
           "replies": 6,
@@ -98,8 +103,9 @@
           "hitRate": { "count": 0, "total": 6 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 309, "p95": 313 },
-          "firstDeltaMs": { "p50": 48, "p95": 49 }
+          "nudgesClamped": null,
+          "latencyMs": { "p50": 1108, "p95": 1114 },
+          "firstDeltaMs": { "p50": 48, "p95": 50 }
         },
         "answer": {
           "replies": 6,
@@ -110,8 +116,9 @@
           "hitRate": { "count": 0, "total": 6 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 401, "p95": 403 },
-          "firstDeltaMs": { "p50": 48, "p95": 49 }
+          "nudgesClamped": null,
+          "latencyMs": { "p50": 1061, "p95": 1065 },
+          "firstDeltaMs": { "p50": 49, "p95": 51 }
         }
       },
       "baseline": {
@@ -134,8 +141,9 @@
           "hitRate": null,
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": { "count": 16, "total": 16 },
-          "latencyMs": { "p50": 354, "p95": 365 },
-          "firstDeltaMs": { "p50": 48, "p95": 58 }
+          "nudgesClamped": { "count": 0, "total": 16 },
+          "latencyMs": { "p50": 968, "p95": 974 },
+          "firstDeltaMs": { "p50": 49, "p95": 51 }
         },
         "comparison": {
           "replies": 16,
@@ -146,8 +154,9 @@
           "hitRate": { "count": 0, "total": 16 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 309, "p95": 322 },
-          "firstDeltaMs": { "p50": 48, "p95": 50 }
+          "nudgesClamped": null,
+          "latencyMs": { "p50": 1108, "p95": 1113 },
+          "firstDeltaMs": { "p50": 49, "p95": 50 }
         },
         "answer": {
           "replies": 16,
@@ -158,8 +167,9 @@
           "hitRate": { "count": 0, "total": 16 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 400, "p95": 418 },
-          "firstDeltaMs": { "p50": 48, "p95": 52 }
+          "nudgesClamped": null,
+          "latencyMs": { "p50": 1062, "p95": 1067 },
+          "firstDeltaMs": { "p50": 49, "p95": 50 }
         }
       },
       "baseline": {
@@ -182,8 +192,9 @@
           "hitRate": null,
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": { "count": 12, "total": 12 },
-          "latencyMs": { "p50": 354, "p95": 363 },
-          "firstDeltaMs": { "p50": 48, "p95": 56 }
+          "nudgesClamped": { "count": 0, "total": 12 },
+          "latencyMs": { "p50": 968, "p95": 973 },
+          "firstDeltaMs": { "p50": 49, "p95": 50 }
         },
         "comparison": {
           "replies": 12,
@@ -194,8 +205,9 @@
           "hitRate": { "count": 0, "total": 12 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 308, "p95": 310 },
-          "firstDeltaMs": { "p50": 48, "p95": 49 }
+          "nudgesClamped": null,
+          "latencyMs": { "p50": 1108, "p95": 1114 },
+          "firstDeltaMs": { "p50": 48, "p95": 50 }
         },
         "answer": {
           "replies": 12,
@@ -206,8 +218,9 @@
           "hitRate": { "count": 0, "total": 12 },
           "clashRate": { "count": 0, "total": 0 },
           "pedagogy": null,
-          "latencyMs": { "p50": 399, "p95": 403 },
-          "firstDeltaMs": { "p50": 47, "p95": 48 }
+          "nudgesClamped": null,
+          "latencyMs": { "p50": 1060, "p95": 1063 },
+          "firstDeltaMs": { "p50": 48, "p95": 49 }
         }
       },
       "baseline": {
@@ -226,7 +239,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -236,8 +251,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 363,
-      "firstDeltaMs": 57
+      "ms": 974,
+      "firstDeltaMs": 51
     },
     {
       "tune": "amazing-grace",
@@ -248,7 +263,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -258,7 +275,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 311,
+      "ms": 1111,
       "firstDeltaMs": 50
     },
     {
@@ -270,7 +287,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -280,7 +299,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 401,
+      "ms": 1053,
       "firstDeltaMs": 48
     },
     {
@@ -292,7 +311,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -302,8 +323,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 371,
-      "firstDeltaMs": 49
+      "ms": 969,
+      "firstDeltaMs": 50
     },
     {
       "tune": "amazing-grace",
@@ -314,7 +335,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -324,7 +347,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 310,
+      "ms": 1107,
       "firstDeltaMs": 49
     },
     {
@@ -336,7 +359,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -346,8 +371,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 401,
-      "firstDeltaMs": 48
+      "ms": 1058,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -358,7 +383,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -368,8 +395,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 49
+      "ms": 957,
+      "firstDeltaMs": 48
     },
     {
       "tune": "amazing-grace",
@@ -380,7 +407,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -390,8 +419,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
-      "firstDeltaMs": 48
+      "ms": 1112,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -402,7 +431,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -412,8 +443,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 399,
-      "firstDeltaMs": 48
+      "ms": 1066,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -424,7 +455,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -434,33 +467,35 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 352,
+      "ms": 965,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "comparison",
+      "bar": 3,
+      "beat": 3,
+      "reference": "C",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1105,
       "firstDeltaMs": 47
     },
     {
       "tune": "amazing-grace",
-      "level": "comparison",
-      "bar": 3,
-      "beat": 3,
-      "reference": "C",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 309,
-      "firstDeltaMs": 48
-    },
-    {
-      "tune": "amazing-grace",
       "level": "answer",
       "bar": 3,
       "beat": 3,
@@ -468,7 +503,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -478,7 +515,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 403,
+      "ms": 1053,
       "firstDeltaMs": 49
     },
     {
@@ -490,7 +527,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -500,8 +539,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 49
+      "ms": 967,
+      "firstDeltaMs": 48
     },
     {
       "tune": "amazing-grace",
@@ -512,7 +551,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -522,7 +563,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
+      "ms": 1103,
       "firstDeltaMs": 49
     },
     {
@@ -534,7 +575,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -544,7 +587,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 402,
+      "ms": 1060,
       "firstDeltaMs": 49
     },
     {
@@ -556,7 +599,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -566,8 +611,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 48
+      "ms": 968,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -578,7 +623,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -588,8 +635,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 311,
-      "firstDeltaMs": 48
+      "ms": 1113,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -600,7 +647,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -610,8 +659,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 398,
-      "firstDeltaMs": 48
+      "ms": 1060,
+      "firstDeltaMs": 49
     },
     {
       "tune": "amazing-grace",
@@ -622,7 +671,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -632,7 +683,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 357,
+      "ms": 970,
       "firstDeltaMs": 49
     },
     {
@@ -644,7 +695,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -654,98 +707,106 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 313,
+      "ms": 1110,
+      "firstDeltaMs": 52
+    },
+    {
+      "tune": "amazing-grace",
+      "level": "answer",
+      "bar": 7,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1059,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "joyful-joyful",
+      "level": "nudge",
+      "bar": 1,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 972,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "joyful-joyful",
+      "level": "comparison",
+      "bar": 1,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1107,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "joyful-joyful",
+      "level": "answer",
+      "bar": 1,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1060,
       "firstDeltaMs": 50
     },
     {
-      "tune": "amazing-grace",
-      "level": "answer",
-      "bar": 7,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 401,
-      "firstDeltaMs": 48
-    },
-    {
-      "tune": "joyful-joyful",
-      "level": "nudge",
-      "bar": 1,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 48
-    },
-    {
-      "tune": "joyful-joyful",
-      "level": "comparison",
-      "bar": 1,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 313,
-      "firstDeltaMs": 49
-    },
-    {
-      "tune": "joyful-joyful",
-      "level": "answer",
-      "bar": 1,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 400,
-      "firstDeltaMs": 49
-    },
-    {
       "tune": "joyful-joyful",
       "level": "nudge",
       "bar": 2,
@@ -754,7 +815,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -764,8 +827,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 48
+      "ms": 967,
+      "firstDeltaMs": 47
     },
     {
       "tune": "joyful-joyful",
@@ -776,7 +839,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -786,8 +851,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
-      "firstDeltaMs": 49
+      "ms": 1113,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -798,7 +863,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -808,8 +875,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 403,
-      "firstDeltaMs": 48
+      "ms": 1063,
+      "firstDeltaMs": 51
     },
     {
       "tune": "joyful-joyful",
@@ -820,7 +887,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -830,7 +899,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 358,
+      "ms": 969,
       "firstDeltaMs": 51
     },
     {
@@ -842,7 +911,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -852,8 +923,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
-      "firstDeltaMs": 49
+      "ms": 1114,
+      "firstDeltaMs": 50
     },
     {
       "tune": "joyful-joyful",
@@ -864,7 +935,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -874,8 +947,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 401,
-      "firstDeltaMs": 49
+      "ms": 1059,
+      "firstDeltaMs": 47
     },
     {
       "tune": "joyful-joyful",
@@ -886,7 +959,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -896,8 +971,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 358,
-      "firstDeltaMs": 49
+      "ms": 965,
+      "firstDeltaMs": 48
     },
     {
       "tune": "joyful-joyful",
@@ -908,7 +983,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -918,8 +995,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 311,
-      "firstDeltaMs": 48
+      "ms": 1108,
+      "firstDeltaMs": 50
     },
     {
       "tune": "joyful-joyful",
@@ -930,7 +1007,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -940,8 +1019,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 402,
-      "firstDeltaMs": 48
+      "ms": 1061,
+      "firstDeltaMs": 47
     },
     {
       "tune": "joyful-joyful",
@@ -952,7 +1031,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -962,8 +1043,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 48
+      "ms": 963,
+      "firstDeltaMs": 49
     },
     {
       "tune": "joyful-joyful",
@@ -974,7 +1055,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -984,85 +1067,21 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 307,
-      "firstDeltaMs": 48
-    },
-    {
-      "tune": "joyful-joyful",
-      "level": "answer",
-      "bar": 3,
-      "beat": 4,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 402,
-      "firstDeltaMs": 48
-    },
-    {
-      "tune": "joyful-joyful",
-      "level": "nudge",
-      "bar": 4,
-      "beat": 3,
-      "reference": "D",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 353,
-      "firstDeltaMs": 48
-    },
-    {
-      "tune": "joyful-joyful",
-      "level": "comparison",
-      "bar": 4,
-      "beat": 3,
-      "reference": "D",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 308,
+      "ms": 1103,
       "firstDeltaMs": 47
     },
     {
       "tune": "joyful-joyful",
       "level": "answer",
-      "bar": 4,
-      "beat": 3,
-      "reference": "D",
+      "bar": 3,
+      "beat": 4,
+      "reference": "G",
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1072,8 +1091,80 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 401,
-      "firstDeltaMs": 48
+      "ms": 1065,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "joyful-joyful",
+      "level": "nudge",
+      "bar": 4,
+      "beat": 3,
+      "reference": "D",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 973,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "joyful-joyful",
+      "level": "comparison",
+      "bar": 4,
+      "beat": 3,
+      "reference": "D",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1110,
+      "firstDeltaMs": 50
+    },
+    {
+      "tune": "joyful-joyful",
+      "level": "answer",
+      "bar": 4,
+      "beat": 3,
+      "reference": "D",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1062,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1084,7 +1175,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1094,8 +1187,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 354,
-      "firstDeltaMs": 48
+      "ms": 970,
+      "firstDeltaMs": 51
     },
     {
       "tune": "veni-emmanuel",
@@ -1106,7 +1199,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1116,33 +1211,35 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 310,
+      "ms": 1104,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 1,
+      "beat": 1,
+      "reference": "Em",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1061,
       "firstDeltaMs": 50
     },
     {
       "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 1,
-      "beat": 1,
-      "reference": "Em",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 399,
-      "firstDeltaMs": 47
-    },
-    {
-      "tune": "veni-emmanuel",
       "level": "nudge",
       "bar": 1,
       "beat": 2,
@@ -1150,7 +1247,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1160,8 +1259,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 357,
-      "firstDeltaMs": 49
+      "ms": 967,
+      "firstDeltaMs": 47
     },
     {
       "tune": "veni-emmanuel",
@@ -1172,7 +1271,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1182,7 +1283,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
+      "ms": 1111,
       "firstDeltaMs": 48
     },
     {
@@ -1194,7 +1295,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1204,8 +1307,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 398,
-      "firstDeltaMs": 47
+      "ms": 1065,
+      "firstDeltaMs": 50
     },
     {
       "tune": "veni-emmanuel",
@@ -1216,7 +1319,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1226,7 +1331,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
+      "ms": 969,
       "firstDeltaMs": 48
     },
     {
@@ -1238,7 +1343,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1248,8 +1355,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 310,
-      "firstDeltaMs": 49
+      "ms": 1104,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1260,7 +1367,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1270,7 +1379,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 418,
+      "ms": 1067,
       "firstDeltaMs": 48
     },
     {
@@ -1282,7 +1391,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1292,8 +1403,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 48
+      "ms": 966,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1304,7 +1415,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1314,8 +1427,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 311,
-      "firstDeltaMs": 50
+      "ms": 1106,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1326,7 +1439,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1336,8 +1451,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 401,
-      "firstDeltaMs": 48
+      "ms": 1062,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1348,7 +1463,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1358,7 +1475,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 353,
+      "ms": 966,
       "firstDeltaMs": 48
     },
     {
@@ -1370,7 +1487,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1380,8 +1499,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
-      "firstDeltaMs": 47
+      "ms": 1109,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1392,7 +1511,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1402,7 +1523,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 401,
+      "ms": 1060,
       "firstDeltaMs": 48
     },
     {
@@ -1414,7 +1535,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1424,8 +1547,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 47
+      "ms": 973,
+      "firstDeltaMs": 50
     },
     {
       "tune": "veni-emmanuel",
@@ -1436,7 +1559,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1446,7 +1571,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
+      "ms": 1106,
       "firstDeltaMs": 48
     },
     {
@@ -1458,7 +1583,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1468,8 +1595,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 399,
-      "firstDeltaMs": 47
+      "ms": 1058,
+      "firstDeltaMs": 50
     },
     {
       "tune": "veni-emmanuel",
@@ -1480,7 +1607,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1490,8 +1619,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 354,
-      "firstDeltaMs": 48
+      "ms": 967,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1502,7 +1631,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1512,8 +1643,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
-      "firstDeltaMs": 48
+      "ms": 1113,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1524,7 +1655,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1534,8 +1667,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 403,
-      "firstDeltaMs": 48
+      "ms": 1062,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1546,7 +1679,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1556,85 +1691,93 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 362,
-      "firstDeltaMs": 56
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "comparison",
-      "bar": 3,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 2,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 322,
-      "firstDeltaMs": 48
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "answer",
-      "bar": 3,
-      "beat": 1,
-      "reference": "G",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 3,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": null,
-      "ms": 401,
-      "firstDeltaMs": 48
-    },
-    {
-      "tune": "veni-emmanuel",
-      "level": "nudge",
-      "bar": 3,
-      "beat": 4,
-      "reference": "D",
-      "outcome": "ok",
-      "code": null,
-      "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
-      "schemaValid": true,
-      "score": {
-        "suggestions": 0,
-        "agreeing": 0,
-        "onOnset": 0,
-        "clashing": 0,
-        "hit": false
-      },
-      "withholds": true,
-      "ms": 354,
+      "ms": 962,
       "firstDeltaMs": 50
     },
     {
       "tune": "veni-emmanuel",
       "level": "comparison",
       "bar": 3,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 2,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1110,
+      "firstDeltaMs": 48
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "answer",
+      "bar": 3,
+      "beat": 1,
+      "reference": "G",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 3,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": null,
+      "ms": 1058,
+      "firstDeltaMs": 49
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "nudge",
+      "bar": 3,
       "beat": 4,
       "reference": "D",
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
+      "schemaValid": true,
+      "score": {
+        "suggestions": 0,
+        "agreeing": 0,
+        "onOnset": 0,
+        "clashing": 0,
+        "hit": false
+      },
+      "withholds": true,
+      "ms": 959,
+      "firstDeltaMs": 47
+    },
+    {
+      "tune": "veni-emmanuel",
+      "level": "comparison",
+      "bar": 3,
+      "beat": 4,
+      "reference": "D",
+      "outcome": "ok",
+      "code": null,
+      "servedBy": "fixture",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1644,7 +1787,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
+      "ms": 1106,
       "firstDeltaMs": 48
     },
     {
@@ -1656,7 +1799,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1666,8 +1811,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 399,
-      "firstDeltaMs": 47
+      "ms": 1057,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1678,7 +1823,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1688,8 +1835,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 354,
-      "firstDeltaMs": 47
+      "ms": 965,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1700,7 +1847,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1710,8 +1859,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
-      "firstDeltaMs": 47
+      "ms": 1112,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1722,7 +1871,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1732,8 +1883,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 400,
-      "firstDeltaMs": 48
+      "ms": 1063,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1744,7 +1895,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1754,8 +1907,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 354,
-      "firstDeltaMs": 48
+      "ms": 969,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1766,7 +1919,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1776,8 +1931,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
-      "firstDeltaMs": 48
+      "ms": 1107,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1788,7 +1943,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1798,8 +1955,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 400,
-      "firstDeltaMs": 48
+      "ms": 1065,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1810,7 +1967,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1820,8 +1979,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 354,
-      "firstDeltaMs": 48
+      "ms": 974,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1832,7 +1991,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1842,8 +2003,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
-      "firstDeltaMs": 48
+      "ms": 1111,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1854,7 +2015,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1864,8 +2027,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 400,
-      "firstDeltaMs": 47
+      "ms": 1061,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -1876,7 +2039,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1886,8 +2051,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 47
+      "ms": 973,
+      "firstDeltaMs": 51
     },
     {
       "tune": "veni-emmanuel",
@@ -1898,7 +2063,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1908,8 +2075,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
-      "firstDeltaMs": 47
+      "ms": 1108,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1920,7 +2087,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1930,8 +2099,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 400,
-      "firstDeltaMs": 47
+      "ms": 1057,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1942,7 +2111,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -1952,7 +2123,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 354,
+      "ms": 969,
       "firstDeltaMs": 47
     },
     {
@@ -1964,7 +2135,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -1974,8 +2147,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 310,
-      "firstDeltaMs": 48
+      "ms": 1113,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -1986,7 +2159,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -1996,8 +2171,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 407,
-      "firstDeltaMs": 49
+      "ms": 1062,
+      "firstDeltaMs": 48
     },
     {
       "tune": "veni-emmanuel",
@@ -2008,7 +2183,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2018,8 +2195,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 352,
-      "firstDeltaMs": 47
+      "ms": 968,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -2030,7 +2207,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2040,8 +2219,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 311,
-      "firstDeltaMs": 48
+      "ms": 1107,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -2052,7 +2231,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2062,8 +2243,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 416,
-      "firstDeltaMs": 52
+      "ms": 1066,
+      "firstDeltaMs": 49
     },
     {
       "tune": "veni-emmanuel",
@@ -2074,7 +2255,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2084,8 +2267,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 365,
-      "firstDeltaMs": 58
+      "ms": 972,
+      "firstDeltaMs": 51
     },
     {
       "tune": "veni-emmanuel",
@@ -2096,7 +2279,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2106,8 +2291,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 306,
-      "firstDeltaMs": 47
+      "ms": 1111,
+      "firstDeltaMs": 50
     },
     {
       "tune": "veni-emmanuel",
@@ -2118,7 +2303,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2128,8 +2315,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 398,
-      "firstDeltaMs": 47
+      "ms": 1067,
+      "firstDeltaMs": 50
     },
     {
       "tune": "god-rest-ye",
@@ -2140,7 +2327,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2150,7 +2339,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 354,
+      "ms": 963,
       "firstDeltaMs": 48
     },
     {
@@ -2162,7 +2351,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2172,7 +2363,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 310,
+      "ms": 1105,
       "firstDeltaMs": 49
     },
     {
@@ -2184,7 +2375,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2194,8 +2387,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 398,
-      "firstDeltaMs": 48
+      "ms": 1057,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2206,7 +2399,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2216,7 +2411,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 356,
+      "ms": 966,
       "firstDeltaMs": 49
     },
     {
@@ -2228,7 +2423,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2238,8 +2435,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
-      "firstDeltaMs": 48
+      "ms": 1106,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2250,7 +2447,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2260,7 +2459,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 399,
+      "ms": 1059,
       "firstDeltaMs": 48
     },
     {
@@ -2272,7 +2471,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2282,8 +2483,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 48
+      "ms": 969,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2294,7 +2495,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2304,7 +2507,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
+      "ms": 1103,
       "firstDeltaMs": 47
     },
     {
@@ -2316,7 +2519,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2326,8 +2531,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 400,
-      "firstDeltaMs": 47
+      "ms": 1060,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2338,7 +2543,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2348,7 +2555,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
+      "ms": 969,
       "firstDeltaMs": 48
     },
     {
@@ -2360,7 +2567,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2370,8 +2579,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 307,
-      "firstDeltaMs": 47
+      "ms": 1106,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2382,7 +2591,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2392,7 +2603,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 403,
+      "ms": 1062,
       "firstDeltaMs": 48
     },
     {
@@ -2404,7 +2615,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2414,8 +2627,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 363,
-      "firstDeltaMs": 56
+      "ms": 969,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2426,7 +2639,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2436,8 +2651,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
-      "firstDeltaMs": 48
+      "ms": 1111,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2448,7 +2663,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2458,8 +2675,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 400,
-      "firstDeltaMs": 47
+      "ms": 1062,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2470,7 +2687,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2480,8 +2699,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 353,
-      "firstDeltaMs": 48
+      "ms": 970,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2492,7 +2711,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2502,8 +2723,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 306,
-      "firstDeltaMs": 47
+      "ms": 1114,
+      "firstDeltaMs": 50
     },
     {
       "tune": "god-rest-ye",
@@ -2514,7 +2735,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2524,8 +2747,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 398,
-      "firstDeltaMs": 47
+      "ms": 1061,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2536,7 +2759,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2546,8 +2771,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 354,
-      "firstDeltaMs": 47
+      "ms": 968,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2558,7 +2783,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2568,8 +2795,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
-      "firstDeltaMs": 49
+      "ms": 1110,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2580,7 +2807,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2590,8 +2819,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 401,
-      "firstDeltaMs": 47
+      "ms": 1059,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2602,7 +2831,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2612,7 +2843,7 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 357,
+      "ms": 973,
       "firstDeltaMs": 49
     },
     {
@@ -2624,7 +2855,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2634,7 +2867,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 310,
+      "ms": 1114,
       "firstDeltaMs": 49
     },
     {
@@ -2646,7 +2879,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2656,8 +2891,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 398,
-      "firstDeltaMs": 47
+      "ms": 1056,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2668,7 +2903,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2678,8 +2915,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 352,
-      "firstDeltaMs": 47
+      "ms": 968,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2690,7 +2927,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2700,7 +2939,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
+      "ms": 1108,
       "firstDeltaMs": 48
     },
     {
@@ -2712,7 +2951,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2722,8 +2963,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 399,
-      "firstDeltaMs": 48
+      "ms": 1058,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2734,7 +2975,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2744,8 +2987,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 353,
-      "firstDeltaMs": 47
+      "ms": 967,
+      "firstDeltaMs": 49
     },
     {
       "tune": "god-rest-ye",
@@ -2756,7 +2999,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2766,7 +3011,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 309,
+      "ms": 1107,
       "firstDeltaMs": 48
     },
     {
@@ -2778,7 +3023,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2788,8 +3035,8 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 400,
-      "firstDeltaMs": 47
+      "ms": 1061,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2800,7 +3047,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2810,8 +3059,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 352,
-      "firstDeltaMs": 48
+      "ms": 973,
+      "firstDeltaMs": 50
     },
     {
       "tune": "god-rest-ye",
@@ -2822,7 +3071,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2832,7 +3083,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 308,
+      "ms": 1109,
       "firstDeltaMs": 48
     },
     {
@@ -2844,7 +3095,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2854,7 +3107,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 401,
+      "ms": 1063,
       "firstDeltaMs": 48
     },
     {
@@ -2866,7 +3119,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Before I say anything about chords, listen to the end of bar 4. Does the melody feel finished there, or like it's holding its breath? Try the chord you picked, then hold just the 5 underneath and compare. What does your ear say? ",
+      "message": "Before we talk about chords, listen to the end of bar 4. The tune climbs 3-4-5 in bar 1, falls back down in bar 2, starts again from home in bar 3, and then stops on a long 2 at beat 3 of bar 4, one step above home. Does the phrase feel finished there, or like it's holding its breath, waiting for the second half to answer? Compare bar 8, where the same line steps down from 2 to 1 and lands on home.\n\n1. Play bars 3 and 4, and keep the long note of bar 4 in your ear.\n2. Hold the drone on 1 and play bars 7 and 8. See whether the ending settles in a way bar 4 doesn't.\n3. Hum the long note of bar 4, then hum the 1, and notice how much it wants to move.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 0,
@@ -2876,8 +3131,8 @@
         "hit": false
       },
       "withholds": true,
-      "ms": 355,
-      "firstDeltaMs": 49
+      "ms": 968,
+      "firstDeltaMs": 48
     },
     {
       "tune": "god-rest-ye",
@@ -2888,7 +3143,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Here are two to try under the long E in bar 4. Play each one and notice whether the phrase wants to keep going or come to rest. I have a guess, but your ear is the judge here.",
+      "message": "Here are two to try under the long 2 in bar 4, beat 3. Under V, that 2 is the chord's fifth, and the phrase pauses on tension that wants to go home: a half cadence, a question the second phrase answers. Under ii, the 2 is the root, so the melody sits more solidly, but the chord steps away from home without pulling back as hard. Tunes built from two matching phrases, like this one, often pause on V at the halfway point so the second line can answer it. I have a guess, but your ear is the judge here.\n\n1. Try the V suggestion under bar 4, beat 3, then play bars 3 and 4.\n2. Try the ii suggestion in the same spot and play the same bars.\n3. See whether one of them makes you want to keep going into bar 5.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 2,
@@ -2898,7 +3155,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 310,
+      "ms": 1111,
       "firstDeltaMs": 48
     },
     {
@@ -2910,7 +3167,9 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "My best guess is V under the long E in bar 4, then V to I in bar 8. Bar 4 is a half cadence: it pauses on the dominant, the red square, so the second phrase can answer it and come home. I'm fairly confident, but play it and see if it lands for you. ",
+      "message": "My best guess is V under the long 2 in bar 4, then V to I in bar 8. In bar 4 the held 2 is the fifth of V, so the first phrase pauses on the dominant, the red square: a half cadence, a question left open. Bar 8 asks the same question and answers it. The 2 over V on beat 1 is tension, and when the melody falls to 1 on beat 3, I puts that 1 at its root and the phrase comes home. That V to I close ends countless hymns and folk songs. I'm fairly confident, but play it and see if it lands for you.\n\n1. Try the V suggestion under bar 4, beat 3, and play bars 3 and 4. Listen for the pause.\n2. Try the V and I suggestions in bar 8 and play bars 7 and 8.\n3. Hold the drone on 1 and see whether the last note of bar 8 settles.",
+      "dropped": 0,
+      "withheld": 0,
       "schemaValid": true,
       "score": {
         "suggestions": 3,
@@ -2920,7 +3179,7 @@
         "hit": false
       },
       "withholds": null,
-      "ms": 397,
+      "ms": 1063,
       "firstDeltaMs": 48
     }
   ]

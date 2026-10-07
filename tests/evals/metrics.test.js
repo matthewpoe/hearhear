@@ -91,10 +91,19 @@ test("chordNamesIn lets ordinary prose, notes, degrees, and bars through", () =>
   assert.deepEqual(chordNamesIn(nudge), []);
 });
 
-test("a nudge withholds when it has no suggestions and names no chord", () => {
-  assert.ok(nudgeWithholds({ message: "Listen to bar 4.", suggestions: [] }));
-  assert.equal(nudgeWithholds({ message: "Try IV.", suggestions: [] }), false);
-  assert.equal(nudgeWithholds({ message: "Listen.", suggestions: [{}] }), false);
+test("a nudge withholds when the model offered nothing to strip and names no chord", () => {
+  assert.ok(nudgeWithholds({ message: "Listen to bar 4.", dropped: 0, withheld: 0 }));
+  assert.equal(nudgeWithholds({ message: "Try IV.", dropped: 0, withheld: 0 }), false);
+  assert.equal(
+    nudgeWithholds({ message: "Listen.", dropped: 0, withheld: 1 }),
+    false,
+    "the server held back a suggestion the model offered",
+  );
+  assert.equal(
+    nudgeWithholds({ message: "Listen.", dropped: 1, withheld: 0 }),
+    false,
+    "an invalid suggestion was still an offer",
+  );
 });
 
 test("baselineChord picks the best-fitting candidate", () => {
