@@ -143,5 +143,8 @@ test("a recorded tune asks Rhythm to confirm its guess once the key is chosen", 
   await expect(rhythm).toContainText(/The recording reads as\s+\d\/\d at \d+ beats a minute/);
   await rhythm.getByRole("button", { name: "Sounds right" }).click();
   await expect(steps.locator('[aria-current="step"]')).toContainText("Chords");
+  // The card moves straight on to step 3's prompt: never an empty card.
+  await expect(page.locator("#chords-step")).toContainText("Try a chord under");
+  await expect(page.locator('#staff [role="button"].is-start')).toHaveCount(1);
   await axe(page);
 });
