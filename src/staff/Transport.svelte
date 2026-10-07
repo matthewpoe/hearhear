@@ -1,5 +1,6 @@
 <script>
-  // One big Play/Stop, and beside it a segmented choice of what Play plays:
+  // One big Play/Pause/Resume and a small Stop, and beside them a segmented
+  // choice of what Play plays:
   // from the top, or this bar, the bar of the note the user last clicked or
   // focused (Play then reads "Play bar 4", the name the tutor's listening
   // steps use; names come from content/controls.json). The visuals (the
@@ -190,7 +191,33 @@
     event.stopPropagation();
   }
 
-  const onPointerDown = () => (lastInputKeyboard = false);
+  /** @param {PointerEvent} event */
+  const onPointerDown = (event) => {
+    lastInputKeyboard = false;
+    // A click on the control that already has focus fires no focusin, so
+    // clear its keyboard flag here (say, More refocused by Escape, then clicked).
+    const active = document.activeElement;
+    if (active && event.target instanceof Node && active.contains(event.target)) {
+      focusByKeyboard = false;
+    }
+  };
+
+  /** Stop: end playback, or a pause, and go back to the top. */
+  function stopAll() {
+    const wasPaused = paused !== null;
+    paused = null;
+    if (wasPaused) {
+      clearHighlight("is-playing");
+      ui.update({ playheadNoteId: null });
+    }
+    if (playing) stop();
+  }
+
+  /** The big button: Play (or "Play bar 4"), Pause while playing, Resume while paused. */
+  const mainLabel = $derived(playing ? "Pause" : paused ? "Resume" : playLabel);
+  const mainTip = $derived(
+    playing ? GLOSS.pause : paused ? GLOSS.resume : playsBar ? GLOSS.thisBar : GLOSS.fromTop,
+  );
   const onFocusIn = () => (focusByKeyboard = lastInputKeyboard);
 
   $effect(() => {
@@ -209,21 +236,30 @@
 </script>
 
 <div class="transport" role="group" aria-label="Playback">
-  <!-- One button that toggles, so focus stays put when playback starts. -->
-  <Tip
-    id="play-tip"
-    text={`${playing ? "Stops playback." : playsBar ? GLOSS.thisBar : GLOSS.fromTop} ${GLOSS.playKeys}`}
-  >
+  <!-- One button that toggles, so focus stays put when playback starts. It
+       does what Space does: play, pause, resume. Stop sits beside it. -->
+  <Tip id="play-tip" text={`${mainTip} ${GLOSS.playKeys}`}>
     <button
       type="button"
       class="control"
       aria-describedby="play-tip"
-      onclick={playing ? stop : () => play(playsBar ? place?.bar : undefined)}
+      onclick={playing ? pause : paused ? resume : () => play(playsBar ? place?.bar : undefined)}
       disabled={!playing && (loading || samplesFailed || $song.notes.length === 0)}
     >
-      <span class="icon" class:play={!playing} aria-hidden="true"></span>{playing
-        ? "Stop"
-        : playLabel}
+      <span class="icon" class:play={!playing} class:pause={playing} aria-hidden="true"
+      ></span>{mainLabel}
+    </button>
+  </Tip>
+  <Tip id="stop-tip" text={GLOSS.stop}>
+    <button
+      type="button"
+      class="stop"
+      aria-label="Stop"
+      aria-describedby="stop-tip"
+      disabled={!playing && !paused}
+      onclick={stopAll}
+    >
+      <span class="square" aria-hidden="true"></span>
     </button>
   </Tip>
   <Segmented
@@ -234,9 +270,10 @@
     onchange={(value) => (scope = value === "bar" ? "bar" : "whole")}
   />
 
-  <p class="status" class:shown={loading || samplesFailed || failed || paused} role="status">
+  <!-- "Paused." is announced; on screen the button reads Resume. -->
+  <p class="status" class:shown={loading || samplesFailed || failed} role="status">
     {#if paused}
-      Paused. Space resumes.
+      Paused.
     {:else if loading}
       Loading the piano…
     {:else if samplesFailed}
@@ -254,6 +291,12 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
+  }
+  /* On phones the scope toggle may take the next line. */
+  @media (max-width: 60rem) {
+    .transport {
+      flex-wrap: wrap;
+    }
   }
   /* Play is the sound control: filled --sound (tokens.css). */
   .control {
@@ -283,6 +326,31 @@
   }
   .play {
     clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+  .pause {
+    background: none;
+    border-inline: 0.25rem solid currentColor;
+  }
+  .stop {
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .stop:disabled {
+    color: var(--ink-muted);
+    cursor: not-allowed;
+  }
+  .square {
+    width: 0.7rem;
+    height: 0.7rem;
+    background: currentColor;
   }
   .status {
     margin: 0;
