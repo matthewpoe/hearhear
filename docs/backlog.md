@@ -18,7 +18,6 @@ Improvements and ideas we'd build next: feature proposals, polish, Matthew's fee
 ## Tutor
 
 - **A Stop button** while a reply streams (the abort is already wired).
-- **A per-reply check** that the hint level doesn't exceed what was asked, counted for the pedagogy eval.
 - **A request-id middleware,** so 413 and 429 rejections carry an id too.
 
 ## Experience

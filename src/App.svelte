@@ -29,6 +29,12 @@
   {/if}
   <ChordDropdown />
   <TutorPanel />
+  <p class="credits">
+    Piano samples: Salamander Grand Piano by Alexander Holm,
+    <a href="https://creativecommons.org/licenses/by/3.0/" rel="license noopener" target="_blank"
+      >CC BY 3.0</a
+    >.
+  </p>
 </main>
 
 <footer class="keyboard-dock">
@@ -65,6 +71,14 @@
     max-width: 72rem;
     margin: 0 auto;
     padding: var(--space-4);
+  }
+  .credits {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
+  }
+  .credits a {
+    color: inherit;
   }
   .keyboard-dock {
     position: sticky;

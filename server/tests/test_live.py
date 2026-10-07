@@ -47,7 +47,7 @@ def ns(**fields: Any) -> SimpleNamespace:
 
 
 def sdk_events(
-    text: str, *, chunk: int = 9, stop_reason: str = "end_turn", output_tokens: int = 400
+    text: str, *, chunk: int = 9, stop_reason: str | None = "end_turn", output_tokens: int = 400
 ) -> list[SimpleNamespace]:
     """The raw stream events the SDK yields for one structured-output reply."""
     start_usage = ns(
@@ -257,15 +257,27 @@ def test_upstream_failure_mid_stream_keeps_text_and_ends_with_an_error(
     assert app_module.budget.spent == 1251, "tokens so far are charged even when the stream fails"
 
 
-@pytest.mark.parametrize("stop_reason", ["max_tokens", "refusal"])
-def test_reply_that_does_not_finish_is_invalid_output(
+@pytest.mark.parametrize("stop_reason", ["max_tokens", "refusal", "model_context_window_exceeded"])
+def test_a_declined_or_cut_off_reply_is_unanswerable_not_garbled(
     live_mode: TestClient, monkeypatch: pytest.MonkeyPatch, stop_reason: str
 ) -> None:
+    logged = logged_events(monkeypatch)
     text = json.dumps(REPLY)[:60]
     use_fake(monkeypatch, FakeClient(sdk_events(text, stop_reason=stop_reason)))
     stream = events(ask(live_mode).text)
     assert [name for name, _ in stream][-2:] == ["error", "done"]
-    assert stream[-2][1]["code"] == "invalid_output"
+    message = "The tutor couldn't answer that one. Try asking another way."
+    assert stream[-2][1] == {"code": "unanswerable", "message": message}
+    assert dict(logged)["tutor_live"]["outcome"] == f"stop_{stop_reason}"
+
+
+@pytest.mark.parametrize("stop_reason", ["stop_sequence", "pause_turn", None])
+def test_an_unexpected_stop_is_invalid_output(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch, stop_reason: str | None
+) -> None:
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY), stop_reason=stop_reason)))
+    stream = events(ask(live_mode).text)
+    assert stream[-2] == ("error", {"code": "invalid_output", "message": live.INVALID_MESSAGE})
 
 
 def test_reply_with_a_bad_message_is_invalid_output(
@@ -296,6 +308,9 @@ def test_logs_carry_usage_but_never_the_students_words(
     assert entry["served_by"] == "claude-opus-5-5"
     assert entry["fallback"] is False
     assert entry["withheld_hidden"] == 0
+    assert entry["withheld_provisional"] == 0
+    assert entry["withheld_nudge"] == 0
+    assert entry["hint_clamped"] == 0
 
 
 def logged_events(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, dict[str, Any]]]:
@@ -366,6 +381,8 @@ def test_hidden_key_withholds_every_suggestion(
     assert final["dropped"] == 2, "one invalid, one withheld"
     entry = dict(logged)["tutor_live"]
     assert entry["withheld_hidden"] == 1
+    assert entry["withheld_provisional"] == 0
+    assert entry["withheld_nudge"] == 0
     assert entry["dropped"] == 2
     assert entry["key_hidden"] is True
     assert "Key hidden: yes" in fake.calls[0]["messages"][0]["content"]
@@ -379,6 +396,78 @@ def test_visible_key_withholds_nothing(
     final = dict(events(ask(live_mode).text))["suggestions"]
     assert len(final["suggestions"]) == 1
     assert dict(logged)["tutor_live"]["withheld_hidden"] == 0
+
+
+def test_a_nudge_withholds_every_suggestion_and_reports_a_nudge(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """REPLY claims `comparison`; the request asked for a nudge."""
+    logged = logged_events(monkeypatch)
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    final = dict(events(ask(live_mode, hint_level="nudge").text))["suggestions"]
+    assert final["hint_level"] == "nudge"
+    assert final["suggestions"] == []
+    assert final["dropped"] == 2, "one invalid, one withheld"
+    entry = dict(logged)["tutor_live"]
+    assert entry["withheld_nudge"] == 1
+    assert entry["withheld_hidden"] == entry["withheld_provisional"] == 0
+    assert entry["hint_clamped"] == 1
+
+
+def test_a_provisional_key_withholds_every_suggestion(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    snapshot = {**SNAPSHOT, "key": {**SNAPSHOT["key"], "provisional": True}}
+    final = dict(events(ask(live_mode, snapshot=snapshot).text))["suggestions"]
+    assert final["hint_level"] == "comparison"
+    assert final["suggestions"] == []
+    assert final["dropped"] == 2, "one invalid, one withheld"
+    entry = dict(logged)["tutor_live"]
+    assert entry["withheld_provisional"] == 1
+    assert entry["withheld_hidden"] == entry["withheld_nudge"] == 0
+    assert entry["hint_clamped"] == 0
+
+
+def test_a_hidden_key_counts_as_hidden_even_when_provisional_and_a_nudge(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    key = {**SNAPSHOT["key"], "provisional": True}
+    snapshot = {**SNAPSHOT, "key": key, "key_hidden": True}
+    final = dict(events(ask(live_mode, snapshot=snapshot, hint_level="nudge").text))["suggestions"]
+    assert final["dropped"] == 2, "each withheld suggestion is counted once"
+    entry = dict(logged)["tutor_live"]
+    assert (entry["withheld_hidden"], entry["withheld_provisional"], entry["withheld_nudge"]) == (
+        1,
+        0,
+        0,
+    )
+
+
+def test_a_reply_claiming_more_than_was_asked_reports_the_requested_level(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps({**REPLY, "hint_level": "answer"}))))
+    final = dict(events(ask(live_mode, hint_level="comparison").text))["suggestions"]
+    assert final["hint_level"] == "comparison"
+    assert len(final["suggestions"]) == 1, "a comparison keeps its suggestions"
+    entry = dict(logged)["tutor_live"]
+    assert entry["hint_clamped"] == 1
+    assert REPLY["message"] not in json.dumps(logged)
+
+
+def test_a_reply_claiming_less_than_was_asked_is_left_alone(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    final = dict(events(ask(live_mode, hint_level="answer").text))["suggestions"]
+    assert final["hint_level"] == "comparison"
+    assert dict(logged)["tutor_live"]["hint_clamped"] == 0
 
 
 def iteration(kind: str, model: str, input_tokens: int, output_tokens: int) -> SimpleNamespace:

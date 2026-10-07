@@ -64,7 +64,7 @@ def load_settings() -> Settings:
         tutor_model=os.environ.get("TUTOR_MODEL", "claude-opus-5-5"),
         dist_dir=Path(os.environ.get("HEARHEAR_DIST", REPO_ROOT / "dist")),
         fixtures_dir=REPO_ROOT / "contracts" / "fixtures" / "tutor",
-        daily_token_budget=_positive_int("TUTOR_DAILY_TOKEN_BUDGET", 2_000_000),
+        daily_token_budget=_positive_int("TUTOR_DAILY_TOKEN_BUDGET", 500_000),
         rate_limit=os.environ.get("TUTOR_RATE_LIMIT", "10/minute;100/day"),
         access_code=_access_code(tutor_mode),
     )
