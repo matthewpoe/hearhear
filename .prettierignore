@@ -9,3 +9,4 @@ contracts/tutor-*.schema.json
 test-results/
 playwright-report/
 TIMELOG.md
+.claude/

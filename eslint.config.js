@@ -4,7 +4,15 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/", "media/", "node_modules/", ".venv/", "test-results/", "playwright-report/"],
+    ignores: [
+      ".claude/",
+      "dist/",
+      "media/",
+      "node_modules/",
+      ".venv/",
+      "test-results/",
+      "playwright-report/",
+    ],
   },
   js.configs.recommended,
   ...svelte.configs.recommended,
