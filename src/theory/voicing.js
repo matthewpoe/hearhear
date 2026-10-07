@@ -1,7 +1,7 @@
 /**
  * Left-hand voicings for playback and audition.
  *
- * @import { ChordSpec } from "../types.js"
+ * @import { ChordSpec, Song } from "../types.js"
  */
 
 import { chordTones } from "./harmony.js";
@@ -9,6 +9,8 @@ import { chromaOf, mod } from "./pitch.js";
 
 /** The lowest note a voicing may use: C2, the bottom of the on-screen keyboard. */
 const VOICING_FLOOR = 36;
+
+const MIDDLE_C = 60;
 
 /**
  * A close-position voicing of pitch classes, bass first, placed so its top
@@ -72,4 +74,20 @@ export function voice(chord, previous, { below }) {
   return inversions.reduce((best, v) =>
     movement(v, previous) < movement(best, previous) ? v : best,
   );
+}
+
+/**
+ * The `below` for voicing a passage: the lowest melody note that starts in
+ * the range, from `fromTick` up to but not including `toTick` (as the audio
+ * passage counts notes). A note held into the range from before it doesn't
+ * count. With no note starting there, middle C (60), so the chords sit in
+ * the octave under it. Every caller uses this one rule, so playback and
+ * audition always voice a passage in the same register.
+ * @param {Song} song
+ * @param {{ fromTick: number, toTick: number }} range ticks
+ * @returns {number} MIDI
+ */
+export function passageBelow(song, { fromTick, toTick }) {
+  const starting = song.notes.filter((n) => n.start >= fromTick && n.start < toTick);
+  return starting.length ? Math.min(...starting.map((n) => n.midi)) : MIDDLE_C;
 }

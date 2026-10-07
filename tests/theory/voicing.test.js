@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import stJames from "../../content/songs/st-james-infirmary.json" with { type: "json" };
-import { candidates, chordFromNumeral, rebar, voice } from "../../src/theory/index.js";
+import {
+  candidates,
+  chordFromNumeral,
+  passageBelow,
+  rebar,
+  voice,
+} from "../../src/theory/index.js";
 
 /** @type {any} */
 const odeSong = ode;
@@ -95,5 +101,34 @@ describe("voice", () => {
         `${numeral}: ${previous}`,
       );
     }
+  });
+});
+
+describe("passageBelow", () => {
+  const bar = 48;
+  /** @type {any} */
+  const song = {
+    notes: [
+      { id: "a", midi: 50, start: 0, dur: 60 }, // held into bar 2 from bar 1
+      { id: "b", midi: 67, start: 48, dur: 12 },
+      { id: "c", midi: 62, start: 84, dur: 12 },
+      { id: "d", midi: 55, start: 96, dur: 12 }, // starts exactly where bar 2 ends
+    ],
+  };
+
+  it("is the lowest melody note that starts in the range", () => {
+    assert.equal(passageBelow(song, { fromTick: bar, toTick: 2 * bar }), 62);
+    assert.equal(passageBelow(song, { fromTick: 0, toTick: 3 * bar }), 50);
+  });
+
+  it("matches Ode's bar 4", () => {
+    const bar4 = /** @type {any} */ (rebar(odeSong, odeSong.meter).find((b) => b.index === 4));
+    const range = { fromTick: bar4.startTick, toTick: bar4.startTick + bar };
+    assert.equal(passageBelow(odeSong, range), lowestIn(odeSong, 4));
+  });
+
+  it("is middle C when no note starts in the range", () => {
+    assert.equal(passageBelow(song, { fromTick: 12, toTick: 48 }), 60);
+    assert.equal(passageBelow({ notes: [] }, { fromTick: 0, toTick: bar }), 60);
   });
 });

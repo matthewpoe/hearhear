@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   candidates,
   chordFromNumeral,
+  functionInfo,
   functionOf,
   letterOf,
   nashvilleOf,
@@ -141,5 +142,27 @@ describe("functionOf", () => {
       ...["tonic", "subdominant"],
       ...["dominant", "dominant"],
     ]);
+  });
+});
+
+describe("functionInfo", () => {
+  it("gives each function's shape, color token, and meaning from functions.json", () => {
+    assert.deepEqual(functionInfo("tonic"), {
+      shape: "circle",
+      color: "--fn-tonic",
+      meaning: "home, rest",
+    });
+    assert.deepEqual(
+      ["tonic", "subdominant", "dominant", "other"].map((fn) => {
+        const { shape, color } = functionInfo(/** @type {any} */ (fn));
+        return `${shape} ${color}`;
+      }),
+      ["circle --fn-tonic", "triangle --fn-subdominant", "square --fn-dominant", "chip --fn-other"],
+    );
+  });
+
+  it("hands out a copy, so a caller can't change the contract", () => {
+    functionInfo("dominant").shape = "star";
+    assert.equal(functionInfo("dominant").shape, "square");
   });
 });

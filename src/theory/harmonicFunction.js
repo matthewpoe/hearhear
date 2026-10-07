@@ -32,3 +32,17 @@ export function functionOf(numeral, mode) {
   }
   return "other";
 }
+
+/**
+ * How a harmonic function is drawn and explained: its shape, its color token
+ * (a CSS custom property in tokens.css), and its one-line meaning, all from
+ * contracts/functions.json. The piano, the chips, and the staff read it, so
+ * a function always looks the same everywhere.
+ * @param {HarmonicFunction} fn
+ * @returns {{ shape: string, color: string, meaning: string }}
+ *   e.g. { shape: "circle", color: "--fn-tonic", meaning: "home, rest" }
+ */
+export function functionInfo(fn) {
+  const { shape, color, meaning } = functions.functions[fn];
+  return { shape, color, meaning };
+}
