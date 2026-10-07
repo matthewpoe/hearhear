@@ -104,7 +104,12 @@
     <h2>{$song.title}</h2>
   {/if}
 
-  <div class="chooser" role="group" aria-labelledby="load-title">
+  <div
+    class="chooser"
+    id={empty ? "song-chooser" : undefined}
+    role="group"
+    aria-labelledby="load-title"
+  >
     <h3 id="load-title">{empty ? "Load a song" : "Load another song"}</h3>
     <ul>
       {#each DEMO_TUNES as { song: tune, blurb } (tune.id)}

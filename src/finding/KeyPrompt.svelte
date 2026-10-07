@@ -33,7 +33,7 @@
   });
 </script>
 
-<div class="prompt" role="group" aria-labelledby="key-prompt-title">
+<div id="key-prompt" class="prompt" role="group" aria-labelledby="key-prompt-title">
   <h3 id="key-prompt-title" bind:this={heading} tabindex="-1">
     Is 1 really home? What key do you think this is?
   </h3>
