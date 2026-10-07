@@ -104,16 +104,18 @@ export function tempoFor(beatMs) {
  * @param {number} endMs when the take stopped, or now while it runs
  * @param {{ running?: boolean }} [options] `running`: the take hasn't
  *   stopped, so a tapped last note shows one beat instead of growing to now
- * @returns {{ notes: { midi: number, start: number, dur: number }[], tempo: number }}
+ * @returns {{ notes: { midi: number, start: number, dur: number }[], tempo: number, swing: boolean }}
+ *   `swing`: most eighth pairs were swung (not yet written to the song)
  */
 export function takeNotes(presses, endMs, { running = false } = {}) {
   const events = monophonic(presses.slice(0, MAX_TAKE_NOTES), endMs);
-  if (events.length === 0) return { notes: [], tempo: 96 };
-  const { notes, beatMs, dropped } = guessRhythm(events, running ? {} : { endMs });
+  if (events.length === 0) return { notes: [], tempo: 96, swing: false };
+  const { notes, beatMs, dropped, swing } = guessRhythm(events, running ? {} : { endMs });
   const kept = events.filter((_, i) => !dropped.includes(i));
   return {
     notes: notes.map((n, i) => ({ midi: kept[i].midi, start: n.start, dur: n.dur })),
     tempo: tempoFor(beatMs),
+    swing,
   };
 }
 

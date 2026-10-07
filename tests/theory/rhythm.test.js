@@ -121,6 +121,62 @@ describe("guessRhythm", () => {
     );
   });
 
+  /**
+   * Tapped presses (80–150 ms) at onsets given in beats, with wobble.
+   * @param {number[]} onsets
+   * @param {number} beatMs
+   */
+  const tapAt = (onsets, beatMs) =>
+    onsets.map((onset, i) => {
+      const downMs = 1000 + onset * beatMs + WOBBLE_MS[i % WOBBLE_MS.length];
+      return { downMs, upMs: downMs + 80 + ((i * 37) % 71) };
+    });
+
+  /**
+   * Onsets for swung eighth pairs, long then short at `ratio`, one pair per beat.
+   * @param {number} beats
+   * @param {number} ratio long:short
+   */
+  const swungLine = (beats, ratio) =>
+    Array.from({ length: beats }, (_, b) => [b, b + ratio / (ratio + 1)]).flat();
+
+  it("writes a tapped swung eighth line (2:1) as straight eighths", () => {
+    const beatMs = 60000 / 120;
+    const onsets = swungLine(4, 2);
+    const endMs = 1000 + 4 * beatMs;
+    const { notes, beatMs: detected, swing } = guessRhythm(tapAt(onsets, beatMs), { endMs });
+    assert.ok(Math.abs(detected - beatMs) < 25, `${detected} vs ${beatMs}`);
+    assert.deepEqual(
+      notes,
+      Array.from({ length: 8 }, (_, i) => ({ start: i * 6, dur: 6 })),
+    );
+    assert.equal(swing, true);
+  });
+
+  it("reads swung pairs from 3:2 to 3:1 among quarter notes as straight eighths", () => {
+    for (const ratio of [1.5, 2, 3]) {
+      // Quarter, swung pair, quarter, swung pair, quarter, quarter.
+      const onsets = [0, 1, 1 + ratio / (ratio + 1), 2, 3, 3 + ratio / (ratio + 1), 4, 5];
+      const { notes, swing } = guessRhythm(tapAt(onsets, 600), { endMs: 1000 + 6 * 600 });
+      assert.deepEqual(
+        notes.map((n) => n.start),
+        [0, 12, 18, 24, 36, 42, 48, 60],
+        `${ratio}:1`,
+      );
+      assert.equal(swing, true, `${ratio}:1`);
+    }
+  });
+
+  it("leaves straight eighths and a dotted quarter alone, and calls them unswung", () => {
+    const onsets = [0, 1, 1.5, 2, 3, 4.5, 5, 6];
+    const { notes, swing } = guessRhythm(tapAt(onsets, 500), { endMs: 1000 + 7 * 500 });
+    assert.deepEqual(
+      notes.map((n) => n.start),
+      onsets.map((t) => t * 12),
+    );
+    assert.equal(swing, false);
+  });
+
   it("gives a tapped last note one beat when the take's end is unknown", () => {
     const { notes } = guessRhythm(play([0, 1, 2, 3], [0.2, 0.2, 0.2, 0.2], 500));
     assert.equal(notes[3].dur, 12);
