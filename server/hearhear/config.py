@@ -26,6 +26,9 @@ class Settings:
     daily_token_budget: int
     # slowapi limit string per client IP, e.g. "10/minute;100/day".
     rate_limit: str
+    # Live streams in flight at once, across every IP. A request past it gets
+    # a 503 `busy` at once, never a place in a queue.
+    max_concurrent: int
     # The live tutor's passphrase, normalized (hearhear/access.py). Empty in
     # fixture mode when unset; live mode refuses to start without one.
     access_code: bytes = field(default=b"", repr=False)
@@ -66,5 +69,6 @@ def load_settings() -> Settings:
         fixtures_dir=REPO_ROOT / "contracts" / "fixtures" / "tutor",
         daily_token_budget=_positive_int("TUTOR_DAILY_TOKEN_BUDGET", 500_000),
         rate_limit=os.environ.get("TUTOR_RATE_LIMIT", "10/minute;100/day"),
+        max_concurrent=_positive_int("TUTOR_MAX_CONCURRENT", 4),
         access_code=_access_code(tutor_mode),
     )

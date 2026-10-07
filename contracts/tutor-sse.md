@@ -16,20 +16,21 @@ A missing code (or one with no letters or digits) and a wrong code both return `
 
 ## Errors before the stream
 
-Every response to `POST /api/tutor` that passes validation and the rate limit carries an `X-Request-Id` header, a 32-character hex id that also appears in the server's logs for that request. The 401, `access_locked` 429, and 503 below carry it too; 413, 422, and `rate_limited` 429 are refused before a request id exists.
+Every response to `POST /api/tutor` that passes validation and the rate limit carries an `X-Request-Id` header, a 32-character hex id that also appears in the server's logs for that request. The 401, `access_locked` 429, and both 503s below carry it too; 413, 422, and `rate_limited` 429 are refused before a request id exists.
 
 Non-stream failures return JSON with no stream at all: the client gets this status and body instead of `text/event-stream`. Each one carries `{ "error": { "code", "message" } }`:
 
-| Status | `code`            | When                                                                                                                      | Implemented |
-| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| 413    | `too_large`       | Body over 128 KB                                                                                                          | Stream E    |
-| 422    | `invalid_request` | Fails `TutorRequest` validation                                                                                           | Phase 0     |
-| 429    | `rate_limited`    | Per-IP limit. Carries `Retry-After`, in whole seconds until the limit resets.                                             | Stream E    |
-| 401    | `access_required` | Live mode only: `X-Tutor-Access` is missing or wrong. The panel asks for the code and offers the recorded lessons.        | Stream E2   |
-| 429    | `access_locked`   | Live mode only: this IP sent 5 wrong codes in 10 minutes. Carries `Retry-After`, in whole seconds until it may try again. | Stream E2   |
-| 503    | `over_budget`     | Daily token budget spent, checked before Claude is called. The client switches to cached lessons. Carries `X-Request-Id`. | Stream E    |
+| Status | `code`            | When                                                                                                                                                                                                                                                          | Implemented  |
+| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 413    | `too_large`       | Body over 128 KB                                                                                                                                                                                                                                              | Stream E     |
+| 422    | `invalid_request` | Fails `TutorRequest` validation                                                                                                                                                                                                                               | Phase 0      |
+| 429    | `rate_limited`    | Per-IP limit. Carries `Retry-After`, in whole seconds until the limit resets.                                                                                                                                                                                 | Stream E     |
+| 401    | `access_required` | Live mode only: `X-Tutor-Access` is missing or wrong. The panel asks for the code and offers the recorded lessons.                                                                                                                                            | Stream E2    |
+| 429    | `access_locked`   | Live mode only: this IP sent 5 wrong codes in 10 minutes. Carries `Retry-After`, in whole seconds until it may try again.                                                                                                                                     | Stream E2    |
+| 503    | `over_budget`     | Daily token budget spent, checked before Claude is called. The client switches to cached lessons. Carries `X-Request-Id`.                                                                                                                                     | Stream E     |
+| 503    | `busy`            | Live mode only: `TUTOR_MAX_CONCURRENT` streams (default 4) are already in flight, across every IP. Refused at once, never queued: "The tutor is helping someone else right now. Try again in a moment." Carries `Retry-After` (5 seconds) and `X-Request-Id`. | Checkpoint 3 |
 
-Checks run in that order: body cap, validation, rate limit, then in live mode the access lockout, the access code, and the budget. A request turned away at any of them never reaches Claude, and an unauthenticated client never learns whether the budget is spent.
+Checks run in that order: body cap, validation, rate limit, then in live mode the access lockout, the access code, the budget, and the in-flight cap. A request turned away at any of them never reaches Claude, and an unauthenticated client never learns whether the budget is spent.
 
 ## Events, in order
 
@@ -49,7 +50,7 @@ The `suggestions` event's `hint_level` and `suggestions` match `tutor-reply.sche
 - The proxy withholds every suggestion when the request's `hint_level` is `nudge`, when `snapshot.key.provisional` is true, or when `snapshot.key_hidden` is true (key labels hidden, a demo before the guess, where a letter-name chord would give the key away). `suggestions` is then `[]`, and the withheld ones are counted in `withheld`, not `dropped`: holding a suggestion back is the design working, not a failure, so the client says nothing about it.
 - If the reply claims a higher `hint_level` than the request asked for (`nudge` < `comparison` < `answer`), the event reports the requested level. A lower claim is reported as is.
 
-Each clamp is logged as counts only, never text: `withheld_hidden`, `withheld_provisional`, and `withheld_nudge` (each withheld suggestion counted under the first reason that applies, in that order), and `hint_clamped`. Live mode puts them on the `tutor_live` line; fixture mode logs a `tutor_clamped` line when anything was clamped. The system prompt also tells Claude not to name or hint at a hidden key.
+Each clamp is logged as counts only, never text: `withheld_hidden`, `withheld_provisional`, and `withheld_nudge` (each withheld suggestion counted under the first reason that applies, in that order), and `hint_clamped`. Live mode puts them on the `tutor_live` line; fixture mode logs a `tutor_clamped` line when anything was clamped. While the key is hidden, Claude is never told it: the proxy leaves `key` (tonic and mode), every note's `pitch`, and every chord's `letter` out of the snapshot it sends, keeps the relative `degree`, `numeral`, and `nashville`, and states the label style as `roman`. The system prompt also tells Claude not to name, hint at, or guess at a hidden key.
 
 **Error codes.** `upstream`: Claude couldn't be reached, or the stream broke. `unanswerable`: the reply stopped unfinished because Claude declined (`stop_reason` `refusal`, after the refusal fallback also declined) or ran out of room (`max_tokens`, `model_context_window_exceeded`); its message is "The tutor couldn't answer that one. Try asking another way." `invalid_output`: the reply is genuinely malformed (incomplete JSON, a message or hint level that fails validation, or an unexpected `stop_reason`). `over_budget`: as in the table above.
 

@@ -18,4 +18,12 @@ describe("failureText", () => {
   it("lets an unanswerable question be asked again", () => {
     assert.equal(canRetry("unanswerable"), true);
   });
+
+  it("asks for a moment, and a retry, when the tutor is busy", () => {
+    assert.equal(
+      failureText("busy"),
+      "The tutor is helping someone else right now. Try again in a moment.",
+    );
+    assert.equal(canRetry("busy"), true);
+  });
 });

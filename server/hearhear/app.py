@@ -4,6 +4,7 @@ Same-origin serving, so there is no CORS middleware; in development the Vite
 dev server proxies /api here.
 """
 
+import asyncio
 import math
 import os
 import time
@@ -33,6 +34,10 @@ from hearhear.tutor import replay_fixture
 settings = load_settings()
 budget = TokenBudget(settings.daily_token_budget)
 lockout = AccessLockout()
+# Live streams in flight. The budget is charged when a stream ends, so this
+# is what stops concurrent requests overshooting it, and the only bound on
+# how many long-held SSE connections there are.
+streams = asyncio.Semaphore(settings.max_concurrent)
 limiter = Limiter(key_func=client_ip)
 app = FastAPI(title="Hear Hear", docs_url=None, redoc_url=None, openapi_url=None)
 app.state.limiter = limiter
@@ -157,6 +162,19 @@ async def rate_limited(request: Request, _exc: RateLimitExceeded) -> JSONRespons
     return error_response(429, "rate_limited", message, {"Retry-After": str(retry_after)})
 
 
+class ReleasingStreamingResponse(StreamingResponse):
+    """A stream that releases its slot in `streams` once the response is over,
+    however it ends: finished, failed, or the client gone. Released here, not
+    in the body generator, because a generator that never started (the client
+    left before the first byte) never runs its `finally`."""
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            streams.release()
+
+
 def _rate_limit() -> str:
     return settings.rate_limit
 
@@ -177,6 +195,9 @@ ACCESS_LOCKED_MESSAGE = (
     "Too many tries with the wrong access code. Wait a few minutes and try again; "
     "the recorded lessons still work."
 )
+
+BUSY_MESSAGE = "The tutor is helping someone else right now. Try again in a moment."
+BUSY_RETRY_AFTER = 5
 
 
 def _refuse_without_access(
@@ -222,8 +243,9 @@ async def tutor(
     x_tutor_access: Annotated[str | None, Header()] = None,
 ) -> StreamingResponse | JSONResponse:
     """Order of checks: body cap (413, middleware), validation (422), rate
-    limit (429), then in live mode the access gate (429 locked, 401) and the
-    daily budget (503), then the stream. Fixture mode has no gate."""
+    limit (429), then in live mode the access gate (429 locked, 401), the
+    daily budget (503) and the in-flight cap (503), then the stream. Fixture
+    mode has none of the live checks."""
     request_id = uuid.uuid4().hex
     headers = {"Cache-Control": "no-store", "X-Request-Id": request_id}
     if settings.tutor_mode == "fixture":
@@ -241,7 +263,8 @@ async def tutor(
         log_event("request_rejected", code="over_budget", request_id=request_id)
         message = "The live tutor is out of budget for today; the recorded lessons still work."
         return error_response(503, "over_budget", message, headers)
-    # X-Tutor-Fixture is ignored here: live mode never replays fixtures.
+    # X-Tutor-Fixture is ignored here: live mode never replays fixtures. The
+    # generator calls Claude only once the response starts iterating it.
     stream = stream_live(
         body,
         client=anthropic_client(),
@@ -249,7 +272,15 @@ async def tutor(
         budget=budget,
         request_id=request_id,
     )
-    return StreamingResponse(stream, media_type="text/event-stream", headers=headers)
+    if streams.locked():
+        log_event("request_rejected", code="busy", request_id=request_id)
+        return error_response(
+            503, "busy", BUSY_MESSAGE, {**headers, "Retry-After": str(BUSY_RETRY_AFTER)}
+        )
+    # Never waits: the slot is free, and nothing else runs between the check
+    # and the acquire. From here the response owns the slot.
+    await streams.acquire()
+    return ReleasingStreamingResponse(stream, media_type="text/event-stream", headers=headers)
 
 
 @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)
