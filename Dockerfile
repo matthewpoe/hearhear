@@ -20,6 +20,8 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY server ./server
 COPY contracts ./contracts
+# The recorded lessons replay in either mode, with no passphrase.
+COPY content/lessons/recorded ./content/lessons/recorded
 RUN uv sync --frozen --no-dev
 COPY --from=web /app/dist ./dist
 RUN useradd --create-home app

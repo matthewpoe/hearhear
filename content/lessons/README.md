@@ -25,4 +25,4 @@ The script saves only clean replies. A reply with `fallback: true`, an `error` e
 
 ## Playing them back
 
-In fixture mode, `X-Tutor-Fixture: lesson:<id>` replays `recorded/<id>.json` with its recorded pacing (`replay_fixture` in `server/hearhear/tutor.py`); a lesson not recorded yet falls back to the hint level's shape fixture, and live mode ignores the header. The guided path (`content/guided-path.json`) names the lesson its tutor step asks; the tutor panel doesn't send the header yet.
+`X-Tutor-Fixture: lesson:<id>` replays `recorded/<id>.json` with its recorded pacing, in fixture and live mode alike, before the passphrase gate and the budget: they are committed files, so they cost nothing and need no passphrase (contracts/tutor-sse.md, "Recorded lessons"). An id that isn't recorded gets `404 lesson_not_found`. The guided path (`content/guided-path.json`) names the lesson its tutor step asks, and sends the header only when that lesson is recorded; otherwise it asks the tutor as anyone would. The Docker image copies this folder (kept by `recorded/.gitkeep` while it's empty).

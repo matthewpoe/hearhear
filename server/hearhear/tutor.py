@@ -21,9 +21,11 @@ FIXTURE_NAMES = frozenset({"nudge", "comparison", "answer", "malformed", "over-b
 # runs against live mode, so it never sees one.
 FIXTURE_SERVED_BY = "fixture"
 # Recorded lessons (content/lessons/README.md), named in X-Tutor-Fixture as
-# "lesson:<id>". Fixture mode only, like every fixture name.
+# "lesson:<id>". Unlike the shape fixtures, they replay in live mode too.
 LESSONS_DIR = REPO_ROOT / "content" / "lessons" / "recorded"
 LESSON_PREFIX = "lesson:"
+# `served_by` for a recorded lesson: real tutor output, played back.
+LESSON_SERVED_BY = "recorded"
 _LESSON_ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
@@ -110,27 +112,37 @@ def suggestions_data(
     return data, clamp
 
 
-def fixture_path(request: TutorRequest, fixtures_dir: Path, name: str | None) -> Path:
-    if name and name.startswith(LESSON_PREFIX):
-        lesson = name.removeprefix(LESSON_PREFIX)
-        path = LESSONS_DIR / f"{lesson}.json"
-        # The id pattern keeps the header from naming any other file.
-        if _LESSON_ID.fullmatch(lesson) and path.is_file():
-            return path
-    chosen = name if name in FIXTURE_NAMES else request.hint_level
-    return fixtures_dir / f"{chosen}.json"
+def is_lesson_name(name: str | None) -> bool:
+    return name is not None and name.startswith(LESSON_PREFIX)
+
+
+def load_lesson(name: str) -> dict[str, Any] | None:
+    """The recorded lesson an X-Tutor-Fixture value names, or None when it
+    isn't recorded. Only a plain id can match, so the header can't reach any
+    other file."""
+    lesson = name.removeprefix(LESSON_PREFIX)
+    path = LESSONS_DIR / f"{lesson}.json"
+    if not _LESSON_ID.fullmatch(lesson) or not path.is_file():
+        return None
+    loaded: dict[str, Any] = json.loads(path.read_text())
+    return loaded
 
 
 async def replay_fixture(
     request: TutorRequest, fixtures_dir: Path, request_id: str, name: str | None = None
 ) -> AsyncIterator[str]:
-    """Replay a fixture's events with their recorded pacing.
+    """Replay a shape fixture with its recorded pacing: the hint level's, or
+    the one `name` picks (tests use it for the failure fixtures)."""
+    chosen = name if name in FIXTURE_NAMES else request.hint_level
+    fixture = json.loads((fixtures_dir / f"{chosen}.json").read_text())
+    async for chunk in replay(request, fixture, request_id, FIXTURE_SERVED_BY):
+        yield chunk
 
-    `name` overrides the hint-level choice (tests use it for the failure fixtures).
-    "lesson:<id>" replays a recorded lesson; one not recorded yet falls back to
-    the hint level's shape fixture.
-    """
-    fixture = json.loads(fixture_path(request, fixtures_dir, name).read_text())
+
+async def replay(
+    request: TutorRequest, fixture: dict[str, Any], request_id: str, served_by: str
+) -> AsyncIterator[str]:
+    """Replay a fixture's or a recorded lesson's events with their recorded pacing."""
     for step in fixture["events"]:
         await asyncio.sleep(step["delayMs"] / 1000)
         data = step["data"]
@@ -140,7 +152,7 @@ async def replay_fixture(
                 hint_level=data["hint_level"],
                 suggestions=data["suggestions"],
                 dropped=data["dropped"],
-                served_by=FIXTURE_SERVED_BY,
+                served_by=served_by,
                 fallback=False,
             )
             if clamp.applied:

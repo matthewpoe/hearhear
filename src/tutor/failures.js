@@ -16,6 +16,7 @@ const TEXT = {
   upstream: "The tutor didn't finish its answer.",
   invalid_output: "The tutor's answer came back garbled.",
   unanswerable: "The tutor couldn't answer that one. Try asking another way.",
+  lesson_not_found: "That recorded lesson isn't here.",
   network: "Couldn't reach the tutor. Check your connection, or try again in a minute.",
   protocol: "The tutor's answer came back garbled.",
 };
@@ -23,7 +24,7 @@ const TEXT = {
 const GENERIC = "Something went wrong talking to the tutor.";
 
 /** Failures a retry can't fix: the budget resets tomorrow, and the same request fails the same way. */
-const FINAL = new Set(["over_budget", "too_large", "invalid_request"]);
+const FINAL = new Set(["over_budget", "too_large", "invalid_request", "lesson_not_found"]);
 
 /** @param {string} code */
 export const failureText = (code) => TEXT[code] ?? GENERIC;
