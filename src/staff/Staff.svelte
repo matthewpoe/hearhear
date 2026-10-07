@@ -10,6 +10,7 @@
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
   import { describeNote, songToAbc } from "./abc.js";
+  import { spellMelody } from "../theory/index.js";
   import { mapDrawnNotes } from "./noteMap.js";
   import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
@@ -135,8 +136,9 @@
    */
   function labelNotes(current, notes, view, place) {
     const chordByNote = new Map(current.chords.map((c) => [c.noteId, c]));
+    const spelled = spellMelody(current.notes, current.key);
     noteButtons = [];
-    for (const note of current.notes) {
+    for (const [i, note] of current.notes.entries()) {
       const groups = notes.get(note.id) ?? [];
       for (const group of groups) {
         group.setAttribute("data-note-id", note.id);
@@ -149,7 +151,7 @@
       first.setAttribute("tabindex", "-1");
       first.setAttribute(
         "aria-label",
-        describeNote(note, chordByNote.get(note.id) ?? null, current.key, view),
+        describeNote(note, chordByNote.get(note.id) ?? null, current.key, view, spelled[i]),
       );
       noteButtons.push(first);
     }
