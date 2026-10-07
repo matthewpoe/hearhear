@@ -45,6 +45,11 @@ FALLBACK_BETA: Final = "server-side-fallback-2026-07-01"
 
 UPSTREAM_MESSAGE = "The live tutor couldn't be reached. Try again, or use the recorded lessons."
 INVALID_MESSAGE = "The tutor's reply came back garbled. Try asking again."
+UNANSWERABLE_MESSAGE = "The tutor couldn't answer that one. Try asking another way."
+# Stops where the reply is unfinished because the model declined or ran out of
+# room, not because it was malformed. `refusal` arrives only after the
+# refusal fallback has also declined.
+UNANSWERABLE_STOPS: Final = frozenset({"refusal", "max_tokens", "model_context_window_exceeded"})
 
 
 @dataclass
@@ -175,6 +180,9 @@ async def stream_live(
         if upstream_failure:
             outcome = upstream_failure
             yield sse("error", {"code": "upstream", "message": UPSTREAM_MESSAGE})
+        elif stop_reason in UNANSWERABLE_STOPS:
+            outcome = f"stop_{stop_reason}"
+            yield sse("error", {"code": "unanswerable", "message": UNANSWERABLE_MESSAGE})
         elif stop_reason != "end_turn":
             outcome = f"stop_{stop_reason}"
             yield sse("error", {"code": "invalid_output", "message": INVALID_MESSAGE})

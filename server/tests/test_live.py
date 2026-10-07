@@ -46,7 +46,7 @@ def ns(**fields: Any) -> SimpleNamespace:
 
 
 def sdk_events(
-    text: str, *, chunk: int = 9, stop_reason: str = "end_turn", output_tokens: int = 400
+    text: str, *, chunk: int = 9, stop_reason: str | None = "end_turn", output_tokens: int = 400
 ) -> list[SimpleNamespace]:
     """The raw stream events the SDK yields for one structured-output reply."""
     start_usage = ns(
@@ -251,15 +251,27 @@ def test_upstream_failure_mid_stream_keeps_text_and_ends_with_an_error(
     assert app_module.budget.spent == 1251, "tokens so far are charged even when the stream fails"
 
 
-@pytest.mark.parametrize("stop_reason", ["max_tokens", "refusal"])
-def test_reply_that_does_not_finish_is_invalid_output(
+@pytest.mark.parametrize("stop_reason", ["max_tokens", "refusal", "model_context_window_exceeded"])
+def test_a_declined_or_cut_off_reply_is_unanswerable_not_garbled(
     live_mode: TestClient, monkeypatch: pytest.MonkeyPatch, stop_reason: str
 ) -> None:
+    logged = logged_events(monkeypatch)
     text = json.dumps(REPLY)[:60]
     use_fake(monkeypatch, FakeClient(sdk_events(text, stop_reason=stop_reason)))
     stream = events(ask(live_mode).text)
     assert [name for name, _ in stream][-2:] == ["error", "done"]
-    assert stream[-2][1]["code"] == "invalid_output"
+    message = "The tutor couldn't answer that one. Try asking another way."
+    assert stream[-2][1] == {"code": "unanswerable", "message": message}
+    assert dict(logged)["tutor_live"]["outcome"] == f"stop_{stop_reason}"
+
+
+@pytest.mark.parametrize("stop_reason", ["stop_sequence", "pause_turn", None])
+def test_an_unexpected_stop_is_invalid_output(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch, stop_reason: str | None
+) -> None:
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY), stop_reason=stop_reason)))
+    stream = events(ask(live_mode).text)
+    assert stream[-2] == ("error", {"code": "invalid_output", "message": live.INVALID_MESSAGE})
 
 
 def test_reply_with_a_bad_message_is_invalid_output(
