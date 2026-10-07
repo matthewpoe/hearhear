@@ -21,6 +21,7 @@ import { createReadable } from "../lib/readable.js";
  *   keyboardLights: KeyboardLights,
  *   auditionVoicing: AuditionVoicing,
  *   calloutsOn: boolean,
+ *   guidedActive: boolean,
  *   bottomRow: BottomRow,
  * }} UiState
  */
@@ -102,6 +103,7 @@ export function initialUi() {
     keyboardLights: { source: null, chord: null, melody: [] },
     auditionVoicing: "as-song",
     calloutsOn: true,
+    guidedActive: false,
     bottomRow: "chords",
   };
 }

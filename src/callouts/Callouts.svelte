@@ -149,7 +149,10 @@
 
   // A tip shows on its own only once its subject is in view; Next goes to the
   // next tip whose subject is anywhere on the page, and scrolls to it.
-  const current = $derived($ui.calloutsOn && !closed ? upNext(dismissed, inView) : null);
+  // The guided tour hushes the tips while it runs, leaving the toggle as is.
+  const current = $derived(
+    $ui.calloutsOn && !$ui.guidedActive && !closed ? upNext(dismissed, inView) : null,
+  );
   const open = $derived(current !== null && !folded.has(current.id));
   const another = $derived(
     current ? upNext(dismiss(dismissed, current.id), onPage) !== null : false,
