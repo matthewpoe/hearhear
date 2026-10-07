@@ -14,6 +14,12 @@ body {
   line-height: 1.5;
 }
 
+/* App.svelte measures the docked keyboard into --dock-height, so focus and
+   scrollIntoView stop above it instead of under it. */
+html {
+  scroll-padding-bottom: var(--dock-height, 0px);
+}
+
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;

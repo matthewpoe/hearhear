@@ -62,71 +62,84 @@
   ];
 </script>
 
+<!-- Collapsed under the tutor: the heading is the summary, so the region
+     keeps its name and stays one click away. -->
 <section class="trust" aria-labelledby="trust-heading">
-  <h2 id="trust-heading">How much should you trust the tutor?</h2>
+  <details>
+    <summary><h2 id="trust-heading">How much should you trust the tutor?</h2></summary>
+    <div class="body">
+      {#if isFixture}
+        <p class="notice">
+          <strong>No measurement yet.</strong> The last eval run, on {date}, used recorded stand-in
+          replies instead of Claude. It checked that the eval's plumbing works (asking, streaming,
+          and scoring {headline.replies} replies), not how good the tutor's suggestions are. Real numbers
+          arrive with the first live run.
+        </p>
+      {:else}
+        <p class="meta">
+          From the eval run on {date}, against <span class="model">{run.model}</span>, with
+          {headline.replies} questions about {byTune.length} public-domain hymns.
+        </p>
 
-  {#if isFixture}
-    <p class="notice">
-      <strong>No measurement yet.</strong> The last eval run, on {date}, used recorded stand-in
-      replies instead of Claude. It checked that the eval's plumbing works (asking, streaming, and
-      scoring {headline.replies} replies), not how good the tutor's suggestions are. Real numbers arrive
-      with the first live run.
-    </p>
-  {:else}
-    <p class="meta">
-      From the eval run on {date}, against <span class="model">{run.model}</span>, with
-      {headline.replies} questions about {byTune.length} public-domain hymns.
-    </p>
+        <dl class="measures">
+          {#each measures as measure (measure.label)}
+            <div class="measure">
+              <dt>{measure.label}</dt>
+              <dd class="figure">
+                {percent(measure.rate)} <span class="count">({outOf(measure.rate)})</span>
+              </dd>
+              <dd class="gloss">{measure.gloss}</dd>
+            </div>
+          {/each}
+          <div class="measure">
+            <dt>Time to a full reply</dt>
+            <dd class="figure">
+              {headline.latencyMs.p50 ?? "—"} ms typical, {headline.latencyMs.p95 ?? "—"} ms slowest
+            </dd>
+            <dd class="gloss">
+              The middle of the pack, and the slowest one in twenty. The first words usually appear
+              after {headline.firstDeltaMs.p50 ?? "—"} ms.
+            </dd>
+          </div>
+        </dl>
 
-    <dl class="measures">
-      {#each measures as measure (measure.label)}
-        <div class="measure">
-          <dt>{measure.label}</dt>
-          <dd class="figure">
-            {percent(measure.rate)} <span class="count">({outOf(measure.rate)})</span>
-          </dd>
-          <dd class="gloss">{measure.gloss}</dd>
-        </div>
-      {/each}
-      <div class="measure">
-        <dt>Time to a full reply</dt>
-        <dd class="figure">
-          {headline.latencyMs.p50 ?? "—"} ms typical, {headline.latencyMs.p95 ?? "—"} ms slowest
-        </dd>
-        <dd class="gloss">
-          The middle of the pack, and the slowest one in twenty. The first words usually appear
-          after {headline.firstDeltaMs.p50 ?? "—"} ms.
-        </dd>
-      </div>
-    </dl>
+        {#if headline.excluded}
+          <p class="meta">
+            {headline.excluded} replies that a fallback model helped write were left out.
+          </p>
+        {/if}
+      {/if}
 
-    {#if headline.excluded}
       <p class="meta">
-        {headline.excluded} replies that a fallback model helped write were left out.
+        Every number here is a reason to listen, not to believe: the tutor suggests, and your ear
+        decides.
       </p>
-    {/if}
-  {/if}
-
-  <p class="meta">
-    Every number here is a reason to listen, not to believe: the tutor suggests, and your ear
-    decides.
-  </p>
+    </div>
+  </details>
 </section>
 
 <style>
   .trust {
-    display: grid;
-    gap: var(--space-3);
-    padding: var(--space-4);
+    padding: var(--space-2) var(--space-4);
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
     background: var(--surface);
     color: var(--ink);
   }
+  summary {
+    padding: var(--space-1) 0;
+    cursor: pointer;
+  }
   h2 {
+    display: inline;
     margin: 0;
-    font-size: var(--text-lg);
+    font-size: var(--text-md);
     font-weight: 500;
+  }
+  .body {
+    display: grid;
+    gap: var(--space-3);
+    padding-top: var(--space-2);
   }
   .notice {
     margin: 0;
