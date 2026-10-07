@@ -16,7 +16,7 @@ const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
  * case (lowercase = minor-third family) and suffix.
  * @type {{ type: string, lower: boolean, suffix: string, nashville: string }[]}
  */
-const NUMERAL_FORMS = [
+export const NUMERAL_FORMS = [
   { type: "M", lower: false, suffix: "", nashville: "" },
   { type: "7", lower: false, suffix: "7", nashville: "7" },
   { type: "maj7", lower: false, suffix: "maj7", nashville: "maj7" },
