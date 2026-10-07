@@ -70,9 +70,10 @@
     opacity: 0;
     pointer-events: none;
   }
+  /* --accent is what you do (tokens.css): the chosen option. */
   label:has(input:checked) {
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   label.disabled {
     color: var(--ink-muted);
@@ -82,5 +83,10 @@
     outline: 3px solid var(--focus);
     outline-offset: 1px;
     z-index: 1;
+  }
+  /* A focus ring drawn on the violet fill flips to the fill's ink. */
+  label:has(input:checked):has(input:focus-visible) {
+    outline-color: var(--accent-ink);
+    outline-offset: -4px;
   }
 </style>

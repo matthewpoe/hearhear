@@ -355,9 +355,11 @@
 </section>
 
 <style>
+  /* The hero's band is ink, like the notation it frames. */
   .staff {
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--rule);
+    border-top: var(--band) solid var(--ink);
     border-radius: var(--radius-md);
     background: var(--surface);
   }

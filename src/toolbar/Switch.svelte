@@ -12,10 +12,11 @@
    *   tip: string,
    *   checked: boolean,
    *   disabled?: boolean,
+   *   sound?: boolean,
    *   onchange: () => void,
    * }}
    */
-  let { id, label, tip, checked, disabled = false, onchange } = $props();
+  let { id, label, tip, checked, disabled = false, sound = false, onchange } = $props();
 </script>
 
 <Tip id="{id}-tip" text={tip}>
@@ -23,6 +24,7 @@
     {id}
     type="button"
     class="switch"
+    class:sound
     role="switch"
     aria-checked={checked}
     aria-describedby="{id}-tip"
@@ -72,13 +74,21 @@
     transform: translateY(-50%);
     transition: left var(--dur-fast) var(--ease);
   }
+  /* On: --accent, or --sound for a switch you hear (the drone). */
   [aria-checked="true"] .track {
-    border-color: var(--ink);
-    background: var(--ink);
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  .sound[aria-checked="true"] .track {
+    border-color: var(--sound);
+    background: var(--sound);
   }
   [aria-checked="true"] .thumb {
     left: calc(100% - 0.6rem - 2px);
-    background: var(--paper);
+    background: var(--accent-ink);
+  }
+  .sound[aria-checked="true"] .thumb {
+    background: var(--sound-ink);
   }
   @media (prefers-reduced-motion: reduce) {
     .track,

@@ -131,6 +131,7 @@
     align-items: center;
     gap: var(--space-2);
   }
+  /* Play is the sound control: filled --sound (tokens.css). */
   .control {
     display: inline-flex;
     align-items: center;
@@ -138,10 +139,10 @@
     gap: var(--space-2);
     min-width: 9.5rem;
     padding: var(--space-2) var(--space-4);
-    border: 2px solid var(--ink);
+    border: 2px solid var(--sound);
     border-radius: var(--radius-lg);
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--sound);
+    color: var(--sound-ink);
     font-weight: 600;
     cursor: pointer;
   }

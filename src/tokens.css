@@ -48,7 +48,28 @@
   --ink: #16161a;
   --ink-muted: #55555e;
   --rule: #d9d6cf;
-  --focus: #16161a;
+  --focus: #7a2a9e;
+
+  /* Interface color. Blue, yellow and red with circle, triangle and square
+     belong to harmonic function, so the interface takes two of Itten's
+     Bauhaus secondaries instead, by role and never by region alone:
+     --accent (violet) is what you do: selected and pressed controls, primary
+     actions, card bands, headings, focus. --sound (green) is what you hear:
+     Play, Listen, the drone, the keyboard dock. Orange is left out because it
+     sits next to dominant red. The interface never uses a function hue, and
+     its decoration is bars and bands, not the function shapes. --focus is
+     --accent (7.6 on --paper; non-text needs 3:1).
+     Contrast, light: --accent on --paper 7.6, on --surface 7.9, on
+     --accent-soft 6.6; --accent-ink on --accent 7.9; --ink on --accent-soft
+     15.1, --ink-muted 6.2. --sound on --paper 5.1, on --surface 5.3, on
+     --sound-soft 4.6; --sound-ink on --sound 5.3; --ink on --sound-soft 15.6. */
+  --accent: #7a2a9e;
+  --accent-ink: #ffffff;
+  --accent-soft: #f3e6fa;
+  --sound: #1e7a4c;
+  --sound-ink: #ffffff;
+  --sound-soft: #e2f2e8;
+  --band: 6px;
 
   /* Harmonic function: fill, text on that fill, soft background */
   --fn-tonic: #1d4fa3;
@@ -125,7 +146,19 @@
     --ink: #ecebe6;
     --ink-muted: #a9a8b2;
     --rule: #3a3a44;
-    --focus: #ecebe6;
+    --focus: #d29cf5;
+
+    /* Contrast, dark: --accent on --paper 8.4, on --surface 7.7, on
+       --accent-soft 6.5; --accent-ink on --accent 8.8; --ink on --accent-soft
+       11.6, --ink-muted 5.9. --sound on --paper 10.1, on --surface 9.3;
+       --sound-ink on --sound 10.6, --sound on --sound-soft 7.0; --ink on
+       --sound-soft 10.5. */
+    --accent: #d29cf5;
+    --accent-ink: #111117;
+    --accent-soft: #3a2347;
+    --sound: #6fd6a0;
+    --sound-ink: #111117;
+    --sound-soft: #183a2b;
 
     --fn-tonic: #7aa5f5;
     --fn-tonic-ink: #111117;

@@ -265,6 +265,7 @@
   }
   h2 {
     margin: 0;
+    color: var(--accent);
     font-size: var(--text-lg);
     font-weight: 500;
   }
@@ -326,18 +327,19 @@
       border-color var(--dur-fast) var(--ease);
   }
   .chip:hover {
-    border-color: var(--ink);
+    border-color: var(--accent);
   }
   .chip input {
     position: absolute;
     opacity: 0;
     pointer-events: none;
   }
+  /* --accent is what you do (tokens.css): the chosen mode and home. */
   .chip:has(input:checked),
   .chip[aria-pressed="true"] {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--paper);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .chip:has(input:focus-visible) {
     outline: 3px solid var(--focus);

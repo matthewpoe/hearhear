@@ -98,8 +98,8 @@
     cursor: not-allowed;
   }
   .key[aria-pressed="true"] {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--paper);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
 </style>

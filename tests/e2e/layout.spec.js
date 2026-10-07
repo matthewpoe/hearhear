@@ -61,6 +61,31 @@ for (const [width, height] of [
     await expect(steps).toContainText("D major");
     await steps.getByRole("button", { name: "Change the key" }).click();
     await expect(question).toBeVisible();
+
+    // The chosen label style and the pressed home chip take --accent.
+    const accent = await page.evaluate(() => {
+      const probe = document.createElement("div");
+      probe.style.background = "var(--accent)";
+      document.body.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    const fill = (/** @type {import("@playwright/test").Locator} */ el) =>
+      el.evaluate((node) => getComputedStyle(node).backgroundColor);
+    expect(
+      await fill(
+        page
+          .locator("#staff .header label")
+          .filter({ has: page.locator("input:checked") })
+          .first(),
+      ),
+    ).toBe(accent);
+    expect(
+      await fill(
+        question.getByRole("group", { name: "Home note" }).locator('[aria-pressed="true"]'),
+      ),
+    ).toBe(accent);
     await axe(page);
   });
 }
