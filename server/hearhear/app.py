@@ -31,6 +31,7 @@ from hearhear.log import log_event
 from hearhear.models import MAX_BODY_BYTES, TutorRequest
 from hearhear.tutor import (
     LESSON_SERVED_BY,
+    is_lesson_id,
     is_lesson_name,
     load_lesson,
     replay,
@@ -250,25 +251,31 @@ async def tutor(
     x_tutor_access: Annotated[str | None, Header()] = None,
 ) -> StreamingResponse | JSONResponse:
     """Order of checks: body cap (413, middleware), validation (422), rate
-    limit (429), then a recorded lesson if X-Tutor-Fixture names one (404
-    when it isn't recorded), then in live mode the access gate (429 locked, 401), the
-    daily budget (503) and the in-flight cap (503), then the stream. Fixture
-    mode has none of the live checks."""
+    limit (429), then a recorded lesson if X-Tutor-Fixture names one (the
+    sample reply when it isn't recorded yet, 404 when the id isn't plain),
+    then in live mode the access gate (429 locked, 401), the daily budget
+    (503) and the in-flight cap (503), then the stream. Fixture mode has none
+    of the live checks."""
     request_id = uuid.uuid4().hex
     headers = {"Cache-Control": "no-store", "X-Request-Id": request_id}
     # A recorded lesson replays in either mode, before the gate, the budget
-    # and the in-flight cap: committed files, no Claude call, no cost.
+    # and the in-flight cap: committed files, no Claude call, no cost. One not
+    # recorded yet plays the committed sample reply for its hint level instead
+    # (served_by "fixture", so the panel says it's a sample), so the guided
+    # path's tutor step answers anyone, with or without the access code.
     if x_tutor_fixture is not None and is_lesson_name(x_tutor_fixture):
-        lesson = load_lesson(x_tutor_fixture)
-        if lesson is None:
+        if not is_lesson_id(x_tutor_fixture):
             log_event("request_rejected", code="lesson_not_found", request_id=request_id)
             return error_response(404, "lesson_not_found", LESSON_MISSING_MESSAGE, headers)
-        log_event("tutor_lesson", request_id=request_id, hint_level=body.hint_level)
-        return StreamingResponse(
-            replay(body, lesson, request_id, LESSON_SERVED_BY),
-            media_type="text/event-stream",
-            headers=headers,
+        lesson = load_lesson(x_tutor_fixture)
+        source = "fixture" if lesson is None else "recorded"
+        log_event("tutor_lesson", request_id=request_id, hint_level=body.hint_level, source=source)
+        replayed = (
+            replay_fixture(body, settings.fixtures_dir, request_id)
+            if lesson is None
+            else replay(body, lesson, request_id, LESSON_SERVED_BY)
         )
+        return StreamingResponse(replayed, media_type="text/event-stream", headers=headers)
     if settings.tutor_mode == "fixture":
         log_event("tutor_fixture", request_id=request_id, hint_level=body.hint_level)
         return StreamingResponse(

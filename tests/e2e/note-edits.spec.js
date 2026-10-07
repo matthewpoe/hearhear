@@ -112,8 +112,9 @@ test("the note menu moves, lengthens, shortens and deletes a note", async ({ pag
   await openOde(page);
   const note = page.locator(`#staff [role="button"][data-note-id="${G}"]`);
   const status = page.locator("#staff .pitch-status");
-  const count = await staffNotes(page).count();
+  // Counted once the staff has drawn: the note is there and named.
   await expect(note).toHaveAccessibleName(/^G 4\b/);
+  const count = await staffNotes(page).count();
 
   // 1. Open from the keyboard; the menu stays above the keyboard dock.
   await note.focus();

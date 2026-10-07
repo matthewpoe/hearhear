@@ -778,6 +778,58 @@ def test_live_mode_replays_a_recorded_lesson_without_a_code(
     assert fake.calls == [], "no Claude call"
 
 
+def test_live_mode_plays_the_sample_reply_for_a_lesson_not_recorded_yet(
+    live_mode: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The guided path's tutor step: anyone, no access code, no Claude client.
+    def no_client() -> None:
+        raise AssertionError("a lesson never constructs a Claude client")
+
+    monkeypatch.setattr(app_module, "anthropic_client", no_client)
+    logged: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(
+        app_module, "log_event", lambda event, **fields: logged.append((event, fields))
+    )
+    del live_mode.headers["X-Tutor-Access"]
+    response = live_mode.post(
+        "/api/tutor",
+        json={"snapshot": SNAPSHOT, "hint_level": "nudge"},
+        headers={"X-Tutor-Fixture": "lesson:ode-unfinished"},
+    )
+    assert response.status_code == 200
+    stream = events(response.text)
+    nudge = json.loads((app_module.settings.fixtures_dir / "nudge.json").read_text())
+    first = next(step["data"] for step in nudge["events"] if step["event"] == "message")
+    assert stream[0] == ("message", first)
+    assert dict(stream)["suggestions"]["served_by"] == "fixture"
+    lesson_logs = [fields for event, fields in logged if event == "tutor_lesson"]
+    assert lesson_logs == [
+        {
+            "request_id": response.headers["x-request-id"],
+            "hint_level": "nudge",
+            "source": "fixture",
+        }
+    ]
+    assert not any(event == "request_rejected" for event, _ in logged)
+
+
+def test_live_mode_logs_a_recorded_lesson_as_recorded(
+    live_mode: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(
+        app_module, "log_event", lambda event, **fields: logged.append((event, fields))
+    )
+    response = live_mode.post(
+        "/api/tutor",
+        json={"snapshot": SNAPSHOT},
+        headers={"X-Tutor-Fixture": "lesson:ode-ending"},
+    )
+    assert response.status_code == 200
+    sources = [fields["source"] for event, fields in logged if event == "tutor_lesson"]
+    assert sources == ["recorded"]
+
+
 def test_live_mode_refuses_a_lesson_path_outside_the_lessons(
     live_mode: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
