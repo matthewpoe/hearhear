@@ -17,8 +17,9 @@ import { createReadable } from "../lib/readable.js";
 import { rekeySong, transposeSong, ticksPerBar } from "../theory/index.js";
 
 const MAX_NOTES = 400;
-const MIN_MIDI = 21;
-const MAX_MIDI = 108;
+/** The piano's range, A0 to C8: every note's MIDI lies within it. */
+export const MIN_MIDI = 21;
+export const MAX_MIDI = 108;
 const UNDO_LIMIT = 200;
 
 /** @returns {Song} An empty song in provisional C major, 4/4. */
@@ -272,6 +273,23 @@ export function createSongStore(initial = emptySong()) {
       commit((s) => ({
         ...s,
         notes: s.notes.map((n) => (n.id === noteId ? { ...n, midi: n.midi + 12 * direction } : n)),
+      }));
+    },
+
+    /**
+     * Change one note's pitch (a forgotten sharp or flat), keeping its timing
+     * and its chord. Refuses a pitch off the piano.
+     * @param {string} noteId
+     * @param {number} midi
+     */
+    setPitch(noteId, midi) {
+      noteById(noteId);
+      if (!Number.isInteger(midi) || midi < MIN_MIDI || midi > MAX_MIDI) {
+        throw new RangeError(`MIDI ${midi} is off the piano (${MIN_MIDI}–${MAX_MIDI})`);
+      }
+      commit((s) => ({
+        ...s,
+        notes: s.notes.map((n) => (n.id === noteId ? { ...n, midi } : n)),
       }));
     },
 
