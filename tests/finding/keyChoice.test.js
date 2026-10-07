@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { afterHomeClick, afterModeChange, chosenTonic } from "../../src/finding/keyChoice.js";
+import {
+  afterFinderPick,
+  afterHomeClick,
+  afterModeChange,
+  chosenTonic,
+} from "../../src/finding/keyChoice.js";
 import { PROVISIONAL_C } from "../../src/finding/keys.js";
 
 /** @typedef {import("../../src/types.js").Key} Key */
@@ -21,29 +26,37 @@ describe("chosenTonic", () => {
 
 describe("afterHomeClick", () => {
   it("commits the clicked home in one click", () => {
-    assert.deepEqual(
-      afterHomeClick(PROVISIONAL_C, { tonic: "D", mode: "major" }, PROVISIONAL_C),
-      D_MAJOR,
-    );
+    assert.deepEqual(afterHomeClick(PROVISIONAL_C, { tonic: "D", mode: "major" }), D_MAJOR);
   });
 
   it("commits the provisional C itself when C is clicked", () => {
-    assert.deepEqual(afterHomeClick(PROVISIONAL_C, { tonic: "C", mode: "major" }, PROVISIONAL_C), {
+    assert.deepEqual(afterHomeClick(PROVISIONAL_C, { tonic: "C", mode: "major" }), {
       tonic: "C",
       mode: "major",
       provisional: false,
     });
   });
 
-  it("takes the guess back when the chosen home is clicked again", () => {
-    assert.equal(
-      afterHomeClick(D_MAJOR, { tonic: "D", mode: "major" }, PROVISIONAL_C),
-      PROVISIONAL_C,
-    );
+  it("takes the guess back when the chosen home is clicked again, keeping the key", () => {
+    assert.deepEqual(afterHomeClick(D_MAJOR, { tonic: "D", mode: "major" }), {
+      tonic: "D",
+      mode: "major",
+      provisional: true,
+    });
+  });
+
+  it("after a transpose, takes the guess back in the tune's new key, not the demo's C", () => {
+    /** @type {Key} */
+    const transposed = { tonic: "E", mode: "minor", provisional: false };
+    assert.deepEqual(afterHomeClick(transposed, { tonic: "E", mode: "minor" }), {
+      tonic: "E",
+      mode: "minor",
+      provisional: true,
+    });
   });
 
   it("moves to another home without passing through unguessed", () => {
-    assert.deepEqual(afterHomeClick(D_MAJOR, { tonic: "A", mode: "major" }, PROVISIONAL_C), {
+    assert.deepEqual(afterHomeClick(D_MAJOR, { tonic: "A", mode: "major" }), {
       tonic: "A",
       mode: "major",
       provisional: false,
@@ -51,11 +64,26 @@ describe("afterHomeClick", () => {
   });
 
   it("treats the same home in the other mode as a different key", () => {
-    assert.deepEqual(afterHomeClick(D_MAJOR, { tonic: "D", mode: "minor" }, PROVISIONAL_C), {
+    assert.deepEqual(afterHomeClick(D_MAJOR, { tonic: "D", mode: "minor" }), {
       tonic: "D",
       mode: "minor",
       provisional: false,
     });
+  });
+});
+
+describe("afterFinderPick", () => {
+  it("commits a chord's home when nothing or another home is chosen", () => {
+    assert.deepEqual(afterFinderPick(PROVISIONAL_C, { tonic: "D", mode: "major" }), D_MAJOR);
+    assert.deepEqual(afterFinderPick(D_MAJOR, { tonic: "A", mode: "major" }), {
+      tonic: "A",
+      mode: "major",
+      provisional: false,
+    });
+  });
+
+  it("confirms, never takes back, the home already chosen", () => {
+    assert.equal(afterFinderPick(D_MAJOR, { tonic: "D", mode: "major" }), null);
   });
 });
 

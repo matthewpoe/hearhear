@@ -9,8 +9,8 @@
    * @import { Key } from "../types.js"
    */
   import { song } from "../store/song.js";
-  import { afterHomeClick, afterModeChange, chosenTonic } from "./keyChoice.js";
-  import { PROVISIONAL_C, TONICS, keyName } from "./keys.js";
+  import { afterFinderPick, afterHomeClick, afterModeChange, chosenTonic } from "./keyChoice.js";
+  import { TONICS, keyName } from "./keys.js";
   import KeyCandidates from "./KeyCandidates.svelte";
   import GuessResult from "./GuessResult.svelte";
 
@@ -28,12 +28,8 @@
     { mode: "minor", label: "Dark (minor)" },
   ]);
 
-  const start = song.get().key;
-  /** Where un-choosing a home goes back to: the key as it was before any guess. */
-  const unguessed = start.provisional ? start : PROVISIONAL_C;
-
   /** The mode picked before any home is chosen; once one is, the key's own mode shows. */
-  let pickedMode = $state(start.mode);
+  let pickedMode = $state(song.get().key.mode);
   const mode = $derived($song.key.provisional ? pickedMode : $song.key.mode);
   const chosen = $derived(chosenTonic($song.key));
 
@@ -59,7 +55,26 @@
 
   /** @param {Pick<Key, "tonic" | "mode">} home */
   function pickHome(home) {
-    apply(afterHomeClick($song.key, home, unguessed));
+    // Un-choosing keeps the home's mode showing, whichever way it was chosen.
+    pickedMode = home.mode;
+    apply(afterHomeClick($song.key, home));
+  }
+
+  /**
+   * A chord chosen in the finder commits its home, as its chip does. Choosing
+   * the home already committed ("Check it by ear", then the same chord)
+   * confirms it: the key stays, the finder closes, and focus goes back.
+   * @param {Pick<Key, "tonic" | "mode">} home
+   */
+  function pickFromFinder(home) {
+    const key = afterFinderPick($song.key, home);
+    if (key) {
+      pickedMode = home.mode;
+      apply(key);
+      return;
+    }
+    closeFinder();
+    announcement = `Home is still ${keyName($song.key)}.`;
   }
 
   /** @param {"major" | "minor"} next */
@@ -143,7 +158,7 @@
   {/if}
 
   {#if finding}
-    <KeyCandidates onpick={pickHome} onclose={closeFinder} {opener} />
+    <KeyCandidates onpick={pickFromFinder} onclose={closeFinder} {opener} />
   {/if}
 
   {#if ondismiss}

@@ -21,15 +21,29 @@ export function chosenTonic(key) {
 }
 
 /**
- * The key after a home is clicked (a chip, or a chord in the ear finder).
- * Clicking the home already chosen un-commits it, back to `unguessed`.
+ * The key after a home chip is clicked. Clicking the home already chosen
+ * un-commits it: the same key, provisional again. It keeps the tonic and mode
+ * rather than going back to the demo's provisional C, because the tune may
+ * have been transposed since, and the labels must still fit the notes.
  * @param {Key} key the song's key
  * @param {Pick<Key, "tonic" | "mode">} home the one clicked
- * @param {Key} unguessed the provisional key to go back to
  * @returns {Key}
  */
-export function afterHomeClick(key, home, unguessed) {
-  if (!key.provisional && sameHome(key, home)) return unguessed;
+export function afterHomeClick(key, home) {
+  if (!key.provisional && sameHome(key, home)) return { ...key, provisional: true };
+  return { tonic: home.tonic, mode: home.mode, provisional: false };
+}
+
+/**
+ * The key after a chord is chosen in the ear finder. Choosing the home that's
+ * already committed confirms it rather than taking it back (un-choosing is
+ * for the chips only), so this returns null: nothing to re-key.
+ * @param {Key} key the song's key
+ * @param {Pick<Key, "tonic" | "mode">} home the chord's home
+ * @returns {Key | null}
+ */
+export function afterFinderPick(key, home) {
+  if (!key.provisional && sameHome(key, home)) return null;
   return { tonic: home.tonic, mode: home.mode, provisional: false };
 }
 
