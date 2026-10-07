@@ -23,6 +23,8 @@
     dismiss,
     pageFacts,
     placeCallout,
+    actionParts,
+    plainText,
     isOnScreen,
     WATCHED_ATTRIBUTES,
   } from "./tour.js";
@@ -185,6 +187,16 @@
     if (done.length === 0) return;
     dismissed = dismiss(seen, ...done);
     saveDismissed(dismissed);
+  });
+
+  // The open tip's target wears the accent ring (the style below) while the
+  // tip shows. An attribute the tips don't watch, so it can't loop.
+  $effect(() => {
+    if (!current || !open) return;
+    void pageChanges;
+    const target = targetOf(current);
+    target?.setAttribute("data-tip-target", "");
+    return () => target?.removeAttribute("data-tip-target");
   });
 
   // Each tip starts with a clean count of actions elsewhere.
@@ -366,10 +378,10 @@
 {/if}
 
 <p class="visually-hidden" aria-live="polite">
-  {#if current && open}Tip: {current.title
-      ? `${current.title} `
-      : ""}{current.text}{:else if current && folded.has(current.id)}Tip folded; press Tip to show
-    it again.{:else if waiting}A tip is waiting; press Tip to go to it.{/if}
+  {#if current && open}Tip: {current.title ? `${current.title} ` : ""}{plainText(
+      current.text,
+    )}{:else if current && folded.has(current.id)}Tip folded; press Tip to show it again.{:else if waiting}A
+    tip is waiting; press Tip to go to it.{/if}
 </p>
 
 {#if current && open}
@@ -384,7 +396,11 @@
       tabindex="-1"
     >
       {#if current.title}<h2 id={titleId}>{current.title}</h2>{/if}
-      <p>{current.text}</p>
+      <p>
+        {#each actionParts(current.text) as part, i (i)}{#if part.act}<strong class="act"
+              >{part.text}</strong
+            >{:else}{part.text}{/if}{/each}
+      </p>
       <button type="button" class="off" onclick={turnOff}>Turn tips off</button>
     </aside>
   {/key}
@@ -437,6 +453,24 @@
     margin: 0;
     font-size: var(--text-sm);
   }
+  /* The action the tip asks for: the accent is what you do. */
+  .act {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  /* While a tip shows, the thing it points at wears a matching ring. An
+     outline, so it never moves the layout or the tip's placement. */
+  :global([data-tip-target]) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    animation: tip-target 1.6s var(--ease) infinite alternate;
+  }
+  @keyframes tip-target {
+    to {
+      outline-offset: 6px;
+      outline-color: transparent;
+    }
+  }
   /* The quiet way out: a small link-style button under the text. */
   .off {
     display: block;
@@ -461,7 +495,8 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .callout,
-    .chip {
+    .chip,
+    :global([data-tip-target]) {
       animation: none;
     }
     .dot {

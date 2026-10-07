@@ -1,12 +1,12 @@
 {
-  "$comment": "The guided demo path as data, run by src/guided/GuidedPath.svelte (step logic: src/guided/steps.js). Each step names one thing to do and advances only when the app shows it done: there is no Next or Back, only 'Leave tour'. Each step has an id, a title (2–4 words), a one-line instruction (`line`: an imperative first, at most one clause of why), `done` (the app state the instruction produces; the step advances on its own once it holds, and a step already done when the tour reaches it is skipped), an optional `hint` (text shown while its `when` holds and `done` doesn't), and an optional `action`: a button in the strip that does the step's action, or opens what it needs. Conditions: songLoaded {song}, played (Play pressed since the song loaded), keyChosen {tonic, mode}, keyCommitted, chordAt {bar, beat, numeral}, tutorReplied. Actions: loadSong {song}, press {within, name} (a button by its accessible name inside an element id), openChords {bar, beat}, audition {bar, beat, numeral}, askTutor {lesson} (the question from content/lessons/plan.json; the server replays content/lessons/recorded/<lesson>.json when it exists). Bars and beats are checked against the song by tests/guided/steps.test.js. Stream I scripts video from it. Matthew owns this wording; revised drafts by Claude, Oct 7, 2026, for action and concision.",
+  "$comment": "The guided demo path as data, run by src/guided/GuidedPath.svelte (step logic: src/guided/steps.js). Each step names one thing to do and advances only when the app shows it done: there is no Next or Back, only 'Leave tour'. Each step has an id, a title (2–4 words), a one-line instruction (`line`: an imperative first, at most one clause of why; its action is marked [[like this]], shown in the accent color, exactly once), `done` (the app state the instruction produces; the step advances on its own once it holds, and a step already done when the tour reaches it is skipped), an optional `hint` (text shown while its `when` holds and `done` doesn't), and an optional `action`: a button in the strip that does the step's action, or opens what it needs. Conditions: songLoaded {song}, played (Play pressed since the song loaded), keyChosen {tonic, mode}, keyCommitted, chordAt {bar, beat, numeral}, tutorReplied. Actions: loadSong {song}, press {within, name} (a button by its accessible name inside an element id), openChords {bar, beat}, audition {bar, beat, numeral}, askTutor {lesson} (the question from content/lessons/plan.json; the server replays content/lessons/recorded/<lesson>.json when it exists). Bars and beats are checked against the song by tests/guided/steps.test.js. Stream I scripts video from it. Matthew owns this wording; revised drafts by Claude, Oct 7, 2026, for action and concision.",
   "status": "placeholder: pending Matthew's ear check and recorded lessons",
   "song": "ode-to-joy",
   "steps": [
     {
       "id": "load",
       "title": "Open a tune",
-      "line": "Load Ode to Joy; its key starts hidden, so your ear finds it.",
+      "line": "[[Load Ode to Joy]]; its key starts hidden, so your ear finds it.",
       "done": {
         "type": "songLoaded",
         "song": "ode-to-joy"
@@ -20,7 +20,7 @@
     {
       "id": "listen",
       "title": "Hear it",
-      "line": "Press Play and hum along; notice where it wants to stop.",
+      "line": "[[Press Play]] and hum along; notice where it wants to stop.",
       "done": {
         "type": "played"
       },
@@ -34,7 +34,7 @@
     {
       "id": "home",
       "title": "Find home",
-      "line": "Choose the note the tune settles on. Not sure? Help me find it.",
+      "line": "[[Choose the note the tune settles on]]. Not sure? Help me find it.",
       "done": {
         "type": "keyChosen",
         "tonic": "D",
@@ -44,7 +44,7 @@
         "when": {
           "type": "keyCommitted"
         },
-        "text": "Does it settle there? Press Check it by ear and try each chord again."
+        "text": "Does it settle there? [[Press Check it by ear]] and try each chord again."
       },
       "action": {
         "type": "press",
@@ -56,7 +56,7 @@
     {
       "id": "half-cadence",
       "title": "A question at bar 4",
-      "line": "Put V under the long note in bar 4; hear it ask a question.",
+      "line": "[[Put V under the long note in bar 4]]; hear it ask a question.",
       "done": {
         "type": "chordAt",
         "bar": 4,
@@ -73,7 +73,7 @@
     {
       "id": "set-up-ending",
       "title": "Lean toward the end",
-      "line": "Put V under the first note of bar 8, the 2 of '3 2 1'.",
+      "line": "[[Put V under the first note of bar 8]], the 2 of '3 2 1'.",
       "done": {
         "type": "chordAt",
         "bar": 8,
@@ -90,7 +90,7 @@
     {
       "id": "wrong-ish",
       "title": "A chord that swerves",
-      "line": "Put vi under the last note; hear the ending turn sad instead of home.",
+      "line": "[[Put vi under the last note]]; hear the ending turn sad instead of home.",
       "done": {
         "type": "chordAt",
         "bar": 8,
@@ -107,7 +107,7 @@
     {
       "id": "land",
       "title": "Now let it land",
-      "line": "Swap the last chord for I; bar 4's question gets its answer.",
+      "line": "[[Swap the last chord for I]]; bar 4's question gets its answer.",
       "done": {
         "type": "chordAt",
         "bar": 8,
@@ -124,7 +124,7 @@
     {
       "id": "ask",
       "title": "Ask why",
-      "line": "Press Ask the tutor to hear why the ending lands now.",
+      "line": "[[Press Ask the tutor]] to hear why the ending lands now.",
       "done": {
         "type": "tutorReplied"
       },

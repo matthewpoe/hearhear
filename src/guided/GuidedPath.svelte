@@ -25,6 +25,7 @@
   import { requestAsk } from "../tutor/requests.js";
   import { conditionMet, hintFor, lessonExchange, noteAt, stepTarget } from "./steps.js";
   import { tour, goTo, leaveTour, finishTour } from "./tour.js";
+  import { actionParts } from "../callouts/tour.js";
 
   /** @import { Action, GuidedPath } from "./steps.js" */
 
@@ -295,7 +296,9 @@
       <span class="visually-hidden">({path.status})</span>
       <p class="line" aria-live="polite">
         <strong id="guided-step-title" tabindex="-1">{step.title}:</strong>
-        {step.line}
+        {#each actionParts(step.line) as part, i (i)}{#if part.act}<strong class="act"
+              >{part.text}</strong
+            >{:else}{part.text}{/if}{/each}
         {#if met}<span class="done">Done.</span>{/if}
       </p>
       {#if step.action && !met}
@@ -315,7 +318,11 @@
         <button type="button" class="link" onclick={leaveTour}>Leave tour</button>
       {/if}
     </div>
-    {#if hint}<p class="hint">{hint}</p>{/if}
+    {#if hint}<p class="hint">
+        {#each actionParts(hint) as part, i (i)}{#if part.act}<strong class="act"
+              >{part.text}</strong
+            >{:else}{part.text}{/if}{/each}
+      </p>{/if}
   </section>
 {/if}
 
@@ -358,6 +365,11 @@
   }
   strong {
     font-weight: 500;
+  }
+  /* The step's action: the accent is what you do. */
+  .act {
+    color: var(--accent);
+    font-weight: 600;
   }
   .done {
     font-weight: 500;

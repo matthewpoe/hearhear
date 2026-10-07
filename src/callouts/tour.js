@@ -357,3 +357,31 @@ function overlap(a, b) {
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), Math.max(max, min));
 }
+
+/**
+ * A tip's or tour step's text split at its action marker: `[[Press Play]]
+ * and watch` gives the action (shown in the accent color) and the plain
+ * text around it. No HTML: each part renders as text.
+ * @param {string} text
+ * @returns {{ text: string, act: boolean }[]}
+ */
+export function actionParts(text) {
+  return text
+    .split(/(\[\[.*?\]\])/)
+    .filter((part) => part !== "")
+    .map((part) =>
+      part.startsWith("[[") && part.endsWith("]]")
+        ? { text: part.slice(2, -2), act: true }
+        : { text: part, act: false },
+    );
+}
+
+/**
+ * The text with its action markers removed, for screen-reader announcements.
+ * @param {string} text
+ */
+export function plainText(text) {
+  return actionParts(text)
+    .map((part) => part.text)
+    .join("");
+}
