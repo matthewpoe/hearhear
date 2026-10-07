@@ -19,6 +19,7 @@
   import { suggestions, isStale } from "../store/suggestions.js";
   import { toTutorSnapshot } from "../store/snapshot.js";
   import { askTutor, TutorError } from "./client.js";
+  import { onAskRequest } from "./requests.js";
   import { checkSuggestions } from "./validate.js";
   import { failureText, canRetry } from "./failures.js";
 
@@ -41,7 +42,9 @@
   let status = $state("idle");
   /** The exchange in flight (or the one that failed), shown below the log. */
   let pending = $state(
-    /** @type {{ question: string | null, level: HintLevel, reply: string } | null} */ (null),
+    /** @type {{ question: string | null, level: HintLevel, reply: string, fixture: string } | null} */ (
+      null
+    ),
   );
   let failureCode = $state("");
   /** @type {AbortController | null} */
@@ -70,6 +73,14 @@
   let demoReplies = $state(false);
 
   $effect(() => () => controller?.abort());
+
+  // A question asked on the viewer's behalf (the guided path), as if typed.
+  $effect(() =>
+    onAskRequest(({ question: asked, level, fixture }) => {
+      if (status === "loading" || !hasSong) return;
+      send(asked, level, fixture);
+    }),
+  );
 
   // Only says whether to show the demo notice; the tutor's own requests have
   // their own failure states, so a failed check just leaves the notice off.
@@ -107,12 +118,13 @@
   /**
    * @param {string | null} asked
    * @param {HintLevel} level
+   * @param {string} [fixture] a recorded lesson to replay (the guided path's)
    */
-  async function send(asked, level) {
+  async function send(asked, level, fixture = "") {
     if (status === "loading") return;
     const current = song.get();
     const history = log.slice(-MAX_TURNS).map(({ role, text }) => ({ role, text }));
-    pending = { question: asked, level, reply: "" };
+    pending = { question: asked, level, reply: "", fixture };
     status = "loading";
     const exchange = new AbortController();
     controller = exchange;
@@ -135,6 +147,7 @@
           },
           signal: exchange.signal,
           accessCode,
+          fixture,
         },
       );
       if (exchange.signal.aborted) return;
@@ -191,7 +204,7 @@
   function retry() {
     if (!pending) return;
     const keyboard = activatedByKeyboard();
-    send(pending.question, pending.level);
+    send(pending.question, pending.level, pending.fixture);
     // Try again unmounts as the retry starts; keep a keyboard user in the panel.
     if (keyboard) textarea?.focus();
   }

@@ -91,18 +91,21 @@ async function errorFromResponse(response) {
  * Ask the tutor. Calls `onDelta` with each piece of message text as it streams.
  * `accessCode`, the live tutor's passphrase, travels in the X-Tutor-Access
  * header so it stays out of the request body and the snapshot Claude sees.
+ * `fixture` names a recorded lesson ("lesson:<id>") for the server to replay
+ * in the X-Tutor-Fixture header; only the guided path sends one.
  * @param {TutorRequest} request
- * @param {{ onDelta: (text: string) => void, signal?: AbortSignal, accessCode?: string }} options
+ * @param {{ onDelta: (text: string) => void, signal?: AbortSignal, accessCode?: string, fixture?: string }} options
  * @returns {Promise<SuggestionsEvent>}
  * @throws {TutorError} on an HTTP error, an `error` event, or a broken stream.
  *   An AbortError passes through unchanged when `signal` aborts.
  */
-export async function askTutor(request, { onDelta, signal, accessCode = "" }) {
+export async function askTutor(request, { onDelta, signal, accessCode = "", fixture = "" }) {
   /** @type {Record<string, string>} */
   const headers = { "Content-Type": "application/json", Accept: "text/event-stream" };
   // Percent-encoded: header values must be Latin-1, and a passphrase may not
   // be. The server decodes it and applies the one normalization rule.
   if (accessCode) headers["X-Tutor-Access"] = encodeURIComponent(accessCode);
+  if (fixture) headers["X-Tutor-Fixture"] = fixture;
   let response;
   try {
     response = await fetch("/api/tutor", {
