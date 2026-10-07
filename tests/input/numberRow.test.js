@@ -3,9 +3,14 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 
 // A stand-in for the DOM's HTMLElement, so the form-field check runs in Node.
 class FakeElement {
-  /** @param {string | null} [field] the form-field tag this element sits inside */
-  constructor(field = null) {
+  /**
+   * @param {string | null} [field] the form-field tag this element sits inside
+   * @param {string} [type] the input's type, for an "input" field
+   */
+  constructor(field = null, type = "text") {
     this.field = field;
+    this.type = type;
+    this.tagName = field?.toUpperCase() ?? "DIV";
     this.isContentEditable = false;
   }
   /** @param {string} selector */
@@ -125,6 +130,21 @@ describe("number row", () => {
     assert.deepEqual(held(), []);
     const arrow = down("ArrowUp", { target: new FakeElement("select") });
     assert.equal(arrow.defaultPrevented, false);
+  });
+
+  it("still plays with a radio or checkbox focused, which keeps only its arrows", () => {
+    // Clicking Bright/Dark or a label style focuses a radio input.
+    const radio = new FakeElement("input", "radio");
+    down("Digit1", { target: radio });
+    assert.equal(held().length, 1);
+    up("Digit1");
+    down("Digit2", { target: new FakeElement("input", "checkbox") });
+    assert.equal(held().length, 1);
+    up("Digit2");
+    const arrow = down("ArrowUp", { target: radio });
+    assert.equal(arrow.defaultPrevented, false);
+    down("Digit3", { target: new FakeElement("input", "text") });
+    assert.deepEqual(held(), []);
   });
 
   it("releases the pitch a key started, even if the key changed meanwhile", () => {
