@@ -90,10 +90,16 @@
   --radius-md: 12px;
   --radius-lg: 20px;
 
+  /* Tentative labels (free play before a key is confirmed): function shapes
+     drawn as outlines in their color, with no fill, at reduced opacity. */
+  --tentative-opacity: 0.6;
+  --tentative-stroke: 2px;
+
   /* Motion */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dur-fast: 120ms;
   --dur-land: 400ms;
+  --dur-reveal: 700ms;
 }
 
 @media screen {
@@ -132,5 +138,6 @@
   :root {
     --dur-fast: 0ms;
     --dur-land: 0ms;
+    --dur-reveal: 0ms;
   }
 }
