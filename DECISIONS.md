@@ -6,22 +6,24 @@ Format: **date — decision.** Why. _Rejected:_ alternatives.
 
 ## From the PRD (planning, Sep 26 – Oct 6, 2026)
 
-- **2026-09-26 — Theme 1, Exploration & Understanding.** Hear Hear is a teacher that builds understanding of harmony by ear. Theme 2's "real control over iteration" is a supporting point, not a second theme. _Rejected:_ framing as a creative/generative tool.
-- **2026-09-26 — Teacher, not transcriber.** The user does the ear work; the tool shortens the feedback loop. _Rejected:_ microphone transcription (rhythm is the hard problem, laptop-mic piano is messy, ScoreCloud already does it well).
-- **2026-09-26 — Ear as verifier.** Every Claude suggestion is structured data the app can play; the user auditions and decides. _Rejected:_ trusting Claude's chord claims as text.
-- **2026-09-27 — Per-note audition replaces automatic harmonization.** The dropdown plays each candidate under the melody. _Rejected:_ automatic Viterbi harmonization (does the ear work for the user).
-- **2026-09-27 — Fixed-register, nearest-inversion voicing for audition.** A and B differ only in harmony, never register. Came from a failed A/B test in a real session.
-- **2026-09-27 — Svelte 5 (runes) + Vite, plain JS with JSDoc.** Reactive views across one model, default escaping, scoped CSS, built-in transitions. _Rejected:_ plain JS modules; HTMX (the client owns the song model, Claude's output lands as data, not swapped HTML); TypeScript.
-- **2026-09-27 — FastAPI proxy on Railway; all theory in the browser.** Hover audition never waits on the network; key and prompt stay server-side. No database, no login.
-- **2026-09-27 — Absolute pitches plus a key hypothesis.** Re-key changes labels only; transpose moves everything; re-bar moves only bar lines.
-- **2026-10-06 — The number row is the instrument.** Keys play scale degrees. _Rejected:_ the on-screen keyboard or letter keys as primary input (slow; ties input to a key).
-- **2026-10-06 — Fixed octave rows.** Number row = home octave (8/9/0 continue up), Q–U one octave below, A–J two below; the same key always plays the same note. _Rejected:_ nearest-note octave placement (no muscle memory possible).
-- **2026-10-06 — Rhythm guessing with manual fixes.** Most common inter-onset gap = the beat; snap to ½, 1, 1½, 2, 3, 4 beats; one key reverts to quarter notes. _Rejected:_ plain quarter-note entry; real-time swing capture (stretch).
-- **2026-10-06 — Natural minor on the number row, raised 7th on Shift+7.** Folk and blues melodies move in natural minor.
-- **2026-10-06 — Nashville counts from the minor tonic (1m, not 6m).** Chord 1 and melody degree 1 are always the same note.
-- **2026-10-06 — Bauhaus function colors and shapes.** Tonic blue circle, subdominant yellow triangle, dominant red square (Kandinsky, 1923); never color alone.
-- **2026-10-06 — Claude Opus 5.5 tutor with a forced tool call, streamed.** Malformed output can't reach playback; the proxy is useless as general Claude.
-- **2026-10-06 — Public-domain demo tunes only.** Ode to Joy, St. James Infirmary (1929 publication). _Rejected:_ songs from Matthew's own sessions (copyrighted).
+Planning ran across three sessions (Sep 26, Sep 27, Oct 6). Entries with a specific date are confirmed by Matthew; entries marked Sep 26–Oct 6 were decided during planning on a day not recorded.
+
+- **2026-10-06 — Theme 1, Exploration & Understanding.** Hear Hear is a teacher that builds understanding of harmony by ear. Theme 2's "real control over iteration" is a supporting point, not a second theme. _Rejected:_ framing as a creative/generative tool.
+- **Sep 26–Oct 6 — Teacher, not transcriber.** The user does the ear work; the tool shortens the feedback loop. _Rejected:_ microphone transcription (rhythm is the hard problem, laptop-mic piano is messy, ScoreCloud already does it well).
+- **Sep 26–Oct 6 — Ear as verifier.** Every Claude suggestion is structured data the app can play; the user auditions and decides. _Rejected:_ trusting Claude's chord claims as text.
+- **Sep 26–Oct 6 — Per-note audition replaces automatic harmonization.** The dropdown plays each candidate under the melody. _Rejected:_ automatic Viterbi harmonization (does the ear work for the user).
+- **Sep 26–Oct 6 — Fixed-register, nearest-inversion voicing for audition.** A and B differ only in harmony, never register. Came from a failed A/B test in a real session.
+- **2026-10-06 — Svelte 5 (runes) + Vite, plain JS with JSDoc.** Reactive views across one model, default escaping, scoped CSS, built-in transitions. _Rejected:_ plain JS modules; HTMX (the client owns the song model, Claude's output lands as data, not swapped HTML); TypeScript.
+- **Sep 26–Oct 6 — FastAPI proxy on Railway; all theory in the browser.** Hover audition never waits on the network; key and prompt stay server-side. No database, no login.
+- **Sep 26–Oct 6 — Absolute pitches plus a key hypothesis.** Re-key changes labels only; transpose moves everything; re-bar moves only bar lines.
+- **2026-09-27 — The number row is the instrument.** Keys play scale degrees. _Rejected:_ the on-screen keyboard or letter keys as primary input (slow; ties input to a key).
+- **Sep 26–Oct 6 — Fixed octave rows.** Number row = home octave (8/9/0 continue up), Q–U one octave below, A–J two below; the same key always plays the same note. _Rejected:_ nearest-note octave placement (no muscle memory possible).
+- **Sep 26–Oct 6 — Rhythm guessing with manual fixes.** Most common inter-onset gap = the beat; snap to ½, 1, 1½, 2, 3, 4 beats; one key reverts to quarter notes. _Rejected:_ plain quarter-note entry; real-time swing capture (stretch).
+- **Sep 26–Oct 6 — Natural minor on the number row, raised 7th on Shift+7.** Folk and blues melodies move in natural minor.
+- **Sep 26–Oct 6 — Nashville counts from the minor tonic (1m, not 6m).** Chord 1 and melody degree 1 are always the same note.
+- **Sep 26–Oct 6 — Bauhaus function colors and shapes.** Tonic blue circle, subdominant yellow triangle, dominant red square (Kandinsky, 1923); never color alone.
+- **Sep 26–Oct 6 — Claude Opus 5.5 tutor with a forced tool call, streamed (amended below).** Malformed output can't reach playback; the proxy is useless as general Claude.
+- **Sep 26–Oct 6 — Public-domain demo tunes only.** Ode to Joy, St. James Infirmary (1930 Gotham Music edition). _Rejected:_ songs from Matthew's own sessions (copyrighted).
 
 ## Phase 0 (Oct 6, 2026)
 
