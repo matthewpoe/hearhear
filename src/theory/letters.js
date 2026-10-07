@@ -13,7 +13,7 @@ import { chromaOf } from "./pitch.js";
  * spellings of one chord ("dim", "o", "°") name the same type.
  * @type {Record<string, string>}
  */
-const SUFFIX_TYPES = {
+export const SUFFIX_TYPES = {
   "": "M",
   m: "m",
   min: "m",
