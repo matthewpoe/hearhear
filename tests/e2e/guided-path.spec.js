@@ -74,6 +74,11 @@ function stripProblems(page, id) {
     if (line && line.scrollWidth > line.clientWidth + 1) problems.push("step line truncated");
     for (const selector of selectors) {
       for (const el of document.querySelectorAll(selector)) {
+        // Only what a viewer can see and use. A closed <details> (the key
+        // box's "Play it in another key") keeps layout boxes for its hidden
+        // keys, but scrollIntoView can't reach them, so they'd read as under
+        // the strip wherever the page happens to be scrolled.
+        if (!el.checkVisibility({ visibilityProperty: true })) continue;
         el.scrollIntoView({ block: "nearest", behavior: "instant" });
         const r = el.getBoundingClientRect();
         const s = strip.getBoundingClientRect();

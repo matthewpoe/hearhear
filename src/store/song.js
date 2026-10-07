@@ -385,6 +385,23 @@ export function createSongStore(initial = emptySong()) {
     },
 
     /**
+     * Swing on or off, as one undoable step (so Undo brings a song's own
+     * ratio back). On gives triplet swing (2); off drops the field, so the
+     * song plays straight. Notation never changes; only the "Swing" marking
+     * follows.
+     * @param {boolean} on
+     */
+    setSwing(on) {
+      if (on === (store.get().swing ?? 1) > 1) return;
+      commit((s) => {
+        if (on) return { ...s, swing: 2 };
+        const straight = { ...s };
+        delete straight.swing;
+        return straight;
+      });
+    },
+
+    /**
      * Re-bar: change only the meter hypothesis. Bar lines move; notes do not.
      * @param {Meter} meter
      */

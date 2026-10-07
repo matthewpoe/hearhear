@@ -23,6 +23,21 @@ describe("song store", () => {
     assert.deepEqual(seen, [0, 1]);
   });
 
+  it("turns swing on and off as one undoable step", () => {
+    const store = storeWith();
+    assert.equal(store.get().swing, undefined);
+    store.setSwing(true);
+    assert.equal(store.get().swing, 2);
+    store.setSwing(true); // already on: no new step
+    store.setSwing(false);
+    assert.equal("swing" in store.get(), false);
+    store.undo();
+    assert.equal(store.get().swing, 2);
+    store.undo();
+    assert.equal(store.get().swing, undefined);
+    assert.doesNotThrow(() => validateSong({ ...store.get(), swing: 2 }));
+  });
+
   it("bumps the version on every action", () => {
     const store = storeWith();
     const before = store.get().version;

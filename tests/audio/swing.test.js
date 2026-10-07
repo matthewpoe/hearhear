@@ -8,7 +8,7 @@ import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import stJames from "../../content/songs/st-james-infirmary.json" with { type: "json" };
 import { melodyCues, swingPassage, swingTick } from "../../src/audio/passage.js";
 import { songToAbc } from "../../src/staff/abc.js";
-import { validateSong } from "../../src/store/song.js";
+import { createSongStore, emptySong, validateSong } from "../../src/store/song.js";
 
 /** @type {any} */
 const odeSong = ode;
@@ -190,4 +190,27 @@ test("validation bounds the ratio", () => {
   assert.throws(() => validateSong({ ...pair, swing: 0.5 }), /swing/);
   assert.throws(() => validateSong({ ...pair, swing: 4 }), /swing/);
   validateSong({ ...pair, swing: 1.5 });
+});
+
+test("the Swing switch's store action turns the swung timing off and on", () => {
+  const store = createSongStore(emptySong());
+  const straight = { ...pair };
+  delete straight.swing;
+  store.load(straight);
+  const VIEW = { mode: /** @type {const} */ ("confirmed"), labelStyle: "roman", showDegrees: true };
+  const range = { fromTick: 0, toTick: 48 };
+  const times = () =>
+    swingPassage({ cues: melodyCues(store.get(), range), ...range }, store.get()).cues.map((c) => [
+      c.tick,
+      c.dur,
+    ]);
+  assert.deepEqual(times()[1], [12, 6], "straight while off");
+  store.setSwing(true);
+  assert.deepEqual(times()[1], [12, 8], "swung 2:1 once on");
+  assert.deepEqual(times()[2], [20, 4]);
+  store.setSwing(false);
+  assert.deepEqual(times()[2], [18, 6], "straight again once off");
+  assert.ok(!songToAbc(store.get(), VIEW).abc.includes('Q:"Swing"'), "no marking while off");
+  store.undo();
+  assert.ok(songToAbc(store.get(), VIEW).abc.includes('Q:"Swing"'), "Undo brings the marking back");
 });
