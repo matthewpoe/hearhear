@@ -2,12 +2,14 @@
  * What the panel says when an exchange fails, by error code (the protocol's
  * codes in contracts/tutor-sse.md, plus the client's `network` and `protocol`).
  * Plain words, no blame; anything unknown gets the generic line.
+ * `access_required` isn't here: the panel asks for the passphrase instead.
  */
 
 /** @type {Record<string, string>} */
 const TEXT = {
   over_budget: "The live tutor is out of budget for today; the recorded lessons still work.",
   rate_limited: "The tutor needs a short breather. Try again in a minute.",
+  access_locked: "Too many wrong codes. Try again in a few minutes.",
   too_large: "This song is too long to send to the tutor in one go.",
   invalid_request: "The tutor couldn't read this request.",
   upstream: "The tutor didn't finish its answer.",
