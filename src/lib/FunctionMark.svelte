@@ -7,7 +7,7 @@
    * and the staff; size it with --mark-size (default 0.625rem).
    * @type {{ fn: import("../types.js").HarmonicFunction, outline: boolean }}
    */
-  const { fn, outline } = $props();
+  const { fn, outline = false } = $props();
 </script>
 
 <svg class="mark" class:outline viewBox="0 0 10 10" aria-hidden="true">
