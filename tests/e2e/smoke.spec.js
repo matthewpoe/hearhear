@@ -3,7 +3,7 @@
 // Phase 2 extends it to tune → key → chord audition → tutor exchange.
 
 import { test, expect } from "@playwright/test";
-import AxeBuilder from "@axe-core/playwright";
+import { axe } from "./axe.js";
 
 test("the app loads under the production CSP, with every region and no a11y violations", async ({
   page,
@@ -30,19 +30,14 @@ test("the app loads under the production CSP, with every region and no a11y viol
   const staff = page.getByRole("region", { name: "Staff", exact: true });
   await expect(staff).toHaveCount(0);
 
-  const axe = async () => {
-    const { violations } = await new AxeBuilder({ page }).analyze();
-    expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
-  };
-
   // Light by default.
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
-  await axe();
+  await axe(page);
 
   // Dark once chosen, and still dark after a reload.
   await page.getByRole("button", { name: "Dark mode" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await axe();
+  await axe(page);
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.getByRole("button", { name: "Dark mode" })).toHaveAttribute(
@@ -53,7 +48,7 @@ test("the app loads under the production CSP, with every region and no a11y viol
   // A tune brings the staff.
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
   await expect(staff).toBeVisible();
-  await axe();
+  await axe(page);
 
   expect(problems).toEqual([]);
 });

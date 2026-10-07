@@ -7,7 +7,7 @@
 
 import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
-import AxeBuilder from "@axe-core/playwright";
+import { axe } from "./axe.js";
 
 /** @param {string} file */
 const json = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), "utf8"));
@@ -95,21 +95,6 @@ function aboveDock(page, selector) {
     const r = el.getBoundingClientRect();
     return r.top >= 0 && r.bottom <= dock.getBoundingClientRect().top;
   }, selector);
-}
-
-/** @param {import("@playwright/test").Page} page */
-async function axe(page) {
-  await page.evaluate(() => {
-    const finite = document
-      .getAnimations()
-      .filter((a) => a.effect?.getComputedTiming().endTime !== Infinity);
-    const settled = Promise.allSettled(finite.map((a) => a.finished));
-    return Promise.race([settled, new Promise((resolve) => setTimeout(resolve, 2000))]);
-  });
-  const { violations } = await new AxeBuilder({ page }).analyze();
-  expect(
-    violations.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target).join(" | ")})`),
-  ).toEqual([]);
 }
 
 for (const viewport of [

@@ -9,7 +9,7 @@
 
 import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
-import AxeBuilder from "@axe-core/playwright";
+import { axe } from "./axe.js";
 
 const ode = JSON.parse(
   readFileSync(new URL("../../content/songs/ode-to-joy.json", import.meta.url), "utf8"),
@@ -29,23 +29,6 @@ async function clickNote(page, id) {
   const box = await head.boundingBox();
   if (!box) throw new Error(`note ${id} isn't on the staff`);
   await head.click({ position: { x: box.width / 2, y: box.height / 4 } });
-}
-
-/** @param {import("@playwright/test").Page} page */
-async function axe(page) {
-  // Let theme and hover transitions settle, so contrast is measured on final colors.
-  // Cancelled animations reject `finished`, and infinite ones never settle.
-  await page.evaluate(() => {
-    const finite = document
-      .getAnimations()
-      .filter((a) => a.effect?.getComputedTiming().endTime !== Infinity);
-    const settled = Promise.allSettled(finite.map((a) => a.finished));
-    return Promise.race([settled, new Promise((resolve) => setTimeout(resolve, 2000))]);
-  });
-  const { violations } = await new AxeBuilder({ page }).analyze();
-  expect(
-    violations.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target).join(" | ")})`),
-  ).toEqual([]);
 }
 
 test("golden path: tune, key by ear and by chip, chords, song memory, tutor", async ({ page }) => {
