@@ -15,12 +15,12 @@
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
   import WordsSwitch from "./WordsSwitch.svelte";
+  import SwingSwitch from "./SwingSwitch.svelte";
+  import VoiceLeading from "../toolbar/VoiceLeading.svelte";
+  import MoreMenu from "../toolbar/MoreMenu.svelte";
   import AccidentalMenu from "./AccidentalMenu.svelte";
   import History from "../toolbar/History.svelte";
   import LabelControls from "../toolbar/LabelControls.svelte";
-  import Tip from "../toolbar/Tip.svelte";
-  import { CONTROLS } from "../lib/controls.js";
-  import explainers from "../../content/explainers.json" with { type: "json" };
   import "../print.css";
 
   /** @typedef {typeof import("abcjs").default} Abcjs */
@@ -312,29 +312,24 @@
 </script>
 
 <section id="staff" class="staff" aria-label="Staff">
-  <!-- One row of controls over the music, and nothing else: Play and what
-       it plays, the chord-label choice, then Undo/Redo and Print. Settings
-       live with their steps (drone and degrees with the key, voice leading
-       with the chords, the bottom row in the keyboard dock). It wraps only
-       on narrow screens. -->
+  <!-- One row of controls over the music: Play and what it plays | the
+       chord-label choice | the switches for how it sounds and reads (Words,
+       Swing, Voice leading) | Undo/Redo and "More" (Print). Drone and degrees sit with
+       the key, the bottom row in the keyboard dock. It wraps only on narrow
+       screens. -->
   <div class="header">
     <Transport />
     <span class="divider" aria-hidden="true"></span>
     <LabelControls />
-    <div class="end">
+    <span class="divider" aria-hidden="true"></span>
+    <div class="switches" role="group" aria-label="Sound and staff">
       <WordsSwitch />
+      <SwingSwitch />
+      <VoiceLeading />
+    </div>
+    <div class="end">
       <History />
-      <Tip id="print-tip" text={explainers.options.print} align="end">
-        <button
-          type="button"
-          class="print"
-          aria-describedby="print-tip"
-          onclick={() => window.print()}
-          disabled={!abcjs}
-        >
-          {CONTROLS.printLeadSheet}
-        </button>
-      </Tip>
+      <MoreMenu printable={abcjs !== null} />
     </div>
   </div>
   {#if loadError}
@@ -372,9 +367,12 @@
     border-radius: var(--radius-md);
     background: var(--surface);
   }
+  /* One line on a laptop (tests/e2e/layout.spec.js checks it). It may wrap
+     only for a moment, while a status ("Loading the piano…", "Paused")
+     sits beside Play, rather than overflow the page. */
   .header {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2) var(--space-3);
   }
@@ -384,29 +382,21 @@
     margin-block: var(--space-1);
     background: var(--rule);
   }
-  .print {
-    padding: var(--space-1) var(--space-2);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    color: var(--ink);
-    font-size: var(--text-sm);
-    white-space: nowrap;
-    cursor: pointer;
-  }
-  .print:disabled {
-    color: var(--ink-muted);
-    cursor: not-allowed;
-  }
   .end {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
     margin-left: auto;
   }
+  .switches {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
   /* On phones the row wraps: groups go one under another, no dividers. */
   @media (max-width: 60rem) {
-    .header {
+    .header,
+    .switches {
       flex-wrap: wrap;
     }
     .divider {
