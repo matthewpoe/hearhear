@@ -8,7 +8,7 @@ install:
 
 dev:
 	@echo "API on :8000, app on :5173"
-	@uv run uvicorn hearhear.app:app --app-dir server --reload --port 8000 & api=$$!; \
+	@uv run uvicorn hearhear.app:app --app-dir server --reload --port 8000 $$([ -f .env ] && echo --env-file .env) & api=$$!; \
 	trap 'kill $$api' EXIT INT TERM; npm run dev
 
 test:
