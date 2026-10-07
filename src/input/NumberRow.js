@@ -81,6 +81,9 @@ function shiftWindow(delta) {
 /** The hold a number-row key keeps in liveNotes. @param {string} code */
 const source = (code) => `key:${code}`;
 
+/** A chord-row chord's hold: record mode captures melody only. @param {string} code */
+const chordSource = (code) => `chord:${code}`;
+
 /**
  * Backspace or Delete: clear the selected note's chord, when the chord row
  * could have placed one there. True when it did.
@@ -135,8 +138,8 @@ export function listenToNumberRow(target) {
   /**
    * The pitches each held key started (one for a note, several for a chord),
    * so its release stops the right notes even if the song's key or the octave
-   * window changed meanwhile.
-   * @type {Map<string, number[]>}
+   * window changed meanwhile, and the source it holds them by.
+   * @type {Map<string, { pitches: number[], source: string }>}
    */
   const held = new Map();
 
@@ -176,8 +179,8 @@ export function listenToNumberRow(target) {
       if (event.repeat || held.has(event.code)) return;
       const chord = chordRowPress(event.code, action);
       const pitches = chord.midi.filter(onPiano);
-      held.set(event.code, pitches);
-      for (const midi of pitches) press(midi, source(event.code));
+      held.set(event.code, { pitches, source: chordSource(event.code) });
+      for (const midi of pitches) press(midi, chordSource(event.code));
       lastChord.set({ code: event.code, midi: pitches, fn: chord.fn });
       return;
     }
@@ -194,16 +197,16 @@ export function listenToNumberRow(target) {
     const midi = degreeToMidi(degree, key, clampWindow(key, ui.get().windowOctave));
     // Off the piano there is no key to light and no sample to play.
     if (!onPiano(midi)) return;
-    held.set(event.code, [midi]);
+    held.set(event.code, { pitches: [midi], source: source(event.code) });
     press(midi, source(event.code));
   }
 
   /** @param {string} code */
   function releaseKey(code) {
-    const pitches = held.get(code);
-    if (pitches === undefined) return;
+    const hold = held.get(code);
+    if (hold === undefined) return;
     held.delete(code);
-    for (const midi of pitches) release(midi, source(code));
+    for (const midi of hold.pitches) release(midi, hold.source);
     if (lastChord.get()?.code === code) lastChord.set(null);
   }
 

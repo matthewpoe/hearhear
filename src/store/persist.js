@@ -44,7 +44,8 @@ const CHORD_TYPES = new Set([
 
 /**
  * sessionStorage-like access; the getter itself may throw (blocked storage).
- * @typedef {() => Pick<Storage, "getItem" | "setItem">} StorageAccess
+ * `removeItem` is optional: without it a forgotten song just stays stored.
+ * @typedef {() => Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>} StorageAccess
  */
 
 /**
@@ -169,6 +170,14 @@ export function createSongMemory(storage) {
         // Corrupt JSON or a song that breaks an invariant: start fresh instead.
         return null;
       }
+    },
+
+    /**
+     * Forget a saved song (a discarded recording).
+     * @param {string} id
+     */
+    forget(id) {
+      guard(() => storage().removeItem?.(SONG_PREFIX + id), undefined);
     },
 
     /** @returns {string | null} the id of the song open in this tab */
