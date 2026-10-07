@@ -10,6 +10,7 @@
 export { spell, degreeToMidi, midiToDegree } from "./pitch.js";
 export { keyEventToDegree } from "./keyboard.js";
 export { parseNumeral, numeralOf, nashvilleOf, letterOf, chordFromNumeral } from "./numerals.js";
+export { chordFromLetter, sameChord } from "./letters.js";
 export { functionOf, functionInfo } from "./harmonicFunction.js";
 export { chordTones, analyzeNoteOverChord } from "./harmony.js";
 export { candidates } from "./candidates.js";
