@@ -24,7 +24,7 @@
   import Transpose from "./Transpose.svelte";
   import DroneSwitch from "../staff/DroneSwitch.svelte";
   import { HINT_COUNT, keyHints } from "../steps/keyHints.js";
-  import { clearHighlight, highlight } from "../staff/staffEvents.js";
+  import { mark } from "../staff/staffEvents.js";
   import { CONTROLS } from "../lib/controls.js";
 
   /**
@@ -79,19 +79,16 @@
 
   /**
    * "Give me a hint": one clue per press (keyHints.js), shown while home is
-   * still open. Each clue marks its notes on the staff; the marks go back on
-   * a frame after a redraw, and come off once a home is chosen.
+   * still open. Each clue marks its notes on the staff (a mark stays through
+   * redraws), and the marks come off once a home is chosen.
    */
   let hintPresses = $state(0);
   const hints = $derived($song.key.provisional ? keyHints($song, hintPresses) : []);
   $effect(() => {
     const ids = hints.flatMap((h) => h.noteIds);
     if (ids.length === 0) return;
-    const frame = requestAnimationFrame(() => highlight(ids, "is-hint"));
-    return () => {
-      cancelAnimationFrame(frame);
-      clearHighlight("is-hint");
-    };
+    mark("is-hint", ids);
+    return () => mark("is-hint", []);
   });
 
   // An undo (or anything outside this card) that takes the key back leaves no

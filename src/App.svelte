@@ -74,7 +74,7 @@
   <div class="columns">
     <div class="step">
       <Landing />
-      <ChordDropdown />
+      {#if $song.notes.length > 0}<ChordDropdown />{/if}
     </div>
     <!-- Before a song is picked the page is step 1 alone: the song list. -->
     {#if $song.notes.length > 0}

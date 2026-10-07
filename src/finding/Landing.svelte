@@ -25,7 +25,7 @@
   import { positionOf } from "../theory/index.js";
   import { whereOf } from "../chords/where.js";
   import { barRange } from "../staff/bars.js";
-  import { clearHighlight, highlight } from "../staff/staffEvents.js";
+  import { mark } from "../staff/staffEvents.js";
   import { playWithVisuals } from "../staff/playback.js";
   import { recorder, shelf } from "../record/tunes.js";
   import { isUserTune } from "../record/take.js";
@@ -79,18 +79,13 @@
       : `the note at ${whereOf(start, $song.meter)}`;
   });
 
-  // The start note wears a ring on the staff while it's the suggestion. The
-  // staff redraws on every song change (dropping classes), so it goes back
-  // on a frame later.
+  // The start note wears a ring on the staff while it's the suggestion; a
+  // mark stays through the staff's redraws (staffEvents.js).
   $effect(() => {
     const id = start?.id;
-    void $song;
     if (!id) return;
-    const frame = requestAnimationFrame(() => highlight([id], "is-start"));
-    return () => {
-      cancelAnimationFrame(frame);
-      clearHighlight("is-start");
-    };
+    mark("is-start", [id]);
+    return () => mark("is-start", []);
   });
 
   /**
