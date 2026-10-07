@@ -3,7 +3,7 @@
 // These checks keep that from regressing in the content or the components.
 
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 import callouts from "../../content/callouts.json" with { type: "json" };
 import guided from "../../content/guided-path.json" with { type: "json" };
@@ -14,6 +14,24 @@ const CONDITIONS = ["songLoaded", "played", "keyChosen", "keyCommitted", "chordA
 
 /** @param {string} file */
 const source = (file) => readFile(new URL(`../../src/${file}`, import.meta.url), "utf8");
+
+/** Facts only a physical key can produce: their tips are skipped on touch screens. */
+const KEY_ONLY_FACTS = ["chordKeyHeld"];
+
+/** Every literal `id="…"` in src/, the ids a tip can point at. */
+async function idsInSrc() {
+  const root = new URL("../../src/", import.meta.url);
+  const files = (await readdir(root, { recursive: true })).filter((f) => /\.(svelte|js)$/.test(f));
+  const ids = new Set();
+  for (const file of files) {
+    const text = await readFile(new URL(file, root), "utf8");
+    for (const [, id] of text.matchAll(/\bid="([\w-]+)"/g)) ids.add(id);
+  }
+  return ids;
+}
+
+/** @param {string} selector */
+const idsIn = (selector) => [...selector.matchAll(/#([\w-]+)/g)].map(([, id]) => id);
 
 describe("every beginner tip waits for an action", () => {
   const facts = new Set([...STORE_FACTS, ...Object.keys(callouts.pageFacts)]);
@@ -26,8 +44,35 @@ describe("every beginner tip waits for an action", () => {
       const when = /** @type {Record<string, boolean>} */ (tip.when ?? {});
       assert.notEqual(when[tip.doneWhen], true);
       for (const key of ["noNext", "next", "nextLabel"]) assert.ok(!(key in tip), key);
+      for (const fact of Object.keys(when)) assert.ok(facts.has(fact), `when: ${fact}`);
+      if (KEY_ONLY_FACTS.includes(tip.doneWhen)) {
+        assert.equal(tip.needsHardwareKeyboard, true, "a touch screen could never do it");
+      }
     });
   }
+
+  it("builds every store fact in the component", async () => {
+    const component = await source("callouts/Callouts.svelte");
+    for (const fact of STORE_FACTS) assert.match(component, new RegExp(`\\b${fact}:`), fact);
+  });
+
+  it("points only at ids that exist in src/", async () => {
+    const ids = await idsInSrc();
+    const component = await source("callouts/Callouts.svelte");
+    const keepClear = component.match(/const KEEP_CLEAR = \[([\s\S]*?)\]/)?.[1] ?? "";
+    assert.notEqual(keepClear, "", "KEEP_CLEAR is where this test expects it");
+    const wanted = [
+      ...callouts.callouts.map((tip) => ({ where: tip.id, id: tip.anchor })),
+      ...callouts.callouts.flatMap((tip) =>
+        idsIn(tip.part ?? "").map((id) => ({ where: tip.id, id })),
+      ),
+      ...Object.entries(callouts.pageFacts).flatMap(([fact, selector]) =>
+        idsIn(selector).map((id) => ({ where: fact, id })),
+      ),
+      ...idsIn(keepClear).map((id) => ({ where: "KEEP_CLEAR", id })),
+    ];
+    for (const { where, id } of wanted) assert.ok(ids.has(id), `${where}: no id="${id}" in src/`);
+  });
 
   it("names every page fact with a selector", () => {
     for (const [fact, selector] of Object.entries(callouts.pageFacts)) {
