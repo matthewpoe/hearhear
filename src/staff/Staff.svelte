@@ -14,13 +14,13 @@
   import { chordFunctions, colorChordSymbols, revealLabels } from "./chordChips.js";
   import { emitNoteClick, highlight, registerNoteElements } from "./staffEvents.js";
   import Transport from "./Transport.svelte";
-  import DroneSwitch from "./DroneSwitch.svelte";
   import WordsSwitch from "./WordsSwitch.svelte";
   import AccidentalMenu from "./AccidentalMenu.svelte";
   import History from "../toolbar/History.svelte";
   import LabelControls from "../toolbar/LabelControls.svelte";
-  import VoiceLeading from "../toolbar/VoiceLeading.svelte";
-  import Toolbar from "../toolbar/Toolbar.svelte";
+  import Tip from "../toolbar/Tip.svelte";
+  import { CONTROLS } from "../lib/controls.js";
+  import explainers from "../../content/explainers.json" with { type: "json" };
   import "../print.css";
 
   /** @typedef {typeof import("abcjs").default} Abcjs */
@@ -312,18 +312,30 @@
 </script>
 
 <section id="staff" class="staff" aria-label="Staff">
-  <!-- One compact row of controls over the music; it wraps on phones. -->
+  <!-- One row of controls over the music, and nothing else: Play and what
+       it plays, the chord-label choice, then Undo/Redo and Print. Settings
+       live with their steps (drone and degrees with the key, voice leading
+       with the chords, the bottom row in the keyboard dock). It wraps only
+       on narrow screens. -->
   <div class="header">
     <Transport />
-    <DroneSwitch />
-    <WordsSwitch />
-    <History />
+    <span class="divider" aria-hidden="true"></span>
     <LabelControls />
-    <VoiceLeading />
-    <button type="button" class="print" onclick={() => window.print()} disabled={!abcjs}>
-      Print lead sheet
-    </button>
-    <Toolbar />
+    <div class="end">
+      <WordsSwitch />
+      <History />
+      <Tip id="print-tip" text={explainers.options.print} align="end">
+        <button
+          type="button"
+          class="print"
+          aria-describedby="print-tip"
+          onclick={() => window.print()}
+          disabled={!abcjs}
+        >
+          {CONTROLS.printLeadSheet}
+        </button>
+      </Tip>
+    </div>
   </div>
   {#if loadError}
     <p class="error" role="alert">
@@ -362,22 +374,44 @@
   }
   .header {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-2) var(--space-3);
+  }
+  .divider {
+    align-self: stretch;
+    width: 1px;
+    margin-block: var(--space-1);
+    background: var(--rule);
   }
   .print {
     padding: var(--space-1) var(--space-2);
     border: 1px solid var(--rule);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-sm);
     background: var(--surface);
     color: var(--ink);
     font-size: var(--text-sm);
+    white-space: nowrap;
     cursor: pointer;
   }
   .print:disabled {
     color: var(--ink-muted);
     cursor: not-allowed;
+  }
+  .end {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+  }
+  /* On phones the row wraps: groups go one under another, no dividers. */
+  @media (max-width: 60rem) {
+    .header {
+      flex-wrap: wrap;
+    }
+    .divider {
+      display: none;
+    }
   }
   .error,
   .loading {

@@ -352,6 +352,20 @@ export function createSongStore(initial = emptySong()) {
     },
 
     /**
+     * Rename the song (a recorded tune's title). Refuses a blank title or one
+     * over the schema's 120 characters.
+     * @param {string} title
+     */
+    rename(title) {
+      const length = Array.from(title).length;
+      if (title.trim() !== title || length < 1 || length > 120) {
+        throw new RangeError("A title is 1 to 120 characters, trimmed");
+      }
+      if (title === store.get().title) return;
+      commit((s) => ({ ...s, title }));
+    },
+
+    /**
      * Re-bar: change only the meter hypothesis. Bar lines move; notes do not.
      * @param {Meter} meter
      */
@@ -365,13 +379,16 @@ export function createSongStore(initial = emptySong()) {
      * syllables go too; a take is new notes, so they carry no syllables.
      * @param {string[]} noteIds notes to remove
      * @param {{ midi: number, start: number, dur: number }[]} notes notes to add
+     * @param {{ tempo?: number }} [options] `tempo`: the take's tempo, set in
+     *   the same step (a re-recorded tune)
      * @returns {string[]} the new notes' ids
      */
-    replaceTake(noteIds, notes) {
+    replaceTake(noteIds, notes, { tempo } = {}) {
       const removed = new Set(noteIds);
       const ids = notes.map(() => newId("n"));
       commit((s) => ({
         ...s,
+        tempo: tempo ?? s.tempo,
         notes: byStart([
           ...s.notes.filter((n) => !removed.has(n.id)),
           ...notes.map(({ midi, start, dur }, i) => ({ id: ids[i], midi, start, dur })),

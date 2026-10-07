@@ -62,14 +62,29 @@ export function chordForCode(code, key) {
  * - "notes": the row plays single notes, as before (bottomRow "notes").
  * - "assign": a staff note is selected and the key is confirmed, so the chord
  *   is placed on that note and sounds under it.
- * - "play": the chord sounds live and nothing is written. Before a key is
- *   confirmed, a chord has no numeral to stand for yet.
+ * - "play": the chord sounds live and nothing is written. While the key is
+ *   only a guess (tentative), a chord has no numeral to stand for yet.
+ * - "none": the key is hidden (a demo waiting for its guess), so the song
+ *   sits on a placeholder key; its chords would teach the wrong home, and
+ *   the row plays nothing. The number row's single notes still play.
  * @param {{ bottomRow: BottomRow, mode: KeyLabelMode, selectedNoteId: string | null }} state
- * @returns {"notes" | "assign" | "play"}
+ * @returns {"notes" | "assign" | "play" | "none"}
  */
 export function chordRowAction({ bottomRow, mode, selectedNoteId }) {
   if (bottomRow === "notes") return "notes";
+  if (mode === "hidden") return "none";
   return mode === "confirmed" && selectedNoteId ? "assign" : "play";
+}
+
+/**
+ * The dock's one line about the chord row, by key mode. It names computer
+ * keys as "the F key", never "F", so no one reads a key as a chord name.
+ * @param {KeyLabelMode} mode
+ */
+export function chordRowHelp(mode) {
+  if (mode === "hidden") return "Chords follow the key you choose. Find home first.";
+  const where = mode === "tentative" ? " in your guessed key" : "";
+  return `Bottom-row keys play chords${where}: the A key is home (1), the F key is 4, and the G key is 5.`;
 }
 
 /**

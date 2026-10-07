@@ -15,6 +15,7 @@
   import Callouts from "./callouts/Callouts.svelte";
   import GuidedEntry from "./guided/GuidedEntry.svelte";
   import GuidedPath from "./guided/GuidedPath.svelte";
+  import RecordBar from "./record/RecordBar.svelte";
   import { song } from "./store/song.js";
 
   /** @type {HTMLElement | undefined} */
@@ -66,6 +67,8 @@
 </header>
 
 <main class="workspace">
+  <!-- Record mode: the take in progress, or the open tune's title (if it's the user's). -->
+  <RecordBar />
   <!-- The empty landing has nothing to play or print, so no staff yet. -->
   {#if $song.notes.length > 0}
     <Staff />
@@ -132,6 +135,13 @@
     margin: 0;
     color: var(--ink-muted);
     font-size: var(--text-sm);
+  }
+  /* With a song loaded, the song picker needs the tagline's room on a
+     laptop, so the masthead stays one line and the staff starts higher. */
+  @media (max-width: 90rem) {
+    .masthead:has(:global(.picker)) .tagline {
+      display: none;
+    }
   }
   .masthead-tools {
     display: flex;

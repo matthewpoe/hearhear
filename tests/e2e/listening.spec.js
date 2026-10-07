@@ -1,5 +1,7 @@
-// The listening tools the tutor's steps point to: "Play bar N" and "Play from
-// bar N" from a clicked or focused note, and "Drone on home", which holds the
+// The listening tools the tutor's steps point to: Play with its scope toggle
+// ("From the top", or "This bar" from a clicked or focused note, which makes
+// Play read "Play bar N"), and "Drone on
+// home", which holds the
 // home chord under playback once the key is chosen.
 // Fails on any console error and on any axe violation, in both themes.
 
@@ -70,7 +72,7 @@ async function watchPlayhead(page) {
   return () => page.evaluate(() => /** @type {any} */ (window).playheadSeen);
 }
 
-test("play bar N, play from bar N, and the drone on home", async ({ page }) => {
+test("play the whole tune or bar N, and the drone on home", async ({ page }) => {
   /** @type {string[]} */
   const problems = [];
   page.on("console", (msg) => {
@@ -89,7 +91,7 @@ test("play bar N, play from bar N, and the drone on home", async ({ page }) => {
 
   // Before the key is chosen the drone is the finder's: the switch waits, and says why.
   await expect(drone).toBeDisabled();
-  await expect(drone).toHaveAccessibleDescription("Find home first.");
+  await expect(drone).toHaveAccessibleDescription(/^Find home first\. /);
   await expect(transport.getByRole("button", { name: "Play", exact: true })).toBeVisible();
   await axe(page);
 
@@ -112,24 +114,32 @@ test("play bar N, play from bar N, and the drone on home", async ({ page }) => {
   await expect(drone).toBeEnabled();
   await expect(drone).toHaveAttribute("aria-checked", "false");
 
-  // Click the held E in bar 4, then close its chords: the place stays.
+  // Click the held E in bar 4, then close its chords: the place stays, and
+  // "This bar" beside "From the top" turns Play into "Play bar 4".
   await clickNote(page, heldE.id);
   await page.keyboard.press("Escape");
-  const fromBar = transport.getByRole("button", { name: "Play from bar 4" });
-  const barOnly = transport.getByRole("button", { name: "Play bar 4", exact: true });
-  await expect(fromBar).toBeVisible();
-  await expect(barOnly).toBeVisible();
-  await expect(transport.getByRole("button", { name: "Play from the top" })).toBeVisible();
+  const fromTop = transport.getByRole("radio", { name: "From the top" });
+  const thisBar = transport.getByRole("radio", { name: "This bar" });
+  await expect(fromTop).toBeChecked();
+  await expect(thisBar).toBeEnabled();
+  await expect(thisBar).toHaveAccessibleDescription(/Now: bar 4\./);
 
-  // "Play bar 4" plays bar 4 and nothing past it.
+  // This bar, then "Play bar 4": bar 4 and nothing past it.
   const seen = await watchPlayhead(page);
+  await transport.locator("label").filter({ hasText: "This bar" }).click();
+  await expect(thisBar).toBeChecked();
+  const barOnly = transport.getByRole("button", { name: "Play bar 4", exact: true });
   await barOnly.click();
   await expect(transport.getByRole("button", { name: "Stop" })).toBeVisible();
-  await expect(fromBar).toBeVisible({ timeout: 10_000 });
+  await expect(barOnly).toBeVisible({ timeout: 10_000 });
   const played = await seen();
   expect(played.length).toBeGreaterThan(0);
   expect(played.every((/** @type {string} */ id) => bar4.includes(id))).toBe(true);
   expect(played).toContain(heldE.id);
+  // The drone checks below need playback that lasts: back to the top.
+  await transport.locator("label").filter({ hasText: "From the top" }).click();
+  await expect(fromTop).toBeChecked();
+  const fromBar = transport.getByRole("button", { name: "Play", exact: true });
 
   // With the drone on, Play lights the D-major triad under the melody...
   await drone.click();
@@ -147,9 +157,9 @@ test("play bar N, play from bar N, and the drone on home", async ({ page }) => {
   await transport.getByRole("button", { name: "Stop" }).click();
   for (const key of droneKeys) await expect(key).not.toHaveClass(/\bmelody\b/);
 
-  // The keyboard moves the place too: focus a note in bar 1.
+  // The keyboard moves the place too: focus a note in bar 1, with This bar chosen.
+  await transport.locator("label").filter({ hasText: "This bar" }).click();
   await page.locator(`#staff [role="button"][data-note-id="${ode.notes[0].id}"]`).focus();
-  await expect(transport.getByRole("button", { name: "Play from bar 1" })).toBeVisible();
   await expect(transport.getByRole("button", { name: "Play bar 1", exact: true })).toBeVisible();
 
   // Both themes stay accessible with the place set and the drone on.
