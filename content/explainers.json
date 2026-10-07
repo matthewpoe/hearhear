@@ -6,7 +6,7 @@
   },
   "voiceLeading": {
     "title": "What's voice leading?",
-    "body": "Voice leading is how a pianist moves between chords: each finger slides to the nearest note instead of jumping.",
+    "body": "Voice leading is how a pianist moves from one chord to the next with as little hand movement as possible: notes the two chords share stay put, often the home note, and the others step to the nearest key.",
     "off": "Off: the chords around your choice hold still, so the only thing that changes is the chord you're testing. This is the clearest way to hear whether it fits.",
     "on": "On: everything flows the way a pianist would play it. That can make a good choice sound even better, but it can also smooth over a weak one, so listen to the melody note: does it still sit comfortably on the chord?"
   }
