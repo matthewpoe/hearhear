@@ -9,6 +9,7 @@ import pytest
 from helpers import REPO_ROOT, SNAPSHOT
 from pydantic import ValidationError
 
+from hearhear import models
 from hearhear.models import Snapshot, TutorRequest
 from hearhear.prompt import user_message
 
@@ -22,6 +23,22 @@ def _bounds(field: str) -> dict[str, Any]:
     # An optional field is anyOf [the bounded type, null].
     rule = next((r for r in schema.get("anyOf", [schema]) if r.get("type") != "null"), schema)
     return {k: rule[k] for k in ("minimum", "maximum", "minLength", "maxLength") if k in rule}
+
+
+def test_title_bound_matches_the_song_schema() -> None:
+    assert SONG["title"]["maxLength"] == models.MAX_TITLE_CHARS
+    assert _bounds("title") == {"minLength": 1, "maxLength": SONG["title"]["maxLength"]}
+
+
+def test_note_limit_matches_the_song_schema() -> None:
+    assert SONG["notes"]["maxItems"] == models.MAX_NOTES
+
+
+def test_tempo_range_matches_the_song_schema() -> None:
+    assert _bounds("tempo") == {
+        "minimum": SONG["tempo"]["minimum"],
+        "maximum": SONG["tempo"]["maximum"],
+    }
 
 
 def test_swing_range_matches_the_song_schema() -> None:

@@ -17,10 +17,11 @@ import {
   spell,
   ticksPerBeat,
 } from "../theory/index.js";
+// The song's title bound, which the request contract shares
+// (server/tests/test_song_limits.py checks the two agree).
+import { MAX_TITLE_CHARS } from "./songLimits.js";
 
 const ACCIDENTAL = { "-1": "b", 0: "", 1: "#" };
-/** The request contract's bound on `title` (MAX_TITLE_CHARS in server/hearhear/models.py). */
-const MAX_TITLE_CHARS = 120;
 
 /** Round to three places so fractional beats (triplets) serialize cleanly. */
 const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;

@@ -17,6 +17,7 @@
 
 import songSchema from "../../contracts/song.schema.json" with { type: "json" };
 import { isLyric, isSwing, validateSong } from "./song.js";
+import { isTitle } from "./songLimits.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
 export const STORE_VERSION = 1;
@@ -66,17 +67,6 @@ const isInt = (n, { minimum = -Infinity, maximum = Infinity }) =>
   /** @type {number} */ (n) <= maximum;
 
 /**
- * A string within a schema rule's lengths.
- * @param {unknown} text
- * @param {{ minLength?: number, maxLength?: number }} rule
- */
-const isText = (text, { minLength = 0, maxLength = Infinity }) =>
-  typeof text === "string" &&
-  text.length >= minLength &&
-  // By code point, as cleanTitle and song.rename count.
-  Array.from(text).length <= maxLength;
-
-/**
  * An array no longer than a schema rule allows, every item passing `check`.
  * @param {unknown} list
  * @param {{ maxItems?: number }} rule
@@ -102,7 +92,7 @@ function isSong(song) {
   return (
     typeof id === "string" &&
     SONG_ID.test(id) &&
-    isText(title, SONG.title) &&
+    isTitle(title) &&
     isObject(key) &&
     typeof key.tonic === "string" &&
     TONIC.test(key.tonic) &&
