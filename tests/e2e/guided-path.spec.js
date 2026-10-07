@@ -283,6 +283,8 @@ for (const viewport of [
 
     // 7. Ask the tutor in the viewer's own words.
     await expectStep("ask", { selector: "#tutor .ask" });
+    // The step needs no passphrase, so the live tutor doesn't ask for one here.
+    await expect(page.locator("#tutor-gate-ask")).toHaveCount(0);
     // In either mode it replays the step's lesson (the sample reply until it's
     // recorded): anyone gets an answer, with no access code and no Claude call.
     await page.locator("#tutor-question").fill("Why does the ending land now?");
@@ -294,7 +296,6 @@ for (const viewport of [
     expect(reply.request().headers()["x-tutor-access"]).toBeUndefined();
     // The notice says the reply is a recorded sample (in live mode, that one reply).
     await expect(page.locator("#tutor .demo")).toContainText("recorded sample");
-    await expect(page.locator("#tutor-gate-ask")).toHaveCount(0);
 
     // 8. Play it in another key, from the disclosure in the key box. Opening
     // it isn't enough; moving the tune is.

@@ -28,7 +28,7 @@
   import { tour, goTo, leaveTour, finishTour, autoStart } from "./tour.js";
   import { actionParts, pageFacts } from "./actions.js";
   import { spotlight, spotlightNote } from "./spotlight.js";
-  import { setStepLesson } from "../tutor/requests.js";
+  import { stepLesson } from "../tutor/requests.js";
 
   /** @import { GuidedPath } from "./steps.js" */
 
@@ -164,8 +164,8 @@
   // A step that names a recorded lesson: the viewer's question replays it,
   // so the tutor answers during the walkthrough without the access code.
   $effect(() => {
-    setStepLesson($tour.running && step.lesson ? `lesson:${step.lesson}` : "");
-    return () => setStepLesson("");
+    stepLesson.set($tour.running && step.lesson ? `lesson:${step.lesson}` : "");
+    return () => stepLesson.set("");
   });
 
   // The closing line isn't a step to complete: doing its action (pressing

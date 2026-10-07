@@ -296,13 +296,36 @@ def test_the_prompt_names_controls_only_through_tokens() -> None:
         assert label not in SYSTEM_PROMPT_TEMPLATE, key
 
 
+# Comments in src/: block (/* */), HTML (<!-- -->), and line (//, but not a
+# URL's "://"). A control named only in one isn't on screen.
+COMMENT = re.compile(r"/\*.*?\*/|<!--.*?-->|(?<![:\"'])//[^\n]*", re.DOTALL)
+
+
+def code_uses(source: str, key: str) -> bool:
+    """Does code (not a comment) read CONTROLS.<key>, the whole key, so
+    CONTROLS.playBar doesn't count as CONTROLS.play?"""
+    return re.search(rf"\bCONTROLS\.{re.escape(key)}\b", COMMENT.sub("", source)) is not None
+
+
+def test_code_uses_ignores_comments_and_longer_keys() -> None:
+    assert code_uses("label={CONTROLS.play}", "play")
+    assert code_uses('href="https://x" label={CONTROLS.play}', "play")
+    assert not code_uses("// CONTROLS.play is the label", "play")
+    assert not code_uses("/* see\n CONTROLS.play */", "play")
+    assert not code_uses("<!-- CONTROLS.play -->", "play")
+    assert not code_uses("label={CONTROLS.playBar}", "play")
+
+
 def test_every_control_the_prompt_names_is_a_real_button_label() -> None:
-    """Each control the prompt names is one the app's buttons read their
-    label from (CONTROLS.<key> in src/), so the name matches what is on screen."""
+    """Each control the prompt names is a content/controls.json entry that the
+    app's code (not a comment) reads its label from, as CONTROLS.<key> in src/,
+    so the name matches what is on screen."""
+    controls = load_controls()
     sources = "\n".join(
         path.read_text(encoding="utf-8")
         for path in (REPO_ROOT / "src").rglob("*")
         if path.suffix in {".js", ".svelte"}
     )
     for key in set(CONTROL_TOKEN.findall(SYSTEM_PROMPT_TEMPLATE)):
-        assert f"CONTROLS.{key}" in sources, key
+        assert key in controls, key
+        assert code_uses(sources, key), key

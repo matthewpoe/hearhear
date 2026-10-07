@@ -1,5 +1,5 @@
 <script module>
-  import { createAccess } from "./access.js";
+  import { asksForCode, createAccess } from "./access.js";
 
   // The live tutor's passphrase, once per page load: a `#code=` link is read
   // and cleared from the address bar before anything else can see it.
@@ -19,7 +19,7 @@
   import { suggestions, isStale } from "../store/suggestions.js";
   import { toTutorSnapshot } from "../store/snapshot.js";
   import { askTutor, TutorError } from "./client.js";
-  import { onAskRequest, stepLessonFixture } from "./requests.js";
+  import { onAskRequest, stepLesson } from "./requests.js";
   import { checkSuggestions } from "./validate.js";
   import { failureText, canRetry } from "./failures.js";
   import { replySteps } from "./replySteps.js";
@@ -58,6 +58,10 @@
   let codeRejected = $state(false);
   /** @type {HTMLInputElement | undefined} */
   let passphraseInput = $state();
+  /** A code is saved for this tab (mirrors `access`, which isn't reactive). */
+  let hasCode = $state(Boolean(access.get()));
+  /** The student asked to replace their saved code. */
+  let changingCode = $state(false);
 
   const hasReply = $derived(log.some((turn) => turn.role === "tutor"));
   /** A reply has arrived and nothing has been asked since. */
@@ -77,6 +81,17 @@
    * live: the guided path's question, before its lesson is recorded.
    */
   let sampleReply = $state(false);
+  /** The server calls Claude (TUTOR_MODE=live), so a question needs the passphrase. */
+  let liveTutor = $state(false);
+  const showGate = $derived(
+    asksForCode({
+      // The guided path's lesson step answers without one.
+      live: liveTutor && !$stepLesson,
+      hasCode,
+      changing: changingCode,
+      failure: status === "failed" ? failureCode : "",
+    }),
+  );
 
   $effect(() => () => controller?.abort());
 
@@ -88,14 +103,16 @@
     }),
   );
 
-  // Only says whether to show the demo notice; the tutor's own requests have
-  // their own failure states, so a failed check just leaves the notice off.
+  // Only says whether to show the demo notice, or to ask for the passphrase
+  // up front; the tutor's own requests have their own failure states, so a
+  // failed check leaves both off until a question finds out.
   $effect(() => {
     const check = new AbortController();
     fetch("/api/health", { signal: check.signal })
       .then((response) => (response.ok ? response.json() : null))
       .then((health) => {
         if (health?.tutor_mode === "fixture") demoReplies = true;
+        if (health?.tutor_mode === "live") liveTutor = true;
       })
       .catch((error) => {
         if (!check.signal.aborted) console.warn("Couldn't read the tutor's mode", error);
@@ -182,10 +199,10 @@
       status = "failed";
       // A locked-out code stops being sent too: after the wait, the student
       // retypes it (or reopens their link) instead of tripping the limit again.
-      if (failureCode === "access_locked") access.forget();
+      if (failureCode === "access_locked") forgetCode();
       if (failureCode === "access_required") {
         codeRejected = Boolean(accessCode);
-        access.forget();
+        forgetCode();
         // The prompt is the next step, and its description is read on focus.
         await tick();
         passphraseInput?.focus();
@@ -202,7 +219,7 @@
     const asked = question.trim() || null;
     question = "";
     const keyboard = activatedByKeyboard();
-    send(asked, level, stepLessonFixture());
+    send(asked, level, $stepLesson);
     // The button just pressed is now disabled; keep a keyboard user in the panel.
     if (keyboard) textarea?.focus();
   }
@@ -215,13 +232,29 @@
     if (keyboard) textarea?.focus();
   }
 
+  function forgetCode() {
+    access.forget();
+    hasCode = false;
+  }
+
   /** @param {SubmitEvent} event */
   function unlock(event) {
     event.preventDefault();
     if (!passphrase.trim()) return;
     access.set(passphrase);
     passphrase = "";
-    retry();
+    hasCode = true;
+    changingCode = false;
+    codeRejected = false;
+    // Turned away mid-question: ask it again. Asked up front: on to the question.
+    if (status === "failed" && failureCode === "access_required") retry();
+    else if (activatedByKeyboard()) textarea?.focus();
+  }
+
+  async function changeCode() {
+    changingCode = true;
+    await tick();
+    passphraseInput?.focus();
   }
 
   // Focus moves to the text box only after a keyboard activation. After a
@@ -325,7 +358,18 @@
     {/if}
   </div>
 
-  {#if status === "failed" && failureCode === "access_required"}
+  {#if status === "failed" && failureCode !== "access_required"}
+    <div class="failure" role="alert">
+      <p>{failureText(failureCode)}</p>
+      {#if canRetry(failureCode)}
+        <button type="button" class="secondary" onclick={retry}>Try again</button>
+      {/if}
+    </div>
+  {/if}
+
+  <!-- A live server asks before the first question, right above the box it
+       unlocks; a turned-away question asks again in any mode. -->
+  {#if showGate}
     <form class="gate" onsubmit={unlock}>
       <p id="tutor-gate-ask">
         The live tutor is for invited listeners. What's the passphrase?
@@ -344,18 +388,18 @@
         />
         <button type="submit" class="primary" disabled={!passphrase.trim()}>Unlock the tutor</button
         >
+        {#if changingCode && hasCode}
+          <button type="button" class="secondary" onclick={() => (changingCode = false)}
+            >Keep the current one</button
+          >
+        {/if}
       </div>
       <p id="tutor-gate-lessons" class="aside">
         No passphrase? The recorded lessons work without one, and they're on their way.
       </p>
     </form>
-  {:else if status === "failed"}
-    <div class="failure" role="alert">
-      <p>{failureText(failureCode)}</p>
-      {#if canRetry(failureCode)}
-        <button type="button" class="secondary" onclick={retry}>Try again</button>
-      {/if}
-    </div>
+  {:else if liveTutor}
+    <button type="button" class="link" onclick={changeCode}>Change passphrase</button>
   {/if}
 
   <form class="ask" {onsubmit}>
@@ -556,6 +600,15 @@
     border: 1px solid var(--rule);
     background: var(--surface);
     color: var(--ink);
+  }
+  .link {
+    justify-self: start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    text-decoration: underline;
   }
   button:disabled {
     cursor: not-allowed;

@@ -2,6 +2,8 @@
 
 Four public-domain hymn tunes, each with reference chords read from a published public-domain harmonization. **Every tune is pending Matthew's ear check.**
 
+The eval also asks about the app's four demo tunes, read straight from `content/songs/` (sources in `content/songs/SOURCES.md`). They carry no reference chords: their replies are judged for plausibility only. `demos.js` lists them and picks the downbeats asked about.
+
 ## How the reference chords are made
 
 No chord here was written from memory. `sources/` holds each tune's four-voice setting as the [Open Hymnal Project](http://openhymnal.org/) engraved it (ABC files, marked public domain, each naming the printed hymnal it follows). `derive.js` reads them:

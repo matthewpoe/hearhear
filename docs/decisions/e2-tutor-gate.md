@@ -16,6 +16,7 @@ The spec is DECISIONS.md's "The live tutor requires a passphrase" and "Before li
 - **2026-10-07 — A correct code does not clear earlier wrong guesses.** Simpler, and harmless: a listener with the code rarely guesses wrong. _Rejected:_ resetting on success (one more rule to test, no real gain).
 - **2026-10-07 — The 401 and `access_locked` 429 carry `X-Request-Id`; the rejection is logged with the code (`access_required` or `access_locked`), a reason (`missing` or `wrong`), and the request id, never either string.** A test attaches a handler to the `hearhear` logger and checks neither code, raw or normalized, appears in logs, response bodies, response headers, or the settings repr.
 - **2026-10-07 — Fixture mode skips the gate entirely and ignores `X-Tutor-Access`.** CI, local development, and the recorded demo need no code (DECISIONS.md).
+- **2026-10-07 — The panel asks up front on a live server (`asksForCode` in `src/tutor/access.js`).** The form shows when the server is live and no code is saved, when the student chose "Change passphrase", or after any `access_required` reply. Live mode comes from the `/api/health` check the demo notice already makes; a failed check leaves the form to the first 401, as before. Submitting up front saves the code and moves on; submitting after a 401 retries the question. _Rejected:_ disabling Ask until a code is entered (the recorded lessons and the 401 path still need to work without one).
 
 ## Follow-ups
 
