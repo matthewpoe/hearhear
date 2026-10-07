@@ -127,3 +127,53 @@ def test_title_is_bounded() -> None:
         TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "title": "x" * 121}})
     with pytest.raises(ValueError):
         TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "title": ""}})
+
+
+def _prompt() -> str:
+    return " ".join(SYSTEM_PROMPT.split())
+
+
+def test_teaches_relationships_not_pitches() -> None:
+    prompt = _prompt()
+    assert "Relationships, not pitches" in prompt
+    assert "melody as scale degrees and motion" in prompt
+    assert "letter names only when the label style asks for them" in prompt
+    assert "While key labels are hidden, none of this" in prompt
+
+
+def test_explains_the_why_in_theory_and_culture() -> None:
+    prompt = _prompt()
+    assert "Explain the why, in two layers" in prompt
+    assert "what the melody note is over it" in prompt
+    assert "Culture, when it fits" in prompt
+    assert "never a lecture" in prompt
+    assert "brief but substantive: roughly 80 to 180 words" in prompt
+    assert "Keep them short" not in prompt
+
+
+def test_ends_every_reply_with_numbered_listening_steps() -> None:
+    prompt = _prompt()
+    assert "End every reply, at every hint level, with one to three numbered listening steps" in (
+        prompt
+    )
+    assert "tie the steps to the suggestion buttons" in prompt
+    assert "as invitations" in prompt
+
+
+def test_gentle_by_default() -> None:
+    prompt = _prompt()
+    assert "Gentle by default: suggestions are invitations" in prompt
+    assert "never that they were wrong" in prompt
+
+
+def test_nudges_name_nothing_even_in_context_and_steps() -> None:
+    prompt = _prompt()
+    assert "Name no chord and no numeral anywhere in the message" in prompt
+    assert "the theory, the cultural context, and the listening steps name no chord" in prompt
+    assert "Nudge steps point to bars, beats, scale degrees, and the drone" in prompt
+
+
+def test_comparisons_differ_only_in_harmony() -> None:
+    prompt = _prompt()
+    assert "Never set up a comparison that differs in anything but harmony" in prompt
+    assert "send the student to its buttons" in prompt
