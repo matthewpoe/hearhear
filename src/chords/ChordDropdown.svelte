@@ -12,7 +12,6 @@
   /** @import { Passage } from "./passage.js" */
   /** @import { PlacementInput, Side } from "./placement.js" */
   import { tick, untrack } from "svelte";
-  import explainers from "../../content/explainers.json" with { type: "json" };
   import { onNoteClick } from "../staff/staffEvents.js";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
@@ -43,7 +42,6 @@
   const NO_LIGHTS = { source: null, chord: null, melody: [] };
   /** The sticky on-screen piano (App.svelte); the dropdown never covers it. */
   const DOCK_SELECTOR = ".keyboard-dock";
-  const voiceLeading = explainers.voiceLeading;
 
   /**
    * @type {{
@@ -59,7 +57,6 @@
    */
   let open = $state(null);
   let extended = $state(false);
-  let explainerOpen = $state(false);
   /** @type {HTMLElement | undefined} */
   let dialog = $state();
   /** @type {HTMLElement | undefined} */
@@ -83,7 +80,6 @@
   const passage = $derived(open ? passageAround($song, open.noteId) : null);
   const note = $derived(passage?.note ?? null);
   const where = $derived(note ? whereOf(note, $song.meter) : "");
-  const fromCandidate = $derived($ui.auditionVoicing === "from-candidate");
   // Tracked so hover lights come back when playback releases the keyboard.
   const lightsSource = $derived($ui.keyboardLights.source);
   const likely = $derived(note ? chordOptions($song, note) : []);
@@ -119,7 +115,7 @@
   );
 
   // Refit whenever the content changes size (the extended list, the
-  // explainer, tutor ideas arriving), so growth never pushes it off screen.
+  // tutor ideas arriving), so growth never pushes it off screen.
   $effect(() => {
     if (!content) return;
     const observer = new ResizeObserver(() => fit());
@@ -187,8 +183,9 @@
       maxHeight: null,
       opener,
     };
+    // The open note is the selection the chord row assigns to.
+    ui.update({ selectedNoteId: noteId });
     extended = false;
-    explainerOpen = false;
     hovered = null;
     focused = null;
     tap = NO_TAP;
@@ -250,14 +247,23 @@
   /** @param {boolean} restoreFocus */
   function close(restoreFocus) {
     const opener = open?.opener;
+    const noteId = open?.noteId;
     open = null;
+    ui.update({ selectedNoteId: null });
     hovered = null;
     focused = null;
     tap = NO_TAP;
     tapHint = "";
+    if (!restoreFocus) return;
+    // A chord placed from the keyboard redraws the staff, replacing the note
+    // that opened the dropdown; its successor keeps the same data-note-id.
+    const target = opener?.isConnected
+      ? opener
+      : noteId
+        ? document.querySelector(`#staff [data-note-id="${CSS.escape(noteId)}"]`)
+        : null;
     // SVGElement implements focus() as HTMLElement does.
-    if (restoreFocus && opener?.isConnected)
-      /** @type {HTMLElement | SVGElement} */ (opener).focus();
+    /** @type {HTMLElement | SVGElement | null} */ (target)?.focus();
   }
 
   /**
@@ -325,8 +331,13 @@
     tapHint = `${viewOf(option.chord).name}. Tap again to choose.`;
   }
 
-  function toggleVoiceLeading() {
-    ui.update({ auditionVoicing: fromCandidate ? "as-song" : "from-candidate" });
+  /**
+   * Before the user's key guess (hidden labels), chords can't be numbered, so
+   * the dropdown sends them to the key question instead of listing candidates.
+   */
+  function goToKeyQuestion() {
+    dismiss(false);
+    document.getElementById("key-prompt-title")?.focus();
   }
 
   /** @param {"hover" | "focus"} via */
@@ -439,104 +450,86 @@
     >
       <div class="content" bind:this={content}>
         <h3 id="chord-dropdown-title">Chord at {where}</h3>
-        <p id="chord-dropdown-help" class="help">
-          Hover, focus, or tap a chord to hear it under the tune. Number keys play chords by degree;
-          Enter, a click, or a second tap chooses; Escape closes.
-        </p>
-        <p class="visually-hidden" role="status">{tapHint}</p>
+        {#if labelMode === "hidden"}
+          <p id="chord-dropdown-help" class="help">
+            Choose the key first. Chords are numbered from home, so they only make sense once you
+            know where home is.
+          </p>
+          <button type="button" class="more" onclick={goToKeyQuestion}
+            >Go to the key question</button
+          >
+        {:else}
+          <p id="chord-dropdown-help" class="help">
+            Hover, focus, or tap a chord to hear it under the tune. Number keys play chords by
+            degree; Enter, a click, or a second tap chooses; Escape closes.
+          </p>
+          <p class="visually-hidden" role="status">{tapHint}</p>
 
-        <ul aria-label="Likely chords">
-          {#each likely as option (option.key)}
-            <li>
-              <ChordOption
-                {option}
-                view={viewOf(option.chord)}
-                current={isPlaced(option.chord)}
-                onpreview={preview}
-                onunpreview={unpreview}
-                tapped={tap.previewed === option.key}
-                {onactivate}
-              />
-            </li>
-          {/each}
-        </ul>
+          <ul aria-label="Likely chords">
+            {#each likely as option (option.key)}
+              <li>
+                <ChordOption
+                  {option}
+                  view={viewOf(option.chord)}
+                  current={isPlaced(option.chord)}
+                  onpreview={preview}
+                  onunpreview={unpreview}
+                  tapped={tap.previewed === option.key}
+                  {onactivate}
+                />
+              </li>
+            {/each}
+          </ul>
 
-        {#if ideas.length > 0}
-          <h4>From the tutor</h4>
-          {#if stale}
-            <p class="help">Suggested before your last edit.</p>
+          {#if ideas.length > 0}
+            <h4>From the tutor</h4>
+            {#if stale}
+              <p class="help">Suggested before your last edit.</p>
+            {/if}
+            <ul aria-label="Tutor's ideas">
+              {#each ideas as { option, detail } (option.key)}
+                <li>
+                  <ChordOption
+                    {option}
+                    {detail}
+                    view={viewOf(option.chord)}
+                    current={isPlaced(option.chord)}
+                    onpreview={preview}
+                    onunpreview={unpreview}
+                    tapped={tap.previewed === option.key}
+                    {onactivate}
+                  />
+                </li>
+              {/each}
+            </ul>
           {/if}
-          <ul aria-label="Tutor's ideas">
-            {#each ideas as { option, detail } (option.key)}
-              <li>
-                <ChordOption
-                  {option}
-                  {detail}
-                  view={viewOf(option.chord)}
-                  current={isPlaced(option.chord)}
-                  onpreview={preview}
-                  onunpreview={unpreview}
-                  tapped={tap.previewed === option.key}
-                  {onactivate}
-                />
-              </li>
-            {/each}
-          </ul>
-        {/if}
 
-        <button
-          type="button"
-          class="more"
-          aria-expanded={extended}
-          aria-controls="chord-dropdown-more"
-          onclick={() => (extended = !extended)}
-        >
-          Something else…
-        </button>
-        {#if extended}
-          <ul id="chord-dropdown-more" aria-label="More chords">
-            {#each more as option (option.key)}
-              <li>
-                <ChordOption
-                  {option}
-                  view={viewOf(option.chord)}
-                  current={isPlaced(option.chord)}
-                  onpreview={preview}
-                  onunpreview={unpreview}
-                  tapped={tap.previewed === option.key}
-                  {onactivate}
-                />
-              </li>
-            {/each}
-          </ul>
-        {/if}
-
-        <div class="voicing">
           <button
             type="button"
             class="more"
-            role="switch"
-            aria-checked={fromCandidate}
-            onclick={toggleVoiceLeading}
+            aria-expanded={extended}
+            aria-controls="chord-dropdown-more"
+            onclick={() => (extended = !extended)}
           >
-            Voice leading: {fromCandidate ? "on" : "off"}
+            Something else…
           </button>
-          <button
-            type="button"
-            class="link"
-            aria-expanded={explainerOpen}
-            aria-controls="chord-dropdown-voice-leading"
-            onclick={() => (explainerOpen = !explainerOpen)}
-          >
-            {voiceLeading.title}
-          </button>
-        </div>
-        {#if explainerOpen}
-          <div id="chord-dropdown-voice-leading" class="explainer">
-            <p>{voiceLeading.body}</p>
-            <p>{voiceLeading.off}</p>
-            <p>{voiceLeading.on}</p>
-          </div>
+          {#if extended}
+            <ul id="chord-dropdown-more" aria-label="More chords">
+              {#each more as option (option.key)}
+                <li>
+                  <ChordOption
+                    {option}
+                    view={viewOf(option.chord)}
+                    current={isPlaced(option.chord)}
+                    onpreview={preview}
+                    onunpreview={unpreview}
+                    tapped={tap.previewed === option.key}
+                    {onactivate}
+                  />
+                </li>
+              {/each}
+            </ul>
+          {/if}
         {/if}
 
         {#if placed}
@@ -608,30 +601,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-  }
-  .voicing {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-  }
-  .link {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--ink);
-    font: inherit;
-    font-size: var(--text-sm);
-    text-decoration: underline;
-    cursor: pointer;
-  }
-  .explainer {
-    display: grid;
-    gap: var(--space-1);
-    font-size: var(--text-sm);
-  }
-  .explainer p {
-    margin: 0;
   }
   .more,
   .status button {

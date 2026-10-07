@@ -1,58 +1,43 @@
 <script>
   /**
-   * After a guess commits. The labels reveal around it (keyLabelMode turns
-   * confirmed) and follow the guess, right or wrong. Every guess gets the same
-   * next step, checking it by ear with the drone (decision D14): no buzzer, no
+   * Under the picker once a home is chosen. The labels reveal around it
+   * (keyLabelMode turns confirmed) and follow the guess, right or wrong.
+   * Every guess gets the same next steps (decision D14): no buzzer, no
    * correction, and no "correct" either. The colors carry the consequence.
    * @import { Key } from "../types.js"
    */
   import { keyName } from "./keys.js";
-  import ListenButton from "./ListenButton.svelte";
 
-  /** @type {{ guess: Key, onchange: () => void }} */
-  let { guess, onchange } = $props();
-
-  /** @type {HTMLElement | undefined} */
-  let heading = $state();
-  $effect(() => heading?.focus());
+  /** @type {{ guess: Key, oncheck: () => void }} */
+  let { guess, oncheck } = $props();
 </script>
 
-<div class="result" role="group" aria-labelledby="guess-title">
-  <h3 id="guess-title" bind:this={heading} tabindex="-1">Home is {keyName(guess)}.</h3>
-  <p>The number row starts on {guess.tonic} now, and the colors follow your guess.</p>
+<div class="result">
+  <p class="home">Home is {keyName(guess)}.</p>
   <p>
-    Check it by ear: hold {guess.tonic} underneath the tune. Does the melody settle or itch? If it itches,
-    home may be somewhere else.
+    Next: find the chords. Click a note on the staff to try chords under it, or use the bottom row
+    of keys (A to J) to play chords as you go.
   </p>
-  <div class="actions">
-    <ListenButton label="Check it by ear" droneKey={guess} />
-    <button type="button" onclick={onchange}>Try another home</button>
-  </div>
+  <p>
+    Not sure? <button type="button" onclick={oncheck}>Check it by ear</button>
+  </p>
 </div>
 
 <style>
   .result {
     display: grid;
-    gap: var(--space-2);
-    justify-items: start;
+    gap: var(--space-1);
     animation: arrive var(--dur-reveal) var(--ease);
-  }
-  h3 {
-    margin: 0;
-    font-size: var(--text-lg);
-    font-weight: 500;
   }
   p {
     margin: 0;
     color: var(--ink-muted);
   }
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-top: var(--space-1);
+  .home {
+    color: var(--ink);
+    font-weight: 500;
   }
-  .actions button {
+  button {
     padding: var(--space-1) var(--space-3);
     border: 1px solid var(--rule);
     border-radius: var(--radius-lg);

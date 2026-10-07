@@ -6,6 +6,10 @@
  *
  * Songs are immutable values: actions build a new song rather than mutating.
  *
+ * `open(tune)` is how the song chooser switches songs: it brings back the copy
+ * this tab saved for that tune, if there is one. src/store/persist.js does the
+ * saving and installs the hooks open() uses (`setOpenHooks`).
+ *
  * @import { Key, Meter, Note, ChordSpec, Song } from "../types.js"
  */
 
@@ -84,6 +88,20 @@ function ripple(notes, afterTick, delta) {
   return notes.map((n) => (n.start > afterTick ? { ...n, start: n.start + delta } : n));
 }
 
+/**
+ * How open() reaches this tab's saved songs. src/store/persist.js installs
+ * them at startup; until then open() is load().
+ * @typedef {{
+ *   recall: (id: string) => { song: Song, restore: () => void } | null,
+ *   fresh: (tune: Song) => void,
+ * }} OpenHooks
+ * - recall: this tab's saved copy of a song, already validated, plus a
+ *   function that restores the view state saved with it (the demo flag). Null
+ *   when there is none. Never throws.
+ * - fresh: set up a tune with no saved copy (for a demo: provisional C, labels
+ *   hidden; see loadDemo in src/finding/demoTunes.js).
+ */
+
 /** @param {Note[]} notes */
 const byStart = (notes) => [...notes].sort((a, b) => a.start - b.start);
 
@@ -124,6 +142,23 @@ export function createSongStore(initial = emptySong()) {
     return next;
   }
 
+  /**
+   * Replace the song. Clears undo history.
+   * @param {Song} song
+   */
+  function load(song) {
+    const next = { ...song, version: store.get().version + 1 };
+    validateSong(next);
+    lastId = Math.max(lastId, highestId(next));
+    past = [];
+    future = [];
+    store.set(next);
+    publishHistory();
+  }
+
+  /** @type {OpenHooks} */
+  let openHooks = { recall: () => null, fresh: load };
+
   /** @param {string} id */
   const noteById = (id) => {
     const note = store.get().notes.find((n) => n.id === id);
@@ -142,14 +177,32 @@ export function createSongStore(initial = emptySong()) {
      * Replace the song (demo tune, new document). Clears undo history.
      * @param {Song} song
      */
-    load(song) {
-      const next = { ...song, version: store.get().version + 1 };
-      validateSong(next);
-      lastId = Math.max(lastId, highestId(next));
-      past = [];
-      future = [];
-      store.set(next);
-      publishHistory();
+    load,
+
+    /**
+     * Open a tune from the song chooser. If this tab saved a copy of `tune.id`
+     * (the user's key guess, chords, notes, and the demo flag with it), that
+     * copy comes back; otherwise the tune starts fresh, as a demo does today.
+     * Undo history is per page and starts empty either way, as with load.
+     * @param {Song} tune
+     */
+    open(tune) {
+      const saved = openHooks.recall(tune.id);
+      if (!saved) {
+        openHooks.fresh(tune);
+        return;
+      }
+      load(saved.song);
+      saved.restore();
+    },
+
+    /**
+     * Persistence hook: install how open() recalls saved songs and starts
+     * fresh ones. Called once, by src/store/persist.js.
+     * @param {OpenHooks} hooks
+     */
+    setOpenHooks(hooks) {
+      openHooks = hooks;
     },
 
     /**
