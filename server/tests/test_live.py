@@ -1,6 +1,7 @@
 """The live path with the Anthropic SDK replaced by a fake, or by the real SDK
 over a mock transport. No network calls."""
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from types import SimpleNamespace
@@ -16,7 +17,7 @@ from hearhear import app as app_module
 from hearhear import live
 from hearhear.access import normalize
 from hearhear.budget import TokenBudget
-from hearhear.models import TutorReply
+from hearhear.models import TutorReply, TutorRequest
 
 REPLY: dict[str, Any] = {
     "hint_level": "comparison",
@@ -255,7 +256,9 @@ def test_upstream_failure_mid_stream_keeps_text_and_ends_with_an_error(
     assert names[-2:] == ["error", "done"]
     assert "suggestions" not in names
     assert stream[-2][1]["code"] == "upstream"
-    assert app_module.budget.spent == 1251, "tokens so far are charged even when the stream fails"
+    assert app_module.budget.spent == 1250 + live.MAX_TOKENS, (
+        "cut off before the output was reported, so the most it could have cost"
+    )
 
 
 @pytest.mark.parametrize("stop_reason", ["max_tokens", "refusal", "model_context_window_exceeded"])
@@ -337,7 +340,7 @@ def test_unwrapped_errors_mid_stream_still_end_with_error_and_done(
     stream = events(ask(live_mode).text)
     assert [name for name, _ in stream][-2:] == ["error", "done"]
     assert stream[-2][1]["code"] == "upstream"
-    assert app_module.budget.spent == 1251, "tokens so far are charged"
+    assert app_module.budget.spent == 1250 + live.MAX_TOKENS, "the most it could have cost"
     outcome = dict(logged)["tutor_live"]["outcome"]
     assert outcome == f"internal_{type(error).__name__}", "never logged as a disconnect"
     assert dict(logged)["tutor_stream_failed"]["error"] == type(error).__name__
@@ -531,6 +534,43 @@ def test_a_fallback_served_reply_says_so_and_charges_every_attempt(
     assert entry["fallback"] is True
     assert entry["served_by"] == "claude-opus-4-8"
     assert entry["model"] == "claude-opus-5-5"
+
+
+def test_a_fallback_that_dies_mid_stream_charges_both_attempts_in_full(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cut = fallback_events(json.dumps(REPLY), split=40)[:-3]  # before the final delta
+    use_fake(monkeypatch, FakeClient(cut, error=connection_error()))
+    assert dict(events(ask(live_mode).text))["error"]["code"] == "upstream"
+    assert app_module.budget.spent == 2 * (1250 + live.MAX_TOKENS)
+
+
+def test_an_error_before_message_start_charges_nothing(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    use_fake(monkeypatch, FakeClient([], error=upstream_error()))
+    ask(live_mode)
+    assert app_module.budget.spent == 0, "the API refused the turn, so nothing was billed"
+
+
+def test_a_client_that_disconnects_mid_stream_is_charged_the_most_the_turn_could_cost() -> None:
+    budget = TokenBudget(1_000_000)
+    request = TutorRequest.model_validate({"snapshot": SNAPSHOT, "hint_level": "comparison"})
+    stream = live.stream_live(
+        request,
+        client=FakeClient(sdk_events(json.dumps(REPLY), chunk=4)),  # type: ignore[arg-type]
+        model="claude-opus-5-5",
+        budget=budget,
+        request_id="r",
+    )
+
+    async def read_a_little_then_hang_up() -> None:
+        for _ in range(3):
+            await anext(stream)
+        await stream.aclose()  # what Starlette does when the client goes away
+
+    asyncio.run(read_a_little_then_hang_up())
+    assert budget.spent >= 1250 + live.MAX_TOKENS
 
 
 def sse_body(*payloads: dict[str, Any]) -> bytes:

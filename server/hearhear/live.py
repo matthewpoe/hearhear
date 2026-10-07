@@ -62,9 +62,20 @@ class Usage:
     # With a fallback, top-level usage covers only the attempt that served the
     # reply; `usage.iterations` on `message_delta` covers every attempt.
     all_attempts: int | None = None
+    # Set by `message_start`, once the API has accepted (and bills) the turn.
+    started: bool = False
+    # Output tokens arrive only on the final `message_delta`. Thinking tokens
+    # are invisible, so the text seen so far says nothing about the output.
+    final: bool = False
+    # Attempts the stream announced: the requested model, plus a fallback.
+    attempts: int = 1
 
     @property
     def total(self) -> int:
+        if self.started and not self.final:
+            # Cut off before the final delta (a client disconnect, a transport
+            # error mid-body): charge the most each attempt could have cost.
+            return self.attempts * (self.input_tokens + MAX_TOKENS)
         if self.all_attempts is not None:
             return self.all_attempts
         return self.input_tokens + self.output_tokens
@@ -95,7 +106,8 @@ async def stream_live(
     `suggestions` or `error`, then `done`.
 
     Usage is charged to the budget even when the stream fails or the client
-    disconnects, from what the API reported before it stopped.
+    disconnects: what the API reported, or the most the turn could have cost
+    if it stopped before reporting output (`Usage.total`).
     """
     usage = Usage()
     outcome = "disconnected"  # Replaced on every path that reaches the end.
@@ -131,14 +143,17 @@ async def stream_live(
                             reported.cache_read_input_tokens,
                         )
                         usage.output_tokens = reported.output_tokens
+                        usage.started = True
                     elif event.type == "content_block_start":
                         if event.content_block.type == "fallback":
                             # A mid-stream decline: the text so far stays, and
                             # the fallback model continues from it.
                             served_by = event.content_block.to.model
                             fallback = True
+                            usage.attempts = 2
                     elif event.type == "message_delta":
                         reported_delta = event.usage
+                        usage.final = True
                         usage.output_tokens = reported_delta.output_tokens
                         if reported_delta.input_tokens is not None:
                             usage.input_tokens = _input_total(
