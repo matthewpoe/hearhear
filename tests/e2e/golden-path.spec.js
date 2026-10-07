@@ -35,6 +35,8 @@ test("golden path: tune, key guess with the drone, chord audition, tutor exchang
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hear Hear", level: 1 })).toBeVisible();
   await axe(page);
+  // The core path, without the beginner tour; tips have their own checks.
+  await page.getByRole("button", { name: "Beginner tips" }).click();
 
   // 1. Load the demo: the key is hidden, so the staff has no key signature yet.
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
