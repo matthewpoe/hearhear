@@ -1,66 +1,27 @@
 <script>
-  // Play and Stop for the whole song. Playback events light the staff (the
-  // playhead), set ui.playheadNoteId, and light the keyboard: chord tones in
-  // their function color, the melody note neutral.
+  // Play and Stop for the whole song. The visuals (the staff playhead, the
+  // keyboard lights) come from playWithVisuals, the one playback driver with
+  // visuals (decision D10); this component only starts and stops it.
   import { song } from "../store/song.js";
-  import { ui, keyLabelMode } from "../store/ui.js";
-  import { audioStatus, playPhrase, preload, stop } from "../audio/index.js";
-  import { functionOf, numeralOf } from "../theory/index.js";
-  import { clearHighlight, highlight } from "./staffEvents.js";
-
-  /** @import { PlaybackEvent } from "../audio/index.js" */
-  /** @import { Song } from "../types.js" */
-
-  const PLAYING = "is-playing";
+  import { audioStatus, preload, stop } from "../audio/index.js";
+  import { playWithVisuals } from "./playback.js";
 
   let playing = $state(false);
   let failed = $state(false);
   const loading = $derived($audioStatus === "loading");
   const samplesFailed = $derived($audioStatus === "failed");
 
-  /**
-   * @param {PlaybackEvent} event
-   * @param {Song} playedSong the song as it was when Play was pressed
-   */
-  function show(event, playedSong) {
-    if (event.type === "end") return clearPlayhead();
-    const lights = ui.get().keyboardLights;
-    if (event.type === "note") {
-      const note = playedSong.notes.find((n) => n.id === event.noteId);
-      if (!note) return;
-      clearHighlight(PLAYING);
-      highlight([note.id], PLAYING);
-      ui.update({ playheadNoteId: note.id, keyboardLights: { ...lights, melody: [note.midi] } });
-    } else if (event.type === "chord") {
-      const chord = playedSong.chords.find((c) => c.id === event.chordId);
-      if (!chord || !event.tones) return;
-      // Hidden mode shows no function colors anywhere, the keyboard included.
-      const hidden = keyLabelMode(playedSong, ui.get()) === "hidden";
-      const fn = hidden
-        ? "other"
-        : functionOf(numeralOf(chord, playedSong.key), playedSong.key.mode);
-      ui.update({ keyboardLights: { ...lights, chord: { midi: event.tones, fn } } });
-    }
-  }
-
-  function clearPlayhead() {
-    clearHighlight(PLAYING);
-    ui.update({ playheadNoteId: null, keyboardLights: { chord: null, melody: [] } });
-  }
-
   async function play() {
-    const playedSong = song.get();
-    const toTick = Math.max(0, ...playedSong.notes.map((n) => n.start + n.dur));
+    const toTick = Math.max(0, ...song.get().notes.map((n) => n.start + n.dur));
     failed = false;
     playing = true;
     try {
-      await playPhrase({ fromTick: 0, toTick }, { onEvent: (event) => show(event, playedSong) });
+      await playWithVisuals({ fromTick: 0, toTick });
     } catch (error) {
       console.error("Playback failed", error);
       failed = true;
     } finally {
       playing = false;
-      clearPlayhead();
     }
   }
 </script>
