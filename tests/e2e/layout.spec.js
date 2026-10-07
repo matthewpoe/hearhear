@@ -110,3 +110,40 @@ for (const [width, height] of [
     await axe(page);
   });
 }
+
+test("a recorded tune asks Rhythm to confirm its guess once the key is chosen", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Beginner tips" }).click();
+
+  // Record five notes a beat apart, stop, and name the tune.
+  await page.getByRole("button", { name: /^Record a tune/ }).click();
+  const bar = page.getByRole("region", { name: "Your tune" });
+  for (const key of ["Digit1", "Digit2", "Digit3", "Digit2", "Digit1"]) {
+    await page.keyboard.down(key);
+    await page.waitForTimeout(100);
+    await page.keyboard.up(key);
+    await page.waitForTimeout(400);
+  }
+  await page.keyboard.press("Escape");
+  const title = bar.getByLabel("Name your tune");
+  await title.fill("Rhythm check");
+  await title.press("Enter");
+
+  // Choose a key, then collapse the key step: Rhythm is next, and asks.
+  const question = page.locator("#key-prompt");
+  await question
+    .getByRole("group", { name: "Home note" })
+    .getByRole("button", { name: "C", exact: true })
+    .click();
+  await question.getByRole("button", { name: "Done: on to chords" }).click();
+  const steps = page.getByRole("list", { name: "Steps" });
+  await expect(steps.locator('[aria-current="step"]')).toContainText("Rhythm");
+  const rhythm = page.getByRole("group", { name: "Does this rhythm sound right?" });
+  await expect(rhythm).toContainText(/The recording reads as\s+\d\/\d at \d+ beats a minute/);
+  await rhythm.getByRole("button", { name: "Sounds right" }).click();
+  await expect(steps.locator('[aria-current="step"]')).toContainText("Chords");
+  await expect(steps).toContainText("set from the tune");
+  await axe(page);
+});

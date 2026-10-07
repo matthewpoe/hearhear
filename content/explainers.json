@@ -38,6 +38,7 @@
     "bottomRowNotes": "The bottom row of letter keys plays the scale's notes an octave below the number row.",
     "undo": "Takes back your last change. Cmd or Ctrl+Z.",
     "redo": "Puts back what you took back. Shift+Cmd or Ctrl+Z.",
+    "words": "Shows the song's words under the staff, one syllable per note.",
     "print": "Prints the tune as a lead sheet: the staff with its chord symbols."
   }
 }

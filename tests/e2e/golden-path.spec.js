@@ -219,12 +219,13 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await page.keyboard.press("Escape");
 
   // 6. Switching songs and back brings back the key and the chords.
-  const picker = page.getByRole("group", { name: "Song" });
-  await picker.getByRole("button", { name: "St. James Infirmary" }).click();
+  // The masthead's song select, grouped into demo tunes and the user's own.
+  const picker = page.getByRole("combobox", { name: "Song" });
+  await picker.selectOption({ label: "St. James Infirmary" });
   // St. James starts fresh: no home chosen, no chords.
   await expect(question.locator('button[aria-pressed="true"]')).toHaveCount(0);
   await expect(placed).toHaveCount(0);
-  await picker.getByRole("button", { name: "Ode to Joy" }).click();
+  await picker.selectOption({ label: "Ode to Joy" });
   await expect(d).toHaveAttribute("aria-pressed", "true");
   await expect(question).toContainText(chose);
   await expect(question).toContainText(match);

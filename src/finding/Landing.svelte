@@ -19,9 +19,11 @@
   import SongPicker from "../toolbar/SongPicker.svelte";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
-  import { nextStep } from "../steps/nextStep.js";
+  import { nextStep, rhythmSource } from "../steps/nextStep.js";
   import DroneSwitch from "../staff/DroneSwitch.svelte";
   import DegreesSwitch from "../toolbar/DegreesSwitch.svelte";
+  import { recorder } from "../record/tunes.js";
+  import { isUserTune } from "../record/take.js";
 
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
@@ -41,9 +43,12 @@
   const songId = $derived($song.id);
   const demo = $derived($ui.demoAwaitingGuess);
 
+  /** A take is running: the key question waits for Stop. */
+  const recording = $derived($recorder.status === "armed" || $recorder.status === "recording");
+
   /** @type {"none" | "prompt" | "find"} */
   const view = $derived.by(() => {
-    if (empty) return "none";
+    if (empty || recording) return "none";
     // A demo always waits for its guess, even after an undo (D18).
     if ($song.key.provisional && demo) return "prompt";
     if (intent === "dismissed") return "find";
@@ -52,7 +57,8 @@
     // shows the question as the guess left it: the chosen chip and the result.
     if (demo) return "prompt";
     if (!$song.key.provisional) return "none";
-    return $song.notes.length >= PHRASE_NOTES ? "prompt" : "none";
+    // A recorded tune asks at once, however short: finding home comes next.
+    return $song.notes.length >= PHRASE_NOTES || isUserTune(songId) ? "prompt" : "none";
   });
 
   /** The step path: Key, Rhythm, Chords, with the key current while its question shows. */
@@ -144,7 +150,7 @@
     {/if}
   </div>
 
-  {#if !empty}
+  {#if !empty && !recording}
     <!-- The next big-picture question. The current step opens below; a done
          step is one line, and the key's can be reopened. -->
     <ol class="path" aria-label="Steps">
@@ -187,8 +193,9 @@
     <div class="rhythm" role="group" aria-labelledby="rhythm-title">
       <h2 id="rhythm-title">Does this rhythm sound right?</h2>
       <p>
-        The recording reads as {$song.meter.beatsPerBar}/{$song.meter.beatUnit} at {$song.tempo} beats
-        a minute. Press Play and tap along: do the bar lines fall where the beat feels strongest?
+        {rhythmSource(isUserTune($song.id))}
+        {$song.meter.beatsPerBar}/{$song.meter.beatUnit} at {$song.tempo} beats a minute. Press Play and
+        tap along: do the bar lines fall where the beat feels strongest?
       </p>
       <button type="button" onclick={confirmRhythm}>Sounds right</button>
     </div>

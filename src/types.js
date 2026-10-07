@@ -4,13 +4,16 @@
  *
  * @typedef {{ tonic: string, mode: "major" | "minor", provisional: boolean }} Key
  * @typedef {{ beatsPerBar: number, beatUnit: 4 | 8, pickupTicks: number, provisional: boolean }} Meter
- * @typedef {{ id: string, midi: number, start: number, dur: number }} Note
+ * @typedef {{ id: string, midi: number, start: number, dur: number, lyric?: string }} Note
+ *   `lyric` is the optional sung syllable on the note; a split word carries hyphens ("syl-", "-la-", "-ble").
  * @typedef {{ root: string, type: string }} ChordSpec   A chord with no placement.
  * @typedef {ChordSpec & { id: string, noteId: string }} Chord
  * @typedef {{
  *   schemaVersion: 1, id: string, title: string, key: Key, meter: Meter,
- *   tempo: number, version: number, notes: Note[], chords: Chord[]
+ *   tempo: number, version: number, notes: Note[], chords: Chord[], swing?: number
  * }} Song
+ *   `swing` is the long:short ratio of an eighth pair in playback (2 is triplet
+ *   swing); absent or 1 plays straight. Notation stays straight eighths.
  *
  * Scale degree relative to the key. `octave` is 0 for the home octave (the
  * number row), -1 below (Q–U), -2 two below (A–J), +1 above (8, 9, 0).
