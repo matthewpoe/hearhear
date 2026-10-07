@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import stJames from "../../content/songs/st-james-infirmary.json" with { type: "json" };
+import { Key, Note } from "tonal";
 import { midiToDegree, numeralOf, rekeySong, transposeSong } from "../../src/theory/index.js";
+import { chromaOf, mod } from "../../src/theory/pitch.js";
 
 /** @type {any} */
 const odeWithChords = {
@@ -40,15 +42,97 @@ describe("transposeSong", () => {
     );
   });
 
-  it("moves melody, chords, and tonic together, so every number stays the same", () => {
+  it("defaults to the key signature with fewer accidentals, F# major and Eb minor on a tie", () => {
+    const signature = (/** @type {string} */ tonic, /** @type {string} */ mode) =>
+      Math.abs(mode === "major" ? Key.majorKey(tonic).alteration : Key.minorKey(tonic).alteration);
     for (const song of [odeWithChords, stJamesSong]) {
-      for (let s = -6; s <= 6; s++) {
-        const moved = transposeSong(song, s);
-        assert.deepEqual(numerals(moved), numerals(song), `${song.id} by ${s}`);
-        assert.deepEqual(degrees(moved), degrees(song), `${song.id} by ${s}`);
-        assert.equal(moved.notes[0].midi, song.notes[0].midi + s);
+      const { mode } = song.key;
+      for (let s = 1; s < 12; s++) {
+        const { tonic } = transposeSong(song, s).key;
+        const twin = /** @type {string} */ (Note.enharmonic(tonic));
+        if (twin === tonic || signature(twin, mode) > 7) continue;
+        assert.ok(signature(tonic, mode) <= signature(twin, mode), `${tonic} over ${twin}`);
       }
     }
+    assert.equal(transposeSong(odeWithChords, 4).key.tonic, "F#");
+    assert.equal(transposeSong(stJamesSong, -1).key.tonic, "Eb");
+  });
+
+  it("names the tonic with sharps or flats on request, where both are real keys", () => {
+    const tonic = (
+      /** @type {any} */ song,
+      /** @type {number} */ s,
+      /** @type {"sharps" | "flats"} */ prefer,
+    ) => transposeSong(song, s, { prefer }).key.tonic;
+    assert.deepEqual(
+      [-1, 4, 9].map((s) => [tonic(odeWithChords, s, "sharps"), tonic(odeWithChords, s, "flats")]),
+      [
+        ["C#", "Db"],
+        ["F#", "Gb"],
+        ["B", "Cb"],
+      ],
+    );
+    assert.deepEqual(
+      [-1, 4, 6].map((s) => [tonic(stJamesSong, s, "sharps"), tonic(stJamesSong, s, "flats")]),
+      [
+        ["D#", "Eb"],
+        ["G#", "Ab"],
+        ["A#", "Bb"],
+      ],
+    );
+    // Only one real key: the preference can't apply.
+    assert.equal(tonic(odeWithChords, 2, "flats"), "E");
+    assert.equal(tonic(odeWithChords, 1, "sharps"), "Eb");
+    assert.equal(tonic(stJamesSong, -3, "flats"), "C#");
+  });
+
+  it("rejects a preference that isn't sharps or flats", () => {
+    assert.throws(
+      () => transposeSong(odeWithChords, 1, /** @type {any} */ ({ prefer: "naturals" })),
+      RangeError,
+    );
+  });
+
+  it("moves melody, chords, and tonic together, so every number stays the same", () => {
+    for (const song of [odeWithChords, stJamesSong]) {
+      for (let s = -11; s <= 11; s++) {
+        for (const prefer of /** @type {const} */ ([undefined, "sharps", "flats"])) {
+          const moved = transposeSong(song, s, { prefer });
+          const at = `${song.id} by ${s} to ${moved.key.tonic}`;
+          // The one exception: bVI in Db, Gb, or Cb would need a double flat.
+          const expected = ["Db", "Gb", "Cb"].includes(moved.key.tonic)
+            ? numerals(song).map((n) => (n === "bVI" ? "#V" : n))
+            : numerals(song);
+          assert.deepEqual(numerals(moved), expected, at);
+          assert.deepEqual(degrees(moved), degrees(song), at);
+          assert.equal(moved.notes[0].midi, song.notes[0].midi + s);
+          for (const [i, c] of moved.chords.entries()) {
+            assert.ok(!c.root.includes("bb"), `${at}: ${c.root}`);
+            assert.equal(mod(chromaOf(c.root) - chromaOf(song.chords[i].root), 12), mod(s, 12));
+          }
+        }
+      }
+    }
+  });
+
+  it("respells a double-flat root to the key's conventional letter", () => {
+    const inDb = transposeSong(odeWithChords, -1);
+    assert.deepEqual(
+      inDb.chords.map((/** @type {any} */ c) => c.root),
+      ["Db", "Ab", "A", "G"],
+    );
+    assert.deepEqual(numerals(inDb), ["I", "V7", "#V", "#iv°7"]);
+  });
+
+  it("keeps a double sharp, minor's own spelling of its raised degrees", () => {
+    /** @type {any} */
+    const withLeadingTone = {
+      ...stJamesSong,
+      chords: [{ id: "c1", noteId: "n1", root: "D#", type: "dim7" }],
+    };
+    const inGSharp = transposeSong(withLeadingTone, 4);
+    assert.equal(inGSharp.chords[0].root, "F##");
+    assert.deepEqual(numerals(inGSharp), ["#vii°7"]);
   });
 
   it("spells chord roots in the new key", () => {
