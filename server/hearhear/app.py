@@ -177,7 +177,7 @@ async def tutor(
     headers = {"Cache-Control": "no-store", "X-Request-Id": request_id}
     if settings.tutor_mode == "fixture":
         log_event("tutor_fixture", request_id=request_id, hint_level=body.hint_level)
-        stream = replay_fixture(body, settings.fixtures_dir, x_tutor_fixture)
+        stream = replay_fixture(body, settings.fixtures_dir, request_id, x_tutor_fixture)
     elif budget.exhausted():
         log_event("request_rejected", code="over_budget", request_id=request_id)
         message = "The live tutor is out of budget for today; the recorded lessons still work."

@@ -28,7 +28,7 @@ from hearhear.log import log_event
 from hearhear.models import TutorReply, TutorRequest
 from hearhear.prompt import SYSTEM_PROMPT, user_message
 from hearhear.reply_stream import InvalidReply, MessageDeltas, validate_reply
-from hearhear.tutor import sse, suggestions_data
+from hearhear.tutor import Clamp, sse, suggestions_data
 
 # Adaptive thinking counts against max_tokens. A full reply (4,000-character
 # message, eight suggestions) is about 2,500 tokens; the rest is thinking room.
@@ -94,7 +94,7 @@ async def stream_live(
     usage = Usage()
     outcome = "disconnected"  # Replaced on every path that reaches the end.
     dropped = 0
-    withheld = 0
+    clamp = Clamp()
     served_by: str | None = None
     fallback = False
     started = time.monotonic()
@@ -187,7 +187,7 @@ async def stream_live(
                 yield sse("error", {"code": "invalid_output", "message": INVALID_MESSAGE})
             else:
                 outcome = "ok"
-                data, withheld = suggestions_data(
+                data, clamp = suggestions_data(
                     request,
                     hint_level=reply.hint_level,
                     suggestions=[s.model_dump() for s in reply.suggestions],
@@ -211,7 +211,7 @@ async def stream_live(
             key_hidden=request.snapshot.key_hidden,
             outcome=outcome,
             dropped=dropped,
-            withheld_hidden=withheld,
+            **clamp.log_fields(),
             input_tokens=usage.input_tokens,
             output_tokens=usage.output_tokens,
             charged_tokens=usage.total,
