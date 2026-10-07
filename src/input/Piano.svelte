@@ -27,6 +27,8 @@
   import { chordForCode, chordKeyLabel } from "./chordRow.js";
   import { heldNotes, press, release } from "./liveNotes.js";
   import { flatArmed, heldChord, listenToNumberRow } from "./NumberRow.js";
+  import Tip from "../toolbar/Tip.svelte";
+  import explainers from "../../content/explainers.json" with { type: "json" };
 
   const BLACK = new Set([1, 3, 6, 8, 10]);
   /** How long a screen-reader activation (a click with no press) holds the note. */
@@ -232,12 +234,22 @@
     </p>
     <div class="switch" role="group" aria-label="Bottom row">
       <span class="switch-label" aria-hidden="true">Bottom row:</span>
-      <button type="button" aria-pressed={chordsOnBottomRow} onclick={() => setBottomRow("chords")}
-        >Chords</button
-      >
-      <button type="button" aria-pressed={!chordsOnBottomRow} onclick={() => setBottomRow("notes")}
-        >Notes</button
-      >
+      <Tip id="bottom-row-chords-tip" text={explainers.options.bottomRowChords} above>
+        <button
+          type="button"
+          aria-pressed={chordsOnBottomRow}
+          aria-describedby="bottom-row-chords-tip"
+          onclick={() => setBottomRow("chords")}>Chords</button
+        >
+      </Tip>
+      <Tip id="bottom-row-notes-tip" text={explainers.options.bottomRowNotes} above>
+        <button
+          type="button"
+          aria-pressed={!chordsOnBottomRow}
+          aria-describedby="bottom-row-notes-tip"
+          onclick={() => setBottomRow("notes")}>Notes</button
+        >
+      </Tip>
     </div>
     {#if chordsOnBottomRow}
       <p class="help">
