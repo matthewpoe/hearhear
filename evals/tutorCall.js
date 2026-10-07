@@ -5,7 +5,7 @@
 
 import { createSseParser } from "../src/tutor/sse.js";
 
-/** How many times a rate-limited request is retried after its Retry-After. */
+/** How many times a rate-limited or busy request is retried after its Retry-After. */
 const RATE_LIMIT_RETRIES = 3;
 /** Seconds to wait when Retry-After is missing or not a number, and the most to wait. */
 const DEFAULT_RETRY_SECONDS = 60;
@@ -61,7 +61,7 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 /**
  * POST a request and read its stream to the end. Never throws for a tutor
  * failure: an HTTP error or an `error` event is reported in `outcome` and
- * `code`. A rate limit is waited out and retried. The access gate's refusals
+ * `code`. A rate limit or a 503 `busy` is waited out and retried. The access gate's refusals
  * throw AccessError instead, since no later request would get through.
  * @param {string} baseUrl
  * @param {object} body
@@ -90,9 +90,12 @@ export async function callTutor(baseUrl, body, accessCode) {
         // Not our error envelope (an edge page): the status stands in for a code.
       }
       if (code === "access_required" || code === "access_locked") throw new AccessError(code);
-      if (response.status === 429 && attempt < RATE_LIMIT_RETRIES) {
+      // A rate limit, or every in-flight slot taken (the server frees one only
+      // after its stream ends, so a pool as wide as the cap can race it).
+      const busy = response.status === 503 && code === "busy";
+      if ((response.status === 429 || busy) && attempt < RATE_LIMIT_RETRIES) {
         const seconds = retryAfterSeconds(response.headers.get("Retry-After"));
-        console.warn(`rate limited; waiting ${seconds}s`);
+        console.warn(`${busy ? "server busy" : "rate limited"}; waiting ${seconds}s`);
         await wait(seconds * 1000);
         continue;
       }
