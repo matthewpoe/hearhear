@@ -1,7 +1,7 @@
 [project]
 name = "hearhear"
 version = "0.1.0"
-description = "Tutor proxy for Hear Hear: forced-tool Claude calls, streamed over SSE."
+description = "Tutor proxy for Hear Hear: schema-constrained Claude replies, streamed over SSE."
 license = "MIT"
 requires-python = ">=3.13"
 dependencies = [

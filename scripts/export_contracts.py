@@ -13,7 +13,7 @@ from hearhear.models import TutorReply, TutorRequest
 
 CONTRACTS = Path(__file__).resolve().parents[1] / "contracts"
 TARGETS: dict[str, type[BaseModel]] = {
-    "tutor-tool.schema.json": TutorReply,
+    "tutor-reply.schema.json": TutorReply,
     "tutor-request.schema.json": TutorRequest,
 }
 

@@ -1,7 +1,7 @@
 /**
  * Validate bundled content against the contracts: every song against
  * song.schema.json and the store's invariants, and every tutor fixture's
- * `suggestions` event against the forced tool's schema. Runs in CI.
+ * `suggestions` event against the reply schema. Runs in CI.
  */
 
 import { readdir, readFile } from "node:fs/promises";
@@ -17,7 +17,7 @@ const jsonFiles = async (dir) =>
 
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 const checkSong = ajv.compile(await readJson("contracts/song.schema.json"));
-const checkReply = ajv.compile(await readJson("contracts/tutor-tool.schema.json"));
+const checkReply = ajv.compile(await readJson("contracts/tutor-reply.schema.json"));
 
 /** @type {string[]} */
 const failures = [];

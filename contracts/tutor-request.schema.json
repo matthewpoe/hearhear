@@ -35,7 +35,7 @@
           "items": {
             "$ref": "#/$defs/SnapshotBar"
           },
-          "maxItems": 200,
+          "maxItems": 400,
           "title": "Bars",
           "type": "array"
         }
@@ -96,20 +96,17 @@
           "type": "number"
         },
         "numeral": {
-          "maxLength": 24,
-          "minLength": 1,
+          "pattern": "^[A-Za-z0-9#°ø+/()?]{1,24}$",
           "title": "Numeral",
           "type": "string"
         },
         "nashville": {
-          "maxLength": 24,
-          "minLength": 1,
+          "pattern": "^[A-Za-z0-9#°ø+/()?]{1,24}$",
           "title": "Nashville",
           "type": "string"
         },
         "letter": {
-          "maxLength": 24,
-          "minLength": 1,
+          "pattern": "^[A-Za-z0-9#°ø+/()?]{1,24}$",
           "title": "Letter",
           "type": "string"
         }
@@ -210,7 +207,7 @@
         },
         "beats": {
           "exclusiveMinimum": 0,
-          "maximum": 48,
+          "maximum": 96,
           "title": "Beats",
           "type": "number"
         }

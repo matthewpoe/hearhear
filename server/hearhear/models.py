@@ -2,7 +2,9 @@
 
 `scripts/export_contracts.py` writes these to `contracts/tutor-*.schema.json`;
 CI fails if the committed files drift. The proxy sends `TutorReply`'s schema to
-Claude as the forced tool's `input_schema` and validates the tool output with it.
+Claude as a structured output (`output_config.format`), so every reply is
+schema-shaped JSON. The API does not enforce numeric or length bounds in that
+schema, so the proxy validates the full reply with these models regardless.
 """
 
 from typing import Annotated, Literal
@@ -12,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 MAX_NOTES = 400
 MAX_HISTORY_TURNS = 12
 MAX_MESSAGE_CHARS = 1000
+MAX_BODY_BYTES = 128 * 1024
 
 HintLevel = Literal["nudge", "comparison", "answer"]
 LabelStyle = Literal["roman", "nashville", "letters", "roman+letters"]
@@ -21,7 +24,8 @@ LabelStyle = Literal["roman", "nashville", "letters", "roman+letters"]
 Pitch = Annotated[str, Field(pattern=r"^[A-G](##|bb|#|b)?[0-8]$")]
 # Scale degree relative to the key hypothesis, e.g. "3", "b7", "#4".
 Degree = Annotated[str, Field(pattern=r"^(##|bb|#|b)?[1-7]$")]
-ChordLabel = Annotated[str, Field(min_length=1, max_length=24)]
+# Chord symbols only: no spaces or punctuation that could carry instructions into the prompt.
+ChordLabel = Annotated[str, Field(pattern=r"^[A-Za-z0-9#°ø+/()?]{1,24}$")]
 Beat = Annotated[float, Field(ge=1, le=13)]
 Bar = Annotated[int, Field(ge=0, le=999)]
 
@@ -50,7 +54,7 @@ class SnapshotNote(Strict):
     beat: Beat
     pitch: Pitch
     degree: Degree
-    beats: Annotated[float, Field(gt=0, le=48)]
+    beats: Annotated[float, Field(gt=0, le=96)]
 
 
 class SnapshotChord(Strict):
@@ -76,7 +80,7 @@ class Snapshot(Strict):
     meter: SnapshotMeter
     tempo: Annotated[int, Field(ge=30, le=240)]
     label_style: LabelStyle
-    bars: Annotated[list[SnapshotBar], Field(max_length=200)]
+    bars: Annotated[list[SnapshotBar], Field(max_length=400)]
 
     @model_validator(mode="after")
     def _bound_total_notes(self) -> "Snapshot":
@@ -98,7 +102,7 @@ class TutorRequest(Strict):
     history: Annotated[list[Turn], Field(max_length=MAX_HISTORY_TURNS)] = []
 
 
-# --- Reply (the forced tool's input) ---------------------------------------------
+# --- Reply (the structured output Claude returns) --------------------------------
 
 
 class Suggestion(Strict):
@@ -117,7 +121,7 @@ class Suggestion(Strict):
 
 
 class TutorReply(Strict):
-    """What Claude must return via the forced `tutor_reply` tool."""
+    """What Claude returns, constrained by structured outputs."""
 
     hint_level: HintLevel
     message: Annotated[
