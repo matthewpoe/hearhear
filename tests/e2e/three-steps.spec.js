@@ -11,12 +11,22 @@ import { axe } from "./axe.js";
 const SCREENS = process.env.SCREENS === "1";
 
 /**
+ * The viewport as a viewer sees it, with `focus` scrolled into view (the
+ * pointer moved off so no tooltip is left open).
  * @param {import("@playwright/test").Page} page
  * @param {string} name
+ * @param {string} [focus] a selector
  */
-async function screen(page, name) {
-  if (SCREENS)
-    await page.screenshot({ path: `docs/screens/three-steps/${name}.png`, fullPage: true });
+async function screen(page, name, focus) {
+  if (!SCREENS) return;
+  await page.mouse.move(0, 0);
+  if (focus) {
+    await page
+      .locator(focus)
+      .first()
+      .evaluate((el) => el.scrollIntoView({ block: "center" }));
+  }
+  await page.screenshot({ path: `docs/screens/three-steps/${name}.png` });
 }
 
 for (const [width, height] of [
@@ -52,7 +62,7 @@ for (const [width, height] of [
     await expect(hints).toHaveCount(1);
     await expect(hints.first()).toContainText("Where does it come to rest?");
     await expect(page.locator("#staff .is-hint").first()).toBeAttached();
-    await screen(page, `2-key-hint-${width}`);
+    await screen(page, `2-key-hint-${width}`, "#key-prompt-title");
     await question.getByRole("button", { name: "Another hint" }).click();
     await expect(hints).toHaveCount(2);
     await expect(hints.nth(1)).toContainText("sharps or flats");
@@ -83,7 +93,7 @@ for (const [width, height] of [
     await expect(chordsStep).toContainText("Try a chord under the first note of bar 1");
     const start = page.locator('#staff [role="button"].is-start .abcjs-notehead');
     await expect(start).toHaveCount(1);
-    await screen(page, `3-chords-${width}`);
+    await screen(page, `3-chords-${width}`, "#staff");
     const box = await start.boundingBox();
     if (!box) throw new Error("the start note isn't on the staff");
     await start.click({ position: { x: box.width / 2, y: box.height / 4 } });
@@ -98,6 +108,6 @@ for (const [width, height] of [
     await expect(said.getByRole("button", { name: "Hear it again" })).toBeVisible();
     await expect(chordsStep).toContainText("bar 2");
     await axe(page);
-    await screen(page, `4-placed-${width}`);
+    await screen(page, `4-placed-${width}`, "#chords-step");
   });
 }
