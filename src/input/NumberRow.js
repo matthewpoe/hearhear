@@ -15,6 +15,7 @@
  * degree, say) calls preventDefault, and the number row leaves it alone.
  */
 
+import { fieldOwnsKey } from "../lib/fieldOwnsKey.js";
 import { createReadable } from "../lib/readable.js";
 import { song } from "../store/song.js";
 import { keyLabelMode, ui } from "../store/ui.js";
@@ -47,28 +48,6 @@ const lastChord = createReadable(/** @type {HeldChord | null} */ (null));
  * whose writers are playback and the chord dropdown.
  */
 export const heldChord = { subscribe: lastChord.subscribe };
-
-/** Inputs that take no typing: a click on one mustn't silence the keyboard. */
-const TOGGLE_TYPES = new Set(["radio", "checkbox"]);
-const ARROWS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
-
-/**
- * Form fields own their keystrokes: typing to the tutor never plays notes,
- * and arrows in a select or slider never move the octave window. A focused
- * radio or checkbox (Bright/Dark, the label styles) owns only its arrows, so
- * its arrow navigation works and every other key still plays.
- * @param {EventTarget | null} target
- * @param {string} code
- */
-function isFormField(target, code) {
-  if (typeof HTMLElement === "undefined" || !(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
-  const field = target.closest("input, textarea, select");
-  if (field === null) return false;
-  if (field.tagName === "INPUT" && TOGGLE_TYPES.has(/** @type {HTMLInputElement} */ (field).type))
-    return ARROWS.has(code);
-  return true;
-}
 
 /** @param {number} delta */
 function shiftWindow(delta) {
@@ -149,7 +128,7 @@ export function listenToNumberRow(target) {
       event.defaultPrevented ||
       event.metaKey ||
       event.ctrlKey ||
-      isFormField(event.target, event.code)
+      fieldOwnsKey(event.target, event.code)
     ) {
       return;
     }
