@@ -5,7 +5,8 @@
  * Layout: chord symbols above the staff in the user's label style, the same
  * text the chord chips show (the staff colors them by function after
  * rendering; shapes and chip boxes live only in the chord chip row), and
- * scale degrees on a lyric line with jianpu octave dots. In "hidden" label
+ * scale degrees on a lyric line with jianpu octave dots, and the song's words
+ * (each note's optional `lyric` syllable) on a second lyric line under that. In "hidden" label
  * mode nothing key-relative is written: the key signature is C with
  * accidentals on the notes, and each chord is a neutral mark with no name
  * (decision D2), so the notation doesn't give the key away.
@@ -56,7 +57,8 @@ const DOT_BELOW = "̣";
 const SUPERSCRIPT = { 7: "⁷" };
 
 /**
- * @typedef {{ mode: KeyLabelMode, labelStyle: LabelStyle, showDegrees: boolean }} StaffView
+ * @typedef {{ mode: KeyLabelMode, labelStyle: LabelStyle, showDegrees: boolean, showWords?: boolean }} StaffView
+ *   `showWords` (default true) writes the words line when the song has any syllables.
  * @typedef {{ noteId: string, chordId: string | null }} NotePiece
  *   One drawn note glyph. A note that crosses a bar line or has an undrawable
  *   length becomes several tied pieces with the same noteId; only the first
@@ -69,7 +71,7 @@ const SUPERSCRIPT = { 7: "⁷" };
  * @returns {{ abc: string, pieces: NotePiece[] }} `pieces` lists every drawn
  *   note glyph in order (rests excluded), to map abcjs's output back to ids.
  */
-export function songToAbc(song, { mode, labelStyle, showDegrees }) {
+export function songToAbc(song, { mode, labelStyle, showDegrees, showWords = true }) {
   const { key, meter } = song;
   const hidden = mode === "hidden";
   const fifths = hidden ? null : keyFifths(key);
@@ -77,6 +79,7 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
   const barTicks = ticksPerBar(meter);
   const beamTicks = beamGroupTicks(meter);
   const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
+  const writeWords = showWords && hasLyrics(song);
 
   /** @param {number} tick */
   const nextBarline = (tick) =>
@@ -84,18 +87,23 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
       ? meter.pickupTicks
       : meter.pickupTicks + (Math.floor((tick - meter.pickupTicks) / barTicks) + 1) * barTicks;
 
-  /** @type {{ text: string, syllables: string[] }[]} */
+  /** @type {{ text: string, syllables: string[], words: string[] }[]} */
   const bars = [];
   /** @type {NotePiece[]} */
   const pieces = [];
-  let bar = { text: "", syllables: /** @type {string[]} */ ([]), barStart: 0 };
+  let bar = {
+    text: "",
+    syllables: /** @type {string[]} */ ([]),
+    words: /** @type {string[]} */ ([]),
+    barStart: 0,
+  };
   /** @type {Map<string, number>} accidentals in force this bar, by letter+octave */
   let inForce = new Map();
   let previousShort = { beat: -1, short: false };
 
   const closeBar = () => {
-    bars.push({ text: bar.text.trim(), syllables: bar.syllables });
-    bar = { text: "", syllables: [], barStart: nextBarline(bar.barStart) };
+    bars.push({ text: bar.text.trim(), syllables: bar.syllables, words: bar.words });
+    bar = { text: "", syllables: [], words: [], barStart: nextBarline(bar.barStart) };
     inForce = new Map();
     previousShort = { beat: -1, short: false };
   };
@@ -144,18 +152,22 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
       const tie = isLast ? "" : "-";
       append(labels + abcPitch(pitch, signature, inForce) + ticks + tie, start, ticks);
       bar.syllables.push(isFirst && showDegrees && !hidden ? degreeLabel(note.midi, key) : "*");
+      bar.words.push(isFirst && note.lyric ? abcSyllable(note.lyric) : "*");
       pieces.push({ noteId: note.id, chordId: isFirst && chord ? chord.id : null });
     });
     cursor = note.start + note.dur;
   }
   if (bar.text.trim()) closeBar();
-  if (bars.length === 0) bars.push({ text: `x${barTicks}`, syllables: [] });
+  if (bars.length === 0) bars.push({ text: `x${barTicks}`, syllables: [], words: [] });
 
   const header = [
     "X:1",
     `T:${safeTitle(song.title)}`,
     `M:${meter.beatsPerBar}/${meter.beatUnit}`,
     "L:1/48",
+    // Swung songs stay in straight eighths with a "Swing" marking above the
+    // staff, the jazz convention; playback does the swinging (passage.js).
+    ...(isSwung(song) ? ['Q:"Swing"'] : []),
     `K:${fifths === null ? "C" : key.tonic + (key.mode === "minor" ? "m" : "")}`,
   ];
   const lines = [];
@@ -165,6 +177,11 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
     lines.push(lineBars.map((b) => b.text).join(" | ") + (last ? " |]" : " |"));
     const syllables = lineBars.flatMap((b) => b.syllables);
     if (syllables.some((s) => s !== "*")) lines.push(`w:${syllables.join(" ")}`);
+    const words = lineBars.flatMap((b) => b.words);
+    // Every music line gets the words line, even one with no syllables, so a
+    // syllable is always the last line of its note's lyric text (the staff
+    // styles it apart from the degree above it).
+    if (writeWords) lines.push(`w:${words.join(" ")}`);
   }
   return { abc: [...header, ...lines].join("\n") + "\n", pieces };
 }
@@ -320,6 +337,45 @@ function degreeLabel(midi, key) {
   const { degree, accidental, octave } = midiToDegree(midi, key);
   const dots = (octave > 0 ? DOT_ABOVE : DOT_BELOW).repeat(Math.abs(octave));
   return DEGREE_ACCIDENTAL[accidental] + degree + dots;
+}
+
+/**
+ * Whether any note carries a syllable (the "Words" switch shows only then).
+ * @param {Song} song
+ */
+export function hasLyrics(song) {
+  return song.notes.some((n) => Boolean(n.lyric));
+}
+
+/**
+ * One note's syllable as a `w:` token. The model writes a split word the way
+ * the source does, a trailing hyphen on every syllable but the last and a
+ * leading one on every syllable but the first ("syl-", "-la-", "-ble"). In
+ * ABC the trailing hyphen alone joins a syllable to the next one, so the
+ * leading hyphen is dropped. Characters with meaning in a `w:` line (`*`, `_`,
+ * `|`, `~`, `%`, `\`) and control characters are dropped, a hyphen inside a syllable is escaped, and
+ * a space becomes `~` so it stays on one note.
+ * @param {string} lyric
+ */
+export function abcSyllable(lyric) {
+  const joins = lyric.endsWith("-");
+  const core = lyric
+    .replace(/^-+|-+$/g, "")
+    // eslint-disable-next-line no-control-regex -- control characters are dropped on purpose
+    .replace(/[*_|~%\\\x00-\x1f]/g, "")
+    .trim()
+    .replace(/-/g, "\\-")
+    .replace(/\s+/g, "~");
+  if (!core) return "*";
+  return core + (joins ? "-" : "");
+}
+
+/**
+ * Whether playback swings this song's eighths (src/audio/passage.js swingPassage).
+ * @param {Song} song
+ */
+export function isSwung(song) {
+  return (song.swing ?? 1) > 1 && song.meter.beatUnit === 4;
 }
 
 /**

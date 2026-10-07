@@ -26,6 +26,7 @@ import {
   melodyCues,
   placeChords,
   secondsPerTick,
+  swingPassage,
 } from "./passage.js";
 
 /**
@@ -166,7 +167,10 @@ async function playRequest(mine, range, build, onEvent) {
   await play(
     engine,
     engine.pianos,
-    { cues: build(tune), ...range, secondsPerTick: secondsPerTick(tune) },
+    {
+      ...swingPassage({ cues: build(tune), ...range }, tune),
+      secondsPerTick: secondsPerTick(tune),
+    },
     onEvent,
   );
 }

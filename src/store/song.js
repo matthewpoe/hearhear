@@ -37,6 +37,25 @@ export function emptySong() {
   };
 }
 
+/** The schema's bound on a note's `lyric` syllable. */
+export const MAX_LYRIC_CHARS = 40;
+
+/**
+ * A note's optional syllable: a non-empty string within the schema's bound.
+ * @param {unknown} lyric
+ */
+export function isLyric(lyric) {
+  return typeof lyric === "string" && lyric.length >= 1 && lyric.length <= MAX_LYRIC_CHARS;
+}
+
+/**
+ * A song's optional swing ratio: a number from 1 (straight) to 3.
+ * @param {unknown} swing
+ */
+export function isSwing(swing) {
+  return typeof swing === "number" && Number.isFinite(swing) && swing >= 1 && swing <= 3;
+}
+
 /**
  * Check the invariants JSON Schema can't express. Throws on the first violation.
  * @param {Song} song
@@ -47,6 +66,7 @@ export function validateSong(song) {
   };
   if (song.notes.length > MAX_NOTES) fail(`more than ${MAX_NOTES} notes`);
   if (song.meter.pickupTicks >= ticksPerBar(song.meter)) fail("pickup is a full bar or longer");
+  if (song.swing !== undefined && !isSwing(song.swing)) fail("swing isn't a ratio from 1 to 3");
   const ids = new Set();
   let end = 0;
   for (const note of song.notes) {
@@ -57,6 +77,9 @@ export function validateSong(song) {
     }
     if (note.midi < MIN_MIDI || note.midi > MAX_MIDI) fail(`note ${note.id} is off the piano`);
     if (note.start < end) fail(`note ${note.id} overlaps the note before it`);
+    if (note.lyric !== undefined && !isLyric(note.lyric)) {
+      fail(`note ${note.id} has a lyric that isn't 1–${MAX_LYRIC_CHARS} characters`);
+    }
     end = note.start + note.dur;
   }
   const anchored = new Set();
@@ -338,7 +361,8 @@ export function createSongStore(initial = emptySong()) {
 
     /**
      * Replace a run of notes in one undoable step: record mode's take, and the
-     * one-key revert of a take to plain quarter notes. Removed notes' chords go too.
+     * one-key revert of a take to plain quarter notes. Removed notes' chords and
+     * syllables go too; a take is new notes, so they carry no syllables.
      * @param {string[]} noteIds notes to remove
      * @param {{ midi: number, start: number, dur: number }[]} notes notes to add
      * @returns {string[]} the new notes' ids
@@ -350,7 +374,7 @@ export function createSongStore(initial = emptySong()) {
         ...s,
         notes: byStart([
           ...s.notes.filter((n) => !removed.has(n.id)),
-          ...notes.map((n, i) => ({ id: ids[i], ...n })),
+          ...notes.map(({ midi, start, dur }, i) => ({ id: ids[i], midi, start, dur })),
         ]),
         chords: s.chords.filter((c) => !removed.has(c.noteId)),
       }));
