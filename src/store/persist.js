@@ -15,6 +15,7 @@
  * @import { SongStore } from "./song.js"
  */
 
+import songSchema from "../../contracts/song.schema.json" with { type: "json" };
 import { isLyric, isSwing, validateSong } from "./song.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
@@ -28,23 +29,20 @@ const MY_SONG_ID = /^mine-[a-z0-9]{1,58}$/;
 /** Wait this long after the last change before saving. */
 const SAVE_DELAY_MS = 300;
 
-const TONIC = /^[A-G](#|b)?$/;
-const PITCH_CLASS = /^[A-G](##|bb|#|b)?$/;
-const CHORD_TYPES = new Set([
-  "M",
-  "m",
-  "7",
-  "maj7",
-  "m7",
-  "dim",
-  "dim7",
-  "m7b5",
-  "aug",
-  "sus2",
-  "sus4",
-  "6",
-  "m6",
-]);
+// The shape a saved song must have, read from the schema itself so the two
+// can't drift. The browser has no schema validator, so isSong checks it.
+const { properties: SONG, $defs: DEFS } = songSchema;
+/** @param {{ pattern: string }} rule */
+const pattern = (rule) => new RegExp(rule.pattern);
+const SONG_ID = pattern(SONG.id);
+const NOTE_ID = pattern(DEFS.note.properties.id);
+const CHORD_ID = pattern(DEFS.chord.properties.id);
+const TONIC = pattern(DEFS.key.properties.tonic);
+const PITCH_CLASS = pattern(DEFS.pitchClassName);
+/** The chord types a song may use. */
+const CHORD_TYPES = new Set(DEFS.chord.properties.type.enum);
+const MODES = new Set(DEFS.key.properties.mode.enum);
+const BEAT_UNITS = new Set(DEFS.meter.properties.beatUnit.enum);
 
 /**
  * sessionStorage-like access; the getter itself may throw (blocked storage).
@@ -57,60 +55,88 @@ const CHORD_TYPES = new Set([
  * @typedef {{ song: Song, demoAwaitingGuess: boolean }} SavedSong
  */
 
-/** @param {unknown} n @param {number} min @param {number} [max] */
-const isInt = (n, min, max = Infinity) =>
-  Number.isInteger(n) && /** @type {number} */ (n) >= min && /** @type {number} */ (n) <= max;
+/**
+ * An integer within a schema rule's bounds.
+ * @param {unknown} n
+ * @param {{ minimum?: number, maximum?: number }} rule
+ */
+const isInt = (n, { minimum = -Infinity, maximum = Infinity }) =>
+  Number.isInteger(n) &&
+  /** @type {number} */ (n) >= minimum &&
+  /** @type {number} */ (n) <= maximum;
+
+/**
+ * A string within a schema rule's lengths.
+ * @param {unknown} text
+ * @param {{ minLength?: number, maxLength?: number }} rule
+ */
+const isText = (text, { minLength = 0, maxLength = Infinity }) =>
+  typeof text === "string" &&
+  text.length >= minLength &&
+  // By code point, as cleanTitle and song.rename count.
+  Array.from(text).length <= maxLength;
+
+/**
+ * An array no longer than a schema rule allows, every item passing `check`.
+ * @param {unknown} list
+ * @param {{ maxItems?: number }} rule
+ * @param {(item: any) => boolean} check
+ */
+const isList = (list, { maxItems = Infinity }, check) =>
+  Array.isArray(list) && list.length <= maxItems && list.every(check);
 
 /** @param {unknown} value @returns {value is Record<string, any>} */
 const isObject = (value) => typeof value === "object" && value !== null;
 
 /**
- * The checks song.schema.json makes, in plain JS (the browser has no schema
- * validator). validateSong covers the rest.
+ * The checks song.schema.json makes, in plain JS, with the schema's own
+ * patterns, enums, and bounds. validateSong covers the rest.
  * @param {unknown} song
  * @returns {song is Song}
  */
 function isSong(song) {
-  if (!isObject(song) || song.schemaVersion !== 1) return false;
+  if (!isObject(song) || song.schemaVersion !== SONG.schemaVersion.const) return false;
   const { id, title, key, meter, tempo, version, notes, chords } = song;
+  const meterRules = DEFS.meter.properties;
+  const noteRules = DEFS.note.properties;
   return (
     typeof id === "string" &&
-    /^[a-z0-9-]{1,64}$/.test(id) &&
-    typeof title === "string" &&
-    // By code point, as cleanTitle and song.rename count.
-    title.length >= 1 &&
-    Array.from(title).length <= 120 &&
+    SONG_ID.test(id) &&
+    isText(title, SONG.title) &&
     isObject(key) &&
     typeof key.tonic === "string" &&
     TONIC.test(key.tonic) &&
-    (key.mode === "major" || key.mode === "minor") &&
+    MODES.has(key.mode) &&
     typeof key.provisional === "boolean" &&
     isObject(meter) &&
-    isInt(meter.beatsPerBar, 2, 12) &&
-    (meter.beatUnit === 4 || meter.beatUnit === 8) &&
-    isInt(meter.pickupTicks, 0, 144) &&
+    isInt(meter.beatsPerBar, meterRules.beatsPerBar) &&
+    BEAT_UNITS.has(meter.beatUnit) &&
+    isInt(meter.pickupTicks, meterRules.pickupTicks) &&
     typeof meter.provisional === "boolean" &&
-    isInt(tempo, 30, 240) &&
+    isInt(tempo, SONG.tempo) &&
     (song.swing === undefined || isSwing(song.swing)) &&
-    isInt(version, 0) &&
-    Array.isArray(notes) &&
-    notes.every(
+    isInt(version, SONG.version) &&
+    isList(
+      notes,
+      SONG.notes,
       (n) =>
         isObject(n) &&
         typeof n.id === "string" &&
-        /^n[0-9a-z]{1,16}$/.test(n.id) &&
-        isInt(n.midi, 21, 108) &&
-        isInt(n.start, 0) &&
-        isInt(n.dur, 1, 576) &&
+        NOTE_ID.test(n.id) &&
+        isInt(n.midi, noteRules.midi) &&
+        isInt(n.start, noteRules.start) &&
+        isInt(n.dur, noteRules.dur) &&
         (n.lyric === undefined || isLyric(n.lyric)),
     ) &&
-    Array.isArray(chords) &&
-    chords.every(
+    isList(
+      chords,
+      SONG.chords,
       (c) =>
         isObject(c) &&
         typeof c.id === "string" &&
-        /^c[0-9a-z]{1,16}$/.test(c.id) &&
+        CHORD_ID.test(c.id) &&
         typeof c.noteId === "string" &&
+        NOTE_ID.test(c.noteId) &&
         typeof c.root === "string" &&
         PITCH_CLASS.test(c.root) &&
         CHORD_TYPES.has(c.type),
