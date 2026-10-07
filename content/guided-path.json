@@ -1,4 +1,77 @@
 {
-  "$comment": "The guided demo path as data. Shape owned by Stream G; D3 runs it; Stream I scripts video from it.",
-  "steps": []
+  "$comment": "The guided demo path as data, run by src/guided/GuidedPath.svelte (step logic: src/guided/steps.js). Each step has an id, a title, plain-words text, `done` (the app state that completes it; the step then advances on its own), an optional `hint` (text shown while its `when` holds and `done` doesn't), and an optional `action` (the 'Try this' button). Conditions: songLoaded {song}, keyChosen {tonic, mode}, keyCommitted, chordAt {bar, beat, numeral}, tutorReplied. Actions: loadSong {song}, press {within, name} (a button by its accessible name inside an element id), openChords {bar, beat}, audition {bar, beat, numeral}, askTutor {lesson} (the question from content/lessons/plan.json; the server replays content/lessons/recorded/<lesson>.json when it exists). Bars and beats are checked against the song by tests/guided/steps.test.js. Stream I scripts video from it.",
+  "status": "placeholder: pending Matthew's ear check and recorded lessons",
+  "song": "ode-to-joy",
+  "steps": [
+    {
+      "id": "load",
+      "title": "Hear a tune you know",
+      "text": "Ode to Joy opens with its key hidden: no numbers, no colors. Press Play on the staff and hum along.",
+      "done": { "type": "songLoaded", "song": "ode-to-joy" },
+      "action": { "type": "loadSong", "song": "ode-to-joy", "label": "Load Ode to Joy" }
+    },
+    {
+      "id": "home",
+      "title": "Find home with the drone chords",
+      "text": "Under 'What key is this tune in?', choose 'Help me find it'. Play the tune over each chord: over the wrong one some notes rub, over home they settle. Then click the home note.",
+      "done": { "type": "keyChosen", "tonic": "D", "mode": "major" },
+      "hint": {
+        "when": { "type": "keyCommitted" },
+        "text": "Does the tune settle over that home? Choose 'Check it by ear' and play it over each chord again."
+      },
+      "action": {
+        "type": "press",
+        "within": "key-prompt",
+        "name": "Help me find it",
+        "label": "Open the drone chords"
+      }
+    },
+    {
+      "id": "half-cadence",
+      "title": "Hear the question at bar 4",
+      "text": "The first phrase ends on a long note at bar 4, beat 3. Put V under it: the tune stops, but it sounds like a question, waiting for an answer.",
+      "done": { "type": "chordAt", "bar": 4, "beat": 3, "numeral": "V" },
+      "action": { "type": "openChords", "bar": 4, "beat": 3, "label": "Show the chords for bar 4" }
+    },
+    {
+      "id": "set-up-ending",
+      "title": "Lean toward the end",
+      "text": "The tune ends '3 2 1'. Put V under the 2, at bar 8, beat 1, so the last note has something to land from.",
+      "done": { "type": "chordAt", "bar": 8, "beat": 1, "numeral": "V" },
+      "action": { "type": "openChords", "bar": 8, "beat": 1, "label": "Show the chords for bar 8" }
+    },
+    {
+      "id": "wrong-ish",
+      "title": "Try a chord that doesn't land",
+      "text": "Now put vi under the last note, at bar 8, beat 3. It contains the note, so it fits on paper, but listen: the end swerves sad and sideways instead of arriving home.",
+      "done": { "type": "chordAt", "bar": 8, "beat": 3, "numeral": "vi" },
+      "action": {
+        "type": "audition",
+        "bar": 8,
+        "beat": 3,
+        "numeral": "vi",
+        "label": "Hear vi under the last note"
+      }
+    },
+    {
+      "id": "land",
+      "title": "Now let it land",
+      "text": "Swap the last chord for I, the home chord. V then I is the sound of arriving: the question from bar 4 finally gets its answer.",
+      "done": { "type": "chordAt", "bar": 8, "beat": 3, "numeral": "I" },
+      "action": {
+        "type": "audition",
+        "bar": 8,
+        "beat": 3,
+        "numeral": "I",
+        "label": "Hear I under the last note"
+      }
+    },
+    {
+      "id": "ask",
+      "title": "Ask the tutor why",
+      "text": "You just heard the difference. Ask the tutor what you felt, and it explains in plain words.",
+      "done": { "type": "tutorReplied" },
+      "action": { "type": "askTutor", "lesson": "ode-ending", "label": "Ask the tutor" }
+    }
+  ]
 }
