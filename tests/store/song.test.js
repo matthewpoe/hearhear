@@ -124,6 +124,16 @@ describe("song store", () => {
     assert.equal(s.chords[0].root, "F");
   });
 
+  it("transpose passes the enharmonic preference through", () => {
+    const sharps = storeWith();
+    sharps.transpose(4, { prefer: "sharps" });
+    assert.equal(sharps.get().key.tonic, "F#");
+    const flats = storeWith();
+    flats.transpose(4, { prefer: "flats" });
+    assert.equal(flats.get().key.tonic, "Gb");
+    assert.equal(flats.get().notes[0].midi, ode.notes[0].midi + 4);
+  });
+
   it("rebar moves only the meter", () => {
     const store = storeWith();
     const notes = store.get().notes;

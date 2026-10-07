@@ -10,10 +10,11 @@ import anthropic
 import httpx2
 import pytest
 from fastapi.testclient import TestClient
-from helpers import SNAPSHOT, events, settings_with
+from helpers import ACCESS_CODE, SNAPSHOT, events, settings_with
 
 from hearhear import app as app_module
 from hearhear import live
+from hearhear.access import normalize
 from hearhear.budget import TokenBudget
 from hearhear.models import TutorReply
 
@@ -116,9 +117,13 @@ class FakeClient:
 
 @pytest.fixture
 def live_mode(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    settings = settings_with(tutor_mode="live", daily_token_budget=10_000)
+    """Live mode with a fake SDK client, sending the right access code."""
+    settings = settings_with(
+        tutor_mode="live", daily_token_budget=10_000, access_code=normalize(ACCESS_CODE)
+    )
     monkeypatch.setattr(app_module, "settings", settings)
     monkeypatch.setattr(app_module, "budget", TokenBudget(10_000))
+    client.headers["X-Tutor-Access"] = ACCESS_CODE
     return client
 
 
@@ -157,6 +162,7 @@ def test_live_stream_follows_the_protocol(
         "snapshot_version": 7,
         "dropped": 1,
         "served_by": "claude-opus-5-5",
+        "fallback": False,
     }
 
 
@@ -428,6 +434,7 @@ def test_a_fallback_served_reply_says_so_and_charges_every_attempt(
     message = "".join(data["delta"] for name, data in stream if name == "message")
     assert message == REPLY["message"], "the partial text stays and the fallback continues it"
     assert dict(stream)["suggestions"]["served_by"] == "claude-opus-4-8"
+    assert dict(stream)["suggestions"]["fallback"] is True
     assert app_module.budget.spent == (1250 + 100) + (1300 + 300)
     entry = dict(logged)["tutor_live"]
     assert entry["fallback"] is True
@@ -534,4 +541,5 @@ def test_the_real_sdk_sends_the_fallback_beta_and_reports_the_serving_model(
     message = "".join(data["delta"] for name, data in stream if name == "message")
     assert message == REPLY["message"]
     assert dict(stream)["suggestions"]["served_by"] == "claude-opus-4-8"
+    assert dict(stream)["suggestions"]["fallback"] is True
     assert app_module.budget.spent == (1000 + 20) + (1100 + 200)

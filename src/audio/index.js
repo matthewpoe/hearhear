@@ -1,19 +1,32 @@
 /**
- * The audio API (Stream B). This module owns the single AudioContext (via
- * Tone.js, created lazily on unlock) and all sound: live notes, phrase
+ * The audio API (Stream B). This module owns the single AudioContext (Tone.js's
+ * default context, latencyHint "interactive") and all sound: live notes, phrase
  * playback with synced visual events, chord audition, drone, and click.
  *
  * CONTRACT: exported names, parameters, and return shapes are frozen (see
- * contracts/README.md). Bodies marked STUB(B) are Phase 0 placeholders that
- * log and resolve so other streams can build against them without sound.
+ * contracts/README.md).
  *
  * Melody notes and placed chords come from the song store; callers pass only
- * tick ranges and what differs from the song.
+ * tick ranges and what differs from the song. Failures never throw: every
+ * async function resolves, and `audioStatus` shows loading, failed, and the
+ * retry (call `preload` again).
  *
- * @import { Chord, Meter } from "../types.js"
+ * @import { Chord, Meter, Song } from "../types.js"
+ * @import { Cue } from "./passage.js"
  */
 
-import { createReadable } from "../lib/readable.js";
+import { song } from "../store/song.js";
+import { passageBelow } from "../theory/index.js";
+import { current, hz, loadSamples, status, wake } from "./engine.js";
+import { play, stopPlayback } from "./playback.js";
+import {
+  auditionChordCues,
+  chordCues,
+  clickCues,
+  melodyCues,
+  placeChords,
+  secondsPerTick,
+} from "./passage.js";
 
 /**
  * @typedef {"idle" | "loading" | "ready" | "failed"} AudioStatus
@@ -26,59 +39,150 @@ import { createReadable } from "../lib/readable.js";
  * }} PlaybackEvent
  */
 
-const status = createReadable(/** @type {AudioStatus} */ ("idle"));
+const LIVE_VELOCITY = 0.8;
+const AUDITION_DEBOUNCE_MS = 120;
+
+/** Sound check: an open C major (add 9), rolled upward. */
+const SOUND_CHECK = [48, 55, 64, 67, 74];
+const SOUND_CHECK_ROLL = 0.06;
+const SOUND_CHECK_SECONDS = 1.8;
 
 /** Sample loading and unlock state; every async boundary shows loading, failed, retry. */
 export const audioStatus = { subscribe: status.subscribe };
 
-/** @param {string} what @param {unknown[]} args */
-const stub = (what, ...args) => console.debug(`[audio stub] ${what}`, ...args);
+/** Keys held down right now, so auto-repeat and double presses sound once. */
+const held = new Set();
+/** The drone's pitch, or null when silent. */
+let droneMidi = /** @type {number | null} */ (null);
+/** Bumped by every playback request and by stop(), so a superseded start never plays. */
+let request = 0;
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let auditionTimer;
+/** The `request` the latest audition started, so stopAudition() stops only that one. */
+let auditionRequest = 0;
 
 /**
  * Start fetching the piano samples (C2–C6). Call from the landing screen,
- * before any click, so the first sound is instant.
+ * before any click, so the first sound is instant. Calling it again after
+ * `audioStatus` reads failed is the retry.
  * @returns {Promise<void>}
  */
 export async function preload() {
-  stub("preload"); // STUB(B)
-  status.set("ready");
+  await loadSamples();
 }
 
 /**
- * Unlock browser audio on the first user gesture and play the sound-check
- * chord, so the first click starts something satisfying.
+ * Unlock browser audio and play the sound-check chord, so the first click
+ * starts something satisfying. Call it from a user gesture (a click or key
+ * press) before anything else sounds: browsers keep audio suspended until then.
  * @returns {Promise<void>}
  */
 export async function unlock() {
-  stub("unlock"); // STUB(B)
+  const engine = await wake();
+  const pianos = engine?.pianos;
+  if (!engine || !pianos) return;
+  const start = engine.Tone.now();
+  SOUND_CHECK.forEach((midi, i) => {
+    pianos.phrase.triggerAttackRelease(
+      hz(midi),
+      SOUND_CHECK_SECONDS,
+      start + i * SOUND_CHECK_ROLL,
+      0.6,
+    );
+  });
+}
+
+/** @param {number} midi */
+function attackLive(midi) {
+  const engine = current();
+  // Immediate: live notes skip the look-ahead that scheduled playback uses.
+  engine?.pianos?.live.triggerAttack(hz(midi), engine.Tone.immediate(), LIVE_VELOCITY);
 }
 
 /**
  * Sound one live note immediately (zero look-ahead). Ignores repeats while held.
+ * A key press before unlock() is itself a gesture, so the first note unlocks.
  * @param {number} midi
  */
 export function noteOn(midi) {
-  stub("noteOn", midi); // STUB(B)
+  if (held.has(midi)) return;
+  held.add(midi);
+  const engine = current();
+  if (engine?.pianos && engine.Tone.getContext().state === "running") {
+    attackLive(midi);
+    return;
+  }
+  // First note before unlock or preload: start audio, then sound it if still held.
+  void wake().then(() => {
+    if (held.has(midi)) attackLive(midi);
+  });
 }
 
 /** @param {number} midi */
 export function noteOff(midi) {
-  stub("noteOff", midi); // STUB(B)
+  if (!held.delete(midi)) return;
+  const engine = current();
+  engine?.pianos?.live.triggerRelease(hz(midi), engine.Tone.immediate());
 }
 
 /**
- * Play part of the song on the Transport. `onEvent` fires through Tone.Draw,
+ * Wake the engine and play the cues `build` makes from the current song,
+ * unless stop() or a newer request comes first.
+ * @param {TickRange} range
+ * @param {(s: Song) => Cue[]} build
+ * @param {(event: PlaybackEvent) => void} [onEvent]
+ * @returns {Promise<void>}
+ */
+function playCues(range, build, onEvent) {
+  return playRequest(++request, range, build, onEvent);
+}
+
+/**
+ * playCues for a request number taken already.
+ * @param {number} mine this playback's `request`
+ * @param {TickRange} range
+ * @param {(s: Song) => Cue[]} build
+ * @param {(event: PlaybackEvent) => void} [onEvent]
+ * @returns {Promise<void>}
+ */
+async function playRequest(mine, range, build, onEvent) {
+  const engine = await wake();
+  if (mine !== request || !engine?.pianos) {
+    onEvent?.({ type: "end" });
+    return;
+  }
+  const tune = song.get();
+  await play(
+    engine,
+    engine.pianos,
+    { cues: build(tune), ...range, secondsPerTick: secondsPerTick(tune) },
+    onEvent,
+  );
+}
+
+/**
+ * Play part of the song on the Transport. Like every function here that
+ * sounds, it needs unlock() to have run from a user gesture first; while the
+ * browser holds audio suspended it resolves at once with an `end` event.
+ * `onEvent` fires through Tone.Draw,
  * in sync with the sound, so the staff and keyboard can light each note.
- * Resolves when playback ends or is stopped. `chords` replaces the song's
+ * Resolves when playback ends or is stopped, on the audio clock rather than
+ * the animation frame, so it resolves in a background tab too. `chords` replaces the song's
  * chords for this playback only (the cadence test plays V-I in a candidate
  * key); omit it to play the song as written.
  * @param {TickRange} range
  * @param {{ chords?: { chord: Chord, voicing: number[] }[], onEvent?: (event: PlaybackEvent) => void }} [options]
  * @returns {Promise<void>}
  */
-export async function playPhrase(range, { onEvent } = {}) {
-  stub("playPhrase", range); // STUB(B)
-  onEvent?.({ type: "end" });
+export function playPhrase(range, { chords, onEvent } = {}) {
+  return playCues(
+    range,
+    (s) => {
+      const placed = placeChords(s, chords ?? s.chords.map((chord) => ({ chord })));
+      return [...melodyCues(s, range), ...chordCues(placed, range, passageBelow(s, range))];
+    },
+    onEvent,
+  );
 }
 
 /**
@@ -97,8 +201,20 @@ export async function playPhrase(range, { onEvent } = {}) {
  *   atTick is the onset of the note the candidate sits on
  * @returns {Promise<void>}
  */
-export async function auditionChord(voicing, range, placement) {
-  stub("auditionChord", voicing, range, placement); // STUB(B)
+export function auditionChord(voicing, range, placement) {
+  clearTimeout(auditionTimer);
+  auditionRequest = ++request;
+  return playRequest(auditionRequest, range, (s) => {
+    const placed = placeChords(
+      s,
+      s.chords.map((chord) => ({ chord })),
+    );
+    const below = passageBelow(s, range);
+    return [
+      ...melodyCues(s, range),
+      ...auditionChordCues(placed, voicing, range, placement, below),
+    ];
+  });
 }
 
 /**
@@ -109,7 +225,11 @@ export async function auditionChord(voicing, range, placement) {
  * @param {{ atTick: number, neighbors?: "as-song" | "from-candidate" }} placement
  */
 export function auditionDebounced(voicing, range, placement) {
-  stub("auditionDebounced", voicing, range, placement); // STUB(B)
+  clearTimeout(auditionTimer);
+  auditionTimer = setTimeout(
+    () => void auditionChord(voicing, range, placement),
+    AUDITION_DEBOUNCE_MS,
+  );
 }
 
 /**
@@ -120,7 +240,10 @@ export function auditionDebounced(voicing, range, placement) {
  * everything. Stream B tests the pending-cancel case.
  */
 export function stopAudition() {
-  stub("stopAudition"); // STUB(B)
+  clearTimeout(auditionTimer);
+  if (auditionRequest !== request) return; // a newer playback has the Transport
+  request++; // an audition still waiting on wake() never starts
+  stopPlayback();
 }
 
 /**
@@ -128,7 +251,14 @@ export function stopAudition() {
  * @param {number | null} midi
  */
 export function drone(midi) {
-  stub("drone", midi); // STUB(B)
+  if (midi === droneMidi) return;
+  const engine = current();
+  if (droneMidi !== null) engine?.drone.triggerRelease();
+  droneMidi = midi;
+  if (midi === null) return;
+  void wake().then((woken) => {
+    if (droneMidi === midi) woken?.drone.triggerAttack(hz(midi));
+  });
 }
 
 /**
@@ -139,11 +269,18 @@ export function drone(midi) {
  * @param {Meter} meter the hypothesis to test, not necessarily the song's
  * @returns {Promise<void>}
  */
-export async function playWithClick(range, meter) {
-  stub("playWithClick", range, meter); // STUB(B)
+export function playWithClick(range, meter) {
+  return playCues(range, (s) => [...melodyCues(s, range), ...clickCues(meter, range)]);
 }
 
 /** Stop all playback, audition, drone, and click. */
 export function stop() {
-  stub("stop"); // STUB(B)
+  request++;
+  clearTimeout(auditionTimer);
+  stopPlayback();
+  drone(null);
+  held.clear();
+  const pianos = current()?.pianos;
+  pianos?.live.releaseAll();
+  pianos?.phrase.releaseAll(); // the sound check plays outside any playback
 }

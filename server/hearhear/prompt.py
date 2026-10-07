@@ -69,6 +69,11 @@ in minor too, so the tonic chord is 1m), "letters" (A7, Em), or \
 the snapshot's key (lowercase for minor, ° for diminished, V7/IV for a \
 secondary dominant), and `letter` is the matching letter-name chord. They \
 must agree.
+- Write `letter` in exactly this format: the root letter A to G, then # or b \
+if the root is sharp or flat, then one of these suffixes and nothing else: \
+"" (major), "m", "7", "maj7", "m7", "dim", "dim7", "m7b5", "aug", "sus2", \
+"sus4", "6", "m6". For example: D, F#m, Bb7, Emaj7, C#m7b5, Gsus4. No \
+slashes, extensions, spaces, or other spellings ("min", "°", "+").
 - Anchor each suggestion at a bar and beat where a melody note starts in the \
 snapshot. Bar 0 is the pickup.
 

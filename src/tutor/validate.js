@@ -5,11 +5,15 @@
  * chord in the song's key, and the bar and beat land on a note onset. One bad
  * suggestion is dropped and counted, never allowed near playback.
  *
+ * Numeral and letter agree by chord identity, not spelling: A# and Bb are one
+ * root, and "Bdim", "Bo", and "B°" one chord. A kept suggestion carries the
+ * chord as the numeral spells it in the key, never the tutor's letter name.
+ *
  * @import { Song } from "../types.js"
  * @import { Suggestion } from "../store/suggestions.js"
  */
 
-import { chordFromNumeral, letterOf, positionOf } from "../theory/index.js";
+import { chordFromLetter, chordFromNumeral, positionOf, sameChord } from "../theory/index.js";
 
 const CONFIDENCE = new Set(["low", "medium", "high"]);
 
@@ -40,7 +44,8 @@ export function checkSuggestions(raw, song) {
       continue;
     }
     const chord = chordFromNumeral(numeral, song.key);
-    if (!chord || letterOf(chord) !== letter) continue;
+    const named = chordFromLetter(letter);
+    if (!chord || !named || !sameChord(chord, named)) continue;
     const onset = onsets.find(
       ({ at }) =>
         at.bar === bar && typeof beat === "number" && Math.abs(at.beat - beat) < BEAT_TOLERANCE,
