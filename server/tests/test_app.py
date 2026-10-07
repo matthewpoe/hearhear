@@ -57,6 +57,18 @@ def test_tutor_fixture_stream_follows_the_protocol(client: TestClient) -> None:
     assert len(suggestions["suggestions"]) == 2
 
 
+def test_fixture_reports_it_was_served_by_no_model(client: TestClient) -> None:
+    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "hint_level": "comparison"})
+    assert dict(events(response.text))["suggestions"]["served_by"] == "fixture"
+
+
+def test_hidden_key_withholds_fixture_suggestions_too(client: TestClient) -> None:
+    body = {"snapshot": {**SNAPSHOT, "key_hidden": True}, "hint_level": "comparison"}
+    suggestions = dict(events(client.post("/api/tutor", json=body).text))["suggestions"]
+    assert suggestions["suggestions"] == []
+    assert suggestions["dropped"] == 2
+
+
 def test_tutor_over_budget_fixture(client: TestClient) -> None:
     response = client.post(
         "/api/tutor",

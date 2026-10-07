@@ -1,4 +1,4 @@
-"""SSE framing and fixture mode (protocol: contracts/tutor-sse.md).
+"""SSE framing, the `suggestions` event, and fixture mode (protocol: contracts/tutor-sse.md).
 
 Fixture mode, the default, replays a shape fixture chosen by the request's
 hint level, so the app and tests run with no API key. Live mode is in live.py.
@@ -13,10 +13,38 @@ from typing import Any
 from hearhear.models import TutorRequest
 
 FIXTURE_NAMES = frozenset({"nudge", "comparison", "answer", "malformed", "over-budget"})
+# `served_by` in fixture mode. No model served the reply, so the eval harness,
+# which counts only replies served by TUTOR_MODEL, never counts a fixture.
+FIXTURE_SERVED_BY = "fixture"
 
 
 def sse(event: str, data: dict[str, Any]) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def suggestions_data(
+    request: TutorRequest,
+    *,
+    hint_level: str,
+    suggestions: list[dict[str, Any]],
+    dropped: int,
+    served_by: str,
+) -> tuple[dict[str, Any], int]:
+    """The `suggestions` event's data, and how many suggestions it withheld.
+
+    While the snapshot's key is hidden, every suggestion is withheld and
+    counted in `dropped`. A letter-name chord gives the key away, and the
+    system prompt asking Claude for none is not a guarantee.
+    """
+    withheld = len(suggestions) if request.snapshot.key_hidden else 0
+    data = {
+        "hint_level": hint_level,
+        "suggestions": [] if withheld else suggestions,
+        "snapshot_version": request.snapshot.version,
+        "dropped": dropped + withheld,
+        "served_by": served_by,
+    }
+    return data, withheld
 
 
 async def replay_fixture(
@@ -32,5 +60,11 @@ async def replay_fixture(
         await asyncio.sleep(step["delayMs"] / 1000)
         data = step["data"]
         if step["event"] == "suggestions":
-            data = {**data, "snapshot_version": request.snapshot.version}
+            data, _ = suggestions_data(
+                request,
+                hint_level=data["hint_level"],
+                suggestions=data["suggestions"],
+                dropped=data["dropped"],
+                served_by=FIXTURE_SERVED_BY,
+            )
         yield sse(step["event"], data)

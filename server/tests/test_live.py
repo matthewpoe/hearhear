@@ -1,4 +1,5 @@
-"""The live path with the Anthropic SDK replaced by a fake. No network calls."""
+"""The live path with the Anthropic SDK replaced by a fake, or by the real SDK
+over a mock transport. No network calls."""
 
 import json
 from collections.abc import AsyncIterator
@@ -59,15 +60,23 @@ def sdk_events(
         for i in range(0, len(text), chunk)
     ]
     return [
-        ns(type="message_start", message=ns(usage=start_usage)),
-        ns(type="content_block_start"),
+        ns(type="message_start", message=ns(model="claude-opus-5-5", usage=start_usage)),
+        ns(type="content_block_start", content_block=ns(type="thinking")),
         ns(type="content_block_delta", delta=ns(type="thinking_delta", thinking="")),
+        ns(type="content_block_stop"),
+        ns(type="content_block_start", content_block=ns(type="text")),
         *deltas,
         ns(type="content_block_stop"),
         ns(
             type="message_delta",
             delta=ns(stop_reason=stop_reason),
-            usage=ns(output_tokens=output_tokens),
+            usage=ns(
+                output_tokens=output_tokens,
+                input_tokens=None,
+                cache_creation_input_tokens=None,
+                cache_read_input_tokens=None,
+                iterations=None,
+            ),
         ),
         ns(type="message_stop"),
     ]
@@ -92,8 +101,11 @@ class FakeStream:
 
 
 class FakeClient:
+    """Stands in for `client.beta.messages.stream(...)`."""
+
     def __init__(self, items: list[SimpleNamespace], error: Exception | None = None) -> None:
         self.calls: list[dict[str, Any]] = []
+        self.beta = self
         self.messages = self
         self._stream = FakeStream(items, error)
 
@@ -144,6 +156,7 @@ def test_live_stream_follows_the_protocol(
         "suggestions": [REPLY["suggestions"][0]],
         "snapshot_version": 7,
         "dropped": 1,
+        "served_by": "claude-opus-5-5",
     }
 
 
@@ -160,6 +173,8 @@ def test_live_request_uses_structured_outputs_and_caps_tokens(
     output_format = params["output_config"]["format"]
     assert output_format["type"] == "json_schema"
     assert output_format["schema"] == anthropic.transform_schema(TutorReply)
+    assert params["fallbacks"] == "default"
+    assert params["betas"] == ["server-side-fallback-2026-07-01"]
     assert params["system"] == live.SYSTEM_PROMPT
     (user_turn,) = params["messages"]
     assert user_turn["role"] == "user"
@@ -272,3 +287,251 @@ def test_logs_carry_usage_but_never_the_students_words(
     assert len(entry["request_id"]) == 32
     assert words not in json.dumps(logged)
     assert REPLY["message"] not in json.dumps(logged)
+    assert entry["served_by"] == "claude-opus-5-5"
+    assert entry["fallback"] is False
+    assert entry["withheld_hidden"] == 0
+
+
+def logged_events(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, dict[str, Any]]]:
+    logged: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(live, "log_event", lambda event, **fields: logged.append((event, fields)))
+    return logged
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        httpx2.ReadError("connection reset mid-body"),
+        httpx2.RemoteProtocolError("peer closed connection"),
+        RuntimeError('Unexpected event order, got content_block_delta before "message_start"'),
+    ],
+    ids=["read-error", "protocol-error", "event-order"],
+)
+def test_unwrapped_errors_mid_stream_still_end_with_error_and_done(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch, error: Exception
+) -> None:
+    logged = logged_events(monkeypatch)
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))[:12], error=error))
+    stream = events(ask(live_mode).text)
+    assert [name for name, _ in stream][-2:] == ["error", "done"]
+    assert stream[-2][1]["code"] == "upstream"
+    assert app_module.budget.spent == 1251, "tokens so far are charged"
+    outcome = dict(logged)["tutor_live"]["outcome"]
+    assert outcome == f"internal_{type(error).__name__}", "never logged as a disconnect"
+    assert dict(logged)["tutor_stream_failed"]["error"] == type(error).__name__
+    assert str(error) not in json.dumps(logged), "the exception text is never logged"
+
+
+class FailsOnOpen:
+    """A stream whose request fails before any event, as the SDK's TypeError
+    for a client with no credentials does."""
+
+    def __init__(self) -> None:
+        self.beta = self
+        self.messages = self
+
+    def stream(self, **_: Any) -> "FailsOnOpen":
+        return self
+
+    async def __aenter__(self) -> None:
+        raise TypeError("Could not resolve authentication method")
+
+    async def __aexit__(self, *_: object) -> None:
+        return None
+
+
+def test_an_error_opening_the_stream_ends_with_error_and_done(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(app_module, "anthropic_client", FailsOnOpen)
+    stream = events(ask(live_mode).text)
+    assert [name for name, _ in stream] == ["error", "done"]
+    assert app_module.budget.spent == 0
+
+
+def test_hidden_key_withholds_every_suggestion(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    stream = events(ask(live_mode, snapshot={**SNAPSHOT, "key_hidden": True}).text)
+    final = dict(stream)["suggestions"]
+    assert final["suggestions"] == []
+    assert final["dropped"] == 2, "one invalid, one withheld"
+    entry = dict(logged)["tutor_live"]
+    assert entry["withheld_hidden"] == 1
+    assert entry["dropped"] == 2
+    assert entry["key_hidden"] is True
+    assert "Key hidden: yes" in fake.calls[0]["messages"][0]["content"]
+
+
+def test_visible_key_withholds_nothing(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    final = dict(events(ask(live_mode).text))["suggestions"]
+    assert len(final["suggestions"]) == 1
+    assert dict(logged)["tutor_live"]["withheld_hidden"] == 0
+
+
+def iteration(kind: str, model: str, input_tokens: int, output_tokens: int) -> SimpleNamespace:
+    return ns(
+        type=kind,
+        model=model,
+        input_tokens=input_tokens,
+        cache_creation_input_tokens=0,
+        cache_read_input_tokens=0,
+        output_tokens=output_tokens,
+    )
+
+
+def fallback_events(text: str, split: int) -> list[SimpleNamespace]:
+    """A mid-stream decline: the requested model's text, a fallback block, then
+    the fallback model's continuation, with per-attempt usage at the end."""
+    before = sdk_events(text[:split], chunk=split)[:-2]  # up to the text block's stop
+    return [
+        *before,
+        ns(
+            type="content_block_start",
+            content_block=ns(type="fallback", to=ns(model="claude-opus-4-8")),
+        ),
+        ns(type="content_block_stop"),
+        ns(type="content_block_start", content_block=ns(type="text")),
+        ns(type="content_block_delta", delta=ns(type="text_delta", text=text[split:])),
+        ns(type="content_block_stop"),
+        ns(
+            type="message_delta",
+            delta=ns(stop_reason="end_turn"),
+            usage=ns(
+                output_tokens=300,
+                input_tokens=1300,
+                cache_creation_input_tokens=0,
+                cache_read_input_tokens=0,
+                iterations=[
+                    iteration("message", "claude-opus-5-5", 1250, 100),
+                    iteration("fallback_message", "claude-opus-4-8", 1300, 300),
+                ],
+            ),
+        ),
+        ns(type="message_stop"),
+    ]
+
+
+def test_a_fallback_served_reply_says_so_and_charges_every_attempt(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    text = json.dumps(REPLY)
+    use_fake(monkeypatch, FakeClient(fallback_events(text, split=40)))
+    stream = events(ask(live_mode).text)
+    message = "".join(data["delta"] for name, data in stream if name == "message")
+    assert message == REPLY["message"], "the partial text stays and the fallback continues it"
+    assert dict(stream)["suggestions"]["served_by"] == "claude-opus-4-8"
+    assert app_module.budget.spent == (1250 + 100) + (1300 + 300)
+    entry = dict(logged)["tutor_live"]
+    assert entry["fallback"] is True
+    assert entry["served_by"] == "claude-opus-4-8"
+    assert entry["model"] == "claude-opus-5-5"
+
+
+def sse_body(*payloads: dict[str, Any]) -> bytes:
+    return "".join(f"event: {p['type']}\ndata: {json.dumps(p)}\n\n" for p in payloads).encode()
+
+
+def text_block(index: int, text: str) -> list[dict[str, Any]]:
+    return [
+        {
+            "type": "content_block_start",
+            "index": index,
+            "content_block": {"type": "text", "text": ""},
+        },
+        {
+            "type": "content_block_delta",
+            "index": index,
+            "delta": {"type": "text_delta", "text": text},
+        },
+        {"type": "content_block_stop", "index": index},
+    ]
+
+
+def test_the_real_sdk_sends_the_fallback_beta_and_reports_the_serving_model(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The real SDK over a mock transport: checks the request on the wire, and
+    that the stream shapes this module reads (fallback block, usage.iterations)
+    parse as expected."""
+    text = json.dumps(REPLY)
+    no_cache = {"cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
+    seen: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        seen.append(request)
+        body = sse_body(
+            {
+                "type": "message_start",
+                "message": {
+                    "id": "msg_1",
+                    "type": "message",
+                    "role": "assistant",
+                    "model": "claude-opus-5-5",
+                    "content": [],
+                    "stop_reason": None,
+                    "stop_sequence": None,
+                    "usage": {"input_tokens": 1000, "output_tokens": 1, **no_cache},
+                },
+            },
+            *text_block(0, text[:30]),
+            {
+                "type": "content_block_start",
+                "index": 1,
+                "content_block": {
+                    "type": "fallback",
+                    "from": {"model": "claude-opus-5-5"},
+                    "to": {"model": "claude-opus-4-8"},
+                    "trigger": {"type": "refusal", "category": None},
+                },
+            },
+            {"type": "content_block_stop", "index": 1},
+            *text_block(2, text[30:]),
+            {
+                "type": "message_delta",
+                "delta": {"stop_reason": "end_turn", "stop_sequence": None},
+                "usage": {
+                    "output_tokens": 200,
+                    "iterations": [
+                        {"type": "message", "input_tokens": 1000, "output_tokens": 20, **no_cache},
+                        {
+                            "type": "fallback_message",
+                            "model": "claude-opus-4-8",
+                            "input_tokens": 1100,
+                            "output_tokens": 200,
+                            **no_cache,
+                        },
+                    ],
+                },
+            },
+            {"type": "message_stop"},
+        )
+        return httpx2.Response(200, headers={"content-type": "text/event-stream"}, content=body)
+
+    client = anthropic.AsyncAnthropic(
+        api_key="test-key",
+        max_retries=0,
+        http_client=anthropic.DefaultAsyncHttpxClient(transport=httpx2.MockTransport(handler)),
+    )
+    monkeypatch.setattr(app_module, "anthropic_client", lambda: client)
+    stream = events(ask(live_mode).text)
+
+    (request,) = seen
+    assert request.url.path == "/v1/messages"
+    assert request.url.params["beta"] == "true"
+    assert "server-side-fallback-2026-07-01" in request.headers["anthropic-beta"]
+    sent = json.loads(request.content)
+    assert sent["fallbacks"] == "default"
+    assert sent["output_config"] == live.OUTPUT_CONFIG
+
+    message = "".join(data["delta"] for name, data in stream if name == "message")
+    assert message == REPLY["message"]
+    assert dict(stream)["suggestions"]["served_by"] == "claude-opus-4-8"
+    assert app_module.budget.spent == (1000 + 20) + (1100 + 200)
