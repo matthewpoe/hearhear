@@ -27,7 +27,11 @@ function fakeStorage(items = new Map()) {
 }
 
 /** A recorder over fresh stores, with a hand-driven clock and inputs. */
-function setup({ initial = /** @type {Song | undefined} */ (undefined), items = new Map() } = {}) {
+function setup({
+  initial = /** @type {Song | undefined} */ (undefined),
+  items = new Map(),
+  fallback = /** @type {(() => Song | null) | undefined} */ (undefined),
+} = {}) {
   const song = createSongStore(initial);
   const ui = createUiStore();
   const storage = fakeStorage(items);
@@ -54,6 +58,7 @@ function setup({ initial = /** @type {Song | undefined} */ (undefined), items = 
     now: () => clock,
     wallClock: () => 1_760_000_000_000,
     schedule: (run) => run(),
+    fallback,
   });
   /** @param {NoteEvent} event */
   const emit = (event) => {
@@ -411,5 +416,211 @@ describe("recorder", () => {
       shelf.list.get().map((t) => t.title),
       ["My tune 1", "My tune 2"],
     );
+  });
+
+  describe("phrase by phrase", () => {
+    /** A named tune of one phrase: three quarters at 120 BPM (36 ticks). */
+    function firstPhrase(rig = setup()) {
+      rig.recorder.record();
+      for (const midi of [60, 62, 64]) rig.tap(midi);
+      rig.recorder.stop();
+      rig.recorder.name("Built up");
+      return rig;
+    }
+
+    it("adds the next phrase from the bar line after the last note, in one undoable step", () => {
+      const { song, recorder, tap } = firstPhrase();
+      const first = song.get().notes.map((n) => n.id);
+      recorder.record({ phrase: "next" });
+      assert.equal(recorder.get().phrase, true);
+      tap(67);
+      tap(65, 2);
+      recorder.stop();
+      assert.equal(recorder.get().status, "idle", "no name to ask: the tune has one");
+      assert.equal(recorder.get().added, 2);
+      assert.deepEqual(
+        song.get().notes.map((n) => [n.midi, n.start, n.dur]),
+        [
+          [60, 0, 12],
+          [62, 12, 12],
+          [64, 24, 12],
+          [67, 48, 12],
+          [65, 60, 24],
+        ],
+      );
+      assert.equal(song.get().tempo, 120, "the first take's tempo stays");
+      assert.deepEqual(
+        song
+          .get()
+          .notes.slice(0, 3)
+          .map((n) => n.id),
+        first,
+      );
+      const phrases = recorder.phrases();
+      assert.equal(phrases.length, 2);
+      assert.equal(phrases[1].start, 48);
+      song.undo();
+      assert.equal(song.get().notes.length, 3);
+      assert.equal(recorder.phrases().length, 1, "Undo takes the phrase back");
+    });
+
+    it("reads a later phrase against the tune's beat, never its own", () => {
+      const { song, recorder, tap } = firstPhrase();
+      recorder.record({ phrase: "next" });
+      // Two notes a second apart: two beats at the tune's 500 ms beat.
+      tap(67, 2);
+      tap(65, 2);
+      recorder.stop();
+      assert.deepEqual(
+        song
+          .get()
+          .notes.slice(3)
+          .map((n) => n.dur),
+        [24, 24],
+      );
+    });
+
+    it("redoes only the latest phrase, from where it started; the first stays", () => {
+      const { song, recorder, tap } = firstPhrase();
+      recorder.record({ phrase: "next" });
+      tap(67);
+      tap(65);
+      recorder.stop();
+      const first = song.get().notes.slice(0, 3);
+      recorder.record({ phrase: "redo" });
+      tap(72);
+      tap(71);
+      tap(69);
+      recorder.stop();
+      assert.deepEqual(song.get().notes.slice(0, 3), first);
+      assert.deepEqual(
+        song
+          .get()
+          .notes.slice(3)
+          .map((n) => [n.midi, n.start]),
+        [
+          [72, 48],
+          [71, 60],
+          [69, 72],
+        ],
+      );
+      assert.equal(recorder.phrases().length, 2);
+      song.undo();
+      assert.deepEqual(
+        song
+          .get()
+          .notes.slice(3)
+          .map((n) => n.midi),
+        [67, 65],
+        "Undo brings the redone phrase back",
+      );
+    });
+
+    it("a redo cancelled before its first note leaves the tune as it was", () => {
+      const { song, recorder, tap } = firstPhrase();
+      recorder.record({ phrase: "next" });
+      tap(67);
+      recorder.stop();
+      const before = song.get().notes;
+      recorder.record({ phrase: "redo" });
+      recorder.stop();
+      assert.equal(recorder.get().status, "idle");
+      assert.deepEqual(song.get().notes, before);
+    });
+
+    it("redoing the only phrase records the tune again", () => {
+      const { song, recorder, tap } = firstPhrase();
+      recorder.record({ phrase: "redo" });
+      assert.equal(recorder.get().phrase, false);
+      tap(70);
+      tap(72);
+      recorder.stop();
+      assert.deepEqual(
+        song.get().notes.map((n) => n.midi),
+        [70, 72],
+      );
+    });
+
+    it("keeps the whole tune within the note limit", () => {
+      const { song, recorder, tap } = setup();
+      recorder.record();
+      for (let i = 0; i < MAX_TAKE_NOTES - 2; i++) tap(60 + (i % 5));
+      recorder.stop();
+      recorder.name("Long");
+      recorder.record({ phrase: "next" });
+      for (const midi of [67, 65, 64, 62]) tap(midi);
+      assert.equal(recorder.get().capped, true);
+      assert.equal(song.get().notes.length, MAX_TAKE_NOTES);
+      recorder.record({ phrase: "next" });
+      assert.equal(recorder.get().status, "idle", "no room: nothing is armed");
+    });
+
+    it("Feel reads every phrase again with the first one's beat, keeping their notes' ids", () => {
+      const { song, recorder, tap } = firstPhrase();
+      recorder.record({ phrase: "next" });
+      tap(67);
+      tap(65);
+      recorder.stop();
+      const ids = song.get().notes.map((n) => n.id);
+      assert.equal(recorder.reread("swing"), true);
+      assert.deepEqual(
+        song.get().notes.map((n) => n.id),
+        ids,
+      );
+      assert.deepEqual(
+        song.get().notes.map((n) => n.start),
+        [0, 12, 24, 48, 60],
+      );
+      assert.equal(recorder.phrases().length, 2);
+      song.undo();
+      assert.equal(recorder.phrases().length, 2, "Undo of a Feel change keeps the phrases");
+    });
+
+    it("keeps every phrase through a reload", () => {
+      const items = new Map();
+      const first = firstPhrase(setup({ items }));
+      first.recorder.record({ phrase: "next" });
+      first.tap(67);
+      first.tap(65);
+      first.recorder.stop();
+      const tune = first.song.get();
+      first.storage.setItem(
+        `hearhear.song.${tune.id}`,
+        JSON.stringify({ schemaVersion: 1, song: tune, demoAwaitingGuess: false }),
+      );
+      const second = setup({ items });
+      second.recorder.openTune(tune.id);
+      assert.equal(second.recorder.phrases().length, 2);
+      assert.equal(second.recorder.reread("straight"), true);
+      assert.equal(second.song.get().notes.length, 5);
+    });
+
+    it("Discard opens the first demo, not an empty staff; Undo brings every phrase back", () => {
+      const { song, recorder, tap, shelf } = firstPhrase(setup({ fallback: () => ODE }));
+      recorder.record({ phrase: "next" });
+      tap(67);
+      recorder.stop();
+      const id = song.get().id;
+      recorder.discard();
+      assert.equal(song.get().id, "ode-to-joy");
+      assert.equal(recorder.get().discarded, "Built up");
+      recorder.undoDiscard();
+      assert.equal(song.get().id, id);
+      assert.equal(recorder.phrases().length, 2);
+      assert.ok(shelf.take(id)?.later);
+    });
+
+    it("Discard of an older tune opens the user's most recent other one", () => {
+      const rig = firstPhrase(setup({ fallback: () => ODE }));
+      const older = rig.song.get().id;
+      rig.recorder.record();
+      rig.tap(70);
+      rig.recorder.stop();
+      rig.recorder.name("Newer");
+      const newer = rig.song.get().id;
+      rig.recorder.openTune(older);
+      rig.recorder.discard();
+      assert.equal(rig.song.get().id, newer);
+    });
   });
 });
