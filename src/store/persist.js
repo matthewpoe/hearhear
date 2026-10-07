@@ -24,6 +24,8 @@ const SONG_PREFIX = "hearhear.song.";
 const OPEN_KEY = "hearhear.openSong";
 /** The user's own songs (recorded tunes): one index of ids, oldest first. */
 const MY_SONGS_KEY = "hearhear.mySongs";
+/** A recorded tune's raw take (key timings), beside its song, never in it. */
+const TAKE_PREFIX = "hearhear.take.";
 /** A user song's id: "mine-" and a base-36 counter, within the song id pattern. */
 const MY_SONG_ID = /^mine-[a-z0-9]{1,58}$/;
 /** Wait this long after the last change before saving. */
@@ -48,6 +50,12 @@ const BEAT_UNITS = new Set(DEFS.meter.properties.beatUnit.enum);
  * sessionStorage-like access; the getter itself may throw (blocked storage).
  * `removeItem` is optional: without it a forgotten song just stays stored.
  * @typedef {() => Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>} StorageAccess
+ */
+
+/**
+ * A recorded take as played: each press's pitch and key-down/up times (ms),
+ * and when Stop was pressed.
+ * @typedef {{ presses: { midi: number, downMs: number, upMs?: number | null }[], endMs: number }} RawTake
  */
 
 /**
@@ -233,6 +241,50 @@ export function createSongMemory(storage) {
     /** @param {string[]} ids the user's own songs, oldest first */
     setMySongs(ids) {
       guard(() => storage().setItem(MY_SONGS_KEY, JSON.stringify(ids)), undefined);
+    },
+
+    /**
+     * Keep a recorded tune's raw take beside it: the key-down and key-up
+     * times, so the take can be read again with another feel. A sidecar, not
+     * part of the song or its schema.
+     * @param {string} id
+     * @param {RawTake} take
+     */
+    saveTake(id, take) {
+      guard(() => storage().setItem(TAKE_PREFIX + id, JSON.stringify(take)), undefined);
+    },
+
+    /**
+     * A recorded tune's raw take, or null if there is none or it doesn't check out.
+     * @param {string} id
+     * @returns {RawTake | null}
+     */
+    recallTake(id) {
+      const raw = guard(() => storage().getItem(TAKE_PREFIX + id), null);
+      if (!raw) return null;
+      try {
+        const take = JSON.parse(raw);
+        const ok =
+          isObject(take) &&
+          Number.isFinite(take.endMs) &&
+          Array.isArray(take.presses) &&
+          take.presses.length <= 400 &&
+          take.presses.every(
+            (/** @type {unknown} */ p) =>
+              isObject(p) &&
+              isInt(p.midi, 21, 108) &&
+              Number.isFinite(p.downMs) &&
+              (p.upMs === undefined || p.upMs === null || Number.isFinite(p.upMs)),
+          );
+        return ok ? take : null;
+      } catch {
+        return null;
+      }
+    },
+
+    /** @param {string} id */
+    forgetTake(id) {
+      guard(() => storage().removeItem?.(TAKE_PREFIX + id), undefined);
     },
 
     /** @returns {string | null} the id of the song open in this tab */

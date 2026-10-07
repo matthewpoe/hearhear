@@ -101,15 +101,20 @@ export function tempoFor(beatMs) {
  * together) merge into one note, as guessRhythm decides.
  * @param {Press[]} presses at most MAX_TAKE_NOTES; extras are left out
  * @param {number} endMs when the take stopped, or now while it runs
- * @param {{ running?: boolean }} [options] `running`: the take hasn't
- *   stopped, so a tapped last note shows one beat instead of growing to now
+ * @param {{ running?: boolean, feel?: import("../theory/rhythm.js").Feel }} [options]
+ *   `running`: the take hasn't stopped, so a tapped last note shows one beat
+ *   instead of growing to now; `feel`: the player's Straight or Swing, or
+ *   "auto" (the guess)
  * @returns {{ notes: { midi: number, start: number, dur: number }[], tempo: number, swing: boolean }}
- *   `swing`: most eighth pairs were swung (not yet written to the song)
+ *   `swing`: the take reads as swung (most eighth pairs were, or the player said so)
  */
-export function takeNotes(presses, endMs, { running = false } = {}) {
+export function takeNotes(presses, endMs, { running = false, feel = "auto" } = {}) {
   const events = monophonic(presses.slice(0, MAX_TAKE_NOTES), endMs);
   if (events.length === 0) return { notes: [], tempo: 96, swing: false };
-  const { notes, beatMs, dropped, swing } = guessRhythm(events, running ? {} : { endMs });
+  const { notes, beatMs, dropped, swing } = guessRhythm(
+    events,
+    running ? { feel } : { endMs, feel },
+  );
   const kept = events.filter((_, i) => !dropped.includes(i));
   return {
     notes: notes.map((n, i) => ({ midi: kept[i].midi, start: n.start, dur: n.dur })),

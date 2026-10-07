@@ -10,7 +10,7 @@
  * shelf working for this page, and it is empty again after a reload.
  *
  * @import { Song } from "../types.js"
- * @import { StorageAccess } from "../store/persist.js"
+ * @import { RawTake, StorageAccess } from "../store/persist.js"
  */
 
 import { createReadable } from "../lib/readable.js";
@@ -52,11 +52,31 @@ export function createShelf(storage) {
     has: (id) => copies.has(id),
 
     /**
-     * Put a new tune on the shelf, or back where it was (`at`, an undone discard).
+     * A tune's raw take (its key timings), kept beside it so it can be read
+     * again with another feel. Null for a tune with none.
+     * @param {string} id
+     * @returns {RawTake | null}
+     */
+    take: (id) => (copies.has(id) ? memory.recallTake(id) : null),
+
+    /**
+     * Keep a tune's raw take beside it.
+     * @param {string} id
+     * @param {RawTake} take
+     */
+    saveTake(id, take) {
+      memory.saveTake(id, take);
+    },
+
+    /**
+     * Put a new tune on the shelf, or back where it was (`at`, an undone
+     * discard, with its raw take).
      * @param {Song} song
      * @param {number} [at]
+     * @param {RawTake | null} [take]
      */
-    add(song, at = copies.size) {
+    add(song, at = copies.size, take = null) {
+      if (take) memory.saveTake(song.id, take);
       const entries = [...copies.entries()].filter(([id]) => id !== song.id);
       entries.splice(Math.min(at, entries.length), 0, [song.id, song]);
       copies.clear();
@@ -88,17 +108,20 @@ export function createShelf(storage) {
     /**
      * Take a tune off the shelf and forget its saved copy.
      * @param {string} id
-     * @returns {{ song: Song, at: number } | null} what was removed, for undo
+     * @returns {{ song: Song, at: number, take: RawTake | null } | null} what
+     *   was removed, for undo
      */
     remove(id) {
       const song = copies.get(id);
       if (!song) return null;
       const at = [...copies.keys()].indexOf(id);
+      const take = memory.recallTake(id);
       copies.delete(id);
       writeIndex();
       memory.forget(id);
+      memory.forgetTake(id);
       publish();
-      return { song, at };
+      return { song, at, take };
     },
   };
 }
