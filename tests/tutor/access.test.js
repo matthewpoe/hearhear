@@ -1,0 +1,101 @@
+import assert from "node:assert/strict";
+import { afterEach, describe, it, mock } from "node:test";
+import { codeFromFragment, createAccess } from "../../src/tutor/access.js";
+
+/**
+ * A stand-in page at `url`, with a working sessionStorage unless `storage` replaces it.
+ * @param {string} url
+ * @param {any} [storage]
+ */
+function page(url, storage) {
+  const { pathname, search, hash } = new URL(url, "https://hearhear.test");
+  const items = new Map();
+  /** @type {string[]} every URL replaceState was given */
+  const replaced = [];
+  return {
+    location: { pathname, search, hash },
+    replaced,
+    history: {
+      state: null,
+      /** @param {unknown} _state @param {string} _unused @param {string} next */
+      replaceState(_state, _unused, next) {
+        replaced.push(next);
+      },
+    },
+    sessionStorage: storage ?? {
+      /** @param {string} key */
+      getItem: (key) => items.get(key) ?? null,
+      /** @param {string} key @param {string} value */
+      setItem: (key, value) => items.set(key, value),
+      /** @param {string} key */
+      removeItem: (key) => items.delete(key),
+    },
+  };
+}
+
+describe("codeFromFragment", () => {
+  it("takes the code out and keeps the rest of the fragment", () => {
+    assert.deepEqual(codeFromFragment("#code=open%20sesame"), { code: "open sesame", rest: "" });
+    assert.deepEqual(codeFromFragment("#demo=ode&code=x"), { code: "x", rest: "#demo=ode" });
+  });
+
+  it("leaves a fragment with no code alone", () => {
+    assert.deepEqual(codeFromFragment("#tutor"), { code: "", rest: "#tutor" });
+    assert.deepEqual(codeFromFragment(""), { code: "", rest: "" });
+  });
+
+  it("removes an empty code", () => {
+    assert.deepEqual(codeFromFragment("#code="), { code: "", rest: "" });
+  });
+});
+
+describe("createAccess", () => {
+  afterEach(() => mock.restoreAll());
+
+  it("reads a #code= link, keeps it for this tab, and clears the address bar", () => {
+    const tab = page("/play?x=1#code=open%20sesame");
+    const access = createAccess(tab);
+    access.load();
+    assert.equal(access.get(), "open sesame");
+    assert.deepEqual(tab.replaced, ["/play?x=1"]);
+
+    // A refresh: the fragment is gone, and this tab still has the code.
+    const refreshed = createAccess({ ...tab, location: { ...tab.location, hash: "" } });
+    refreshed.load();
+    assert.equal(refreshed.get(), "open sesame");
+  });
+
+  it("keeps a typed code in memory only", () => {
+    const tab = page("/");
+    const access = createAccess(tab);
+    access.load();
+    access.set("  typed  ");
+    assert.equal(access.get(), "typed");
+    assert.equal(tab.sessionStorage.getItem("hearhear.tutorAccess"), null);
+    assert.deepEqual(tab.replaced, []);
+  });
+
+  it("forgets a rejected code, in memory and for a refresh", () => {
+    const tab = page("/#code=wrong");
+    const access = createAccess(tab);
+    access.load();
+    access.forget();
+    assert.equal(access.get(), "");
+    const refreshed = createAccess({ ...tab, location: { ...tab.location, hash: "" } });
+    refreshed.load();
+    assert.equal(refreshed.get(), "");
+  });
+
+  it("still uses a linked code when storage is blocked", () => {
+    const warn = mock.method(console, "warn", () => {});
+    const blocked = () => {
+      throw new DOMException("blocked", "SecurityError");
+    };
+    const access = createAccess(
+      page("/#code=open", { getItem: blocked, setItem: blocked, removeItem: blocked }),
+    );
+    access.load();
+    assert.equal(access.get(), "open");
+    assert.equal(warn.mock.callCount(), 1);
+  });
+});
