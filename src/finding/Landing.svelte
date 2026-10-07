@@ -131,11 +131,14 @@
   </div>
 
   {#if view === "prompt"}
-    <KeyPrompt
-      onguess={commit}
-      ondismiss={canDismiss ? dismiss : undefined}
-      autofocus={demo || intent === "reopened"}
-    />
+    <!-- Remount per song, so easy mode ranks the homes of the tune now loaded. -->
+    {#key $song.id}
+      <KeyPrompt
+        onguess={commit}
+        ondismiss={canDismiss ? dismiss : undefined}
+        autofocus={demo || intent === "reopened"}
+      />
+    {/key}
   {:else if view === "find"}
     <div class="find">
       <button type="button" onclick={() => (intent = "reopened")}>Find the key</button>
