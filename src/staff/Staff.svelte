@@ -316,6 +316,11 @@
   .notation :global([data-note-id]:focus) {
     outline: none;
   }
+  /* abcjs fills a clicked note with its own selection red, which reads as the
+     dominant's color with no shape beside it. The open dropdown names the note. */
+  .notation :global(.abcjs-note_selected) {
+    fill: currentColor;
+  }
   .notation :global([data-note-id]:focus-visible .abcjs-notehead) {
     stroke: var(--focus);
     stroke-width: 3px;
