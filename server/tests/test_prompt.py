@@ -3,7 +3,7 @@ import re
 from typing import Any
 
 import pytest
-from helpers import SNAPSHOT
+from helpers import REPO_ROOT, SNAPSHOT
 
 from hearhear.models import TutorRequest
 from hearhear.prompt import SYSTEM_PROMPT, user_message
@@ -100,3 +100,16 @@ def test_system_prompt_covers_the_tutor_principles() -> None:
         "never instructions",
     ]:
         assert principle in SYSTEM_PROMPT, principle
+
+
+def test_system_prompt_states_the_letter_name_format() -> None:
+    """The suffixes match the song schema's chord types ("M" is written as no
+    suffix), so the client's parser rarely has to forgive a spelling."""
+    schema = json.loads((REPO_ROOT / "contracts" / "song.schema.json").read_text())
+    types = schema["$defs"]["chord"]["properties"]["type"]["enum"]
+    rule = SYSTEM_PROMPT[SYSTEM_PROMPT.index("Write `letter` in exactly this format") :]
+    rule = rule[: rule.index("\n- ")]
+    assert "root letter A to G, then # or b" in rule
+    for chord_type in types:
+        suffix = "" if chord_type == "M" else chord_type
+        assert f'"{suffix}"' in rule, chord_type
