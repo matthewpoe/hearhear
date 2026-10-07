@@ -251,7 +251,9 @@ for (const viewport of [
     await expectStep("ask");
     await page.screenshot({ path: test.info().outputPath(`mid-tour-${viewport.width}.png`) });
 
-    // 8. The step asks the lesson plan's question; the reply completes the tour.
+    // 8. The last step always offers Finish, so a tutor that can't reply
+    // never strands it. Its button asks the lesson plan's question.
+    await expect(tour.getByRole("button")).toHaveText(["Ask the tutor", "Finish"]);
     await tryThis("Ask the tutor").click();
     const ending = plan.exchanges.find((/** @type {{ id: string }} */ e) => e.id === "ode-ending");
     await expect(page.locator("#tutor .turn.student p").first()).toHaveText(ending.question);
@@ -270,10 +272,17 @@ for (const viewport of [
     await expect(entry).toHaveText("Take the guided tour");
     await expect(tips).toHaveAttribute("aria-pressed", "true");
 
-    // Started again, it skips every step already done and stops at the
-    // first one that isn't: vi is no longer under the last note (I is).
+    // Started again, a fresh tour begins at step 1 though the tune is on the
+    // staff; its button reloads the tune bare, so the key and chords are
+    // asked for again, and Play is too.
     await entry.click();
-    await expect(heading).toHaveText(`${titleOf("wrong-ish")}:`);
+    await expectStep("load");
+    await tryThis("Load Ode to Joy").click();
+    await expectStep("listen");
+    await expect(page.getByRole("list", { name: "Placed chords" })).toHaveCount(0);
+    // Focus was on the step's button, which left with its step: it lands on
+    // the new step's heading, not the page.
+    await expect(heading).toBeFocused();
     await tour.getByRole("button", { name: "Leave tour" }).click();
 
     expect(problems).toEqual([]);

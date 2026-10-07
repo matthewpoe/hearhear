@@ -20,7 +20,7 @@
   import { ui } from "../store/ui.js";
   import { audioStatus, auditionChord } from "../audio/index.js";
   import { passageAround, voicingIn } from "../chords/passage.js";
-  import { DEMO_TUNES } from "../finding/demoTunes.js";
+  import { DEMO_TUNES, loadDemo } from "../finding/demoTunes.js";
   import { chordFromNumeral } from "../theory/index.js";
   import { requestAsk } from "../tutor/requests.js";
   import { conditionMet, hintFor, lessonExchange, noteAt, stepTarget } from "./steps.js";
@@ -44,21 +44,71 @@
   let tutorReplies = $state(0);
   /** Play was pressed (the playhead moved) since this song was loaded. */
   let played = $state(false);
+  /**
+   * A tune was loaded since this run of the tour started, so a fresh tour
+   * starts at step 1 even with the tune already on the staff. Resuming
+   * mid-tour never looks at it: the load step is behind.
+   */
+  let loadedThisTour = $state(false);
+  /** The song when this run started, to tell a load since then. */
+  let songAtStart = /** @type {unknown} */ (null);
+  let watchingRun = false;
 
   const index = $derived($tour.index);
   const step = $derived(steps[index]);
-  const appState = $derived({ song: $song, played, tutorReplies });
+  const appState = $derived({ song: $song, played, tutorReplies, loadedThisTour });
   const met = $derived(conditionMet(step.done, appState));
   const hint = $derived(hintFor(step, appState));
   const last = $derived(index === steps.length - 1);
 
   // Doing a step's action is the only way forward: the step advances once
   // the app shows it done, and one already done when the tour reaches it
-  // (a tune already loaded, a key already chosen) is skipped. The last step
-  // stays, marked done, until Finish.
+  // (a key already chosen, a chord already placed) is skipped. The last step
+  // stays until Finish, which it always offers, so a tutor that can't reply
+  // never strands it. When the step's button unmounts under the viewer's
+  // focus, focus moves to the new step's heading rather than the page.
   $effect(() => {
     const at = index;
-    if ($tour.running && met && !last) untrack(() => goTo(at + 1));
+    if (!$tour.running || !met || last) return;
+    untrack(async () => {
+      const strip = document.querySelector("section[aria-label='Guided tour']");
+      const active = document.activeElement;
+      // The step's button may already have unmounted (it hides once its step
+      // is done), dropping focus to the page: count that as in the strip.
+      const inStrip = active === document.body || (strip?.contains(active) ?? false);
+      goTo(at + 1);
+      await tick();
+      if (
+        inStrip &&
+        !document
+          .querySelector("section[aria-label='Guided tour']")
+          ?.contains(document.activeElement)
+      ) {
+        document.getElementById("guided-step-title")?.focus({ preventScroll: true });
+      }
+    });
+  });
+
+  // A new run starts with no tune loaded for it; a song that changes while it
+  // runs (the step's button, or the song list) counts as loaded, and resets
+  // Play, so the next step asks for it again.
+  $effect(() => {
+    const now = $song;
+    const on = $tour.running;
+    untrack(() => {
+      if (on !== watchingRun) {
+        watchingRun = on;
+        songAtStart = now;
+        // Cleared when a run ends too, so the next run's first check (which
+        // may come before this effect) never sees the last run's load.
+        loadedThisTour = false;
+        return;
+      }
+      if (on && !loadedThisTour && now !== songAtStart) {
+        loadedThisTour = true;
+        played = false;
+      }
+    });
   });
 
   // Focus follows the tour in and out: to the step when it starts, back to
@@ -184,7 +234,8 @@
     switch (action.type) {
       case "loadSong": {
         const tune = DEMO_TUNES.find(({ song: t }) => t.id === action.song)?.song;
-        if (tune && $song.id !== tune.id) song.open(tune);
+        // Always fresh: a restarted tour starts from the bare tune.
+        if (tune) loadDemo(tune);
         break;
       }
       case "press": {
@@ -258,8 +309,8 @@
           >{waiting ? "Loading the piano…" : action.label}</button
         >
       {/if}
-      {#if last && met}
-        <button type="button" class="primary" onclick={finishTour}>Finish</button>
+      {#if last}
+        <button type="button" class={met ? "primary" : "link"} onclick={finishTour}>Finish</button>
       {:else}
         <button type="button" class="link" onclick={leaveTour}>Leave tour</button>
       {/if}

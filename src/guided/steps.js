@@ -38,9 +38,10 @@ import { numeralOf, positionOf } from "../theory/index.js";
  * @typedef {{ status: string, song: string, steps: Step[] }} GuidedPath
  *
  * What the conditions read: the song on the staff, whether it has been
- * played since it was loaded, and how many replies the tutor has given in
- * its conversation.
- * @typedef {{ song: Song, played: boolean, tutorReplies: number }} AppState
+ * played since it was loaded, how many replies the tutor has given in its
+ * conversation, and whether a tune was loaded since this run of the tour
+ * started (so a fresh tour never skips its load step).
+ * @typedef {{ song: Song, played: boolean, tutorReplies: number, loadedThisTour: boolean }} AppState
  */
 
 /**
@@ -77,10 +78,10 @@ export function numeralAt(song, bar, beat) {
  * @param {AppState} state
  * @returns {boolean}
  */
-export function conditionMet(condition, { song, played, tutorReplies }) {
+export function conditionMet(condition, { song, played, tutorReplies, loadedThisTour }) {
   switch (condition.type) {
     case "songLoaded":
-      return song.id === condition.song && song.notes.length > 0;
+      return loadedThisTour && song.id === condition.song && song.notes.length > 0;
     case "keyChosen":
       return (
         !song.key.provisional &&

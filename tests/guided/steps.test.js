@@ -45,7 +45,12 @@ function place(store, bar, beat, numeral) {
 }
 
 /** @param {Song} song */
-const state = (song, tutorReplies = 0, played = false) => ({ song, tutorReplies, played });
+const state = (song, tutorReplies = 0, played = false, loadedThisTour = true) => ({
+  song,
+  tutorReplies,
+  played,
+  loadedThisTour,
+});
 
 describe("the guided path's content", () => {
   it("is marked as a placeholder until Matthew's ear check", () => {
@@ -115,6 +120,11 @@ describe("conditionMet", () => {
     assert.ok(conditionMet(met, state(tune)));
     assert.ok(!conditionMet(met, state({ ...tune, id: "st-james-infirmary" })));
     assert.ok(!conditionMet(met, state({ ...tune, notes: [] })));
+  });
+
+  it("wants the song loaded during this run, so a fresh tour starts at step 1", () => {
+    const met = { type: /** @type {const} */ ("songLoaded"), song: "ode-to-joy" };
+    assert.ok(!conditionMet(met, state(tune, 0, false, false)));
   });
 
   it("counts a committed key only, and the right one for keyChosen", () => {
