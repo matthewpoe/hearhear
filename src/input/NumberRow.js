@@ -91,7 +91,7 @@ function currentChordRowAction() {
  * action is "assign". An assigned chord sounds under its note, with the note
  * on top; a live one sounds under home.
  * @param {string} code a chord-row key
- * @param {"assign" | "play" | "none"} action
+ * @param {"assign" | "play"} action
  * @returns {{ midi: number[], fn: import("../types.js").HarmonicFunction }}
  */
 function chordRowPress(code, action) {

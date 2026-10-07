@@ -17,10 +17,11 @@ import {
   spell,
   ticksPerBeat,
 } from "../theory/index.js";
+// The song's title bound, which the request contract shares
+// (server/tests/test_song_limits.py checks the two agree).
+import { MAX_TITLE_CHARS } from "./songLimits.js";
 
 const ACCIDENTAL = { "-1": "b", 0: "", 1: "#" };
-/** The request contract's bound on `title` (MAX_TITLE_CHARS in server/hearhear/models.py). */
-const MAX_TITLE_CHARS = 120;
 
 /** Round to three places so fractional beats (triplets) serialize cleanly. */
 const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
@@ -32,6 +33,7 @@ const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
  *   avoids naming the key, and the server withholds every suggestion.
  * The song's title rides along, trimmed to the contract's bound, so the tutor
  * can ground its teaching in the tune's tradition; it is left out when blank.
+ * So does the song's swing, when it has one, so the tutor can talk about feel.
  */
 export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
   const { key, meter } = song;
@@ -87,5 +89,6 @@ export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
     bars,
     key_hidden: keyHidden,
     ...(title ? { title } : {}),
+    ...(song.swing === undefined ? {} : { swing: song.swing }),
   };
 }
