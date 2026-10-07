@@ -11,6 +11,8 @@ import pytest
 from fastapi.testclient import TestClient
 from helpers import SNAPSHOT, events
 
+from hearhear import tutor
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # The <style> rule abcjs 6.7.1 inserts into every staff it draws, copied from
@@ -90,11 +92,102 @@ def test_fixture_reports_it_was_served_by_no_model(client: TestClient) -> None:
     assert dict(events(response.text))["suggestions"]["served_by"] == "fixture"
 
 
-def test_hidden_key_withholds_fixture_suggestions_too(client: TestClient) -> None:
-    body = {"snapshot": {**SNAPSHOT, "key_hidden": True}, "hint_level": "comparison"}
-    suggestions = dict(events(client.post("/api/tutor", json=body).text))["suggestions"]
+def clamp_logs(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
+    logged: list[dict[str, Any]] = []
+
+    def record(event: str, **fields: Any) -> None:
+        assert event == "tutor_clamped"
+        logged.append(fields)
+
+    monkeypatch.setattr(tutor, "log_event", record)
+    return logged
+
+
+def fixture_reply(
+    client: TestClient, fixture: str, hint_level: str, **snapshot: Any
+) -> dict[str, Any]:
+    body = {"snapshot": {**SNAPSHOT, **snapshot}, "hint_level": hint_level}
+    response = client.post("/api/tutor", json=body, headers={"X-Tutor-Fixture": fixture})
+    suggestions: dict[str, Any] = dict(events(response.text))["suggestions"]
+    return suggestions
+
+
+def counts(entry: dict[str, Any]) -> dict[str, int]:
+    return {k: v for k, v in entry.items() if k != "request_id"}
+
+
+def test_hidden_key_withholds_fixture_suggestions_too(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = clamp_logs(monkeypatch)
+    suggestions = fixture_reply(client, "comparison", "comparison", key_hidden=True)
     assert suggestions["suggestions"] == []
     assert suggestions["dropped"] == 2
+    (entry,) = logged
+    assert len(entry["request_id"]) == 32
+    assert counts(entry) == {
+        "withheld_hidden": 2,
+        "withheld_provisional": 0,
+        "withheld_nudge": 0,
+        "hint_clamped": 0,
+    }
+
+
+def test_provisional_key_withholds_fixture_suggestions(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = clamp_logs(monkeypatch)
+    key = {**SNAPSHOT["key"], "provisional": True}
+    suggestions = fixture_reply(client, "comparison", "comparison", key=key)
+    assert suggestions["suggestions"] == []
+    assert suggestions["dropped"] == 2
+    (entry,) = logged
+    assert counts(entry) == {
+        "withheld_hidden": 0,
+        "withheld_provisional": 2,
+        "withheld_nudge": 0,
+        "hint_clamped": 0,
+    }
+
+
+def test_a_nudge_withholds_fixture_suggestions_and_reports_a_nudge(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = clamp_logs(monkeypatch)
+    suggestions = fixture_reply(client, "answer", "nudge")
+    assert suggestions["hint_level"] == "nudge"
+    assert suggestions["suggestions"] == []
+    assert suggestions["dropped"] == 3
+    (entry,) = logged
+    assert counts(entry) == {
+        "withheld_hidden": 0,
+        "withheld_provisional": 0,
+        "withheld_nudge": 3,
+        "hint_clamped": 1,
+    }
+
+
+def test_a_fixture_claiming_more_than_was_asked_reports_the_requested_level(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = clamp_logs(monkeypatch)
+    suggestions = fixture_reply(client, "answer", "comparison")
+    assert suggestions["hint_level"] == "comparison"
+    assert len(suggestions["suggestions"]) == 3
+    assert suggestions["dropped"] == 0
+    (entry,) = logged
+    assert counts(entry)["hint_clamped"] == 1
+    assert counts(entry)["withheld_nudge"] == 0
+
+
+@pytest.mark.parametrize("level", ["nudge", "comparison", "answer"])
+def test_a_fixture_at_the_requested_level_is_not_clamped(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, level: str
+) -> None:
+    logged = clamp_logs(monkeypatch)
+    suggestions = fixture_reply(client, level, level)
+    assert suggestions["hint_level"] == level
+    assert logged == [], "nothing held back, so nothing logged"
 
 
 def import_app(**env: str) -> subprocess.CompletedProcess[str]:
