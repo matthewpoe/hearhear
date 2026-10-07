@@ -38,14 +38,15 @@ const WHY = {
 };
 
 /**
- * Applied dominants the main list may offer under a chromatic melody note,
- * seventh before triad so a tie falls to the seventh. Major tonicizes ii, iii,
- * IV, V and vi; minor only V, whose #4 is the chromatic note a minor tune
- * most often carries. See docs/decisions/applied-dominants.md.
+ * Applied dominants the main list may offer under a chromatic melody note.
+ * Sevenths only: numeralOf names a seventh V7/x and colors it dominant, while
+ * the triad would read as a plain chromatic numeral (E in G is "VI"). Major
+ * tonicizes ii, iii, IV, V and vi; minor only V, whose #4 is the chromatic
+ * note a minor tune most often carries. See docs/decisions/applied-dominants.md.
  */
 const APPLIED = {
-  major: ["ii", "iii", "IV", "V", "vi"].flatMap((x) => [`V7/${x}`, `V/${x}`]),
-  minor: ["V7/V", "V/V"],
+  major: ["V7/ii", "V7/iii", "V7/IV", "V7/V", "V7/vi"],
+  minor: ["V7/V"],
 };
 
 /** At most this many applied dominants join the main list. */
@@ -54,10 +55,11 @@ const MAX_APPLIED = 2;
 /**
  * The chord tones that let an applied dominant explain a chromatic note, in
  * tie-break order: a raised note is most often the leading tone (the 3rd) of
- * V/x, a lowered one its 7th (F in G7 = V7/IV in G).
+ * V/x, a lowered one its 7th (F in G7 = V7/IV in G). The root isn't listed:
+ * every V7/x root in the pool is diatonic, so it never explains a chromatic note.
  * @type {NoteRole[]}
  */
-const EXPLAINING_ROLES = ["third", "seventh", "root", "fifth"];
+const EXPLAINING_ROLES = ["third", "seventh", "fifth"];
 
 /**
  * Whether a melody pitch is outside the key. Minor's raised 6th and 7th
@@ -119,11 +121,10 @@ export function chordOptions(song, note, { extended = false } = {}) {
 
 /**
  * The applied dominants that explain a chromatic melody note (it is their
- * root, 3rd, 5th or 7th), best fit first, then by EXPLAINING_ROLES, then
- * seventh before triad; at most MAX_APPLIED. None for a
- * note in the key, so a diatonic note's main list is exactly the likely list.
- * The numeral comes from describeOption (numeralOf), not from the V/x
- * spelling used to build the chord.
+ * 3rd, 5th or 7th), best fit first, then by EXPLAINING_ROLES; at most
+ * MAX_APPLIED. None for a note in the key, so a diatonic note's main list is
+ * exactly the likely list. The numeral comes from describeOption (numeralOf),
+ * which reads each one back as V7/x, so no number key names it (degreeOf).
  * @param {Song} song
  * @param {Note} note
  * @param {ChordOption[]} likely
@@ -155,9 +156,6 @@ function appliedOptions(song, note, likely) {
  * @returns {number | null}
  */
 export function degreeOf(option) {
-  // An applied triad can read as a plain numeral (E in G is "VI"); no number
-  // key names it.
-  if (option.applied) return null;
   const parsed = parseNumeral(option.numeral);
   return parsed && parsed.accidental === 0 && !parsed.of ? parsed.degree : null;
 }

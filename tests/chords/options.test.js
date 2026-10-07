@@ -135,23 +135,25 @@ describe("applied dominants in the main list", () => {
   /** @param {import("../../src/chords/options.js").ChordOption[]} options */
   const labels = (options) => options.map((o) => `${id(o.chord)} ${o.numeral}`);
 
-  it("offers E7 as V7/ii (and E) under a G# in G major, ahead of the tension chords", () => {
+  it("offers E7 as V7/ii under a G# in G major, ahead of the tension chords", () => {
     // Sweet Georgia Brown's opening shape: a held G# on the downbeat.
     const s = bar("G", "major", [68, 68, 68, 68]);
     const options = main(s, 0);
-    assert.deepEqual(labels(options.slice(0, 2)), ["E7 V7/ii", "EM VI"]);
+    assert.deepEqual(labels(options.slice(0, 1)), ["E7 V7/ii"]);
     assert.equal(options[0].why, "Melody is the 3rd");
-    assert.equal(options.filter((o) => o.applied).length, 2);
-    // The six likely chords are all still there, after the applied pair.
+    // Sevenths only: the E triad (which would read "VI") is not offered.
+    assert.deepEqual(labels(options.filter((o) => o.applied)), ["E7 V7/ii"]);
+    // The six likely chords are all still there, after it.
     assert.deepEqual(
-      new Set(options.slice(2).map((o) => id(o.chord))),
+      new Set(options.slice(1).map((o) => id(o.chord))),
       new Set(candidates(s.key).map(id)),
     );
   });
 
   it("offers A7 as V7/V under a C# leading to D in G major", () => {
     const s = bar("G", "major", [73, 73, 73, 74], [{ noteId: "n4", root: "D", type: "M" }]);
-    assert.deepEqual(labels(main(s, 0).slice(0, 2)), ["A7 V7/V", "AM II"]);
+    // C# is A7's 3rd and F#7's 5th; both fit the lone C# fully, and the 3rd wins the tie.
+    assert.deepEqual(labels(main(s, 0).slice(0, 2)), ["A7 V7/V", "F#7 V7/iii"]);
   });
 
   it("labels and colors an applied option with the existing theory functions", () => {
@@ -164,7 +166,7 @@ describe("applied dominants in the main list", () => {
   });
 
   it("adds at most two, keeps them out of the extended list, and gives them no number key", () => {
-    const s = bar("G", "major", [68]);
+    const s = bar("G", "major", [73]);
     const likely = chordOptions(s, s.notes[0]);
     const extended = chordOptions(s, s.notes[0], { extended: true });
     const applied = likely.filter((o) => o.applied);
@@ -184,6 +186,10 @@ describe("applied dominants in the main list", () => {
 
   it("leaves every main list in Ode to Joy, St. James, Amazing Grace and Greensleeves unchanged", () => {
     // Snapshot taken from main's dropdown before applied dominants existed.
+    // To regenerate (only when a diatonic list is meant to change): for each
+    // song id in the file, load content/songs/<id>.json and map every note id to
+    // chordOptions(song, note) as `${key} ${numeral} ${fit.toFixed(4)}`,
+    // joined with ", ", then write the object out with 2-space indents.
     // Greensleeves' C# and D# are minor's raised 6th and 7th, so it is in too.
     const snapshot = JSON.parse(
       readFileSync(new URL("./diatonic-main-lists.json", import.meta.url), "utf8"),
