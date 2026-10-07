@@ -27,6 +27,7 @@
   import { playWithVisuals } from "../staff/playback.js";
   import { holdHome, homeDrone, releaseHome } from "../staff/homeDrone.js";
   import { functionOf } from "../theory/index.js";
+  import { numpadAsDigit } from "../theory/keyboard.js";
   import ChordChipRow from "./ChordChipRow.svelte";
   import ChordOption from "./ChordOption.svelte";
   import { chordView } from "./chordView.js";
@@ -422,12 +423,9 @@
       dismiss(true);
       return;
     }
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      event.preventDefault();
-      moveFocus(event.key === "ArrowDown" ? 1 : -1);
-      return;
-    }
-    const digit = /^Digit([1-7])$/.exec(event.code);
+    // The keypad's digits too (numpadAsDigit), checked by code before the
+    // arrows: Num Lock off, keypad 2 arrives with the key "ArrowDown".
+    const digit = /^Digit([1-7])$/.exec(numpadAsDigit(event.code));
     if (digit && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) {
       // Numbers are scale degrees everywhere: 5 auditions V. Stop the number
       // row from also playing a melody note: it skips defaultPrevented events.
@@ -435,6 +433,12 @@
       if (event.repeat) return;
       const option = likely.find((o) => degreeOf(o) === Number(digit[1]));
       if (option) focusOption(option);
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      moveFocus(event.key === "ArrowDown" ? 1 : -1);
+      return;
     }
   }
 

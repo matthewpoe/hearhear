@@ -44,7 +44,7 @@ test("right-click a note to change its accidental, by mouse and keyboard", async
   await expect(note).toHaveAccessibleName(/^G 4\b/);
   // The tooltip says how to reach both menus.
   await expect(note.locator("> title")).toHaveText(
-    "Click for chords · right-click to change the accidental",
+    "Click for chords · right-click to edit the note",
   );
 
   /** The menu sits just below or just above the note, never over it. */
