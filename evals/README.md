@@ -9,10 +9,13 @@ make dev                       # or any running server
 node evals/run.js              # default http://127.0.0.1:8000
 node evals/run.js --url http://127.0.0.1:8001
 node evals/run.js --limit 3    # smoke run: first 3 requests, prints a summary, writes nothing
+node evals/run.js --concurrency 1   # one request at a time (default 4)
 ```
 
+- `--concurrency N` keeps up to N requests in flight; the default, 4, matches the server's `TUTOR_MAX_CONCURRENT`, so a local server never answers `503 busy`. Replies finish in any order, but `latest.json` keeps them in request order, so a run's results don't depend on the concurrency (only the latencies do). `--limit` still sends the first N requests in that order.
+
 - `EVAL_URL` replaces `--url`.
-- `TUTOR_ACCESS_CODE`, when set, is sent as `X-Tutor-Access` (the live tutor's passphrase), percent-encoded as the app sends it. Fixture mode needs none. If the live tutor answers `401 access_required` (code missing or wrong) or `429 access_locked` (too many wrong codes), the harness says so and stops at once, without retrying.
+- `TUTOR_ACCESS_CODE`, when set, is sent as `X-Tutor-Access` (the live tutor's passphrase), percent-encoded as the app sends it. Fixture mode needs none. If the live tutor answers `401 access_required` (code missing or wrong) or `429 access_locked` (too many wrong codes), the harness says so and stops at once, without retrying: the whole run ends, including requests still in flight.
 - The model reported in the results is the `served_by` of the replies the server's own model served, so the harness needs no setting for it.
 
 ### A live run
