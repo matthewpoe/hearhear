@@ -64,6 +64,25 @@ describe("voice", () => {
     assert.ok(tops.every((t) => t < below));
   });
 
+  it("never goes below C2; under a melody that low, sits at the floor", () => {
+    const C2 = 36;
+    // D at the floor, under a melody note (E2) it overlaps.
+    assert.deepEqual(voice(chord("I", D_MAJOR), null, { below: 40 }), [38, 42, 45]);
+    for (let below = 24; below <= 47; below++) {
+      let previous = null;
+      for (const c of candidates(D_MAJOR, { extended: true })) {
+        previous = voice(c, previous, { below });
+        assert.ok(previous[0] >= C2, `under ${below}: ${previous}`);
+        assert.ok(previous[0] < C2 + 12, `under ${below}, in the bottom octave: ${previous}`);
+      }
+    }
+  });
+
+  it("leaves chords above the floor alone", () => {
+    // The lowest voicing that still fits wholly under the melody is untouched.
+    assert.deepEqual(voice({ root: "C", type: "M" }, null, { below: 44 }), [36, 40, 43]);
+  });
+
   it("never drifts down across a long passage", () => {
     /** @type {any} */
     const song = stJames;

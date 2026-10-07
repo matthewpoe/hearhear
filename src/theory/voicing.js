@@ -7,9 +7,13 @@
 import { chordTones } from "./harmony.js";
 import { chromaOf, mod } from "./pitch.js";
 
+/** The lowest note a voicing may use: C2, the bottom of the on-screen keyboard. */
+const VOICING_FLOOR = 36;
+
 /**
  * A close-position voicing of pitch classes, bass first, placed so its top
- * note is the highest it can be while staying under `below`.
+ * note is the highest it can be while staying under `below`, then raised by
+ * octaves if that would put its bass under VOICING_FLOOR.
  * @param {number[]} chromas
  * @param {number} below
  */
@@ -21,7 +25,9 @@ function closeUnder(chromas, below) {
   }
   const top = /** @type {number} */ (stacked.at(-1));
   const octaves = Math.ceil((top - (below - 1)) / 12);
-  return stacked.map((m) => m - 12 * octaves);
+  const placed = stacked.map((m) => m - 12 * octaves);
+  const lift = Math.max(0, Math.ceil((VOICING_FLOOR - placed[0]) / 12));
+  return placed.map((m) => m + 12 * lift);
 }
 
 /**
@@ -47,10 +53,15 @@ function movement(a, b) {
  * Every inversion is placed in close position with its top note in the
  * octave just under `below`; the one that moves least from `previous` wins,
  * and with no previous chord, root position does.
+ *
+ * No note goes below C2 (MIDI 36), the bottom of the keyboard; lower, a
+ * close chord turns to mud. Under a melody that low, the chord sits at the
+ * floor instead and may overlap the melody.
  * @param {ChordSpec} chord
  * @param {number[] | null} previous the previous chord's voicing in the passage, if any
  * @param {{ below: number }} placement MIDI of the passage's lowest melody note
- * @returns {number[]} MIDI, ascending, every note lower than `below`
+ * @returns {number[]} MIDI, ascending, every note at or above C2 and, unless
+ *   the floor prevents it, lower than `below`
  */
 export function voice(chord, previous, { below }) {
   const chromas = chordTones(chord).map(chromaOf);
