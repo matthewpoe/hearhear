@@ -18,9 +18,10 @@ export const DEGREE_INTERVALS = {
 };
 
 /**
- * The PRD's conventional key names, indexed by pitch class. F# major and
- * Eb minor are the defaults where the PRD offers a choice; re-keying to the
- * enharmonic twin (Gb, D#) is how the user picks the other.
+ * The PRD's conventional key names, indexed by pitch class: the spelling with
+ * fewer accidentals in its key signature, and F# major and Eb minor on a tie.
+ * The user picks the enharmonic twin (Gb, D#) by re-keying, or with
+ * transposeSong's `prefer`.
  */
 export const CONVENTIONAL_TONICS = {
   major: ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
