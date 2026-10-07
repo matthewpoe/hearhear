@@ -47,11 +47,27 @@ describe("guessRhythm", () => {
     assert.equal(notes[4].start - notes[3].start, 48);
   });
 
-  it("turns a pause over half a beat after a release into a rest", () => {
-    // Staccato: the first note held under half a beat, then silence until beat 2.
-    const { notes } = guessRhythm(play([0, 1, 2, 3], [0.4, 1, 1, 1], 500));
-    assert.deepEqual(notes[0], { start: 0, dur: 6 });
-    assert.equal(notes[1].start, 12);
+  it("reads a tapped note as its full gap, however short the press", () => {
+    // Computer keys are tapped: held 0.4 beat, then silence until the next note.
+    const { notes } = guessRhythm(play([0, 1, 2, 4], [0.4, 0.3, 0.2, 0.2], 500));
+    assert.deepEqual(notes.slice(0, 3), [
+      { start: 0, dur: 12 },
+      { start: 12, dur: 12 },
+      { start: 24, dur: 24 },
+    ]);
+  });
+
+  it("leaves a rest only after a held note and a full beat of silence", () => {
+    // Held a full beat, then a beat of silence before beat 3: a quarter and a rest.
+    const { notes } = guessRhythm(play([0, 2, 3, 4], [1, 1, 1, 1], 500));
+    assert.deepEqual(notes[0], { start: 0, dur: 12 });
+    assert.equal(notes[1].start, 24);
+  });
+
+  it("keeps a held note's full gap when the silence after it is under a beat", () => {
+    // Held 0.6 of a beat, then 0.4 of silence: was a rest before Matthew's rule.
+    const { notes } = guessRhythm(play([0, 1, 2, 3], [0.6, 1, 1, 1], 500));
+    assert.deepEqual(notes[0], { start: 0, dur: 12 });
   });
 
   it("keeps a short lift between legato notes as a full note", () => {
@@ -80,6 +96,34 @@ describe("guessRhythm", () => {
       notes,
       ode.notes.map(({ start, dur }) => ({ start, dur })),
     );
+  });
+
+  it("recovers Ode to Joy's exact rhythm tapped at its tempo, 80–150 ms per press", () => {
+    const beatMs = 60000 / ode.tempo;
+    const onsets = ode.notes.map((n) => n.start / 12);
+    const events = onsets.map((onset, i) => {
+      const downMs = 1000 + onset * beatMs + WOBBLE_MS[i % WOBBLE_MS.length];
+      // Every press between 80 and 150 ms, spread across the range.
+      return { downMs, upMs: downMs + 80 + ((i * 37) % 71) };
+    });
+    const holds = events.map((e) => e.upMs - e.downMs);
+    assert.equal(Math.min(...holds), 80);
+    assert.equal(Math.max(...holds), 150);
+    const last = ode.notes.at(-1);
+    // Stop is pressed when the last note's time is up.
+    const endMs = 1000 + ((last.start + last.dur) / 12) * beatMs;
+    const { notes, beatMs: detected, dropped } = guessRhythm(events, { endMs });
+    assert.ok(Math.abs(detected - beatMs) < 20, `${detected} vs ${beatMs}`);
+    assert.deepEqual(dropped, []);
+    assert.deepEqual(
+      notes,
+      ode.notes.map(({ start, dur }) => ({ start, dur })),
+    );
+  });
+
+  it("gives a tapped last note one beat when the take's end is unknown", () => {
+    const { notes } = guessRhythm(play([0, 1, 2, 3], [0.2, 0.2, 0.2, 0.2], 500));
+    assert.equal(notes[3].dur, 12);
   });
 
   it("hears two keys pressed together as one note, not an eighth", () => {

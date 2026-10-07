@@ -21,6 +21,13 @@ const DUPLICATE_ONSET = 0.25;
 const DEFAULT_BEAT_MS = 625;
 
 /**
+ * A computer key is tapped, not held like a piano key (Matthew's spec): a
+ * press shorter than this, or shorter than half a beat, is a tap, and a tap
+ * says nothing about the note's length.
+ */
+const TAP_MS = 250;
+
+/**
  * Snap a length in beats to the nearest grid value, in ticks.
  * @param {number} beats
  */
@@ -65,9 +72,14 @@ function duplicateOnsets(events) {
 
 /**
  * Guess rhythm from key-down/up times. The most common gap between onsets is
- * the beat (a quarter); other gaps snap to ½, 1, 1½, 2, 3, or 4 beats; a
- * pause over half a beat after a release becomes a rest; the last note's
- * length comes from its release.
+ * the beat (a quarter); other gaps snap to ½, 1, 1½, 2, 3, or 4 beats.
+ *
+ * Computer keys are tapped (held about 100 ms), so a tap reads as its full
+ * gap: the note lasts until the next one starts. Only a held note (half a
+ * beat or longer) followed by a full beat of silence leaves a rest; it keeps
+ * its held length. The last note's length comes from its release when held;
+ * a tapped last note lasts until `endMs` (when the take stopped), or one beat
+ * without it.
  *
  * Two onsets less than a quarter of a beat apart (a two-finger slip) are one
  * note: the earlier event is dropped and listed in `dropped`, so the caller
@@ -75,22 +87,25 @@ function duplicateOnsets(events) {
  * release (not a number, or before its key-down) is treated as legato: the
  * note lasts until the next one, and the last note lasts one beat.
  * @param {{ downMs: number, upMs: number }[]} events in order
+ * @param {{ endMs?: number }} [options] `endMs`: when the take stopped
  * @returns {{ notes: { start: number, dur: number }[], beatMs: number, dropped: number[] }}
  *   notes in ticks from 0, one per event not dropped; `beatMs` is the detected
  *   beat, so record mode can set the tempo; `dropped` lists the indices of
  *   events merged into the next one, ascending
  */
-export function guessRhythm(events) {
+export function guessRhythm(events, { endMs } = {}) {
   const dropped = duplicateOnsets(events);
   const kept = events.filter((_, i) => !dropped.includes(i));
-  return { ...guessKept(kept), dropped };
+  return { ...guessKept(kept, endMs), dropped };
 }
 
 /**
- * The PRD's algorithm, on events with no duplicate onsets.
+ * The PRD's algorithm, with Matthew's tapped-key rule, on events with no
+ * duplicate onsets.
  * @param {{ downMs: number, upMs: number }[]} events
+ * @param {number | undefined} endMs
  */
-function guessKept(events) {
+function guessKept(events, endMs) {
   const gaps = events.slice(1).map((e, i) => e.downMs - events[i].downMs);
   const beatMs = mostCommonGap(gaps.filter((g) => g > 0));
   const half = TICKS_PER_QUARTER / 2;
@@ -98,12 +113,19 @@ function guessKept(events) {
   let start = 0;
   const notes = events.map((event, i) => {
     const heldMs = event.upMs - event.downMs;
-    const held = Number.isFinite(heldMs) && heldMs >= 0 ? snapTicks(heldMs / beatMs) : null;
-    if (i === gaps.length) return { start, dur: held ?? TICKS_PER_QUARTER };
+    const valid = Number.isFinite(heldMs) && heldMs >= 0;
+    const tapped = valid && (heldMs < TAP_MS || heldMs < beatMs / 2);
+    const held = valid && !tapped ? snapTicks(heldMs / beatMs) : null;
+    if (i === gaps.length) {
+      if (tapped && Number.isFinite(endMs) && /** @type {number} */ (endMs) > event.downMs) {
+        return { start, dur: snapTicks(/** @type {number} */ (endMs - event.downMs) / beatMs) };
+      }
+      return { start, dur: held ?? TICKS_PER_QUARTER };
+    }
     const gap = snapTicks(gaps[i] / beatMs);
-    const rest = held !== null && events[i + 1].downMs - event.upMs > beatMs / 2;
-    // A rest keeps the note's held length, leaving at least half a beat of silence.
-    const dur = rest ? Math.max(half, Math.min(held, gap - half)) : gap;
+    const rest = held !== null && events[i + 1].downMs - event.upMs >= beatMs;
+    // A rest keeps the note's held length, leaving at least a beat of silence.
+    const dur = rest ? Math.min(gap, Math.max(half, Math.min(held, gap - TICKS_PER_QUARTER))) : gap;
     const note = { start, dur };
     start += gap;
     return note;
