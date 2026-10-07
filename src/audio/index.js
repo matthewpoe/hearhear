@@ -84,7 +84,7 @@ export async function playPhrase(range, { onEvent } = {}) {
 /**
  * Play a passage (usually the bar around a note) with a candidate chord in
  * place of whatever chord sits at `atTick`. The melody always plays as in the
- * song. `neighbours` decides how the other chords in the passage are voiced
+ * song. `neighbors` decides how the other chords in the passage are voiced
  * (decision D4):
  * - "as-song" (default): exactly as in the song, so two auditions differ only
  *   in the candidate's harmony.
@@ -93,7 +93,7 @@ export async function playPhrase(range, { onEvent } = {}) {
  * Stops any audition already playing, and nothing else.
  * @param {number[]} voicing the candidate, MIDI, from theory's voice()
  * @param {TickRange} range
- * @param {{ atTick: number, neighbours?: "as-song" | "from-candidate" }} placement
+ * @param {{ atTick: number, neighbors?: "as-song" | "from-candidate" }} placement
  *   atTick is the onset of the note the candidate sits on
  * @returns {Promise<void>}
  */
@@ -106,16 +106,18 @@ export async function auditionChord(voicing, range, placement) {
  * dropdown sounds only where the pointer rests.
  * @param {number[]} voicing
  * @param {TickRange} range
- * @param {{ atTick: number, neighbours?: "as-song" | "from-candidate" }} placement
+ * @param {{ atTick: number, neighbors?: "as-song" | "from-candidate" }} placement
  */
 export function auditionDebounced(voicing, range, placement) {
   stub("auditionDebounced", voicing, range, placement); // STUB(B)
 }
 
 /**
- * Stop the current audition only. Playback, the drone, the click, and live
- * notes keep sounding (decision D10). The chord dropdown calls this when it
- * closes; stop() is for stopping everything.
+ * Stop the current audition only, and cancel a pending debounced one, so
+ * closing the dropdown inside the debounce window never sounds a late chord.
+ * Playback, the drone, the click, and live notes keep sounding (decision D10).
+ * The chord dropdown calls this when it closes; stop() is for stopping
+ * everything. Stream B tests the pending-cancel case.
  */
 export function stopAudition() {
   stub("stopAudition"); // STUB(B)
