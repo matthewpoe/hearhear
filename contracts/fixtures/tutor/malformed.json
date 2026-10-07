@@ -1,0 +1,44 @@
+{
+  "name": "malformed",
+  "description": "One suggestion fails server validation (numeral and letter disagree) and is dropped.",
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "delta": "Try IV under bar 3 and listen "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "for the lift."
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "suggestions",
+      "data": {
+        "hint_level": "comparison",
+        "snapshot_version": 3,
+        "dropped": 1,
+        "suggestions": [
+          {
+            "bar": 3,
+            "beat": 1,
+            "numeral": "IV",
+            "letter": "G",
+            "confidence": "low",
+            "reason": "D is the 5th of G."
+          }
+        ]
+      },
+      "delayMs": 30
+    },
+    {
+      "event": "done",
+      "data": {},
+      "delayMs": 0
+    }
+  ]
+}

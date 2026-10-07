@@ -1,0 +1,102 @@
+{
+  "name": "answer",
+  "description": "Hint level answer: best guess with the theory behind it.",
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "delta": "My best guess is V in bar 4, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "then V to I in bar 8. Bar 4 is "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "a half cadence: it pauses on "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "the dominant, the red square, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "so the second phrase can answer "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "it and come home. I'm fairly "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "confident, but play it and see "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "if it lands for you. "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "suggestions",
+      "data": {
+        "hint_level": "answer",
+        "snapshot_version": 3,
+        "dropped": 0,
+        "suggestions": [
+          {
+            "bar": 4,
+            "beat": 1,
+            "numeral": "V",
+            "letter": "A",
+            "confidence": "high",
+            "reason": "Half cadence: the first phrase pauses on the dominant."
+          },
+          {
+            "bar": 8,
+            "beat": 1,
+            "numeral": "V",
+            "letter": "A",
+            "confidence": "high",
+            "reason": "The melody's E is the 5th of A: tension on the downbeat."
+          },
+          {
+            "bar": 8,
+            "beat": 3,
+            "numeral": "I",
+            "letter": "D",
+            "confidence": "high",
+            "reason": "V to I: the red square resolves home on the final D."
+          }
+        ]
+      },
+      "delayMs": 30
+    },
+    {
+      "event": "done",
+      "data": {},
+      "delayMs": 0
+    }
+  ]
+}

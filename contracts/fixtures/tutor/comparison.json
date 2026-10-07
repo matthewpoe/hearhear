@@ -1,0 +1,73 @@
+{
+  "name": "comparison",
+  "description": "Hint level comparison: two candidates to audition, no verdict.",
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "delta": "Here are two to try under bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "4. Play each one and notice whether "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "the phrase wants to keep going "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "or come to rest. I have a guess, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "but your ear is the judge here. "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "suggestions",
+      "data": {
+        "hint_level": "comparison",
+        "snapshot_version": 3,
+        "dropped": 0,
+        "suggestions": [
+          {
+            "bar": 4,
+            "beat": 1,
+            "numeral": "V",
+            "letter": "A",
+            "confidence": "medium",
+            "reason": "The melody's E is the 5th of A; a half cadence leaves the phrase open."
+          },
+          {
+            "bar": 4,
+            "beat": 1,
+            "numeral": "I",
+            "letter": "D",
+            "confidence": "low",
+            "reason": "F# is the 3rd of D, but resting on I here closes the phrase early."
+          }
+        ]
+      },
+      "delayMs": 30
+    },
+    {
+      "event": "done",
+      "data": {},
+      "delayMs": 0
+    }
+  ]
+}

@@ -5,6 +5,6 @@ uv.lock
 .venv/
 .remember/
 docs/PRD.md
-contracts/*.generated.json
+contracts/tutor-*.schema.json
 test-results/
 playwright-report/
