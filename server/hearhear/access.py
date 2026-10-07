@@ -9,6 +9,7 @@ import hmac
 import math
 import time
 from collections.abc import Callable
+from urllib.parse import unquote
 
 # Wrong guesses allowed per IP in one window. The comparison forgives case,
 # spacing, and punctuation, which shrinks the search space, so the limit is
@@ -29,13 +30,15 @@ def normalize(code: str) -> bytes:
 def code_matches(given: str | None, expected: bytes) -> bool:
     """True when the header's code normalizes to the expected one.
 
-    `expected` is already normalized and never empty (startup refuses an empty
-    code), so a header that normalizes to nothing never matches. The comparison
+    `expected` is already normalized. An empty expected code never matches,
+    even though startup already refuses one in live mode. The comparison
     takes constant time for codes of equal length.
     """
-    if given is None:
+    if given is None or not expected:
         return False
-    return hmac.compare_digest(normalize(given), expected)
+    # The client percent-encodes the code, because header values must be
+    # Latin-1 and a passphrase may not be.
+    return hmac.compare_digest(normalize(unquote(given)), expected)
 
 
 class AccessLockout:

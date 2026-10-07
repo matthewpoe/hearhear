@@ -6,6 +6,7 @@ import json
 import logging
 from collections.abc import AsyncIterator, Iterator
 from typing import Any
+from urllib.parse import quote
 
 import pytest
 from fastapi.testclient import TestClient
@@ -136,6 +137,17 @@ def test_fixture_mode_ignores_the_gate(client: TestClient) -> None:
 def test_non_ascii_codes_compare_without_error() -> None:
     assert code_matches("CAFÉ 9", normalize("café9"))
     assert not code_matches("cafe 9", normalize("café9"))
+
+
+def test_a_percent_encoded_code_matches_after_decoding() -> None:
+    # The client percent-encodes the header, since header values must be Latin-1.
+    assert code_matches(quote("♪ Piano Man!"), normalize("piano man"))
+    assert code_matches(quote("CAFÉ 9"), normalize("café9"))
+
+
+def test_an_empty_expected_code_never_matches() -> None:
+    assert not code_matches("", b"")
+    assert not code_matches("  -- ", b"")
 
 
 @pytest.mark.parametrize("code", [None, "", "  -- . --  "], ids=["unset", "empty", "no-letters"])
