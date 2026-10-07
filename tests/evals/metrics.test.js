@@ -1,14 +1,21 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  FIT_THRESHOLD,
   baselineChord,
   chordNamesIn,
+  dropdownTop,
   nudgeWithholds,
   numeralAgreesWithLetter,
   percentile,
+  plausible,
+  recognized,
   sameHarmony,
+  scoreAlternatives,
   scoreSuggestions,
+  usesVerdict,
 } from "../../evals/metrics.js";
+import { chordFromNumeral, fit } from "../../src/theory/index.js";
 
 const G = { tonic: "G", mode: /** @type {const} */ ("major"), provisional: false };
 const E_MINOR = { tonic: "E", mode: /** @type {const} */ ("minor"), provisional: false };
@@ -139,4 +146,96 @@ test("a matching chord elsewhere is not a hit", () => {
   const score = scoreSuggestions([{ bar: 1, beat: 3, numeral: "I", letter: "G" }], song, point);
   assert.equal(score.hit, false);
   assert.equal(score.onOnset, 1);
+});
+
+test("scoreSuggestions never hits without a reference", () => {
+  const point = { bar: 1, beat: 1, reference: null };
+  const score = scoreSuggestions([{ bar: 1, beat: 1, numeral: "I", letter: "G" }], song, point);
+  assert.equal(score.hit, false);
+});
+
+/** @param {string} id */
+const noteOf = (id) => /** @type {any} */ (song.notes.find((n) => n.id === id));
+
+test("plausible: agreeing, no clash, fit at the threshold, a recognized chord", () => {
+  assert.ok(plausible({ numeral: "I", letter: "G" }, song, noteOf("n1")));
+  assert.ok(plausible({ numeral: "V7/V", letter: "A7" }, song, noteOf("n1")), "applied dominant");
+  assert.equal(plausible({ numeral: "I", letter: "C" }, song, noteOf("n1")), false, "disagree");
+  assert.equal(plausible({ numeral: "vii°", letter: "F#°" }, song, noteOf("n3")), false, "clash");
+  const bm = /** @type {any} */ (chordFromNumeral("iii", G));
+  assert.ok(fit(song, "n2", bm) < FIT_THRESHOLD, "the A under Bm is only a tension");
+  assert.equal(plausible({ numeral: "iii", letter: "Bm" }, song, noteOf("n2")), false, "low fit");
+});
+
+test("recognized: diatonic, applied, borrowed, and passing chords; not a stray bII", () => {
+  const is = (/** @type {string} */ numeral, key = G) =>
+    recognized(numeral, /** @type {any} */ (chordFromNumeral(numeral, key)), key);
+  for (const n of [
+    "I",
+    "ii7",
+    "vii°",
+    "Imaj7",
+    "V7/vi",
+    "V/ii",
+    "vii°7/V",
+    "bVII",
+    "iv",
+    "#iv°7",
+  ]) {
+    assert.ok(is(n), n);
+  }
+  assert.ok(is("II"), "II is V/V");
+  assert.equal(is("bII"), false);
+  assert.ok(is("VII", E_MINOR), "minor's natural VII");
+  assert.ok(is("V7", E_MINOR), "minor's raised V");
+});
+
+test("dropdownTop takes the best three by fit, ties to the commoner chord", () => {
+  const top = dropdownTop(song, "n1");
+  assert.equal(top.length, 3);
+  assert.deepEqual(top[0], baselineChord(song, "n1"));
+});
+
+test("scoreAlternatives wants two distinct chords at the note, every one plausible", () => {
+  const at = (/** @type {string} */ numeral, /** @type {string} */ letter, beat = 1) => ({
+    bar: 1,
+    beat,
+    numeral,
+    letter,
+  });
+  const point = { bar: 1, beat: 1 };
+  const good = scoreAlternatives([at("I", "G"), at("V7/V", "A7"), at("IV", "C", 3)], song, point);
+  assert.equal(good.atPoint, 2, "only suggestions on the note asked about");
+  assert.equal(good.alternatives, true);
+  assert.equal(good.plausible, 2);
+  assert.equal(good.beyond, 1, "the dropdown's top 3 has I, not A7");
+  const twice = scoreAlternatives([at("I", "G"), at("I", "G")], song, point);
+  assert.equal(twice.distinct, 1);
+  assert.equal(twice.alternatives, false);
+  const oneBad = scoreAlternatives([at("I", "G"), at("V7/V", "A7"), at("I", "C")], song, point);
+  assert.equal(oneBad.alternatives, false, "a malformed one spoils the reply");
+  assert.equal(oneBad.plausible, 2);
+});
+
+test("scoreAlternatives sets aside the chord the player placed", () => {
+  const placed = { root: "G", type: "M" };
+  const point = { bar: 1, beat: 1 };
+  const s = (/** @type {string} */ numeral, /** @type {string} */ letter) => ({
+    bar: 1,
+    beat: 1,
+    numeral,
+    letter,
+  });
+  const two = [s("I", "G"), s("V7/V", "A7"), s("IV", "C")];
+  assert.equal(scoreAlternatives(two, song, point, placed).alternatives, true);
+  assert.equal(scoreAlternatives(two.slice(0, 2), song, point, placed).alternatives, false);
+});
+
+test("usesVerdict flags verdict words, whole words in any case", () => {
+  for (const m of ["That's wrong.", "Incorrect here", "a MISTAKE", "You should have used IV"]) {
+    assert.equal(usesVerdict(m), true, m);
+  }
+  for (const m of ["It works; try IV too.", "a wrongly placed beam", "unmistakeable", ""]) {
+    assert.equal(usesVerdict(m), false, m);
+  }
 });
