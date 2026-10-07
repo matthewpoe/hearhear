@@ -42,6 +42,7 @@ Raw material for the written rationale and the video talk track, organized under
 - Intermediate and advanced experience levels
 - More demo tunes ("When the Saints Go Marching In" was next)
 - Persistence
+- Lyrics under the staff (the lyric line carries scale degrees in the alpha)
 
 ## Time spent
 
