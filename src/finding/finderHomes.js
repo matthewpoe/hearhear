@@ -4,8 +4,16 @@
  * home isn't always chord 1 yet stays put across visits to the same tune.
  * The provisional C shows up only when the ranking genuinely puts it there.
  *
+ * For a demo, whose home is known, the first three always include it, and a
+ * set holding it never leads with its dominant (the chord a fifth above
+ * home), which a first-timer easily hears as home.
+ *
  * @import { Key } from "../types.js"
  */
+
+import { pitchClass, sameHome } from "./keys.js";
+
+/** @typedef {Pick<Key, "tonic" | "mode">} Home */
 
 /** Homes per set: "Try three more" moves to the next set. */
 export const FINDER_SIZE = 3;
@@ -13,20 +21,64 @@ export const FINDER_SIZE = 3;
 /**
  * One set of candidate homes, shuffled. Sets wrap around after the last
  * ranked key, so "Try three more" never runs out.
- * @param {{ key: Pick<Key, "tonic" | "mode"> }[]} ranked best first, as rankKeys returns them
+ * @param {{ key: Home }[]} ranked best first, as rankKeys returns them
  * @param {string} seed the song id
  * @param {number} set 0 for the first three, 1 for the next three, ...
- * @returns {Pick<Key, "tonic" | "mode">[]}
+ * @param {Home | null} [known] the demo's home, when the tune has one
+ * @returns {Home[]}
  */
-export function finderHomes(ranked, seed, set) {
-  const sets = Math.ceil(ranked.length / FINDER_SIZE);
-  const start = (set % sets) * FINDER_SIZE;
-  const homes = ranked
-    .slice(start, start + FINDER_SIZE)
-    .map(({ key }) => ({ tonic: key.tonic, mode: key.mode }));
+export function finderHomes(ranked, seed, set, known = null) {
+  const ordered = withKnownUpFront(
+    ranked.map(({ key }) => ({ tonic: key.tonic, mode: key.mode })),
+    known,
+  );
+  const sets = Math.ceil(ordered.length / FINDER_SIZE);
   const index = set % sets;
+  const start = index * FINDER_SIZE;
   // The first set is shuffled by the seed itself, later ones by seed and set.
-  return shuffled(homes, index === 0 ? seed : `${seed}:${index}`);
+  const homes = shuffled(
+    ordered.slice(start, start + FINDER_SIZE),
+    index === 0 ? seed : `${seed}:${index}`,
+  );
+  return known ? notLeadingWithDominant(homes, known) : homes;
+}
+
+/**
+ * The ranking with the known home moved up to third place if it ranked below
+ * the first set; everything else keeps its order.
+ * @param {Home[]} homes best first
+ * @param {Home | null} known
+ * @returns {Home[]}
+ */
+function withKnownUpFront(homes, known) {
+  if (!known) return homes;
+  const at = homes.findIndex((home) => sameHome(home, known));
+  if (at >= 0 && at < FINDER_SIZE) return homes;
+  const home = at >= 0 ? homes[at] : { tonic: known.tonic, mode: known.mode };
+  const rest = homes.filter((_, i) => i !== at);
+  return [...rest.slice(0, FINDER_SIZE - 1), home, ...rest.slice(FINDER_SIZE - 1)];
+}
+
+/**
+ * If a set holding the known home leads with its dominant, swap the dominant
+ * with another chord, one that isn't the known home when there is one, so
+ * the swap doesn't simply put home first.
+ * @param {Home[]} homes
+ * @param {Home} known
+ * @returns {Home[]}
+ */
+function notLeadingWithDominant(homes, known) {
+  const dominant = (pitchClass(known) + 7) % 12;
+  /** @param {Home} home */
+  const isDominant = (home) => pitchClass(home) === dominant;
+  /** @param {Home} home */
+  const isKnown = (home) => sameHome(home, known);
+  if (homes.length === 0 || !isDominant(homes[0]) || !homes.some(isKnown)) return homes;
+  let swap = homes.findIndex((home) => !isDominant(home) && !isKnown(home));
+  if (swap < 0) swap = homes.findIndex(isKnown);
+  const out = [...homes];
+  [out[0], out[swap]] = [out[swap], out[0]];
+  return out;
 }
 
 /**

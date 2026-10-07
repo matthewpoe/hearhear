@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { emptySong } from "../../src/store/song.js";
 import { passageAround, voicingIn } from "../../src/chords/passage.js";
-import { whereOf } from "../../src/chords/chordView.js";
+import { whereOf } from "../../src/chords/where.js";
 
 const Q = 12; // ticks per quarter
 const BAR = 4 * Q;
@@ -64,10 +64,10 @@ describe("passageAround", () => {
 });
 
 describe("whereOf", () => {
-  it("names the bar and beat, with the pickup as bar 0", () => {
+  it("names the bar and beat, with bar 0 as the pickup", () => {
     const song = pickupSong();
     const byId = (/** @type {string} */ id) => song.notes.find((n) => n.id === id);
-    assert.equal(whereOf(/** @type {any} */ (byId("p")), song.meter), "bar 0, beat 4");
+    assert.equal(whereOf(/** @type {any} */ (byId("p")), song.meter), "pickup, beat 4");
     assert.equal(whereOf(/** @type {any} */ (byId("c")), song.meter), "bar 2, beat 2");
   });
 });

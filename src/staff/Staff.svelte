@@ -4,6 +4,8 @@
   // lays text out with the metrics it measures). Playhead and hover toggle
   // classes on the mapped SVG elements (staffEvents.js) and never redraw.
   // abcjs loads on demand (decision D16), so the main bundle stays small.
+  // App.svelte shows the staff only once a song has notes, so the empty
+  // landing has no Play, Print, or blank staff.
   import { untrack } from "svelte";
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
@@ -19,6 +21,9 @@
   import "../print.css";
 
   /** @typedef {typeof import("abcjs").default} Abcjs */
+
+  /** Extra clickable margin around each note, in the staff's SVG units. */
+  const HIT_PADDING = 3;
 
   /** @type {HTMLDivElement} */
   let host;
@@ -125,7 +130,10 @@
     noteButtons = [];
     for (const note of current.notes) {
       const groups = notes.get(note.id) ?? [];
-      for (const group of groups) group.setAttribute("data-note-id", note.id);
+      for (const group of groups) {
+        group.setAttribute("data-note-id", note.id);
+        addHitArea(group);
+      }
       const [first] = groups;
       if (!first) continue;
       first.setAttribute("role", "button");
@@ -142,6 +150,34 @@
     const stop = noteButtons[index];
     stop.setAttribute("tabindex", "0");
     if (place.hadFocus && stop instanceof SVGElement) stop.focus();
+  }
+
+  /**
+   * Make the whole note clickable. abcjs draws a note as separate paths (head,
+   * stem, accidental) with gaps between them that take no clicks, so most of
+   * a note was dead. A transparent rectangle behind the glyphs covers the
+   * note's drawn shapes plus a few pixels on each side. The group also holds
+   * the note's chord symbol and degree (text), which are left out: a wide
+   * chord name would otherwise reach over the neighboring notes.
+   * @param {Element} group
+   */
+  function addHitArea(group) {
+    const boxes = [...group.children]
+      .filter((el) => el instanceof SVGGraphicsElement && !(el instanceof SVGTextElement))
+      .map((el) => /** @type {SVGGraphicsElement} */ (el).getBBox());
+    if (boxes.length === 0) return;
+    const left = Math.min(...boxes.map((b) => b.x)) - HIT_PADDING;
+    const top = Math.min(...boxes.map((b) => b.y)) - HIT_PADDING;
+    const right = Math.max(...boxes.map((b) => b.x + b.width)) + HIT_PADDING;
+    const bottom = Math.max(...boxes.map((b) => b.y + b.height)) + HIT_PADDING;
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("class", "note-hit");
+    rect.setAttribute("x", String(left));
+    rect.setAttribute("y", String(top));
+    rect.setAttribute("width", String(right - left));
+    rect.setAttribute("height", String(bottom - top));
+    rect.setAttribute("rx", String(HIT_PADDING));
+    group.prepend(rect);
   }
 
   // The reveal: the first time labels turn confirmed, colors and degrees grow in.
@@ -204,17 +240,13 @@
   <!-- One compact row of controls over the music; it wraps on phones. -->
   <div class="header">
     <Transport />
-    {#if $song.notes.length > 0}
-      <History />
-      <LabelControls />
-      <VoiceLeading />
-    {/if}
+    <History />
+    <LabelControls />
+    <VoiceLeading />
     <button type="button" class="print" onclick={() => window.print()} disabled={!abcjs}>
       Print lead sheet
     </button>
-    {#if $song.notes.length > 0}
-      <Toolbar />
-    {/if}
+    <Toolbar />
   </div>
   {#if loadError}
     <p class="error" role="alert">
@@ -231,7 +263,7 @@
   {/if}
   <!-- abcjs sizes the host with a percentage padding, which resolves against
        its parent's width, so the width cap sits on this wrapper. -->
-  <div class="frame" class:untitled={$song.notes.length === 0}>
+  <div class="frame">
     <div class="notation mode-{mode}" bind:this={host}></div>
   </div>
 </section>
@@ -291,10 +323,6 @@
   .notation {
     color: var(--ink);
   }
-  /* A blank staff waiting for a tune has no name to show yet. */
-  .untitled :global(.abcjs-title) {
-    visibility: hidden;
-  }
   .notation :global(text) {
     font-family: var(--font);
   }
@@ -316,6 +344,19 @@
   .notation :global([data-note-id]:focus) {
     outline: none;
   }
+  /* The whole note takes clicks: its hit area is invisible until hovered. */
+  .notation :global(.note-hit) {
+    fill: transparent;
+    pointer-events: all;
+  }
+  .notation :global([data-note-id]:hover .note-hit) {
+    fill: color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+  .notation :global([data-note-id]:hover .abcjs-notehead) {
+    stroke: var(--ink-muted);
+    stroke-width: 3px;
+    paint-order: stroke;
+  }
   /* abcjs fills a clicked note with its own selection red, which reads as the
      dominant's color with no shape beside it. The open dropdown names the note. */
   .notation :global(.abcjs-note_selected) {
@@ -336,7 +377,7 @@
     paint-order: stroke;
   }
 
-  /* Chord letters colored by function, like a lead sheet (decision D3):
+  /* Chord symbols colored by function, like a lead sheet (decision D3):
      chordChips.js sets --chord-color from theory's functionInfo. Tentative
      keeps the full color (reduced opacity would fail text contrast) and
      marks itself with italics. Hidden mode tags nothing: a neutral mark. */

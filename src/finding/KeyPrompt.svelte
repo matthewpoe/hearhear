@@ -4,12 +4,18 @@
    * reader of music picks the key from the clues on the staff; anyone else
    * opens the ear finder (KeyCandidates). The picker commits in one click: a
    * home chip sets the key, the chosen chip clicked again takes it back, and
-   * Bright / Dark re-commits the chosen home in the other mode. Every change
-   * is one song.rekey, so undo takes it back too.
+   * Bright / Dark re-commits the chosen home in the other mode. No mode shows
+   * as chosen until the user picks one or a home: a home picked first
+   * commits major, and says so. Every change is one song.rekey, so undo
+   * takes it back too. The one live region says what each change did, in
+   * the same words GuessResult shows.
    * @import { Key } from "../types.js"
    */
   import { song } from "../store/song.js";
   import { afterFinderPick, afterHomeClick, afterModeChange, chosenTonic } from "./keyChoice.js";
+  import { COPY, feedbackText, fill, finderText, guessFeedback } from "./guessFeedback.js";
+  import { demoHome } from "./demoTunes.js";
+  import { isKept, keep } from "./keptChoices.js";
   import { TONICS, keyName } from "./keys.js";
   import KeyCandidates from "./KeyCandidates.svelte";
   import GuessResult from "./GuessResult.svelte";
@@ -28,10 +34,22 @@
     { mode: "minor", label: "Dark (minor)" },
   ]);
 
-  /** The mode picked before any home is chosen; once one is, the key's own mode shows. */
-  let pickedMode = $state(song.get().key.mode);
+  /**
+   * The mode picked before any home is chosen (null: none yet); once a home
+   * is chosen, the key's own mode shows.
+   * @type {"major" | "minor" | null}
+   */
+  let pickedMode = $state(null);
   const mode = $derived($song.key.provisional ? pickedMode : $song.key.mode);
   const chosen = $derived(chosenTonic($song.key));
+  /** A home was chosen with no mode picked, so it went in as major. */
+  let majorByDefault = $state(false);
+
+  /** The home most ears hear, on a demo tune; null anywhere else. */
+  const known = $derived(demoHome($song));
+  /** The user kept a choice most ears don't share, so it isn't raised again. */
+  let kept = $state(isKept(song.get().id));
+  const feedback = $derived(guessFeedback($song.key, known, kept));
 
   let finding = $state(false);
   let announcement = $state("");
@@ -42,19 +60,30 @@
   let helpButton = $state();
   /** The control that opened the finder, where focus returns when it closes. */
   let opener = /** @type {HTMLElement | undefined} */ ($state());
+  /** @type {{ show: () => void } | undefined} */
+  let finder = $state();
 
   $effect(() => {
     if (autofocus) heading?.focus();
   });
 
-  /** @param {Key} key */
-  function apply(key) {
+  /**
+   * Re-key, and say what the change means.
+   * @param {Key} key
+   * @param {string} [lead] said first, such as the finder's comparison
+   */
+  function apply(key, lead) {
     onkey(key);
-    announcement = key.provisional ? "No home chosen yet." : `Home is ${keyName(key)}.`;
+    const said = key.provisional
+      ? "No home chosen yet."
+      : feedbackText(key, guessFeedback(key, known, kept));
+    announcement = lead ? `${lead} ${said}` : said;
   }
 
-  /** @param {Pick<Key, "tonic" | "mode">} home */
-  function pickHome(home) {
+  /** @param {string} tonic */
+  function pickHome(tonic) {
+    majorByDefault = mode === null;
+    const home = { tonic, mode: mode ?? "major" };
     // Un-choosing keeps the home's mode showing, whichever way it was chosen.
     pickedMode = home.mode;
     apply(afterHomeClick($song.key, home));
@@ -63,29 +92,45 @@
   /**
    * A chord chosen in the finder commits its home, as its chip does. Choosing
    * the home already committed ("Check it by ear", then the same chord)
-   * confirms it: the key stays, the finder closes, and focus goes back.
+   * confirms it. The finder stays open either way, showing the chords' names.
    * @param {Pick<Key, "tonic" | "mode">} home
+   * @param {"first" | "same" | "different"} comparison
    */
-  function pickFromFinder(home) {
+  function pickFromFinder(home, comparison) {
     const key = afterFinderPick($song.key, home);
     if (key) {
       pickedMode = home.mode;
-      apply(key);
+      majorByDefault = false;
+      apply(key, finderText(comparison));
       return;
     }
-    closeFinder();
-    announcement = `Home is still ${keyName($song.key)}.`;
+    announcement = `${finderText(comparison)} Home is still ${keyName($song.key)}.`;
   }
 
   /** @param {"major" | "minor"} next */
   function pickMode(next) {
     pickedMode = next;
+    majorByDefault = false;
     const key = afterModeChange($song.key, next);
     if (key) apply(key);
   }
 
-  /** Open the finder; it takes focus, and gives it back to the focused opener on close. */
+  /** "Keep my choice": stop inviting a re-check for this tune. */
+  function keepChoice() {
+    keep($song.id);
+    kept = true;
+    announcement = fill(COPY.kept, $song.key);
+  }
+
+  /**
+   * Open the finder; it scrolls into view and takes focus, and gives focus
+   * back to the opener on close. Asked again while open, it shows itself.
+   */
   function openFinder() {
+    if (finding) {
+      finder?.show();
+      return;
+    }
     const active = document.activeElement;
     // Safari doesn't focus a clicked button, so fall back to "Help me find it".
     opener = active instanceof HTMLButtonElement ? active : helpButton;
@@ -139,30 +184,42 @@
 
   <div class="row" role="group" aria-labelledby="key-home-label">
     <span id="key-home-label" class="label">Home note</span>
-    {#each TONICS[mode] as tonic (tonic)}
+    {#each TONICS[mode ?? "major"] as tonic (tonic)}
       <button
         type="button"
         class="chip"
         aria-pressed={chosen === tonic}
-        onclick={() => pickHome({ tonic, mode })}
+        onclick={() => pickHome(tonic)}
       >
         {tonic}
       </button>
     {/each}
   </div>
 
+  {#if majorByDefault && !$song.key.provisional}
+    <p class="hint">Major unless you pick Dark.</p>
+  {/if}
+
   <p class="visually-hidden" role="status">{announcement}</p>
 
   {#if !$song.key.provisional}
-    <GuessResult guess={$song.key} oncheck={openFinder} />
+    <GuessResult guess={$song.key} {feedback} oncheck={openFinder} onkeep={keepChoice} />
   {/if}
 
   {#if finding}
-    <KeyCandidates onpick={pickFromFinder} onclose={closeFinder} {opener} />
+    <KeyCandidates
+      bind:this={finder}
+      onpick={pickFromFinder}
+      onclose={closeFinder}
+      {opener}
+      {known}
+    />
   {/if}
 
   {#if ondismiss}
-    <button type="button" class="quiet" onclick={ondismiss}>Not now</button>
+    <button type="button" class="quiet" onclick={ondismiss}>
+      {$song.key.provisional ? "Not now" : "Hide this card"}
+    </button>
   {/if}
 </div>
 
@@ -188,6 +245,10 @@
   .paths strong {
     color: var(--ink);
     font-weight: 500;
+  }
+  .hint {
+    margin: 0;
+    color: var(--ink-muted);
   }
   .row {
     display: flex;

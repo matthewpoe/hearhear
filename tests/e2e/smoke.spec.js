@@ -17,9 +17,9 @@ test("the app loads under the production CSP, with every region and no a11y viol
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hear Hear", level: 1 })).toBeVisible();
+  // The empty landing has no staff: nothing to play or print yet.
   for (const region of [
     "Welcome",
-    "Staff",
     "Chords",
     "Tutor",
     "How much should you trust the tutor?",
@@ -27,6 +27,8 @@ test("the app loads under the production CSP, with every region and no a11y viol
   ]) {
     await expect(page.getByRole("region", { name: region, exact: true })).toBeVisible();
   }
+  const staff = page.getByRole("region", { name: "Staff", exact: true });
+  await expect(staff).toHaveCount(0);
 
   const axe = async () => {
     const { violations } = await new AxeBuilder({ page }).analyze();
@@ -47,6 +49,11 @@ test("the app loads under the production CSP, with every region and no a11y viol
     "aria-pressed",
     "true",
   );
+
+  // A tune brings the staff.
+  await page.getByRole("button", { name: /Ode to Joy/ }).click();
+  await expect(staff).toBeVisible();
+  await axe();
 
   expect(problems).toEqual([]);
 });

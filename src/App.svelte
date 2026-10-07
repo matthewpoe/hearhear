@@ -50,7 +50,10 @@
 </header>
 
 <main class="workspace">
-  <Staff />
+  <!-- The empty landing has nothing to play or print, so no staff yet. -->
+  {#if $song.notes.length > 0}
+    <Staff />
+  {/if}
   <div class="columns">
     <div class="step">
       <Landing />
