@@ -11,6 +11,7 @@
 
 import explainers from "../../content/explainers.json" with { type: "json" };
 import { TONICS, keyName, pitchClass, sameHome } from "./keys.js";
+import { displayNote, spokenNote } from "../theory/noteDisplay.js";
 
 /** @typedef {Pick<Key, "tonic" | "mode">} Home */
 
@@ -65,7 +66,7 @@ export function guessFeedback(guess, known, kept) {
  * @param {Feedback} feedback
  */
 export function feedbackText(guess, feedback) {
-  const chose = fill(COPY.chose, guess);
+  const chose = fill(COPY.chose, guess, spokenNote);
   return feedback === "neutral" ? chose : `${chose} ${COPY[feedback]}`;
 }
 
@@ -79,10 +80,12 @@ export function finderText(comparison) {
 }
 
 /**
- * A copy line with its {key} filled in.
+ * A copy line with its {key} filled in, shown with ♭ and ♯ ("You chose D♭
+ * major"); `spoken` spells them out instead, for an announcement.
  * @param {string} line
  * @param {Home} key
+ * @param {(name: string) => string} [spoken]
  */
-export function fill(line, key) {
-  return line.replace("{key}", keyName(key));
+export function fill(line, key, spoken = displayNote) {
+  return line.replace("{key}", spoken(keyName(key)));
 }

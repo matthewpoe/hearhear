@@ -19,6 +19,7 @@
   import { finderComparison, isHome } from "./keyChoice.js";
   import { finderText } from "./guessFeedback.js";
   import { keyName } from "./keys.js";
+  import { displayNote } from "../theory/noteDisplay.js";
   import ListenButton from "./ListenButton.svelte";
 
   /**
@@ -121,7 +122,7 @@
       {@const mine = picked !== null && isHome($song.key, home)}
       <li class:picked={mine}>
         <span class="name">
-          Chord {n}{#if picked}: {keyName(home)}{/if}
+          Chord {n}{#if picked}: {displayNote(keyName(home))}{/if}
         </span>
         <span class="tests">
           <ListenButton label="Play the tune over chord {n}" droneKey={home} />

@@ -126,7 +126,7 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(finder.locator('button[aria-pressed="true"]')).toHaveCount(0);
   await finder.getByRole("button", { name: "Chord 2 sounds like home" }).click();
   await expect(finder).toBeVisible();
-  await expect(finder).toContainText("Chord 1: F# minor");
+  await expect(finder).toContainText("Chord 1: F♯ minor");
   await expect(finder).toContainText("Chord 2: D major");
   await expect(finder).toContainText("Chord 3: A major");
   await expect(d).toHaveAttribute("aria-pressed", "true");

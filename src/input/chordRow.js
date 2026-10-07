@@ -18,6 +18,7 @@ import {
   numeralOf,
   voice,
 } from "../theory/index.js";
+import { displayNote } from "../theory/noteDisplay.js";
 
 /** The chord row, by KeyboardEvent.code: degree 1 to 7. */
 export const CHORD_CODES = ["KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ"];
@@ -103,7 +104,7 @@ export function liveVoicing(chord, key, windowOctave) {
  * @param {LabelStyle} style
  */
 export function chordKeyLabel(chord, key, style) {
-  if (style === "letters") return letterOf(chord);
+  if (style === "letters") return displayNote(letterOf(chord));
   if (style === "nashville") return nashvilleOf(chord, key);
   return numeralOf(chord, key);
 }

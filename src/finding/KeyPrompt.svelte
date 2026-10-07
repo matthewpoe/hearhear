@@ -14,6 +14,7 @@
   import { song } from "../store/song.js";
   import { afterFinderPick, afterHomeClick, afterModeChange, chosenTonic } from "./keyChoice.js";
   import { COPY, feedbackText, fill, finderText, guessFeedback } from "./guessFeedback.js";
+  import { displayNote, spokenNote } from "../theory/noteDisplay.js";
   import { demoHome } from "./demoTunes.js";
   import { isKept, keep } from "./keptChoices.js";
   import { TONICS, keyName } from "./keys.js";
@@ -104,7 +105,7 @@
       apply(key, finderText(comparison));
       return;
     }
-    announcement = `${finderText(comparison)} Home is still ${keyName($song.key)}.`;
+    announcement = `${finderText(comparison)} Home is still ${spokenNote(keyName($song.key))}.`;
   }
 
   /** @param {"major" | "minor"} next */
@@ -119,7 +120,7 @@
   function keepChoice() {
     keep($song.id);
     kept = true;
-    announcement = fill(COPY.kept, $song.key);
+    announcement = fill(COPY.kept, $song.key, spokenNote);
   }
 
   /**
@@ -189,9 +190,10 @@
         type="button"
         class="chip"
         aria-pressed={chosen === tonic}
+        aria-label={spokenNote(tonic)}
         onclick={() => pickHome(tonic)}
       >
-        {tonic}
+        {displayNote(tonic)}
       </button>
     {/each}
   </div>

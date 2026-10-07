@@ -8,6 +8,7 @@
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
   import { KEY_CHOICES, melodyFits, preferFor, semitonesTo } from "./keys.js";
+  import { displayNote, spokenNote } from "../theory/noteDisplay.js";
 
   const MODES = /** @type {const} */ (["major", "minor"]);
 
@@ -52,7 +53,7 @@
           <p class="hint reason">Opens once you've guessed where home is.</p>
         {:else}
           <p class="now" class:tentative={mode === "tentative"}>
-            Now in {current}{mode === "tentative" ? " (a first guess)" : ""}
+            Now in {displayNote(current)}{mode === "tentative" ? " (a first guess)" : ""}
           </p>
         {/if}
         <div class="keys" role="group" aria-label="{$song.key.mode} keys">
@@ -62,8 +63,8 @@
               class="key"
               disabled={hidden}
               aria-pressed={!hidden && tonic === $song.key.tonic}
-              aria-label="Play in {tonic} {$song.key.mode}"
-              onclick={() => playIn(tonic)}>{tonic}</button
+              aria-label="Play in {spokenNote(tonic)} {$song.key.mode}"
+              onclick={() => playIn(tonic)}>{displayNote(tonic)}</button
             >
           {/each}
         </div>
@@ -94,7 +95,7 @@
             {#each MODES as m (m)}
               <optgroup label={m === "major" ? "Major" : "Minor"}>
                 {#each KEY_CHOICES[m] as tonic (tonic)}
-                  <option value="{tonic} {m}">{tonic} {m}</option>
+                  <option value="{tonic} {m}">{displayNote(tonic)} {m}</option>
                 {/each}
               </optgroup>
             {/each}

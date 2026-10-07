@@ -119,7 +119,7 @@ test("right-click a note to change its accidental, by mouse and keyboard", async
   await menu.getByRole("menuitemradio", { name: "G sharp" }).click();
   await expect(menu).toHaveCount(0);
   await expect(note).toHaveAccessibleName(/^G sharp 4\b/);
-  await expect(page.locator("#staff .pitch-status")).toHaveText("G♯4");
+  await expect(page.locator("#staff .pitch-status")).toHaveText("G sharp 4");
   await expect(note).toBeFocused();
 
   // 3. Undo restores the natural.
@@ -137,7 +137,7 @@ test("right-click a note to change its accidental, by mouse and keyboard", async
   await expect(note).toBeFocused();
   // G flat in D major is the F sharp that's already in the key.
   await expect(note).toHaveAccessibleName(/^F sharp 4\b/);
-  await expect(page.locator("#staff .pitch-status")).toHaveText("G♭4, shown as F♯4");
+  await expect(page.locator("#staff .pitch-status")).toHaveText("G flat 4, shown as F sharp 4");
 
   // 5. Escape closes without a change and returns focus; the ContextMenu key opens it too.
   await page.keyboard.press("ContextMenu");

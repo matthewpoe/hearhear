@@ -10,6 +10,7 @@
  */
 
 import { functionInfo, functionOf, letterOf, nashvilleOf, numeralOf } from "../theory/index.js";
+import { displayNote, spokenNote } from "../theory/noteDisplay.js";
 
 /**
  * @typedef {{
@@ -54,10 +55,10 @@ export function chordView(chord, key, mode, style) {
   const numeral = numeralOf(chord, key);
   const fn = functionOf(numeral, key.mode);
   const { text, sup } = styledLabel(chord, key, style, numeral, letters);
-  const spoken = sup ? `${text} ${sup}` : text;
+  const spoken = spokenNote(sup ? `${text} ${sup}` : text);
   return {
     mode,
-    text,
+    text: displayNote(text),
     sup,
     fn,
     color: functionInfo(fn).color,

@@ -12,6 +12,7 @@
   import { noteOff, noteOn } from "../audio/index.js";
   import { spell } from "../theory/index.js";
   import { placeOn, sideFor } from "../chords/placement.js";
+  import { spokenNote } from "../theory/noteDisplay.js";
   import { accidentalChoices, pretty } from "./accidentals.js";
 
   const GUTTER_PX = 16;
@@ -107,8 +108,9 @@
     if (!choice.current) song.setPitch(request.noteId, choice.midi);
     noteOn(choice.midi);
     setTimeout(() => noteOff(choice.midi), NOTE_MS);
-    const named = choice.label + menu.octave;
-    const shown = pretty(spell(choice.midi, song.get().key));
+    // Announced (the staff's status line is for screen readers): spelled out.
+    const named = spokenNote(choice.label + menu.octave);
+    const shown = spokenNote(spell(choice.midi, song.get().key));
     onannounce(choice.shownAs ? `${named}, shown as ${shown}` : named);
     onclose(true);
   }
@@ -175,7 +177,7 @@
           aria-checked={choice.current}
           aria-disabled={!choice.onPiano}
           aria-label={choice.name +
-            (choice.shownAs ? `, shows as ${choice.shownAs} in this key` : "") +
+            (choice.shownAs ? `, shows as ${spokenNote(choice.shownAs)} in this key` : "") +
             (choice.onPiano ? "" : ", off the piano")}
           tabindex="-1"
           onclick={() => pick(choice)}

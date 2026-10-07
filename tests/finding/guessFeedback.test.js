@@ -5,6 +5,7 @@ import stJames from "../../content/songs/st-james-infirmary.json" with { type: "
 import {
   COPY,
   feedbackText,
+  fill,
   finderText,
   guessFeedback,
   knownHome,
@@ -76,6 +77,12 @@ describe("feedbackText", () => {
   it("adds the match or the invitation", () => {
     assert.equal(feedbackText(D_MAJOR, "match"), `You chose D major as home. ${COPY.match}`);
     assert.equal(feedbackText(C_MAJOR, "mismatch"), `You chose C major as home. ${COPY.mismatch}`);
+  });
+
+  it("spells accidentals out, for an announcement", () => {
+    const flat = { tonic: "Db", mode: /** @type {const} */ ("major") };
+    assert.match(feedbackText(flat, "neutral"), /^You chose D flat major as home\./);
+    assert.match(fill(COPY.chose, flat), /^You chose D♭ major as home\./);
   });
 
   it("never names the tune's home or calls a guess wrong", () => {
