@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { emptySong } from "../../src/store/song.js";
 import { candidates, fit } from "../../src/theory/index.js";
@@ -110,5 +111,94 @@ describe("chordView", () => {
     const view = chordView({ root: "C", type: "maj7" }, key, "confirmed", "nashville");
     assert.equal(view.sup, "");
     assert.equal(view.fn, "tonic");
+  });
+});
+
+describe("applied dominants in the main list", () => {
+  /**
+   * One 4/4 bar in a key: the given melody pitches as quarter notes, with any
+   * chords already placed (a placed chord ends the span before it).
+   * @param {string} tonic
+   * @param {"major" | "minor"} mode
+   * @param {number[]} pitches
+   * @param {{ noteId: string, root: string, type: string }[]} [chords]
+   */
+  function bar(tonic, mode, pitches, chords = []) {
+    const s = emptySong();
+    s.key = { tonic, mode, provisional: false };
+    s.notes = pitches.map((midi, i) => ({ id: `n${i + 1}`, midi, start: i * 12, dur: 12 }));
+    s.chords = /** @type {any} */ (chords);
+    return s;
+  }
+  /** @param {ReturnType<typeof bar>} s @param {number} i */
+  const main = (s, i) => chordOptions(s, s.notes[i]);
+  /** @param {import("../../src/chords/options.js").ChordOption[]} options */
+  const labels = (options) => options.map((o) => `${id(o.chord)} ${o.numeral}`);
+
+  it("offers E7 as V7/ii (and E) under a G# in G major, ahead of the tension chords", () => {
+    // Sweet Georgia Brown's opening shape: a held G# on the downbeat.
+    const s = bar("G", "major", [68, 68, 68, 68]);
+    const options = main(s, 0);
+    assert.deepEqual(labels(options.slice(0, 2)), ["E7 V7/ii", "EM VI"]);
+    assert.equal(options[0].why, "Melody is the 3rd");
+    assert.equal(options.filter((o) => o.applied).length, 2);
+    // The six likely chords are all still there, after the applied pair.
+    assert.deepEqual(
+      new Set(options.slice(2).map((o) => id(o.chord))),
+      new Set(candidates(s.key).map(id)),
+    );
+  });
+
+  it("offers A7 as V7/V under a C# leading to D in G major", () => {
+    const s = bar("G", "major", [73, 73, 73, 74], [{ noteId: "n4", root: "D", type: "M" }]);
+    assert.deepEqual(labels(main(s, 0).slice(0, 2)), ["A7 V7/V", "AM II"]);
+  });
+
+  it("labels and colors an applied option with the existing theory functions", () => {
+    const key = { tonic: "G", mode: /** @type {const} */ ("major"), provisional: false };
+    const e7 = main(bar("G", "major", [68]), 0)[0];
+    assert.equal(e7.numeral, "V7/ii");
+    assert.equal(chordView(e7.chord, key, "confirmed", "roman").fn, "dominant");
+    assert.equal(chordView(e7.chord, key, "confirmed", "nashville").text, "6");
+    assert.equal(chordView(e7.chord, key, "confirmed", "letters").text, "E7");
+  });
+
+  it("adds at most two, keeps them out of the extended list, and gives them no number key", () => {
+    const s = bar("G", "major", [68]);
+    const likely = chordOptions(s, s.notes[0]);
+    const extended = chordOptions(s, s.notes[0], { extended: true });
+    const applied = likely.filter((o) => o.applied);
+    assert.ok(applied.length > 0 && applied.length <= 2);
+    const shown = new Set(likely.map((o) => o.key));
+    assert.ok(extended.every((o) => !shown.has(o.key)));
+    assert.ok(applied.every((o) => degreeOf(o) === null));
+  });
+
+  it("offers V7/V for #4 in minor, and nothing for minor's raised 6th and 7th", () => {
+    // E minor: A# (#4) is F#7's 3rd; C# and D# belong to melodic and harmonic minor.
+    assert.deepEqual(labels(main(bar("E", "minor", [70]), 0).slice(0, 1)), ["F#7 V7/V"]);
+    for (const midi of [73, 75]) {
+      assert.ok(main(bar("E", "minor", [midi]), 0).every((o) => !o.applied));
+    }
+  });
+
+  it("leaves every main list in Ode to Joy, St. James, Amazing Grace and Greensleeves unchanged", () => {
+    // Snapshot taken from main's dropdown before applied dominants existed.
+    // Greensleeves' C# and D# are minor's raised 6th and 7th, so it is in too.
+    const snapshot = JSON.parse(
+      readFileSync(new URL("./diatonic-main-lists.json", import.meta.url), "utf8"),
+    );
+    for (const [songId, byNote] of Object.entries(snapshot)) {
+      const s = JSON.parse(
+        readFileSync(new URL(`../../content/songs/${songId}.json`, import.meta.url), "utf8"),
+      );
+      assert.equal(s.notes.length, Object.keys(byNote).length, songId);
+      for (const note of s.notes) {
+        const now = chordOptions(s, note)
+          .map((o) => `${o.key} ${o.numeral} ${o.fit.toFixed(4)}`)
+          .join(", ");
+        assert.equal(now, byNote[note.id], `${songId} ${note.id}`);
+      }
+    }
   });
 });
