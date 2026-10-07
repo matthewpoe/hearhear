@@ -5,8 +5,8 @@
  * playhead and the keyboard always follow the sound, whoever started it.
  *
  * While it plays it owns ui.playheadNoteId, the staff's "is-playing"
- * highlight, and ui.keyboardLights (melody neutral, chord tones in their
- * function color, the drone note as melody). Playback outranks hover: other
+ * highlight, and ui.keyboardLights (the melody note, chord tones in their
+ * function color, and the drone's notes apart from the melody). Playback outranks hover: other
  * writers of keyboardLights clear only what they wrote.
  *
  * CONTRACT: exported names and shapes are frozen (see contracts/README.md).
@@ -74,7 +74,7 @@ export async function playWithVisuals(range, { chords, drone = null } = {}) {
   let melody = [];
 
   /** @type {KeyboardLights} */
-  let lights = { source: "playback", chord: null, melody: droneLight };
+  let lights = { source: "playback", chord: null, melody: [], drone: droneLight };
   clearHighlight(PLAYING);
   ui.update({ playheadNoteId: null, keyboardLights: lights });
 
@@ -87,7 +87,7 @@ export async function playWithVisuals(range, { chords, drone = null } = {}) {
       clearHighlight(PLAYING);
       highlight([event.noteId], PLAYING);
       melody = [midi];
-      lights = { ...lights, melody: [...droneLight, ...melody] };
+      lights = { ...lights, melody };
       ui.update({ playheadNoteId: event.noteId, keyboardLights: lights });
     } else if (event.type === "chord" && event.chordId !== undefined && event.tones) {
       const fn = functions.get(event.chordId) ?? "other";
@@ -102,7 +102,7 @@ export async function playWithVisuals(range, { chords, drone = null } = {}) {
     ? homeDrone.subscribe((tones) => {
         if (!owns() || tones === droneLight) return;
         droneLight = tones;
-        lights = { ...lights, melody: [...droneLight, ...melody] };
+        lights = { ...lights, drone: droneLight };
         if (ui.get().keyboardLights.source === "playback") ui.update({ keyboardLights: lights });
       })
     : () => {};

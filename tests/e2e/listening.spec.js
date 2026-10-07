@@ -134,18 +134,18 @@ test("play bar N, play from bar N, and the drone on home", async ({ page }) => {
   // With the drone on, Play lights the D-major triad under the melody...
   await drone.click();
   await expect(drone).toHaveAttribute("aria-checked", "true");
-  for (const key of droneKeys) await expect(key).not.toHaveClass(/\bmelody\b/);
+  for (const key of droneKeys) await expect(key).not.toHaveClass(/\bdrone\b/);
   await fromBar.click();
-  for (const key of droneKeys) await expect(key).toHaveClass(/\bmelody\b/);
+  for (const key of droneKeys) await expect(key).toHaveClass(/\bdrone\b/);
   // ...turning it off mid-play lets go at once...
   await drone.click();
-  for (const key of droneKeys) await expect(key).not.toHaveClass(/\bmelody\b/);
+  for (const key of droneKeys) await expect(key).not.toHaveClass(/\bdrone\b/);
   // ...and on again brings it back while the tune plays on.
   await drone.click();
-  for (const key of droneKeys) await expect(key).toHaveClass(/\bmelody\b/);
+  for (const key of droneKeys) await expect(key).toHaveClass(/\bdrone\b/);
   // Stop clears it.
   await transport.getByRole("button", { name: "Stop" }).click();
-  for (const key of droneKeys) await expect(key).not.toHaveClass(/\bmelody\b/);
+  for (const key of droneKeys) await expect(key).not.toHaveClass(/\bdrone\b/);
 
   // The keyboard moves the place too: focus a note in bar 1.
   await page.locator(`#staff [role="button"][data-note-id="${ode.notes[0].id}"]`).focus();
