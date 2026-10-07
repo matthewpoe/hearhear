@@ -93,8 +93,12 @@
   });
 
   // Each step (and a resumed tour) brings what it asks the viewer to use into
-  // view, centred above the dock: the song chooser, Play, the key prompt's
-  // button, the note on the staff, the tutor's question box.
+  // view above the dock: the song chooser, Play, the key prompt's card, the
+  // note on the staff, the tutor's question box. A button's whole card or
+  // panel comes with it when that fits, so a step asking for the home chips
+  // shows them too. Nothing moves when it's already in view, so pressing
+  // Play never nudges the page; a note is centred, leaving room for its
+  // chords below it.
   $effect(() => {
     const at = index;
     const on = $tour.running;
@@ -104,11 +108,32 @@
       const target = stepTarget(steps[at], song.get());
       const within = target && document.querySelector(target.selector);
       if (!within) return;
-      const el = (target.button && buttonIn(within, target.button)) || within;
+      const button = target.button ? buttonIn(within, target.button) : undefined;
+      const el = button && !fitsAboveDock(within) ? button : within;
+      if (inViewAboveDock(el)) return;
       const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
-      el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
+      el.scrollIntoView({
+        block: target.button ? "nearest" : "center",
+        behavior: smooth ? "smooth" : "auto",
+      });
     });
   });
+
+  /** The top of the keyboard dock, which the page scrolls above. */
+  function dockTop() {
+    return document.querySelector(".keyboard-dock")?.getBoundingClientRect().top ?? innerHeight;
+  }
+
+  /** @param {Element} el */
+  function fitsAboveDock(el) {
+    return el.getBoundingClientRect().height <= dockTop();
+  }
+
+  /** @param {Element} el */
+  function inViewAboveDock(el) {
+    const r = el.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= dockTop();
+  }
 
   // A press that found its button disabled while the piano loads (the
   // staff's Play) goes through once the piano is ready, and is dropped if the

@@ -172,6 +172,11 @@ for (const viewport of [
     await expect(waiting).toBeVisible();
     await expect(heading).toHaveText(`${titleOf("listen")}:`);
     releaseSamples();
+    // 3 arrives with the home chips it asks for in view above the dock.
+    await expect(heading).toHaveText(`${titleOf("home")}:`);
+    await expect
+      .poll(() => aboveDock(page, "#key-prompt [aria-labelledby='key-home-label']"))
+      .toBe(true);
     await expectStep("home");
     await page.locator("#staff").getByRole("button", { name: "Stop" }).click();
 
