@@ -134,6 +134,13 @@
     color: var(--ink-muted);
     font-size: var(--text-sm);
   }
+  /* With a song loaded, the song picker needs the tagline's room on a
+     laptop, so the masthead stays one line and the staff starts higher. */
+  @media (max-width: 90rem) {
+    .masthead:has(:global(.picker)) .tagline {
+      display: none;
+    }
+  }
   .masthead-tools {
     display: flex;
     flex-wrap: wrap;

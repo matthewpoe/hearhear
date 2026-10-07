@@ -5,6 +5,7 @@ import {
   chordForCode,
   chordKeyLabel,
   chordRowAction,
+  chordRowHelp,
   chordRowNumeral,
   clearsChord,
   liveVoicing,
@@ -93,7 +94,7 @@ describe("chord row: assign or play", () => {
   const MODES = /** @type {const} */ (["hidden", "tentative", "confirmed"]);
 
   it("assigns only with a note selected and the key confirmed", () => {
-    for (const mode of MODES) {
+    for (const mode of /** @type {const} */ (["tentative", "confirmed"])) {
       assert.equal(
         chordRowAction({ bottomRow: "chords", mode, selectedNoteId: "n1" }),
         mode === "confirmed" ? "assign" : "play",
@@ -101,6 +102,21 @@ describe("chord row: assign or play", () => {
       );
       assert.equal(chordRowAction({ bottomRow: "chords", mode, selectedNoteId: null }), "play");
     }
+  });
+
+  it("plays nothing while the key is hidden: the placeholder isn't home", () => {
+    for (const selectedNoteId of ["n1", null]) {
+      assert.equal(chordRowAction({ bottomRow: "chords", mode: "hidden", selectedNoteId }), "none");
+    }
+  });
+
+  it("says what the row does in each mode, naming computer keys as keys", () => {
+    assert.equal(chordRowHelp("hidden"), "Chords follow the key you choose. Find home first.");
+    assert.match(chordRowHelp("tentative"), /in your guessed key/);
+    const confirmed = chordRowHelp("confirmed");
+    assert.doesNotMatch(confirmed, /guessed/);
+    assert.match(confirmed, /the F key is 4, and the G key is 5/);
+    assert.equal(confirmed.split(". ").length, 1, "one sentence");
   });
 
   it("plays single notes whenever the switch is on Notes", () => {

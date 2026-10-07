@@ -24,9 +24,11 @@
     clampWindow,
     keyBindings,
   } from "./keyBindings.js";
-  import { chordForCode, chordKeyLabel } from "./chordRow.js";
+  import { chordForCode, chordKeyLabel, chordRowHelp } from "./chordRow.js";
   import { heldNotes, press, release } from "./liveNotes.js";
   import { flatArmed, heldChord, listenToNumberRow } from "./NumberRow.js";
+  import Tip from "../toolbar/Tip.svelte";
+  import explainers from "../../content/explainers.json" with { type: "json" };
 
   const BLACK = new Set([1, 3, 6, 8, 10]);
   /** How long a screen-reader activation (a click with no press) holds the note. */
@@ -232,18 +234,25 @@
     </p>
     <div class="switch" role="group" aria-label="Bottom row">
       <span class="switch-label" aria-hidden="true">Bottom row:</span>
-      <button type="button" aria-pressed={chordsOnBottomRow} onclick={() => setBottomRow("chords")}
-        >Chords</button
-      >
-      <button type="button" aria-pressed={!chordsOnBottomRow} onclick={() => setBottomRow("notes")}
-        >Notes</button
-      >
+      <Tip id="bottom-row-chords-tip" text={explainers.options.bottomRowChords} above>
+        <button
+          type="button"
+          aria-pressed={chordsOnBottomRow}
+          aria-describedby="bottom-row-chords-tip"
+          onclick={() => setBottomRow("chords")}>Chords</button
+        >
+      </Tip>
+      <Tip id="bottom-row-notes-tip" text={explainers.options.bottomRowNotes} above>
+        <button
+          type="button"
+          aria-pressed={!chordsOnBottomRow}
+          aria-describedby="bottom-row-notes-tip"
+          onclick={() => setBottomRow("notes")}>Notes</button
+        >
+      </Tip>
     </div>
     {#if chordsOnBottomRow}
-      <p class="help">
-        Bottom row keys play chords: the A key is the home chord (1), F is 4, G is 5. With a note's
-        chord picker open, a letter key places that chord.
-      </p>
+      <p class="help" id="chord-row-help">{chordRowHelp(mode)}</p>
     {/if}
     {#if $audioStatus === "failed"}
       <p class="sound" role="alert">
@@ -292,7 +301,10 @@
             {#if inChord && chord && mode !== "hidden"}
               <FunctionMark fn={chord.fn} outline={mode === "tentative"} />
             {/if}
-            {#if chordKey}
+            {#if chordKey && mode === "hidden"}
+              <!-- The chord row waits for home: its keys show as unavailable. -->
+              <kbd class="off">{chordKey.key}</kbd>
+            {:else if chordKey}
               <span class="chord-name">{chordKey.name}</span>
               <kbd>{chordKey.key}</kbd>
             {:else if degree}
