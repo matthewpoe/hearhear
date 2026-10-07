@@ -28,6 +28,7 @@
   import ChordChipRow from "./ChordChipRow.svelte";
   import ChordOption from "./ChordOption.svelte";
   import { chordView, whereOf } from "./chordView.js";
+  import { containingAncestor } from "./containingBlock.js";
   import { chordOptions, degreeOf, describeOption } from "./options.js";
   import { passageAround, voicingIn } from "./passage.js";
   import { NO_TAP, activate } from "./tap.js";
@@ -172,8 +173,26 @@
     tap = NO_TAP;
     tapHint = "";
     await tick();
+    warnIfContained();
     fitAboveDock(rect);
     dialog?.focus();
+  }
+
+  /**
+   * `top` and `left` are page coordinates, so they hold only while no
+   * ancestor of the dropdown is a containing block (positioned, transformed,
+   * filtered, contained). None is today; if a layout change adds one, say so
+   * loudly rather than let the dropdown drift from its note: a console error,
+   * which the e2e smoke test counts as a failure.
+   */
+  function warnIfContained() {
+    const found = dialog && containingAncestor(dialog);
+    if (found)
+      console.error(
+        `Chord dropdown: an ancestor is a containing block (${found.reason}), so its page ` +
+          "coordinates are off. Remove that style or portal the dropdown to <body>.",
+        found.ancestor,
+      );
   }
 
   /**
