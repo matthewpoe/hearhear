@@ -147,6 +147,13 @@ export function createRecorder({
   let plan = null;
   /** The new tune's id and title, for a take that makes one. */
   let fresh = { id: "", title: "" };
+  /**
+   * The key the number row was in when the take was armed. A new tune keeps
+   * it (provisional), so the first press and every later one map a degree
+   * against the same key: the open song's key until the first note, the new
+   * tune's after. @type {import("../types.js").Key | undefined}
+   */
+  let armedKey;
   /** What was open before the newest recorded tune, for Discard. @type {Song | null} */
   let previous = null;
   /** The newest recorded tune's id: Discard goes back to `previous` only from it. */
@@ -214,7 +221,7 @@ export function createRecorder({
       const { notes } = recordedSong({ id: base.id, title: base.title, ...take });
       song.load({ ...base, id: draftId(base), notes, tempo: take.tempo, chords: [] });
     } else {
-      song.load(recordedSong({ ...fresh, ...take }));
+      song.load(recordedSong({ ...fresh, ...take, key: armedKey }));
     }
   }
 
@@ -350,6 +357,7 @@ export function createRecorder({
     // A next phrase that can't be planned isn't a re-take: nothing is armed.
     if (phrase === "next" && !plan) return;
     base = (again || phrase) && mine ? current : null;
+    armedKey = current.key;
     presses = [];
     discarded = null;
     stopAudio();

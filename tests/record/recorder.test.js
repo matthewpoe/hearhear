@@ -7,6 +7,8 @@ import { createSongMemory, installPersistence } from "../../src/store/persist.js
 import { createShelf } from "../../src/record/shelf.js";
 import { createRecorder } from "../../src/record/recorder.js";
 import { MAX_TAKE_NOTES, isUserTune } from "../../src/record/take.js";
+import { degreeToMidi } from "../../src/theory/index.js";
+import { clampWindow } from "../../src/input/keyBindings.js";
 
 /** @typedef {import("../../src/types.js").Song} Song */
 /** @typedef {import("../../src/input/liveNotes.js").NoteEvent} NoteEvent */
@@ -621,6 +623,61 @@ describe("recorder", () => {
       rig.recorder.openTune(older);
       rig.recorder.discard();
       assert.equal(rig.song.get().id, newer);
+    });
+  });
+
+  describe("the key a take is played in", () => {
+    /**
+     * Press a number-row degree the way NumberRow.js does: mapped against the
+     * open song's key, in the ui's octave window, at the moment of the press.
+     * @param {ReturnType<typeof setup>} rig
+     * @param {number} degree
+     */
+    const pressDegree = (rig, degree) => {
+      const { key } = rig.song.get();
+      const midi = degreeToMidi(
+        { degree, accidental: 0, octave: 0 },
+        key,
+        clampWindow(key, rig.ui.get().windowOctave),
+      );
+      rig.tap(midi);
+      return midi;
+    };
+
+    for (const key of [
+      { tonic: "F", mode: "major", provisional: false },
+      { tonic: "Bb", mode: "minor", provisional: false },
+    ]) {
+      it(`5 pressed twice is one pitch twice, armed over a song in ${key.tonic} ${key.mode}`, () => {
+        const rig = setup({ initial: /** @type {Song} */ ({ ...ODE, key }) });
+        rig.recorder.record();
+        const first = pressDegree(rig, 5);
+        const second = pressDegree(rig, 5);
+        rig.recorder.stop();
+        assert.equal(first, second);
+        assert.deepEqual(
+          rig.song.get().notes.map((n) => n.midi),
+          [first, first],
+        );
+        assert.deepEqual(rig.song.get().key, { ...key, provisional: true }, "still asks the key");
+      });
+    }
+
+    it("a next phrase is played in the tune's own key", () => {
+      const rig = setup({
+        initial: /** @type {Song} */ ({
+          ...ODE,
+          key: { tonic: "F", mode: "major", provisional: false },
+        }),
+      });
+      rig.recorder.record();
+      const first = pressDegree(rig, 5);
+      rig.recorder.stop();
+      rig.recorder.name("In F");
+      rig.recorder.record({ phrase: "next" });
+      const next = pressDegree(rig, 5);
+      rig.recorder.stop();
+      assert.equal(next, first);
     });
   });
 });

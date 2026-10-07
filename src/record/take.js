@@ -249,19 +249,21 @@ export const RECORDED_SWING = 2;
 
 /**
  * A recorded tune: 4/4 with no pickup, the tempo from the take, and the key
- * provisional (C, until the key question finds home). Note ids are n1, n2, …
+ * provisional until the key question finds home: the key the number row was
+ * in when the take was armed (C by default), so every press of the take maps
+ * a degree to the same pitch. Note ids are n1, n2, …
  * A take whose eighth pairs were mostly swung is marked to play back swung
  * (the notation stays straight eighths).
- * @param {{ id: string, title: string, notes: { midi: number, start: number, dur: number }[], tempo: number, swing?: boolean }} take
+ * @param {{ id: string, title: string, notes: { midi: number, start: number, dur: number }[], tempo: number, swing?: boolean, key?: import("../types.js").Key }} take
  * @returns {Song}
  */
-export function recordedSong({ id, title, notes, tempo, swing = false }) {
+export function recordedSong({ id, title, notes, tempo, swing = false, key }) {
   return {
     ...(swing ? { swing: RECORDED_SWING } : {}),
     schemaVersion: 1,
     id,
     title,
-    key: { tonic: "C", mode: "major", provisional: true },
+    key: key ? { ...key, provisional: true } : { tonic: "C", mode: "major", provisional: true },
     meter: { beatsPerBar: 4, beatUnit: 4, pickupTicks: 0, provisional: true },
     tempo,
     version: 0,

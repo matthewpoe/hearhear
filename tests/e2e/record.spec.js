@@ -32,6 +32,9 @@ const staffNotes = (page) => page.locator('#staff [role="button"][data-note-id]'
 test("record a tune, name it, and find it on the staff, in the picker, and after a reload", async ({
   page,
 }) => {
+  // Real-time key presses, a reload, two themes and five axe passes: about
+  // 30 s on a busy runner, the default timeout.
+  test.setTimeout(60_000);
   /** @type {string[]} */
   const problems = [];
   page.on("console", (msg) => {
