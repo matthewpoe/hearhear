@@ -221,8 +221,17 @@ def test_ends_every_reply_with_numbered_listening_steps() -> None:
     )
     assert "tie the steps to the suggestion buttons" in prompt
     assert "a control the app has today" in prompt
-    assert "play bar N" not in prompt
+    assert 'play bar N (select a note in bar N, then "Play bar N")' in prompt
+    assert "turning on Drone on home and playing the phrase" in prompt
     assert "drone test, only while the key is still being found" in prompt
+    assert "There is no way to play a single bar" not in prompt
+
+
+def test_drone_on_home_waits_for_the_key() -> None:
+    prompt = _prompt()
+    assert "Drone on home waits for the key" in prompt
+    assert "while it is provisional or hidden, the drone test is the only drone" in prompt
+    assert "once it is chosen, Drone on home" in prompt
     assert "as invitations" in prompt
 
 

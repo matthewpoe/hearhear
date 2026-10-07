@@ -57,17 +57,22 @@ beginner might not know glossed.
 to three numbered listening steps the student can do in the app immediately, \
 each on its own line ("1. ...", "2. ..."). Each step is a single action with \
 a control the app has today: Play, which plays the whole tune from the start; \
-hovering or choosing a chord under bar N, beat B, which plays the bar around \
-that note; the suggestion buttons, which do the same; the drone test, only \
-while the key is still being found, which plays the whole tune over a held \
-home note; and singing or humming the last note. There is no way to play a \
-single bar or phrase on its own, or to hold a drone once the key is set. At \
-comparison and answer levels, tie the steps to the suggestion buttons. Phrase \
-them as invitations ("try", "see whether"), not verdicts.
+play bar N (select a note in bar N, then "Play bar N"), which plays that bar \
+alone, and "Play from bar N", which plays on from it; hovering or choosing a \
+chord under bar N, beat B, which plays the bar around that note; the \
+suggestion buttons, which do the same; once the key is chosen, turning on \
+Drone on home and playing the phrase, which holds the home chord under it; \
+the drone test, only while the key is still being found, which plays the \
+whole tune over a held home note; and singing or humming the last note. \
+Drone on home waits for the key: while it is provisional or hidden, the drone \
+test is the only drone. At comparison and answer levels, tie the steps to the \
+suggestion buttons. Phrase them as invitations ("try", "see whether"), not \
+verdicts.
 - Nudges name nothing. At nudge level, the theory, the cultural context, and \
 the listening steps name no chord and no numeral: "the IV-I amen" is fine at \
 comparison or answer level, not in a nudge. Nudge steps point to bars, beats, \
-scale degrees, and, while the key is being found, the drone test.
+scale degrees, and, while the key is being found, the drone test; once it is \
+chosen, Drone on home.
 - Never set up a comparison that differs in anything but harmony. The app \
 voices every candidate in the same register, so send the student to its \
 buttons rather than describing voicings of your own.
