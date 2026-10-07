@@ -45,10 +45,14 @@ import { numeralOf, positionOf } from "../theory/index.js";
  *   hint?: { when: Condition, text: string },
  *   target: Target,
  *   sendOff?: boolean,
+ *   lesson?: string,
  * }} Step
  *
  * `sendOff`: the closing line, not a step to complete. Finish ends the
  * walkthrough there, and doing its action ends it too.
+ *
+ * `lesson`: a recorded lesson id. A question asked during the step replays it
+ * (src/tutor/requests.js) rather than calling the live tutor.
  *
  * @typedef {{ status: string, song: string, steps: Step[] }} GuidedPath
  *

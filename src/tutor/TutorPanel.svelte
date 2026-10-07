@@ -19,7 +19,7 @@
   import { suggestions, isStale } from "../store/suggestions.js";
   import { toTutorSnapshot } from "../store/snapshot.js";
   import { askTutor, TutorError } from "./client.js";
-  import { onAskRequest } from "./requests.js";
+  import { onAskRequest, stepLesson } from "./requests.js";
   import { checkSuggestions } from "./validate.js";
   import { failureText, canRetry } from "./failures.js";
   import { replySteps } from "./replySteps.js";
@@ -73,14 +73,20 @@
   const canAsk = $derived(hasSong && status !== "loading" && question.trim() !== "");
   /**
    * The server replays recorded replies (TUTOR_MODE=fixture): known from
-   * /api/health, or from a reply served by "fixture".
+   * /api/health.
    */
   let demoReplies = $state(false);
+  /**
+   * The last reply was a recorded sample ("fixture"), though the tutor is
+   * live: the guided path's question, before its lesson is recorded.
+   */
+  let sampleReply = $state(false);
   /** The server calls Claude (TUTOR_MODE=live), so a question needs the passphrase. */
   let liveTutor = $state(false);
   const showGate = $derived(
     asksForCode({
-      live: liveTutor,
+      // The guided path's lesson step answers without one.
+      live: liveTutor && !$stepLesson,
       hasCode,
       changing: changingCode,
       failure: status === "failed" ? failureCode : "",
@@ -168,7 +174,7 @@
         },
       );
       if (exchange.signal.aborted) return;
-      if (reply.served_by === "fixture") demoReplies = true;
+      sampleReply = reply.served_by === "fixture";
       const raw = Array.isArray(reply.suggestions) ? reply.suggestions : [];
       const { items, dropped } = checkSuggestions(raw, current);
       const replyLevel = Object.hasOwn(LEVEL_NAMES, reply.hint_level) ? reply.hint_level : level;
@@ -213,7 +219,7 @@
     const asked = question.trim() || null;
     question = "";
     const keyboard = activatedByKeyboard();
-    send(asked, level);
+    send(asked, level, $stepLesson);
     // The button just pressed is now disabled; keep a keyboard user in the panel.
     if (keyboard) textarea?.focus();
   }
@@ -324,6 +330,11 @@
     <p class="demo">
       Demo mode: the tutor plays back recorded sample replies about Ode to Joy, so it may not answer
       your exact question.
+    </p>
+  {:else if sampleReply}
+    <p class="demo">
+      That reply is a recorded sample about Ode to Joy, played for the guided lesson, so it may not
+      answer your exact question.
     </p>
   {/if}
 

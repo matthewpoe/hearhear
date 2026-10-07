@@ -278,10 +278,21 @@ def test_fixture_header_replays_a_recorded_lesson(client: TestClient, recorded: 
     assert dict(stream)["suggestions"]["served_by"] == "recorded"
 
 
-@pytest.mark.parametrize(
-    "name", ["lesson:ode-unfinished", "lesson:../secret", "lesson:", "lesson:Ode"]
-)
-def test_a_lesson_not_recorded_is_a_404_never_another_file(
+def test_a_lesson_not_recorded_yet_plays_the_sample_reply(
+    client: TestClient, recorded: Path
+) -> None:
+    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    response = client.post(
+        "/api/tutor", json=body, headers={"X-Tutor-Fixture": "lesson:ode-unfinished"}
+    )
+    assert response.status_code == 200
+    stream = dict(events(response.text))
+    assert stream["suggestions"]["served_by"] == "fixture"
+    assert stream["suggestions"]["hint_level"] == "nudge"
+
+
+@pytest.mark.parametrize("name", ["lesson:../secret", "lesson:", "lesson:Ode"])
+def test_a_lesson_name_that_isnt_a_plain_id_is_a_404_never_another_file(
     client: TestClient, recorded: Path, name: str
 ) -> None:
     body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}

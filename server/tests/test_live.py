@@ -3,6 +3,7 @@ over a mock transport. No network calls."""
 
 import asyncio
 import json
+import logging
 from collections.abc import AsyncIterator
 from pathlib import Path
 from types import SimpleNamespace
@@ -777,6 +778,58 @@ def test_live_mode_replays_a_recorded_lesson_without_a_code(
     assert fake.calls == [], "no Claude call"
 
 
+def test_live_mode_plays_the_sample_reply_for_a_lesson_not_recorded_yet(
+    live_mode: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The guided path's tutor step: anyone, no access code, no Claude client.
+    def no_client() -> None:
+        raise AssertionError("a lesson never constructs a Claude client")
+
+    monkeypatch.setattr(app_module, "anthropic_client", no_client)
+    logged: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(
+        app_module, "log_event", lambda event, **fields: logged.append((event, fields))
+    )
+    del live_mode.headers["X-Tutor-Access"]
+    response = live_mode.post(
+        "/api/tutor",
+        json={"snapshot": SNAPSHOT, "hint_level": "nudge"},
+        headers={"X-Tutor-Fixture": "lesson:ode-unfinished"},
+    )
+    assert response.status_code == 200
+    stream = events(response.text)
+    nudge = json.loads((app_module.settings.fixtures_dir / "nudge.json").read_text())
+    first = next(step["data"] for step in nudge["events"] if step["event"] == "message")
+    assert stream[0] == ("message", first)
+    assert dict(stream)["suggestions"]["served_by"] == "fixture"
+    lesson_logs = [fields for event, fields in logged if event == "tutor_lesson"]
+    assert lesson_logs == [
+        {
+            "request_id": response.headers["x-request-id"],
+            "hint_level": "nudge",
+            "source": "fixture",
+        }
+    ]
+    assert not any(event == "request_rejected" for event, _ in logged)
+
+
+def test_live_mode_logs_a_recorded_lesson_as_recorded(
+    live_mode: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(
+        app_module, "log_event", lambda event, **fields: logged.append((event, fields))
+    )
+    response = live_mode.post(
+        "/api/tutor",
+        json={"snapshot": SNAPSHOT},
+        headers={"X-Tutor-Fixture": "lesson:ode-ending"},
+    )
+    assert response.status_code == 200
+    sources = [fields["source"] for event, fields in logged if event == "tutor_lesson"]
+    assert sources == ["recorded"]
+
+
 def test_live_mode_refuses_a_lesson_path_outside_the_lessons(
     live_mode: TestClient, recorded: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -801,3 +854,26 @@ def test_live_mode_still_gates_a_shape_fixture_name(
     )
     assert response.status_code == 401
     assert fake.calls == []
+
+
+def test_a_refused_request_logs_the_apis_error_type_and_message(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    logged = logged_events(monkeypatch)
+    request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+    body = {"type": "error", "error": {"type": "invalid_request_error", "message": "bad param"}}
+    refused = anthropic.BadRequestError(
+        "bad param", response=httpx2.Response(400, request=request), body=body
+    )
+    use_fake(monkeypatch, FakeClient([], error=refused))
+    stream = events(ask(live_mode).text)
+    assert stream[-2][1]["code"] == "upstream"
+    upstream = [fields for event, fields in logged if event == "tutor_upstream_error"]
+    assert upstream == [
+        {
+            "level": logging.ERROR,
+            "request_id": upstream[0]["request_id"],
+            "status": 400,
+            "error": {"type": "invalid_request_error", "message": "bad param"},
+        }
+    ]

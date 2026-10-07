@@ -6,6 +6,8 @@
  * @import { HintLevel } from "./client.js"
  */
 
+import { writable } from "svelte/store";
+
 /**
  * `fixture` names a recorded lesson for the server to replay ("lesson:<id>"),
  * or is empty to ask the tutor as anyone would.
@@ -23,6 +25,14 @@ export function onAskRequest(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
+
+/**
+ * The recorded lesson the guided path's current step names ("lesson:<id>"),
+ * or "" when it names none or the walkthrough isn't running. A question the
+ * viewer asks meanwhile replays it: the step answers anyone, at no cost, so
+ * the panel doesn't ask for the passphrase up front then.
+ */
+export const stepLesson = writable("");
 
 /**
  * Ask the tutor panel to send a question. False when no panel is listening.

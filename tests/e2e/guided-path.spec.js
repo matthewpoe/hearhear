@@ -149,6 +149,10 @@ for (const viewport of [
       if (msg.type() === "error") problems.push(msg.text());
     });
     page.on("pageerror", (error) => problems.push(error.message));
+    // Nothing the walkthrough does reaches Anthropic from the page.
+    page.on("request", (request) => {
+      if (/anthropic/i.test(new URL(request.url()).hostname)) problems.push(request.url());
+    });
 
     // A first visit: the walkthrough starts on its own in the dock, with no
     // choice screen and without taking focus.
@@ -279,8 +283,19 @@ for (const viewport of [
 
     // 7. Ask the tutor in the viewer's own words.
     await expectStep("ask", { selector: "#tutor .ask" });
+    // The step needs no passphrase, so the live tutor doesn't ask for one here.
+    await expect(page.locator("#tutor-gate-ask")).toHaveCount(0);
+    // In either mode it replays the step's lesson (the sample reply until it's
+    // recorded): anyone gets an answer, with no access code and no Claude call.
     await page.locator("#tutor-question").fill("Why does the ending land now?");
+    const replied = page.waitForResponse("**/api/tutor");
     await page.locator("#tutor").getByRole("button", { name: "Ask", exact: true }).click();
+    const reply = await replied;
+    expect(reply.status()).toBe(200);
+    expect(reply.request().headers()["x-tutor-fixture"]).toBe("lesson:ode-ending");
+    expect(reply.request().headers()["x-tutor-access"]).toBeUndefined();
+    // The notice says the reply is a recorded sample (in live mode, that one reply).
+    await expect(page.locator("#tutor .demo")).toContainText("recorded sample");
 
     // 8. Play it in another key, from the disclosure in the key box. Opening
     // it isn't enough; moving the tune is.
