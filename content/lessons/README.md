@@ -21,7 +21,7 @@ Each exchange in `plan.json` gives the song, whether the key is committed or sti
 
 The shape of `contracts/fixtures/tutor/*.json` (`name`, `song`, `description`, and `events` as `{ event, data, delayMs }`, where `delayMs` is the real wait before each event), plus `request`, `served_by`, `fallback`, `model`, `date`, and `follows` for a follow-up.
 
-The script saves only clean replies. A reply with `fallback: true`, an `error` event, an HTTP error, or a suggestion that fails the content checks is reported and not saved, and the run moves on; a follow-up whose earlier exchange was not saved is skipped. A `401 access_required` or `429 access_locked` stops the run. `scripts/validate-content.js` (part of `make check`) applies the same checks to every saved file: each suggestion on a note onset, numeral and letter agreeing in the song's key, no error, no fallback.
+The script saves only clean replies. A reply with `fallback: true`, an `error` event, an HTTP error, a suggestion that fails the content checks, or, when key labels are hidden, a message that names the key (the tonic as a note or chord name, or a phrase like "E minor") is reported and not saved, and the run moves on; a follow-up whose earlier exchange was not saved is skipped. A `401 access_required` or `429 access_locked` stops the run. `scripts/validate-content.js` (part of `make check`) applies the same checks to every saved file: each suggestion on a note onset, numeral and letter agreeing in the song's key, no error, no fallback, and no named key behind hidden labels.
 
 ## Not wired in yet
 

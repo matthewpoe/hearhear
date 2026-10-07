@@ -4,22 +4,18 @@
  * recorded lesson's `suggestions` event against the reply schema and its song:
  * each suggestion must sit on a note onset, and its numeral and letter must
  * name the same chord in the song's key. A recorded lesson must also be real,
- * requested-model output: no error event and no fallback. Runs in CI.
+ * requested-model output (no error event, no fallback), and a reply to a
+ * hidden-key request must not name the key. Runs in CI.
  */
 
-import { readdir, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { validateSong } from "../src/store/song.js";
-import { eventFailures, recordedFailures } from "./contentChecks.js";
+import { eventFailures, hiddenKeyFailures, jsonFiles, recordedFailures } from "./contentChecks.js";
 
 const root = new URL("../", import.meta.url);
 /** @param {string} path */
 const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
-/** @param {string} dir A missing directory has no files. */
-const jsonFiles = async (dir) =>
-  (await readdir(new URL(dir, root)).catch(() => []))
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => dir + f);
 
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 const checkSong = ajv.compile(await readJson("contracts/song.schema.json"));
@@ -30,7 +26,7 @@ const failures = [];
 /** @type {Map<string, import("../src/types.js").Song>} */
 const songs = new Map();
 
-for (const path of await jsonFiles("content/songs/")) {
+for (const path of await jsonFiles(root, "content/songs/")) {
   const song = await readJson(path);
   songs.set(song.id, song);
   if (!checkSong(song)) failures.push(`${path}: ${ajv.errorsText(checkSong.errors)}`);
@@ -43,15 +39,17 @@ for (const path of await jsonFiles("content/songs/")) {
   }
 }
 
-for (const path of await jsonFiles("contracts/fixtures/tutor/")) {
+for (const path of await jsonFiles(root, "contracts/fixtures/tutor/")) {
   const { song, events } = await readJson(path);
   failures.push(...eventFailures(path, songs.get(song), song, events));
 }
 
-for (const path of await jsonFiles("content/lessons/recorded/")) {
-  const { song, events } = await readJson(path);
+// Recorded lessons may not exist yet: only this directory may be missing.
+for (const path of await jsonFiles(root, "content/lessons/recorded/", { optional: true })) {
+  const { song, request, events } = await readJson(path);
   failures.push(...eventFailures(path, songs.get(song), song, events));
   failures.push(...recordedFailures(path, events));
+  failures.push(...hiddenKeyFailures(path, request, events));
 }
 
 if (failures.length) {

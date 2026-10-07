@@ -6,7 +6,7 @@
  * @import { Song } from "../src/types.js"
  */
 
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { chordFromNumeral, letterOf, positionOf } from "../src/theory/index.js";
 
@@ -15,6 +15,26 @@ const ajv = new Ajv2020({ strict: false, allErrors: true });
 const checkReply = ajv.compile(
   JSON.parse(await readFile(new URL("contracts/tutor-reply.schema.json", root), "utf8")),
 );
+
+/**
+ * The `.json` files in a directory, as `dir` + name. Only an `optional`
+ * directory may be missing (it then has no files); any other read error
+ * throws, so a moved content directory can't pass by checking nothing.
+ * @param {URL} base
+ * @param {string} dir relative to `base`, ending in "/"
+ * @param {{ optional?: boolean }} [options]
+ */
+export async function jsonFiles(base, dir, { optional = false } = {}) {
+  /** @type {string[]} */
+  let names;
+  try {
+    names = await readdir(new URL(dir, base));
+  } catch (error) {
+    if (optional && /** @type {NodeJS.ErrnoException} */ (error).code === "ENOENT") return [];
+    throw error;
+  }
+  return names.filter((f) => f.endsWith(".json")).map((f) => dir + f);
+}
 
 /**
  * Failures in one sequence of `{ event, data }`: it must end with `done`, and
@@ -74,4 +94,54 @@ export function recordedFailures(where, events) {
     failures.push(`${where}: served by the fixture replay, not Claude`);
   }
   return failures;
+}
+
+const ACCIDENTAL_WORDS = { "#": "(?:#|♯|[ -]sharp)", b: "(?:b|♭|[ -]flat)", "": "" };
+/** A chord suffix after a letter: Dm, D7, Dmaj7, Dsus4, D°, D+. */
+const CHORD_SUFFIX = "(?:m|maj|min|dim|aug|sus|add|°|ø|\\+)?\\d*";
+
+/**
+ * The words in a message that give away a hidden key: the tonic as a note or
+ * chord name (word-bounded, with its accidental, so in D the "D" of "Do" or the
+ * "D#" of a different note doesn't count), and any letter paired with "major"
+ * or "minor", which names a key outright. A bare "A" before a lowercase word
+ * reads as the article, not the note.
+ * @param {string} message
+ * @param {{ tonic: string }} key
+ * @returns {string[]}
+ */
+export function keySpoilers(message, key) {
+  const letter = key.tonic[0].toUpperCase();
+  const accidental = /** @type {"#" | "b" | ""} */ (key.tonic.slice(1));
+  const natural = accidental ? "" : "(?!#|♯|♭|b(?![a-z])|[ -](?:sharp|flat))";
+  const tonic = new RegExp(
+    `(?<![A-Za-z0-9#♯♭])${letter}${ACCIDENTAL_WORDS[accidental]}${natural}${CHORD_SUFFIX}(?![A-Za-z0-9])`,
+    "g",
+  );
+  const found = [...message.matchAll(tonic)]
+    .filter((m) => !(m[0] === "A" && /^ [a-z]/.test(message.slice(m.index + 1))))
+    .map((m) => m[0]);
+  const keyPhrase = /(?<![A-Za-z0-9])[A-G](?:#|♯|b|♭|[ -]sharp|[ -]flat)? (?:major|minor)\b/gi;
+  for (const m of message.matchAll(keyPhrase)) if (/^[A-G]/.test(m[0])) found.push(m[0]);
+  return [...new Set(found)];
+}
+
+/**
+ * Failures for a reply to a request whose key labels were hidden: its message
+ * must not name the key (keySpoilers). No failures when the key was shown.
+ * @param {string} where
+ * @param {{ snapshot: { key: { tonic: string }, key_hidden?: boolean } }} request
+ * @param {{ event: string, data: any }[]} events
+ * @returns {string[]}
+ */
+export function hiddenKeyFailures(where, request, events) {
+  if (!request.snapshot.key_hidden) return [];
+  const message = events
+    .filter((e) => e.event === "message")
+    .map((e) => e.data.delta)
+    .join("");
+  const spoilers = keySpoilers(message, request.snapshot.key);
+  return spoilers.length
+    ? [`${where}: the key is hidden, but the reply names it (${spoilers.join(", ")})`]
+    : [];
 }

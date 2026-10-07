@@ -7,7 +7,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
-import { capture } from "../../scripts/capture-lessons.js";
+import { Ajv2020 } from "ajv/dist/2020.js";
+import { capture, loadSong, requestFor } from "../../scripts/capture-lessons.js";
 
 const script = new URL("../../scripts/capture-lessons.js", import.meta.url);
 
@@ -43,17 +44,23 @@ const SUGGESTION = {
   reason: "The held E is the 5th of A.",
 };
 
-/** @param {{ fallback?: boolean, error?: boolean }} [reply] */
-const replyEvents = ({ fallback = false, error = false } = {}) => [
-  ["message", { delta: "Try two chords " }],
-  ["message", { delta: "under the long E." }],
+/**
+ * @param {{ fallback?: boolean, error?: boolean, deltas?: string[], nudge?: boolean }} [reply]
+ */
+const replyEvents = ({
+  fallback = false,
+  error = false,
+  deltas = ["Try two chords ", "under the long E."],
+  nudge = false,
+} = {}) => [
+  ...deltas.map((delta) => /** @type {[string, object]} */ (["message", { delta }])),
   error
     ? ["error", { code: "upstream", message: "The tutor couldn't be reached." }]
     : [
         "suggestions",
         {
-          hint_level: "comparison",
-          suggestions: [SUGGESTION],
+          hint_level: nudge ? "nudge" : "comparison",
+          suggestions: nudge ? [] : [SUGGESTION],
           snapshot_version: 4,
           dropped: 0,
           served_by: fallback ? "claude-fallback" : "claude-opus-5-5",
@@ -100,10 +107,10 @@ async function fakeTutor(replies, mode = "live") {
   return { url: `http://127.0.0.1:${port}`, bodies, close: () => server.close() };
 }
 
-/** A temp dir with the test plan and an empty output dir. */
-async function workspace() {
+/** A temp dir with a plan and an empty output dir. */
+async function workspace(plan = PLAN) {
   const dir = await mkdtemp(join(tmpdir(), "capture-"));
-  await writeFile(join(dir, "plan.json"), JSON.stringify(PLAN));
+  await writeFile(join(dir, "plan.json"), JSON.stringify(plan));
   return {
     dir,
     plan: pathToFileURL(join(dir, "plan.json")),
@@ -216,6 +223,79 @@ test("capture won't record from a tutor in fixture mode", async () => {
   } finally {
     tutor.close();
     await ws.cleanup();
+  }
+});
+
+test("capture refuses a hidden-key reply that names the key, and saves a clean nudge", async () => {
+  const hidden = {
+    song: "st-james-infirmary",
+    key: "provisional",
+    key_hidden: true,
+    chords: [],
+    hint_level: "nudge",
+    question: "How do I find home?",
+  };
+  const tutor = await fakeTutor([
+    replyEvents({ nudge: true, deltas: ["Home is E ", "minor here."] }),
+    replyEvents({ nudge: true, deltas: ["Listen to the last note. ", "Does it feel like rest?"] }),
+  ]);
+  const ws = await workspace({
+    exchanges: [
+      { id: "spoiler", ...hidden },
+      { id: "clean", ...hidden },
+    ],
+  });
+  /** @type {string[]} */
+  const lines = [];
+  try {
+    const result = await capture({
+      url: tutor.url,
+      plan: ws.plan,
+      out: ws.out,
+      log: (line) => lines.push(line),
+    });
+    assert.deepEqual(result.refused, ["spoiler"]);
+    assert.deepEqual(result.saved, ["clean"]);
+    assert.deepEqual(await readdir(ws.out), ["clean.json"]);
+    assert.match(
+      lines.join("\n"),
+      /spoiler: the key is hidden, but the reply names it \(E, E minor\)/,
+    );
+  } finally {
+    tutor.close();
+    await ws.cleanup();
+  }
+});
+
+test("every exchange in the real plan builds a valid request offline", async () => {
+  const ajv = new Ajv2020({ strict: false });
+  const schema = JSON.parse(
+    await readFile(new URL("../../contracts/tutor-request.schema.json", import.meta.url), "utf8"),
+  );
+  const check = ajv.compile(schema);
+  const plan = JSON.parse(
+    await readFile(new URL("../../content/lessons/plan.json", import.meta.url), "utf8"),
+  );
+  const ids = new Set();
+  for (const planned of plan.exchanges) {
+    assert.ok(!ids.has(planned.id), `${planned.id} appears once`);
+    if (planned.follows)
+      assert.ok(ids.has(planned.follows), `${planned.id} follows an earlier one`);
+    ids.add(planned.id);
+    // A follow-up's history comes from a live reply; a stand-in turn fills it here.
+    const history = planned.follows
+      ? [
+          { role: "student", text: "q" },
+          { role: "tutor", text: "a" },
+        ]
+      : [];
+    // Throws on a bar and beat with no note, or a numeral that doesn't parse.
+    const request = requestFor(planned, await loadSong(planned.song), history);
+    assert.ok(check(request), `${planned.id}: ${ajv.errorsText(check.errors)}`);
+    assert.equal(request.snapshot.key_hidden, planned.key_hidden ?? false);
+    assert.equal(request.snapshot.key.provisional, planned.key !== "committed");
+    const placed = request.snapshot.bars.flatMap((b) => b.chords);
+    assert.equal(placed.length, planned.chords.length, `${planned.id}: every chord placed`);
   }
 });
 

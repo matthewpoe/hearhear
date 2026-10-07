@@ -27,7 +27,7 @@ import { AccessError, callTutor } from "../evals/tutorCall.js";
 import { createSongStore } from "../src/store/song.js";
 import { toTutorSnapshot } from "../src/store/snapshot.js";
 import { chordFromNumeral, positionOf } from "../src/theory/index.js";
-import { eventFailures, recordedFailures } from "./contentChecks.js";
+import { eventFailures, hiddenKeyFailures, recordedFailures } from "./contentChecks.js";
 
 const root = new URL("../", import.meta.url);
 const readJson = async (/** @type {URL} */ url) => JSON.parse(await readFile(url, "utf8"));
@@ -205,6 +205,7 @@ export async function capture({
     const failures = [
       ...recordedFailures(where, exchange.events),
       ...eventFailures(where, song, song.id, exchange.events),
+      ...hiddenKeyFailures(where, request, exchange.events),
     ];
     if (failures.length) {
       log(`refused ${failures.join("; ")}; not saved.`);
