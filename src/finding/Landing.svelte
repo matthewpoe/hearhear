@@ -1,17 +1,20 @@
 <script>
   /**
-   * The welcome region (Stream D3): load a demo tune, then find its key. The
+   * The welcome region (Stream D3): load a demo tune, then find its key. With
+   * no song it's a compact welcome with the song cards; once a song is on the
+   * staff, the chooser moves to the masthead and this region holds only the
+   * key question and the sound status, under the staff. The
    * key prompt appears when a demo is waiting for a guess, or in free play
    * once there's about a phrase on the provisional C. It owns the piano's
    * warm-up (decision D19): preload on mount, unlock with the sound-check
    * chord on the first click anywhere.
-   * @import { Key, Song } from "../types.js"
+   * @import { Key } from "../types.js"
    */
   import { onMount } from "svelte";
   import { song } from "../store/song.js";
   import { ui } from "../store/ui.js";
   import { audioStatus, preload, unlock } from "../audio/index.js";
-  import { DEMO_TUNES, loadDemo } from "./demoTunes.js";
+  import SongPicker from "../toolbar/SongPicker.svelte";
   import { stopListening } from "./listen.js";
   import KeyPrompt from "./KeyPrompt.svelte";
 
@@ -30,6 +33,7 @@
   let soundBlocked = $state(false);
 
   const empty = $derived($song.notes.length === 0);
+  const songId = $derived($song.id);
   const demo = $derived($ui.demoAwaitingGuess);
 
   /** @type {"none" | "prompt" | "find"} */
@@ -42,6 +46,12 @@
     if (!$song.key.provisional) return "none";
     return $song.notes.length >= PHRASE_NOTES ? "prompt" : "none";
   });
+
+  const soundNote = $derived(
+    $audioStatus === "loading" || $audioStatus === "failed" || soundBlocked,
+  );
+  /** Nothing to show: no card, so the step column starts with the chords. */
+  const quiet = $derived(!empty && view === "none" && !soundNote);
 
   /** A demo's prompt waits for its guess; anywhere else the user can put it off. */
   const canDismiss = $derived(!($song.key.provisional && demo));
@@ -71,11 +81,11 @@
     }
   }
 
-  /** @param {Song} tune */
-  function choose(tune) {
-    loadDemo(tune);
+  // A new tune starts its key question fresh, wherever it was loaded from.
+  $effect(() => {
+    void songId;
     intent = "ask";
-  }
+  });
 
   /**
    * Commit a guess, or take one back (a provisional key). The demo flag stays
@@ -90,35 +100,15 @@
   }
 </script>
 
-<section id="landing" class:empty aria-label="Welcome">
+<section id="landing" class:empty class:quiet aria-label="Welcome">
   {#if empty}
     <h2>Hear a tune. Find where home is.</h2>
     <p class="invite">
       Pick a song, listen, and guess which note feels like home. Your ear does the finding; Hear
       Hear makes every guess quick to test.
     </p>
-  {:else}
-    <h2>{$song.title}</h2>
+    <SongPicker hero />
   {/if}
-
-  <div
-    class="chooser"
-    id={empty ? "song-chooser" : undefined}
-    role="group"
-    aria-labelledby="load-title"
-  >
-    <h3 id="load-title">{empty ? "Load a song" : "Load another song"}</h3>
-    <ul>
-      {#each DEMO_TUNES as { song: tune, blurb } (tune.id)}
-        <li>
-          <button type="button" onclick={() => choose(tune)}>
-            <span class="title">{tune.title}</span>
-            {#if empty}<span class="blurb">{blurb}</span>{/if}
-          </button>
-        </li>
-      {/each}
-    </ul>
-  </div>
 
   <div class="sound" role="status">
     {#if $audioStatus === "loading"}
@@ -154,73 +144,23 @@
   section {
     display: grid;
     gap: var(--space-3);
-    padding: var(--space-4);
+    padding: var(--space-3) var(--space-4);
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
     background: var(--surface);
   }
+  .quiet {
+    display: none;
+  }
   h2 {
     margin: 0;
-    font-size: var(--text-lg);
-    font-weight: 500;
-  }
-  .empty h2 {
     font-size: var(--text-xl);
+    font-weight: 500;
   }
   .invite {
     max-width: 40rem;
     margin: 0;
     color: var(--ink-muted);
-  }
-  .chooser {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2) var(--space-3);
-  }
-  h3 {
-    margin: 0;
-    font-size: var(--text-md);
-    font-weight: 500;
-  }
-  ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .chooser button {
-    display: grid;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-lg);
-    background: var(--surface);
-    color: var(--ink);
-    text-align: left;
-    cursor: pointer;
-    transition: border-color var(--dur-fast) var(--ease);
-  }
-  .chooser button:hover {
-    border-color: var(--ink);
-  }
-  .empty .chooser {
-    display: grid;
-    justify-items: start;
-  }
-  .empty .chooser button {
-    width: 16rem;
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-  }
-  .title {
-    font-weight: 500;
-  }
-  .blurb {
-    color: var(--ink-muted);
-    font-size: var(--text-sm);
   }
   .sound {
     display: flex;
