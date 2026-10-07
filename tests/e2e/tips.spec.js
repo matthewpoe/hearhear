@@ -1,8 +1,9 @@
-// The beginner tour at a laptop size: every tip, from the welcome through the
-// last one after loading a tune and choosing its key, stays off the controls a
-// beginner needs while reading it: the key question's buttons and chips, Play,
-// the masthead toggles, and the staff's notes. A tip anchored in the keyboard
-// dock sits just above the dock, not across the page.
+// The beginner tour at a laptop size, walked as a beginner would: the welcome,
+// then a tune, Play, find home, a key, a chord, and Next through the rest to
+// the tutor. Every tip stays off the controls a beginner needs while reading
+// it: the key question's buttons and chips, Play, the masthead toggles, the
+// staff's notes, and the tutor's heading, question box, and replies. A tip
+// anchored in the keyboard dock never overlaps the dock and stays on screen.
 
 import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
@@ -12,6 +13,11 @@ test.use({ viewport: { width: 1280, height: 800 } });
 const { callouts } = JSON.parse(
   readFileSync(new URL("../../content/callouts.json", import.meta.url), "utf8"),
 );
+const ode = JSON.parse(
+  readFileSync(new URL("../../content/songs/ode-to-joy.json", import.meta.url), "utf8"),
+);
+// The held E that ends bar 4: a half note, with chords that fit it.
+const heldE = ode.notes.find((/** @type {{ dur: number }} */ n) => n.dur === 24);
 /** Titles of the tips anchored in the keyboard dock. */
 const DOCKED = new Set(
   callouts
@@ -26,7 +32,23 @@ const CONTROLS = [
   "#staff [aria-label='Playback']",
   ".masthead-tools",
   "#staff [role='button'][data-note-id]",
+  "#tutor > h2",
+  "#tutor .log",
+  "#tutor .ask",
 ].join(", ");
+
+/**
+ * Click a note by its head, above the staff line across its middle (as the
+ * golden path does).
+ * @param {import("@playwright/test").Page} page
+ * @param {string} id
+ */
+async function clickNote(page, id) {
+  const head = page.locator(`#staff [role="button"][data-note-id="${id}"] .abcjs-notehead`);
+  const box = await head.boundingBox();
+  if (!box) throw new Error(`note ${id} isn't on the staff`);
+  await head.click({ position: { x: box.width / 2, y: box.height / 4 } });
+}
 
 /**
  * The tip's box, once it has stopped moving (Next may scroll smoothly).
@@ -65,7 +87,32 @@ function covered(page) {
   }, CONTROLS);
 }
 
-test("the beginner tour never covers the key question, Play, or the masthead toggles", async ({
+/**
+ * The settled tip's title, after checking it covers no control and, for a
+ * tip anchored in the dock, that it stays clear of the dock and on screen.
+ * @param {import("@playwright/test").Page} page
+ */
+async function checkTip(page) {
+  const tip = await settledTip(page);
+  const title = (await tip.locator("h2").textContent()) ?? "";
+  expect(await covered(page), `tip "${title}"`).toEqual([]);
+  if (DOCKED.has(title)) {
+    const tipBox = await tip.boundingBox();
+    const dockBox = await page.locator(".keyboard-dock").boundingBox();
+    if (!tipBox || !dockBox) throw new Error("tip or dock not on screen");
+    expect(tipBox.y + tipBox.height, `tip "${title}" above the dock`).toBeLessThanOrEqual(
+      dockBox.y,
+    );
+    expect(tipBox.y, `tip "${title}" on screen`).toBeGreaterThanOrEqual(0);
+    expect(tipBox.x, `tip "${title}" on screen`).toBeGreaterThanOrEqual(0);
+    expect(tipBox.x + tipBox.width, `tip "${title}" on screen`).toBeLessThanOrEqual(
+      page.viewportSize()?.width ?? 0,
+    );
+  }
+  return title;
+}
+
+test("the beginner tour walks from the welcome to the tutor without covering a control", async ({
   page,
 }) => {
   /** @type {string[]} */
@@ -80,47 +127,70 @@ test("the beginner tour never covers the key question, Play, or the masthead tog
     "aria-pressed",
     "true",
   );
+  const tip = page.locator("aside.callout");
+  const next = tip.getByRole("button", { name: /^(Next|Got it)$/ });
+  /** @type {string[]} */
+  const seen = [];
 
-  // The welcome tip, before any song.
-  const tip = await settledTip(page);
-  await expect(tip).toContainText("Start here");
-  expect(await covered(page)).toEqual([]);
-
-  // Load the tune and choose its key, so the tips that need key labels (the
-  // dock's number-keys tip among them) show too, then walk the rest.
+  // The welcome, before any song. It has no Next: it waits for a tune.
+  seen.push(await checkTip(page));
+  expect(seen).toEqual(["Start here"]);
+  await expect(next).toHaveCount(0);
   await page.getByRole("button", { name: /Ode to Joy/ }).click();
-  await expect(page.locator("#key-prompt")).toBeVisible();
+
+  // The staff tip: pressing Play finishes it.
+  seen.push(await checkTip(page));
+  expect(seen.at(-1)).toBe("The tune, written out");
+  const play = page.locator("#staff [aria-label='Playback']").getByRole("button", { name: "Play" });
+  await play.click();
+
+  // Then find home, and Next to the ear finder's tip.
+  seen.push(await checkTip(page));
+  expect(seen.at(-1)).toBe("Your first job: find home");
+  await page
+    .locator("#staff [aria-label='Playback']")
+    .getByRole("button", { name: "Stop" })
+    .click();
+  await next.click();
+  seen.push(await checkTip(page));
+  expect(seen.at(-1)).toBe("Don't read music? Use your ear.");
+
+  // Choose D: that finishes both key tips.
   await page
     .locator("#key-prompt")
     .getByRole("group", { name: "Home note" })
     .getByRole("button", { name: "D", exact: true })
     .click();
-  /** @type {string[]} */
-  const seen = [];
-  for (let step = 0; step < 12; step++) {
-    const current = await settledTip(page);
-    const title = (await current.locator("h2").textContent()) ?? "";
-    seen.push(title);
-    expect(await covered(page), `tip "${title}"`).toEqual([]);
-    // A tip anchored in the dock sits just above it (within 150px), not across the page.
-    if (DOCKED.has(title)) {
-      const tipBox = await current.boundingBox();
-      const dockBox = await page.locator(".keyboard-dock").boundingBox();
-      if (!tipBox || !dockBox) throw new Error("tip or dock not on screen");
-      const gap = dockBox.y - (tipBox.y + tipBox.height);
-      expect(gap, `tip "${title}" above the dock`).toBeGreaterThanOrEqual(0);
-      expect(gap, `tip "${title}" above the dock`).toBeLessThanOrEqual(150);
-    }
-    const next = current.getByRole("button", { name: /^(Next|Got it)$/ });
+
+  // Number keys, in the dock; Next to "Hover a chord", which a chord finishes.
+  seen.push(await checkTip(page));
+  expect(DOCKED.has(seen.at(-1))).toBe(true);
+  await next.click();
+  seen.push(await checkTip(page));
+  expect(seen.at(-1)).toBe("Hover a chord to hear it under the tune.");
+  await clickNote(page, heldE.id);
+  await expect(tip).toHaveCount(0);
+  await page
+    .locator("#chords button")
+    .filter({ hasText: /Melody is/ })
+    .first()
+    .click();
+  await expect(page.getByRole("list", { name: "Placed chords" }).getByRole("button")).toHaveCount(
+    1,
+  );
+
+  // The rest with Next, the shapes tip among them, ending on the tutor's Got it.
+  for (let step = 0; step < 6; step++) {
+    seen.push(await checkTip(page));
     const last = (await next.textContent())?.trim() === "Got it";
     await next.click();
     if (last) break;
   }
-  await expect(page.locator("aside.callout")).toHaveCount(0);
-  // The key question and the tutor tips both showed after loading.
-  expect(seen).toContain("Your first job: find home");
-  expect(seen).toContain("Stuck? Ask the tutor.");
-  expect(seen.filter((title) => DOCKED.has(title))).not.toEqual([]);
+  await expect(tip).toHaveCount(0);
+  expect(seen.at(-1)).toBe("Stuck? Ask the tutor.");
+  expect(seen).toContain("Blue circle means home; red square means tension.");
+  expect(seen).toContain("Same tune, any key");
+  expect(new Set(seen).size).toBe(seen.length);
 
   expect(problems).toEqual([]);
 });
