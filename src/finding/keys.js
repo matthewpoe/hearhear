@@ -42,7 +42,7 @@ export function keyName({ tonic, mode }) {
  * the tonic in.
  * @param {Pick<Key, "tonic" | "mode">} key
  */
-function pitchClass(key) {
+export function pitchClass(key) {
   return ((degreeToMidi(HOME, key) % 12) + 12) % 12;
 }
 

@@ -5,6 +5,8 @@ import {
   afterHomeClick,
   afterModeChange,
   chosenTonic,
+  finderComparison,
+  isHome,
 } from "../../src/finding/keyChoice.js";
 import { PROVISIONAL_C } from "../../src/finding/keys.js";
 
@@ -21,6 +23,22 @@ describe("chosenTonic", () => {
   it("shows the committed home in its mode's chip spelling", () => {
     assert.equal(chosenTonic(D_MAJOR), "D");
     assert.equal(chosenTonic({ tonic: "D#", mode: "minor", provisional: false }), "Eb");
+  });
+});
+
+describe("isHome", () => {
+  it("names the committed home, in any spelling", () => {
+    assert.equal(isHome(D_MAJOR, { tonic: "D", mode: "major" }), true);
+    assert.equal(
+      isHome({ tonic: "D#", mode: "minor", provisional: false }, { tonic: "Eb", mode: "minor" }),
+      true,
+    );
+  });
+
+  it("drops a home once the key moves away or goes back to a guess", () => {
+    assert.equal(isHome(D_MAJOR, { tonic: "A", mode: "major" }), false);
+    assert.equal(isHome(D_MAJOR, { tonic: "D", mode: "minor" }), false);
+    assert.equal(isHome({ ...D_MAJOR, provisional: true }, { tonic: "D", mode: "major" }), false);
   });
 });
 
@@ -84,6 +102,31 @@ describe("afterFinderPick", () => {
 
   it("confirms, never takes back, the home already chosen", () => {
     assert.equal(afterFinderPick(D_MAJOR, { tonic: "D", mode: "major" }), null);
+  });
+});
+
+describe("finderComparison", () => {
+  it("is the first choice when nothing was chosen yet", () => {
+    assert.equal(finderComparison(PROVISIONAL_C, { tonic: "D", mode: "major" }), "first");
+  });
+
+  it("matches the earlier choice, enharmonics included", () => {
+    assert.equal(finderComparison(D_MAJOR, { tonic: "D", mode: "major" }), "same");
+    assert.equal(
+      finderComparison(
+        { tonic: "C#", mode: "minor", provisional: false },
+        {
+          tonic: "Db",
+          mode: "minor",
+        },
+      ),
+      "same",
+    );
+  });
+
+  it("differs from another home, or the same home in the other mode", () => {
+    assert.equal(finderComparison(D_MAJOR, { tonic: "A", mode: "major" }), "different");
+    assert.equal(finderComparison(D_MAJOR, { tonic: "D", mode: "minor" }), "different");
   });
 });
 

@@ -26,7 +26,9 @@ import { createSseParser } from "./sse.js";
  *   snapshot_version: number,
  *   dropped: number,
  *   withheld?: number,
+ *   served_by?: string,
  * }} SuggestionsEvent
+ * `served_by` is "fixture" when the server replayed a recorded reply.
  */
 
 /**

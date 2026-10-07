@@ -92,6 +92,17 @@ export async function unlock() {
   });
 }
 
+/**
+ * Start audio without a sound: unlock() minus the sound-check chord. Call it
+ * from a user gesture whose next sound is the tune itself (a note click that
+ * opens the chords), so a C chord never plays over a tune in another key.
+ * Resolves whether or not audio started; failures show through `audioStatus`.
+ * @returns {Promise<void>}
+ */
+export async function resume() {
+  await wake();
+}
+
 /** @param {number} midi */
 function attackLive(midi) {
   const engine = current();

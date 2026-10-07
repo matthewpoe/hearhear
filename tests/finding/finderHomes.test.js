@@ -4,7 +4,7 @@ import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import stJames from "../../content/songs/st-james-infirmary.json" with { type: "json" };
 import { FINDER_SIZE, finderHomes, shuffled } from "../../src/finding/finderHomes.js";
 import { sameHome } from "../../src/finding/keys.js";
-import { rankKeys } from "../../src/theory/index.js";
+import { rankKeys, transposeSong } from "../../src/theory/index.js";
 
 /** @param {{ tonic: string, mode: string }} key */
 const name = (key) => `${key.tonic} ${key.mode}`;
@@ -50,6 +50,48 @@ describe("finderHomes", () => {
     const notes = scale.map((midi, i) => ({ id: `n${i}`, midi, start: i * 12, dur: 12 }));
     const homes = finderHomes(rankKeys(notes), "c-tune", 0);
     assert.ok(homes.some((home) => sameHome(home, { tonic: "C", mode: "major" })));
+  });
+
+  describe("with a demo's known home", () => {
+    for (const tune of [ode, stJames]) {
+      const ranked = rankKeys(tune.notes);
+      const homes = finderHomes(ranked, tune.id, 0, tune.key);
+
+      it(`keeps ${tune.title}'s home in the first three, not first`, () => {
+        assert.equal(homes.length, FINDER_SIZE);
+        assert.ok(homes.some((home) => sameHome(home, tune.key)));
+        assert.ok(!sameHome(homes[0], tune.key));
+      });
+
+      it(`doesn't lead ${tune.title}'s lineup with the dominant`, () => {
+        const dominant = transposeSong(/** @type {any} */ (tune), 7).key;
+        assert.notEqual(homes[0].tonic, dominant.tonic);
+      });
+
+      it(`still offers every key once across the sets for ${tune.title}`, () => {
+        const seen = new Set();
+        for (let set = 0; set < ranked.length / FINDER_SIZE; set++) {
+          for (const home of finderHomes(ranked, tune.id, set, tune.key)) seen.add(name(home));
+        }
+        assert.equal(seen.size, ranked.length);
+      });
+    }
+
+    it("moves a known home that ranks low into the first three", () => {
+      const ranked = rankKeys(ode.notes);
+      const low = ranked[10].key;
+      const homes = finderHomes(ranked, ode.id, 0, low);
+      assert.ok(homes.some((home) => sameHome(home, low)));
+      assert.equal(new Set(homes.map(name)).size, FINDER_SIZE);
+    });
+
+    it("is the same lineup every visit", () => {
+      const ranked = rankKeys(ode.notes);
+      assert.deepEqual(
+        finderHomes(ranked, ode.id, 0, ode.key),
+        finderHomes(ranked, ode.id, 0, ode.key),
+      );
+    });
   });
 
   it("wraps around after the last set", () => {

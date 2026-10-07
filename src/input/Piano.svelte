@@ -242,7 +242,10 @@
       >
     </div>
     {#if chordsOnBottomRow}
-      <p class="help">Bottom row plays chords: A is the home chord (1), F is 4, G is 5.</p>
+      <p class="help">
+        Bottom row keys play chords: the A key is the home chord (1), F is 4, G is 5. With a note's
+        chord picker open, a letter key places that chord.
+      </p>
     {/if}
     {#if $audioStatus === "failed"}
       <p class="sound" role="alert">

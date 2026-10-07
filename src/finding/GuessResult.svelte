@@ -1,26 +1,62 @@
 <script>
   /**
    * Under the picker once a home is chosen. The labels reveal around it
-   * (keyLabelMode turns confirmed) and follow the guess, right or wrong.
-   * Every guess gets the same next steps (decision D14): no buzzer, no
-   * correction, and no "correct" either. The colors carry the consequence.
+   * (keyLabelMode turns confirmed) and follow the guess, right or wrong. It
+   * says "You chose", never "Home is": the guess is a hunch to test. On a
+   * demo, whose home is known, a match is confirmed and a mismatch gets a
+   * gentle invitation to check by ear or keep the choice, never a "wrong"
+   * and never the answer (guessFeedback.js). KeyPrompt's live region
+   * announces the same words.
    * @import { Key } from "../types.js"
+   * @import { Feedback } from "./guessFeedback.js"
    */
-  import { keyName } from "./keys.js";
+  import { tick } from "svelte";
+  import { COPY, fill } from "./guessFeedback.js";
 
-  /** @type {{ guess: Key, oncheck: () => void }} */
-  let { guess, oncheck } = $props();
+  /**
+   * @type {{
+   *   guess: Key,
+   *   feedback: Feedback,
+   *   oncheck: () => void,
+   *   onkeep: () => void,
+   * }}
+   */
+  let { guess, feedback, oncheck, onkeep } = $props();
+
+  const invite = $derived(feedback === "mismatch" || feedback === "otherMode");
+
+  /** @type {HTMLButtonElement | undefined} */
+  let checkButton = $state();
+
+  /** "Keep my choice" removes itself, so focus moves to the "Check it by ear" that stays. */
+  async function keepChoice() {
+    onkeep();
+    await tick();
+    checkButton?.focus();
+  }
 </script>
 
 <div class="result">
-  <p class="home">Home is {keyName(guess)}.</p>
-  <p>
-    Next: find the chords. Click a note on the staff to try chords under it, or use the bottom row
-    of keys (A to J) to play chords as you go.
-  </p>
-  <p>
-    Not sure? <button type="button" onclick={oncheck}>Check it by ear</button>
-  </p>
+  <p class="home">{fill(COPY.chose, guess)}</p>
+  {#if invite}
+    <p>{COPY[feedback === "otherMode" ? "otherMode" : "mismatch"]}</p>
+    <p class="actions">
+      <button type="button" onclick={oncheck}>{COPY.check}</button>
+      <button type="button" onclick={keepChoice}>{COPY.keep}</button>
+    </p>
+  {:else}
+    {#if feedback === "match"}
+      <p class="home">{COPY.match}</p>
+    {/if}
+    <p>
+      Next: find the chords. Click a note on the staff to try chords under it, or use the bottom row
+      of keys (A to J) to play chords as you go.
+    </p>
+    <p>
+      Not sure? <button type="button" bind:this={checkButton} onclick={oncheck}>{COPY.check}</button
+      >
+    </p>
+  {/if}
 </div>
 
 <style>
@@ -36,6 +72,11 @@
   .home {
     color: var(--ink);
     font-weight: 500;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
   }
   button {
     padding: var(--space-1) var(--space-3);

@@ -2,13 +2,13 @@
  * Song model → ABC notation for abcjs. The staff, the lead sheet, and print
  * all render this one string, so notation can never drift from the song.
  *
- * Layout: letter-name chord symbols above the staff, like a lead sheet (the
- * staff colors them by function after rendering; numerals, shapes, and chips
- * live only in the chord chip row, decision D3), and scale degrees on a lyric
- * line with jianpu octave dots. In "hidden" label mode nothing key-relative
- * is written: the key signature is C with accidentals on the notes, and each
- * chord is a neutral mark with no letter name (decision D2), so the notation
- * doesn't give the key away.
+ * Layout: chord symbols above the staff in the user's label style, the same
+ * text the chord chips show (the staff colors them by function after
+ * rendering; shapes and chip boxes live only in the chord chip row), and
+ * scale degrees on a lyric line with jianpu octave dots. In "hidden" label
+ * mode nothing key-relative is written: the key signature is C with
+ * accidentals on the notes, and each chord is a neutral mark with no name
+ * (decision D2), so the notation doesn't give the key away.
  *
  * All theory comes from src/theory; this module only formats it.
  *
@@ -16,7 +16,8 @@
  * @import { KeyLabelMode } from "../store/ui.js"
  */
 
-import { letterOf, midiToDegree, spell, ticksPerBar, ticksPerBeat } from "../theory/index.js";
+import { midiToDegree, spell, ticksPerBar, ticksPerBeat } from "../theory/index.js";
+import { chordView } from "../chords/chordView.js";
 
 /**
  * Note lengths abcjs can draw as one glyph, in ticks (12 per quarter, written
@@ -45,6 +46,8 @@ const SPOKEN_ACCIDENTAL = {
 };
 const DOT_ABOVE = "̇";
 const DOT_BELOW = "̣";
+/** Nashville's superscript seventh, written as a superscript character. */
+const SUPERSCRIPT = { 7: "⁷" };
 
 /**
  * @typedef {{ mode: KeyLabelMode, labelStyle: LabelStyle, showDegrees: boolean }} StaffView
@@ -60,7 +63,7 @@ const DOT_BELOW = "̣";
  * @returns {{ abc: string, pieces: NotePiece[] }} `pieces` lists every drawn
  *   note glyph in order (rests excluded), to map abcjs's output back to ids.
  */
-export function songToAbc(song, { mode, showDegrees }) {
+export function songToAbc(song, { mode, labelStyle, showDegrees }) {
   const { key, meter } = song;
   const hidden = mode === "hidden";
   const fifths = hidden ? null : keyFifths(key);
@@ -129,7 +132,7 @@ export function songToAbc(song, { mode, showDegrees }) {
     const chord = chordByNote.get(note.id) ?? null;
     const pitch = parseSpelling(spell(note.midi, key));
     segment(note.start, note.start + note.dur, (start, ticks, isFirst, isLast) => {
-      const labels = isFirst && chord ? `"${chordSymbol(chord, mode)}"` : "";
+      const labels = isFirst && chord ? `"${chordSymbol(chord, key, { mode, labelStyle })}"` : "";
       const tie = isLast ? "" : "-";
       append(labels + abcPitch(pitch, signature, inForce) + ticks + tie, start, ticks);
       bar.syllables.push(isFirst && showDegrees && !hidden ? degreeLabel(note.midi, key) : "*");
@@ -244,17 +247,21 @@ function abcPitch({ letter, accidental, octave }, signature, inForce) {
 }
 
 /**
- * The text of a chord symbol: its letter name, or a neutral mark in hidden
- * mode. The text is quoted into ABC, so it is limited to what a chord name
- * can contain (a root letter, then no quote, newline, `%`, or backslash);
- * anything else reads as "?" rather than reaching the ABC.
+ * The text of a chord symbol in the label style, as the chord chips show it
+ * ("V", "5⁷", "A", "V · A"), or a neutral mark in hidden mode. The text is
+ * quoted into ABC, so quotes, newlines, `%`, and backslashes are dropped, and
+ * a symbol that would start with one of ABC's placement marks (^ _ < > @),
+ * turning it into an annotation, reads as "?" instead.
  * @param {import("../types.js").ChordSpec} chord
- * @param {KeyLabelMode} mode
+ * @param {Key} key
+ * @param {{ mode: KeyLabelMode, labelStyle: LabelStyle }} view
  */
-export function chordSymbol(chord, mode) {
+export function chordSymbol(chord, key, { mode, labelStyle }) {
   if (mode === "hidden") return HIDDEN_CHORD_MARK;
-  const name = letterOf(chord).replace(/["%\\\r\n]/g, "");
-  return /^[A-G]/.test(name) ? name : "?";
+  const { text, sup } = chordView(chord, key, mode, labelStyle);
+  const sups = [...sup].map((c) => SUPERSCRIPT[/** @type {keyof typeof SUPERSCRIPT} */ (c)] ?? c);
+  const name = (text + sups.join("")).replace(/["%\\\r\n]/g, "");
+  return name && !/^[\^_<>@]/.test(name) ? name : "?";
 }
 
 /**
@@ -265,7 +272,7 @@ export function chordSymbol(chord, mode) {
  * @param {Key} key
  * @param {StaffView} view
  */
-export function describeNote(note, chord, key, { mode, showDegrees }) {
+export function describeNote(note, chord, key, { mode, labelStyle, showDegrees }) {
   const pitch = parseSpelling(spell(note.midi, key));
   const parts = [`${pitch.letter}${SPOKEN_ACCIDENTAL[pitch.accidental]} ${pitch.octave}`];
   if (mode !== "hidden" && showDegrees) {
@@ -277,7 +284,10 @@ export function describeNote(note, chord, key, { mode, showDegrees }) {
         : ` ${octaves} octave${octaves > 1 ? "s" : ""} ${octave > 0 ? "up" : "down"}`;
     parts.push(`degree${SPOKEN_ACCIDENTAL[accidental]} ${degree}${where}`);
   }
-  if (chord) parts.push(mode === "hidden" ? "chord" : `chord ${chordSymbol(chord, mode)}`);
+  if (chord)
+    parts.push(
+      mode === "hidden" ? "chord" : `chord ${chordSymbol(chord, key, { mode, labelStyle })}`,
+    );
   return parts.join(", ");
 }
 
