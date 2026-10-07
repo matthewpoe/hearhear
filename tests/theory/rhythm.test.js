@@ -82,6 +82,43 @@ describe("guessRhythm", () => {
     );
   });
 
+  it("hears two keys pressed together as one note, not an eighth", () => {
+    for (const apartMs of [0, 15, 90]) {
+      const events = play([0, 1, 2, 3], [1, 1, 1, 1], 500);
+      const slip = { downMs: events[1].downMs - apartMs, upMs: events[1].downMs + 40 };
+      const { notes, dropped } = guessRhythm([events[0], slip, ...events.slice(1)]);
+      assert.deepEqual(dropped, [1], `${apartMs} ms apart`);
+      assert.deepEqual(
+        notes,
+        [0, 12, 24, 36].map((start) => ({ start, dur: 12 })),
+        `${apartMs} ms apart`,
+      );
+    }
+  });
+
+  it("keeps a real eighth note, which is not a slip", () => {
+    const onsets = [0, 1, 1.5, 2, 3];
+    const { notes, dropped } = guessRhythm(play(onsets, legato(onsets), 500));
+    assert.deepEqual(dropped, []);
+    assert.deepEqual(
+      notes.map((n) => n.start),
+      [0, 12, 18, 24, 36],
+    );
+  });
+
+  it("treats a missing or invalid release as legato", () => {
+    const events = /** @type {any[]} */ (play([0, 1, 2, 3], [0.4, 0.4, 0.4, 2], 500));
+    events[0].upMs = undefined;
+    events[1].upMs = Number.NaN;
+    events[2].upMs = events[2].downMs - 100;
+    delete events[3].upMs;
+    const { notes } = guessRhythm(events);
+    assert.deepEqual(
+      notes,
+      [0, 12, 24, 36].map((start) => ({ start, dur: 12 })),
+    );
+  });
+
   it("handles a single note and an empty take", () => {
     const one = guessRhythm([{ downMs: 0, upMs: 625 }]);
     assert.deepEqual(one.notes, [{ start: 0, dur: 12 }]);
