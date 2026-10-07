@@ -92,6 +92,35 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(d).toHaveAttribute("aria-pressed", "true");
   await expect(question).toContainText("Home is D major.");
 
+  // "Check it by ear", then the chord already chosen: confirms, never un-commits.
+  const check = question.getByRole("button", { name: "Check it by ear" });
+  await check.click();
+  await finder.locator('button[aria-pressed="true"]').click();
+  await expect(finder).toHaveCount(0);
+  await expect(d).toHaveAttribute("aria-pressed", "true");
+  await expect(check).toBeFocused();
+  await expect(question.getByRole("status")).toHaveText("Home is still D major.");
+
+  // A focused radio (a label style) keeps only its arrows: number keys still play.
+  // The radios are visually hidden inside their labels, so click the label as a viewer does.
+  await page.locator("#staff label").filter({ hasText: "Nashville" }).click();
+  await expect(page.getByRole("radio", { name: "Nashville" })).toBeFocused();
+  await page.keyboard.down("Digit1");
+  await expect(page.locator("#piano .key.held")).toHaveCount(1);
+  await page.keyboard.up("Digit1");
+  await page
+    .locator("#staff label")
+    .filter({ hasText: /^\s*Roman\s*$/ })
+    .click();
+  await expect(page.getByRole("radio", { name: "Roman", exact: true })).toBeChecked();
+
+  // The voice-leading explainer passes axe while open.
+  const explain = page.locator('#staff button[aria-controls="voice-leading-explainer"]');
+  await explain.click();
+  await expect(page.locator("#voice-leading-explainer")).toBeVisible();
+  await axe(page);
+  await explain.click();
+
   // 4. Click the held E in bar 4: V and ii fit best and come first. The open
   // dropdown has to pass axe in light theme too.
   await clickNote(page, heldE.id);
