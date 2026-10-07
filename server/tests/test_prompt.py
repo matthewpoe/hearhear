@@ -60,6 +60,69 @@ def test_hidden_key_is_flagged_outside_the_data_and_defaults_to_no() -> None:
     assert "key_hidden" not in tag(text, "snapshot"), "stated once, as a validated setting"
 
 
+HIDDEN_KEY_SNAPSHOT: dict[str, Any] = {
+    **SNAPSHOT,
+    "key": {"tonic": "Eb", "mode": "minor", "provisional": False},
+    "label_style": "letters",
+    "key_hidden": True,
+    "bars": [
+        {
+            "bar": 1,
+            "notes": [
+                {"beat": 1, "pitch": "Gb4", "degree": "3", "beats": 1},
+                {"beat": 2, "pitch": "Bb4", "degree": "5", "beats": 1},
+            ],
+            "chords": [
+                {"beat": 1, "numeral": "i", "nashville": "1m", "letter": "Ebm"},
+                {"beat": 2, "numeral": "V7", "nashville": "57", "letter": "Bb7"},
+            ],
+        }
+    ],
+}
+
+
+def test_a_hidden_key_never_reaches_claude() -> None:
+    text = message_for(snapshot=HIDDEN_KEY_SNAPSHOT)
+    snapshot = tag(text, "snapshot")
+    assert "key" not in snapshot, "no tonic, and no mode either"
+    (bar,) = snapshot["bars"]
+    assert bar["notes"] == [
+        {"beat": 1, "degree": "3", "beats": 1},
+        {"beat": 2, "degree": "5", "beats": 1},
+    ], "degrees are relative, so they stay; spelled pitches go"
+    assert bar["chords"] == [
+        {"beat": 1, "numeral": "i", "nashville": "1m"},
+        {"beat": 2, "numeral": "V7", "nashville": "57"},
+    ], "numerals are relative, so they stay; letter names go"
+    for spoiler in ["Eb", "Gb4", "Bb4", "Ebm", "Bb7", "minor"]:
+        assert spoiler not in text, spoiler
+    assert snapshot["label_style"] == "roman"
+    assert "Label style: roman" in text
+    assert "Key hidden: yes" in text
+
+
+def test_a_hidden_key_drops_the_title_too() -> None:
+    titled = {**HIDDEN_KEY_SNAPSHOT, "title": "St. James Infirmary"}
+    text = message_for(snapshot=titled)
+    assert "title" not in tag(text, "snapshot")
+    assert "St. James" not in text
+
+
+def test_a_visible_key_reaches_claude_unchanged() -> None:
+    visible = {**HIDDEN_KEY_SNAPSHOT, "key_hidden": False}
+    text = message_for(snapshot=visible)
+    expected = {k: v for k, v in visible.items() if k not in ("version", "key_hidden")}
+    assert tag(text, "snapshot") == expected
+    assert "Label style: letters" in text
+
+
+def test_system_prompt_says_a_hidden_key_is_hidden_from_claude_too() -> None:
+    prompt = _prompt()
+    assert "It is hidden from you too" in prompt
+    assert "neither of you knows the key yet" in prompt
+    assert "Describe what to listen for instead" in prompt
+
+
 def test_system_prompt_forbids_hinting_at_a_hidden_key() -> None:
     rule = SYSTEM_PROMPT[SYSTEM_PROMPT.index("the key is hidden") :]
     rule = rule[: rule.index("\n- ")]

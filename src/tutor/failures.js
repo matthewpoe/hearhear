@@ -8,6 +8,7 @@
 /** @type {Record<string, string>} */
 const TEXT = {
   over_budget: "The live tutor is out of budget for today; the recorded lessons still work.",
+  busy: "The tutor is helping someone else right now. Try again in a moment.",
   rate_limited: "The tutor needs a short breather. Try again in a minute.",
   access_locked: "Too many wrong codes. Try again in a few minutes.",
   too_large: "This song is too long to send to the tutor in one go.",

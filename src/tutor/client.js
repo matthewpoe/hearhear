@@ -32,7 +32,7 @@ import { createSseParser } from "./sse.js";
 /**
  * A failed exchange. `code` is one of the protocol's error codes
  * (access_required, access_locked, too_large, invalid_request, rate_limited,
- * over_budget, upstream, invalid_output, unanswerable) or a client-side one: `network` (no response) or
+ * over_budget, busy, upstream, invalid_output, unanswerable) or a client-side one: `network` (no response) or
  * `protocol` (a response the client can't read).
  */
 export class TutorError extends Error {
