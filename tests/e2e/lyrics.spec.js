@@ -31,8 +31,7 @@ test("St. James shows its words under the staff, and the Words switch hides them
   await expect(staff.locator(".abcjs-notehead").first()).toBeVisible();
   await expect(words).toHaveCount(0);
 
-  const picker = page.getByRole("group", { name: "Song" });
-  await picker.getByRole("button", { name: "St. James Infirmary" }).click();
+  await page.getByRole("combobox", { name: "Song" }).selectOption({ label: "St. James Infirmary" });
   await expect(words).toBeVisible();
   await expect(words).toHaveAttribute("aria-checked", "true");
 

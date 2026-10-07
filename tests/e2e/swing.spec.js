@@ -16,10 +16,7 @@ test("St. James is marked Swing above the staff; Ode is not", async ({ page }) =
   await expect(staff.locator(".abcjs-notehead").first()).toBeVisible();
   await expect(staff.locator(".abcjs-tempo")).toHaveCount(0);
 
-  await page
-    .getByRole("group", { name: "Song" })
-    .getByRole("button", { name: "St. James Infirmary" })
-    .click();
+  await page.getByRole("combobox", { name: "Song" }).selectOption({ label: "St. James Infirmary" });
   const marking = staff.locator(".abcjs-tempo");
   await expect(marking).toHaveCount(1);
   await expect(marking).toContainText("Swing");
