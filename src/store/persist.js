@@ -198,8 +198,21 @@ export function createSongMemory(storage) {
 export function installPersistence({ song, ui, storage, fresh, stop }) {
   const memory = createSongMemory(storage);
 
+  /** @type {SavedSong | null} */
+  let pending = null;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let timer;
+
+  function flush() {
+    clearTimeout(timer);
+    if (pending) memory.save(pending);
+    pending = null;
+  }
+
   song.setOpenHooks({
     recall(id) {
+      // Write any pending edit first, or reopening the open song reads a stale copy.
+      flush();
       const saved = memory.recall(id);
       if (!saved) return null;
       return {
@@ -224,17 +237,7 @@ export function installPersistence({ song, ui, storage, fresh, stop }) {
   const reopened = lastOpen ? memory.recall(lastOpen) : null;
   if (reopened) song.open(reopened.song);
 
-  /** @type {SavedSong | null} */
-  let pending = null;
-  /** @type {ReturnType<typeof setTimeout> | undefined} */
-  let timer;
   let openId = lastOpen;
-
-  function flush() {
-    clearTimeout(timer);
-    if (pending) memory.save(pending);
-    pending = null;
-  }
 
   function changed() {
     const current = song.get();

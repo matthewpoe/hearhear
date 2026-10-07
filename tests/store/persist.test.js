@@ -121,6 +121,18 @@ describe("song memory", () => {
     assert.equal(after.ui.get().demoAwaitingGuess, false);
   });
 
+  it("keeps an edit when the same song reopens before the save fires", () => {
+    const tab = fakeStorage();
+    const { song } = boot(tab);
+    song.open(ODE);
+    song.rekey(G_MAJOR);
+    // Within the debounce window: nothing flushed yet.
+    song.open(ODE);
+    assert.deepEqual(song.get().key, G_MAJOR);
+    const stored = JSON.parse(tab.items.get(`hearhear.song.${ODE.id}`));
+    assert.deepEqual(stored.song.key, G_MAJOR);
+  });
+
   it("round-trips a song through storage", () => {
     const tab = fakeStorage();
     const memory = createSongMemory(() => tab);
