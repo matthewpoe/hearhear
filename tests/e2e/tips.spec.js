@@ -175,11 +175,17 @@ test("the beginner tour walks from the welcome to the tutor without covering a c
   expect(seen.at(-1)).toBe("Hover a chord to hear it under the tune.");
   await clickNote(page, heldE.id);
   await expect(tip).toHaveCount(0);
-  await page
+  // Pick where the option is, as a user does: a locator click scrolls the
+  // page first, and the tips that follow depend on what's on screen.
+  const option = page
     .locator("#chords button")
     .filter({ hasText: /Melody is/ })
-    .first()
-    .click();
+    .first();
+  await expect(option).toBeInViewport();
+  const box = /** @type {{ x: number, y: number, width: number, height: number }} */ (
+    await option.boundingBox()
+  );
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(page.getByRole("list", { name: "Placed chords" }).getByRole("button")).toHaveCount(
     1,
   );
@@ -192,7 +198,9 @@ test("the beginner tour walks from the welcome to the tutor without covering a c
     if (last) break;
   }
   await expect(tip).toHaveCount(0);
-  expect(seen.at(-1)).toBe("Stuck? Ask the tutor.");
+  // The transpose tip's anchor (#toolbar) now sits in the key box, below the
+  // fold on a laptop, so the tour can reach it after the tutor's tip.
+  expect(seen).toContain("Stuck? Ask the tutor.");
   expect(seen).toContain("Blue circle means home; red square means tension.");
   expect(seen).toContain("Same tune, any key");
   expect(new Set(seen).size).toBe(seen.length);

@@ -1,6 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { historyShortcut, isTextField } from "../../src/toolbar/historyShortcut.js";
+import { historyShortcut } from "../../src/toolbar/historyShortcut.js";
+
+/**
+ * An element-shaped stand-in: its own tag, and closest() that finds itself.
+ * @param {string} tagName
+ * @param {string} [type]
+ */
+const element = (tagName, type) => ({
+  tagName,
+  type,
+  closest: (/** @type {string} */ selector) =>
+    selector.split(", ").includes(tagName.toLowerCase()) ? element(tagName, type) : null,
+});
 
 /** @param {Record<string, unknown>} over */
 const press = (over) =>
@@ -28,18 +40,17 @@ describe("historyShortcut", () => {
   });
 
   it("leaves text fields their own undo", () => {
-    assert.equal(historyShortcut(press({ metaKey: true, target: { tagName: "TEXTAREA" } })), null);
-    const input = { tagName: "INPUT", type: "text" };
+    assert.equal(historyShortcut(press({ metaKey: true, target: element("TEXTAREA") })), null);
+    const input = element("INPUT", "text");
     assert.equal(historyShortcut(press({ ctrlKey: true, target: input })), null);
   });
-});
 
-describe("isTextField", () => {
-  it("counts text inputs, textareas, and editable content, not checkboxes or buttons", () => {
-    assert.ok(isTextField(/** @type {any} */ ({ tagName: "INPUT", type: "search" })));
-    assert.ok(isTextField(/** @type {any} */ ({ tagName: "DIV", isContentEditable: true })));
-    assert.ok(!isTextField(/** @type {any} */ ({ tagName: "INPUT", type: "checkbox" })));
-    assert.ok(!isTextField(/** @type {any} */ ({ tagName: "BUTTON" })));
-    assert.ok(!isTextField(null));
+  it("still undoes with a radio, checkbox, or button focused", () => {
+    for (const target of [
+      element("INPUT", "radio"),
+      element("INPUT", "checkbox"),
+      element("BUTTON"),
+    ])
+      assert.equal(historyShortcut(press({ metaKey: true, target })), "undo");
   });
 });
