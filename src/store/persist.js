@@ -236,9 +236,9 @@ export function createSongMemory(storage) {
 }
 
 /**
- * Install song memory on the app's stores: open() recalls saved songs, the
- * song open last in this tab comes back, and every change after that is
- * saved, debounced. Call once at startup.
+ * Install song memory on the app's stores: open() recalls saved songs,
+ * forget() drops them, the song open last in this tab comes back, and every
+ * change after that is saved, debounced. Call once at startup.
  * @param {{
  *   song: SongStore,
  *   ui: ReturnType<typeof import("./ui.js").createUiStore>,
@@ -247,7 +247,8 @@ export function createSongMemory(storage) {
  *   stop: () => void,
  * }} options `fresh` sets up a tune with no saved copy (loadDemo); `stop`
  *   silences audio before a saved song takes over
- * @returns {{ flush: () => void }} flush saves any pending change now (page hide)
+ * @returns {{ flush: () => void, forget: (id: string) => void }} flush saves
+ *   any pending change now (page hide); forget is what song.forget() calls
  */
 export function installPersistence({ song, ui, storage, fresh, stop }) {
   const memory = createSongMemory(storage);
@@ -261,6 +262,19 @@ export function installPersistence({ song, ui, storage, fresh, stop }) {
     clearTimeout(timer);
     if (pending) memory.save(pending);
     pending = null;
+  }
+
+  /**
+   * Forget a song's saved copy, and cancel a save of it that hasn't run yet,
+   * so the copy can't come back after it is forgotten.
+   * @param {string} id
+   */
+  function forget(id) {
+    if (pending?.song.id === id) {
+      clearTimeout(timer);
+      pending = null;
+    }
+    memory.forget(id);
   }
 
   song.setOpenHooks({
@@ -284,6 +298,7 @@ export function installPersistence({ song, ui, storage, fresh, stop }) {
       };
     },
     fresh,
+    forget,
   });
 
   // Reopen before watching, so the empty starting song never overwrites a saved one.
@@ -314,5 +329,5 @@ export function installPersistence({ song, ui, storage, fresh, stop }) {
     changed();
   });
 
-  return { flush };
+  return { flush, forget };
 }

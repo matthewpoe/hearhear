@@ -121,17 +121,20 @@ function ripple(notes, afterTick, delta) {
 }
 
 /**
- * How open() reaches this tab's saved songs. src/store/persist.js installs
- * them at startup; until then open() is load().
+ * How open() and forget() reach this tab's saved songs. src/store/persist.js
+ * installs them at startup; until then open() is load() and forget() does
+ * nothing.
  * @typedef {{
  *   recall: (id: string) => { song: Song, restore: () => void } | null,
  *   fresh: (tune: Song) => void,
+ *   forget?: (id: string) => void,
  * }} OpenHooks
  * - recall: this tab's saved copy of a song, already validated, plus a
  *   function that restores the view state saved with it (the demo flag). Null
  *   when there is none. Never throws.
  * - fresh: set up a tune with no saved copy (for a demo: provisional C, labels
  *   hidden; see loadDemo in src/finding/demoTunes.js).
+ * - forget: drop a song's saved copy, and any save of it still pending.
  */
 
 /** @param {Note[]} notes */
@@ -229,8 +232,17 @@ export function createSongStore(initial = emptySong()) {
     },
 
     /**
+     * Forget this tab's saved copy of a song (a re-take's draft), including a
+     * save of it that hasn't run yet.
+     * @param {string} id
+     */
+    forget(id) {
+      openHooks.forget?.(id);
+    },
+
+    /**
      * Persistence hook: install how open() recalls saved songs and starts
-     * fresh ones. Called once, by src/store/persist.js.
+     * fresh ones, and how forget() drops them. Called once, by src/store/persist.js.
      * @param {OpenHooks} hooks
      */
     setOpenHooks(hooks) {
