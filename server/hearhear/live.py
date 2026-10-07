@@ -8,8 +8,9 @@ ranges, patterns) into descriptions. Pydantic enforces them on the full reply.
 
 Requests opt into the server-side refusal fallback (`fallbacks: "default"`),
 so a policy decline is retried on Anthropic's recommended fallback model inside
-the same stream. The model that served the reply is reported as `served_by`,
-so the eval harness can exclude replies a fallback model wrote.
+the same stream. The `suggestions` event reports the model that served the
+reply as `served_by`, and `fallback: true` when a fallback model wrote any of
+it, so the eval harness can exclude those replies.
 """
 
 import logging
@@ -195,6 +196,7 @@ async def stream_live(
                     # The SDK refuses a stream without message_start, so this is
                     # set; "unknown" is never mistaken for TUTOR_MODEL if not.
                     served_by=served_by or "unknown",
+                    fallback=fallback,
                 )
                 dropped = data["dropped"]
                 yield sse("suggestions", data)
