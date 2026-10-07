@@ -161,6 +161,7 @@ def test_live_stream_follows_the_protocol(
         "suggestions": [REPLY["suggestions"][0]],
         "snapshot_version": 7,
         "dropped": 1,
+        "withheld": 0,
         "served_by": "claude-opus-5-5",
         "fallback": False,
     }
@@ -378,12 +379,12 @@ def test_hidden_key_withholds_every_suggestion(
     stream = events(ask(live_mode, snapshot={**SNAPSHOT, "key_hidden": True}).text)
     final = dict(stream)["suggestions"]
     assert final["suggestions"] == []
-    assert final["dropped"] == 2, "one invalid, one withheld"
+    assert (final["dropped"], final["withheld"]) == (1, 1), "one invalid, one withheld"
     entry = dict(logged)["tutor_live"]
     assert entry["withheld_hidden"] == 1
     assert entry["withheld_provisional"] == 0
     assert entry["withheld_nudge"] == 0
-    assert entry["dropped"] == 2
+    assert entry["dropped"] == 1, "validation failures only"
     assert entry["key_hidden"] is True
     assert "Key hidden: yes" in fake.calls[0]["messages"][0]["content"]
 
@@ -395,6 +396,7 @@ def test_visible_key_withholds_nothing(
     use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
     final = dict(events(ask(live_mode).text))["suggestions"]
     assert len(final["suggestions"]) == 1
+    assert (final["dropped"], final["withheld"]) == (1, 0)
     assert dict(logged)["tutor_live"]["withheld_hidden"] == 0
 
 
@@ -407,7 +409,7 @@ def test_a_nudge_withholds_every_suggestion_and_reports_a_nudge(
     final = dict(events(ask(live_mode, hint_level="nudge").text))["suggestions"]
     assert final["hint_level"] == "nudge"
     assert final["suggestions"] == []
-    assert final["dropped"] == 2, "one invalid, one withheld"
+    assert (final["dropped"], final["withheld"]) == (1, 1), "one invalid, one withheld"
     entry = dict(logged)["tutor_live"]
     assert entry["withheld_nudge"] == 1
     assert entry["withheld_hidden"] == entry["withheld_provisional"] == 0
@@ -423,7 +425,7 @@ def test_a_provisional_key_withholds_every_suggestion(
     final = dict(events(ask(live_mode, snapshot=snapshot).text))["suggestions"]
     assert final["hint_level"] == "comparison"
     assert final["suggestions"] == []
-    assert final["dropped"] == 2, "one invalid, one withheld"
+    assert (final["dropped"], final["withheld"]) == (1, 1), "one invalid, one withheld"
     entry = dict(logged)["tutor_live"]
     assert entry["withheld_provisional"] == 1
     assert entry["withheld_hidden"] == entry["withheld_nudge"] == 0
@@ -438,7 +440,7 @@ def test_a_hidden_key_counts_as_hidden_even_when_provisional_and_a_nudge(
     key = {**SNAPSHOT["key"], "provisional": True}
     snapshot = {**SNAPSHOT, "key": key, "key_hidden": True}
     final = dict(events(ask(live_mode, snapshot=snapshot, hint_level="nudge").text))["suggestions"]
-    assert final["dropped"] == 2, "each withheld suggestion is counted once"
+    assert (final["dropped"], final["withheld"]) == (1, 1), "each withheld one counted once"
     entry = dict(logged)["tutor_live"]
     assert (entry["withheld_hidden"], entry["withheld_provisional"], entry["withheld_nudge"]) == (
         1,

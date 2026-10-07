@@ -19,6 +19,8 @@ import {
 } from "../theory/index.js";
 
 const ACCIDENTAL = { "-1": "b", 0: "", 1: "#" };
+/** The request contract's bound on `title` (MAX_TITLE_CHARS in server/hearhear/models.py). */
+const MAX_TITLE_CHARS = 120;
 
 /** Round to three places so fractional beats (triplets) serialize cleanly. */
 const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
@@ -28,9 +30,15 @@ const round = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
  * @param {{ labelStyle: LabelStyle, keyHidden?: boolean }} view `keyHidden` is
  *   true while key labels are hidden (`keyLabelMode` is "hidden"). The tutor then
  *   avoids naming the key, and the server withholds every suggestion.
+ * The song's title rides along, trimmed to the contract's bound, so the tutor
+ * can ground its teaching in the tune's tradition; it is left out when blank.
  */
 export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
   const { key, meter } = song;
+  // By code point, so a cut never splits an astral character into a lone surrogate.
+  const title = Array.from(song.title?.trim() ?? "")
+    .slice(0, MAX_TITLE_CHARS)
+    .join("");
   const beatTicks = ticksPerBeat(meter);
   const notesById = new Map(song.notes.map((n) => [n.id, n]));
   const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
@@ -78,5 +86,6 @@ export function toTutorSnapshot(song, { labelStyle, keyHidden = false }) {
     label_style: labelStyle,
     bars,
     key_hidden: keyHidden,
+    ...(title ? { title } : {}),
   };
 }

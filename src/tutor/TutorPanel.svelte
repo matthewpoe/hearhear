@@ -382,7 +382,7 @@
   }
   .turn p {
     margin: var(--space-1) 0 0;
-    white-space: pre-wrap;
+    white-space: pre-line;
   }
 
   .dots::after {

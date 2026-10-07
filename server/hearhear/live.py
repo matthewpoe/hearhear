@@ -206,7 +206,6 @@ async def stream_live(
                     served_by=served_by or "unknown",
                     fallback=fallback,
                 )
-                dropped = data["dropped"]
                 yield sse("suggestions", data)
         yield sse("done", {})
     finally:

@@ -25,6 +25,7 @@ import { createSseParser } from "./sse.js";
  *   suggestions: unknown[],
  *   snapshot_version: number,
  *   dropped: number,
+ *   withheld?: number,
  * }} SuggestionsEvent
  */
 

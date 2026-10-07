@@ -39,6 +39,21 @@
           "title": "Bars",
           "type": "array"
         },
+        "title": {
+          "anyOf": [
+            {
+              "description": "The song's title, for context. Optional; the eval omits it.",
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
         "key_hidden": {
           "default": false,
           "description": "True while key labels are hidden (a demo before the guess). The proxy then withholds every suggestion.",
