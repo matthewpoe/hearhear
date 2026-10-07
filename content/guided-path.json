@@ -1,13 +1,12 @@
 {
-  "$comment": "The guided demo path as data, run by src/guided/GuidedPath.svelte (step logic: src/guided/steps.js). Each step has an id, a title, a one-line instruction (`line`, shown in the strip), plain-words text (shown on More), `done` (the app state that completes it; the step then advances on its own), an optional `hint` (text shown while its `when` holds and `done` doesn't), and an optional `action` (the 'Try this' button). A step's `done` must observe what its instruction asks, since it advances the step on its own. Conditions: songLoaded {song}, played (Play pressed since the song loaded), keyChosen {tonic, mode}, keyCommitted, chordAt {bar, beat, numeral}, tutorReplied. Actions: loadSong {song}, press {within, name} (a button by its accessible name inside an element id), openChords {bar, beat}, audition {bar, beat, numeral}, askTutor {lesson} (the question from content/lessons/plan.json; the server replays content/lessons/recorded/<lesson>.json when it exists). Bars and beats are checked against the song by tests/guided/steps.test.js. Stream I scripts video from it.",
+  "$comment": "The guided demo path as data, run by src/guided/GuidedPath.svelte (step logic: src/guided/steps.js). Each step names one thing to do and advances only when the app shows it done: there is no Next or Back, only 'Leave tour'. Each step has an id, a title (2–4 words), a one-line instruction (`line`: an imperative first, at most one clause of why), `done` (the app state the instruction produces; the step advances on its own once it holds, and a step already done when the tour reaches it is skipped), an optional `hint` (text shown while its `when` holds and `done` doesn't), and an optional `action`: a button in the strip that does the step's action, or opens what it needs. Conditions: songLoaded {song}, played (Play pressed since the song loaded), keyChosen {tonic, mode}, keyCommitted, chordAt {bar, beat, numeral}, tutorReplied. Actions: loadSong {song}, press {within, name} (a button by its accessible name inside an element id), openChords {bar, beat}, audition {bar, beat, numeral}, askTutor {lesson} (the question from content/lessons/plan.json; the server replays content/lessons/recorded/<lesson>.json when it exists). Bars and beats are checked against the song by tests/guided/steps.test.js. Stream I scripts video from it. Matthew owns this wording; revised drafts by Claude, Oct 7, 2026, for action and concision.",
   "status": "placeholder: pending Matthew's ear check and recorded lessons",
   "song": "ode-to-joy",
   "steps": [
     {
       "id": "load",
-      "title": "Open a tune you know",
-      "line": "Load Ode to Joy.",
-      "text": "Ode to Joy opens with its key hidden: no numbers, no colors, so your ear does the finding.",
+      "title": "Open a tune",
+      "line": "Load Ode to Joy; its key starts hidden, so your ear finds it.",
       "done": {
         "type": "songLoaded",
         "song": "ode-to-joy"
@@ -21,8 +20,7 @@
     {
       "id": "listen",
       "title": "Hear it",
-      "line": "Press Play and hum along.",
-      "text": "Press Play on the staff and hum along. Listen for the note the tune keeps coming back to; that's where home is.",
+      "line": "Press Play and hum along; notice where it wants to stop.",
       "done": {
         "type": "played"
       },
@@ -30,14 +28,13 @@
         "type": "press",
         "within": "staff",
         "name": "Play",
-        "label": "Play the tune"
+        "label": "Play"
       }
     },
     {
       "id": "home",
-      "title": "Find home by ear",
-      "line": "Choose 'Help me find it', then click the chord that sounds like home.",
-      "text": "Under 'What key is this tune in?', choose 'Help me find it'. Play the tune over each chord: over the wrong one some notes rub, over home they settle. Then click the chord that sounds like home.",
+      "title": "Find home",
+      "line": "Choose the note the tune settles on. Not sure? Help me find it.",
       "done": {
         "type": "keyChosen",
         "tonic": "D",
@@ -47,20 +44,19 @@
         "when": {
           "type": "keyCommitted"
         },
-        "text": "Does the tune settle over that home? Choose 'Check it by ear' and play it over each chord again."
+        "text": "Does it settle there? Press Check it by ear and try each chord again."
       },
       "action": {
         "type": "press",
         "within": "key-prompt",
         "name": "Help me find it",
-        "label": "Open the drone chords"
+        "label": "Find it by ear"
       }
     },
     {
       "id": "half-cadence",
-      "title": "Hear the question at bar 4",
-      "line": "Put V under the long note at bar 4, beat 3.",
-      "text": "The first phrase ends on a long note at bar 4, beat 3. Put V under it: the tune stops, but it sounds like a question, waiting for an answer.",
+      "title": "A question at bar 4",
+      "line": "Put V under the long note in bar 4; hear it ask a question.",
       "done": {
         "type": "chordAt",
         "bar": 4,
@@ -71,14 +67,13 @@
         "type": "openChords",
         "bar": 4,
         "beat": 3,
-        "label": "Show the chords for bar 4"
+        "label": "Show me the note"
       }
     },
     {
       "id": "set-up-ending",
       "title": "Lean toward the end",
-      "line": "Put V under bar 8, beat 1, the 2 of '3 2 1'.",
-      "text": "The tune ends '3 2 1'. Put V under the 2, at bar 8, beat 1, so the last note has something to land from.",
+      "line": "Put V under the first note of bar 8, the 2 of '3 2 1'.",
       "done": {
         "type": "chordAt",
         "bar": 8,
@@ -89,14 +84,13 @@
         "type": "openChords",
         "bar": 8,
         "beat": 1,
-        "label": "Show the chords for bar 8"
+        "label": "Show me the note"
       }
     },
     {
       "id": "wrong-ish",
-      "title": "Try a chord that doesn't land",
-      "line": "Put vi under the last note (bar 8, beat 3) and listen.",
-      "text": "Now put vi under the last note, at bar 8, beat 3. It contains the note, so it fits on paper, but listen: the end swerves sad and sideways instead of arriving home.",
+      "title": "A chord that swerves",
+      "line": "Put vi under the last note; hear the ending turn sad instead of home.",
       "done": {
         "type": "chordAt",
         "bar": 8,
@@ -104,18 +98,16 @@
         "numeral": "vi"
       },
       "action": {
-        "type": "audition",
+        "type": "openChords",
         "bar": 8,
         "beat": 3,
-        "numeral": "vi",
-        "label": "Hear vi under the last note"
+        "label": "Show me the note"
       }
     },
     {
       "id": "land",
       "title": "Now let it land",
-      "line": "Swap the last chord for I and hear it land.",
-      "text": "Swap the last chord for I, the home chord. V then I is the sound of arriving: the question from bar 4 finally gets its answer.",
+      "line": "Swap the last chord for I; bar 4's question gets its answer.",
       "done": {
         "type": "chordAt",
         "bar": 8,
@@ -123,18 +115,16 @@
         "numeral": "I"
       },
       "action": {
-        "type": "audition",
+        "type": "openChords",
         "bar": 8,
         "beat": 3,
-        "numeral": "I",
-        "label": "Hear I under the last note"
+        "label": "Show me the note"
       }
     },
     {
       "id": "ask",
-      "title": "Ask the tutor why",
-      "line": "Ask why the ending lands now.",
-      "text": "You just heard the difference. Ask the tutor what you felt, and it explains in plain words.",
+      "title": "Ask why",
+      "line": "Press Ask the tutor to hear why the ending lands now.",
       "done": {
         "type": "tutorReplied"
       },

@@ -1,8 +1,11 @@
 // The guided path at two laptop sizes, walked as a reviewer would: start it from
-// the landing, do each step (with its "Try this" button where it helps), see
-// it advance on its own, leave and resume it mid-way, step back and forward,
-// and finish. At every step the strip on the keyboard dock stays in view
-// and off what the step asks the viewer to use. Beginner tips stay quiet while it runs and come back after.
+// the landing, do each step (with its button where it helps), see it advance
+// only when the step's action is done, leave and resume it mid-way, and
+// finish. There is no Next or Back: the only way forward is doing the step,
+// and "Leave tour" is the only way out. A step already done when the tour
+// reaches it is skipped. At every step the strip on the keyboard dock stays
+// in view and off what the step asks the viewer to use. Beginner tips stay
+// quiet while it runs and come back after.
 // Fails on any console error and on any axe violation, in both themes.
 
 import { readFileSync } from "node:fs";
@@ -93,7 +96,8 @@ function aboveDock(page, selector) {
     const dock = document.querySelector(".keyboard-dock");
     if (!el || !dock) return false;
     const r = el.getBoundingClientRect();
-    return r.top >= 0 && r.bottom <= dock.getBoundingClientRect().top;
+    // A pixel of slack: scroll padding rounds the dock's height.
+    return r.top >= 0 && r.bottom <= dock.getBoundingClientRect().top + 1;
   }, selector);
 }
 
@@ -138,10 +142,10 @@ for (const viewport of [
     const count = tour.getByText(/^Guided tour · step \d\/\d$/);
     await expect(count).toHaveText(`Guided tour · step 1/${steps.length}`);
     await expect(tour.getByText("Draft", { exact: true })).toBeVisible();
-    // More opens the step's full text and the placeholder note.
-    await tour.getByRole("button", { name: "More" }).click();
-    await expect(tour.getByText(/^placeholder: pending Matthew's ear check/i)).toBeVisible();
-    await tour.getByRole("button", { name: "Less" }).click();
+    // The Draft badge carries the placeholder note, for screen readers too.
+    await expect(tour.getByText(/placeholder: pending Matthew's ear check/i)).toBeAttached();
+    // One action and one way out; nothing else moves the tour on.
+    await expect(tour.getByRole("button")).toHaveText(["Load Ode to Joy", "Leave tour"]);
     await expect(entry).toHaveCount(0);
     // Tips are hushed while it runs; the toggle keeps the viewer's setting.
     await expect(tip).toHaveCount(0);
@@ -156,8 +160,12 @@ for (const viewport of [
       await expect(tip).toHaveCount(0);
       await expect(tips).toHaveAttribute("aria-pressed", "true");
       await expect.poll(() => stripProblems(page, id)).toEqual([]);
+      for (const name of ["Next", "Back", "Got it"]) {
+        await expect(tour.getByRole("button", { name, exact: true })).toHaveCount(0);
+      }
     };
-    const tryThis = (/** @type {string} */ label) => page.getByRole("button", { name: label });
+    const tryThis = (/** @type {string} */ label) =>
+      tour.getByRole("button", { name: label, exact: true });
 
     // 1. Load the tune: the step advances on its own.
     await expect.poll(() => stripProblems(page, "load")).toEqual([]);
@@ -169,11 +177,11 @@ for (const viewport of [
     await expect(page.locator("#staff").getByText("Loading the piano…")).toBeVisible();
     // Left while it waits, it's dropped: the tune doesn't start on its own.
     const transport = page.locator("#staff [aria-label='Playback']");
-    await tryThis("Play the tune").click();
+    await tryThis("Play").click();
     const waiting = tour.getByRole("button", { name: "Loading the piano…" });
     await expect(waiting).toBeVisible();
     await expect(heading).toHaveText(`${titleOf("listen")}:`);
-    await page.getByRole("button", { name: "Leave", exact: true }).click();
+    await tour.getByRole("button", { name: "Leave tour" }).click();
     releaseSamples();
     await expect(transport.getByRole("button", { name: "Play", exact: true })).toBeEnabled();
     await page.waitForTimeout(500);
@@ -182,14 +190,10 @@ for (const viewport of [
     await expectStep("listen");
     // A mouse press on a strip button leaves the page where it is.
     await page.evaluate(() => scrollTo(0, 0));
-    const more = tour.getByRole("button", { name: "More" });
-    const box = await more.boundingBox();
-    if (!box) throw new Error("no More button");
+    const play = tour.getByRole("button", { name: "Play" });
+    const box = await play.boundingBox();
+    if (!box) throw new Error("no Play button in the strip");
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-    await expect(tour.getByRole("button", { name: "Less" })).toBeFocused();
-    expect(await page.evaluate(() => scrollY)).toBe(0);
-    await tour.getByRole("button", { name: "Less" }).click();
-    await tryThis("Play the tune").click();
     // 3 arrives with the home chips it asks for in view above the dock.
     await expect(heading).toHaveText(`${titleOf("home")}:`);
     await expect
@@ -198,37 +202,28 @@ for (const viewport of [
     await expectStep("home");
     await page.locator("#staff").getByRole("button", { name: "Stop" }).click();
 
-    // 2. The drone chords open from the step; a wrong home points back to them.
-    await tryThis("Open the drone chords").click();
+    // The step's button opens the ear finder; a home that isn't D points back to it.
+    await tryThis("Find it by ear").click();
     const finder = page.locator("#key-finder");
     await expect(finder).toBeVisible();
     await finder.getByRole("button", { name: "Close" }).click();
     const homes = page.locator("#key-prompt").getByRole("group", { name: "Home note" });
     await homes.getByRole("button", { name: "A", exact: true }).click();
-    await expect(page.getByText(/Choose 'Check it by ear'/)).toBeVisible();
+    await expect(tour.getByText(/Press Check it by ear/)).toBeVisible();
     await expectStep("home");
     await homes.getByRole("button", { name: "D", exact: true }).click();
     await expectStep("half-cadence");
 
-    // 3. The step opens bar 4's chords; G places V (the chord row's letters).
-    await tryThis("Show the chords for bar 4").click();
+    // 4. The step's button opens bar 4's chords; G places V (the chord row's letters).
+    await tryThis("Show me the note").click();
     await expect(page.locator("#chords [role='dialog']")).toBeFocused();
     await expect.poll(() => stripProblems(page, "half-cadence")).toEqual([]);
     await page.keyboard.press("g");
     await page.keyboard.press("Escape");
     await expectStep("set-up-ending");
 
-    // Folds to a one-line bar and back, still in view.
-    await page.getByRole("button", { name: "Fold" }).click();
-    const show = tour.getByRole("button", { name: "Show" });
-    await expect(show).toBeFocused();
-    await expect(tour.getByRole("button", { name: "Next" })).toHaveCount(0);
-    await expect.poll(() => stripProblems(page, "set-up-ending")).toEqual([]);
-    await show.click();
-    await expect(tour.getByRole("button", { name: "Fold" })).toBeFocused();
-
     // Leave mid-way: the tips come back; resume where it was left.
-    await page.getByRole("button", { name: "Leave", exact: true }).click();
+    await tour.getByRole("button", { name: "Leave tour" }).click();
     await expect(heading).toHaveCount(0);
     await expect(entry).toHaveText("Resume the guided tour");
     await expect(entry).toBeFocused();
@@ -237,56 +232,33 @@ for (const viewport of [
     await entry.click();
     await expectStep("set-up-ending");
 
-    // 4. V under the 2 of "3 2 1".
-    await tryThis("Show the chords for bar 8").click();
-    await expect(page.locator("#chords [role='dialog']")).toBeFocused();
+    // 5. V under the 2 of "3 2 1", placed by hand on the note itself.
+    await clickNote(page, "n1c");
     await page.keyboard.press("g");
     await page.keyboard.press("Escape");
     await expectStep("wrong-ish");
 
-    // 5. Hear vi through the step's audition, then place it (H).
-    await tryThis("Hear vi under the last note").click();
-    await clickNote(page, lastNote.id);
+    // 6. vi under the last note.
+    await tryThis("Show me the note").click();
     await page.keyboard.press("h");
     await page.keyboard.press("Escape");
     await expectStep("land");
 
-    // 6. Then I (A): the V-I landing.
-    await tryThis("Hear I under the last note").click();
-    await clickNote(page, lastNote.id);
+    // 7. Then I (A): the V-I landing.
+    await tryThis("Show me the note").click();
     await page.keyboard.press("a");
     await page.keyboard.press("Escape");
     await expectStep("ask");
     await page.screenshot({ path: test.info().outputPath(`mid-tour-${viewport.width}.png`) });
 
-    // 7. The step asks the lesson plan's question; the reply completes the tour.
+    // 8. The step asks the lesson plan's question; the reply completes the tour.
     await tryThis("Ask the tutor").click();
     const ending = plan.exchanges.find((/** @type {{ id: string }} */ e) => e.id === "ode-ending");
     await expect(page.locator("#tutor .turn.student p").first()).toHaveText(ending.question);
     await expect(tour.getByText("Done.")).toBeVisible({ timeout: 10_000 });
     await expect.poll(() => stripProblems(page, "ask")).toEqual([]);
-    // Folded after the reply, Leave and Finish's way back stay on screen.
-    await page.getByRole("button", { name: "Fold" }).click();
-    await expect.poll(() => stripProblems(page, "ask")).toEqual([]);
-    await expect(tour.getByRole("button", { name: "Leave", exact: true })).toBeInViewport();
-    await tour.getByRole("button", { name: "Show" }).click();
-
-    // Back shows an earlier step as done, without bouncing forward; Next returns.
-    // Each step change brings its target into view, above the dock, even
-    // from the bottom of the page.
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect.poll(() => aboveDock(page, `#staff [data-note-id="${lastNote.id}"]`)).toBe(false);
-    await page.getByRole("button", { name: "Back" }).click();
-    await expect.poll(() => aboveDock(page, `#staff [data-note-id="${lastNote.id}"]`)).toBe(true);
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await expect.poll(() => aboveDock(page, "#tutor .ask")).toBe(false);
-    await page.getByRole("button", { name: "Next" }).click();
-    await expect.poll(() => aboveDock(page, "#tutor .ask")).toBe(true);
-    await page.getByRole("button", { name: "Back" }).click();
-    await expectStep("land");
-    await expect(tour.getByText("Done.")).toBeVisible();
-    await page.getByRole("button", { name: "Next" }).click();
-    await expectStep("ask");
+    // Done, the last step offers only Finish.
+    await expect(tour.getByRole("button")).toHaveText(["Finish"]);
 
     await axe(page);
     await page.getByRole("button", { name: "Dark mode" }).click();
@@ -297,6 +269,12 @@ for (const viewport of [
     await expect(heading).toHaveCount(0);
     await expect(entry).toHaveText("Take the guided tour");
     await expect(tips).toHaveAttribute("aria-pressed", "true");
+
+    // Started again, it skips every step already done and stops at the
+    // first one that isn't: vi is no longer under the last note (I is).
+    await entry.click();
+    await expect(heading).toHaveText(`${titleOf("wrong-ish")}:`);
+    await tour.getByRole("button", { name: "Leave tour" }).click();
 
     expect(problems).toEqual([]);
   });
