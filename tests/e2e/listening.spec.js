@@ -93,6 +93,19 @@ test("play bar N, play from bar N, and the drone on home", async ({ page }) => {
   await expect(transport.getByRole("button", { name: "Play", exact: true })).toBeVisible();
   await axe(page);
 
+  // With the staff wholly in view above the dock, Play leaves the page where it is.
+  await page.evaluate(() => scrollTo(0, 0));
+  const staffInView = await page.locator("#staff").evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const dock = document.querySelector(".keyboard-dock")?.getBoundingClientRect().top ?? 0;
+    return r.top >= 0 && r.bottom <= dock;
+  });
+  expect(staffInView).toBe(true);
+  await transport.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.locator("#staff .is-playing").first()).toBeAttached();
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await transport.getByRole("button", { name: "Stop" }).click();
+
   // One click on D commits D major.
   const homes = page.locator("#key-prompt").getByRole("group", { name: "Home note" });
   await homes.getByRole("button", { name: "D", exact: true }).click();

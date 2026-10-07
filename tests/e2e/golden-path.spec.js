@@ -84,12 +84,23 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await expect(question).not.toContainText(chose);
 
   // A home most ears don't hear gets a gentle invitation, never a verdict.
-  await homes.getByRole("button", { name: "C", exact: true }).click();
+  const c = homes.getByRole("button", { name: "C", exact: true });
+  await c.click();
   await expect(question).toContainText("You chose C major as home.");
   await expect(question).toContainText("Most ears hear home somewhere else in this tune.");
   await expect(question).not.toContainText(/wrong/i);
   await expect(question).not.toContainText(match);
   const keep = question.getByRole("button", { name: "Keep my choice" });
+  // The invitation scrolls into view above the keyboard dock; focus stays on the chip.
+  await expect
+    .poll(() =>
+      keep.evaluate((el) => {
+        const dock = document.querySelector(".keyboard-dock")?.getBoundingClientRect().top ?? 0;
+        return el.getBoundingClientRect().bottom <= dock + 1;
+      }),
+    )
+    .toBe(true);
+  await expect(c).toBeFocused();
   await keep.click();
   await expect(keep).toHaveCount(0);
   await expect(question.getByRole("status")).toHaveText("Keeping C major as home.");
