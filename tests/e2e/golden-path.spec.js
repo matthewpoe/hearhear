@@ -170,17 +170,23 @@ test("golden path: tune, key by ear and by chip, chords, song memory, tutor", as
   await page.keyboard.press("Escape");
   await expect(voiceTip).toBeHidden();
 
-  // The tool row holds only Play and its scope, the label style, Undo/Redo,
-  // and Print; the settings sit with their steps: drone and degrees with the
-  // key, voice leading with the chords.
+  // The tool row: Play and its scope, the label style, the Swing and Voice
+  // leading switches (Words too, on a song with words), Undo/Redo, and Print
+  // under "More", which opens and closes by keyboard. Drone and degrees sit
+  // with the key.
   const row = page.locator("#staff .header");
-  await expect(row.getByRole("switch")).toHaveCount(0);
+  await expect(row.getByRole("switch")).toHaveCount(2);
+  await expect(row.getByRole("switch", { name: "Swing" })).toBeVisible();
+  await expect(row.getByRole("switch", { name: "Voice leading" })).toBeVisible();
+  const more = row.getByRole("button", { name: "More" });
+  await more.focus();
+  await page.keyboard.press("Enter");
   await expect(row.getByRole("button", { name: "Print lead sheet" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(row.getByRole("button", { name: "Print lead sheet" })).toBeHidden();
+  await expect(more).toBeFocused();
   await expect(question.getByRole("switch", { name: "Drone on home" })).toBeVisible();
   await expect(question.getByRole("switch", { name: "Scale degrees" })).toBeVisible();
-  await expect(
-    page.locator("#chords").getByRole("switch", { name: "Voice leading" }),
-  ).toBeVisible();
 
   // All key handling is in the key box: "Play it in another key" transposes
   // there, and the old toolbar section is gone.
