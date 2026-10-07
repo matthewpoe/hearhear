@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "id": "joyful-joyful",
+  "title": "Joyful, Joyful, We Adore Thee (Hymn to Joy)",
+  "key": {
+    "tonic": "G",
+    "mode": "major",
+    "provisional": false
+  },
+  "meter": {
+    "beatsPerBar": 4,
+    "beatUnit": 4,
+    "pickupTicks": 0,
+    "provisional": false
+  },
+  "tempo": 115,
+  "version": 1,
+  "notes": [
+    {
+      "id": "n1",
+      "midi": 71,
+      "start": 0,
+      "dur": 12
+    },
+    {
+      "id": "n2",
+      "midi": 71,
+      "start": 12,
+      "dur": 12
+    },
+    {
+      "id": "n3",
+      "midi": 72,
+      "start": 24,
+      "dur": 12
+    },
+    {
+      "id": "n4",
+      "midi": 74,
+      "start": 36,
+      "dur": 12
+    },
+    {
+      "id": "n5",
+      "midi": 74,
+      "start": 48,
+      "dur": 12
+    },
+    {
+      "id": "n6",
+      "midi": 72,
+      "start": 60,
+      "dur": 12
+    },
+    {
+      "id": "n7",
+      "midi": 71,
+      "start": 72,
+      "dur": 12
+    },
+    {
+      "id": "n8",
+      "midi": 69,
+      "start": 84,
+      "dur": 12
+    },
+    {
+      "id": "n9",
+      "midi": 67,
+      "start": 96,
+      "dur": 12
+    },
+    {
+      "id": "na",
+      "midi": 67,
+      "start": 108,
+      "dur": 12
+    },
+    {
+      "id": "nb",
+      "midi": 69,
+      "start": 120,
+      "dur": 12
+    },
+    {
+      "id": "nc",
+      "midi": 71,
+      "start": 132,
+      "dur": 12
+    },
+    {
+      "id": "nd",
+      "midi": 71,
+      "start": 144,
+      "dur": 18
+    },
+    {
+      "id": "ne",
+      "midi": 69,
+      "start": 162,
+      "dur": 6
+    },
+    {
+      "id": "nf",
+      "midi": 69,
+      "start": 168,
+      "dur": 24
+    }
+  ],
+  "chords": [
+    {
+      "id": "c1",
+      "noteId": "n1",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c2",
+      "noteId": "n8",
+      "root": "D",
+      "type": "7"
+    },
+    {
+      "id": "c3",
+      "noteId": "n9",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c4",
+      "noteId": "nb",
+      "root": "F#",
+      "type": "dim"
+    },
+    {
+      "id": "c5",
+      "noteId": "nc",
+      "root": "G",
+      "type": "M"
+    },
+    {
+      "id": "c6",
+      "noteId": "nf",
+      "root": "D",
+      "type": "M"
+    }
+  ]
+}

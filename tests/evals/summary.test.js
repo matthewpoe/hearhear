@@ -1,0 +1,59 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { formatRate, summarize } from "../../evals/summary.js";
+
+/**
+ * @param {Partial<import("../../evals/summary.js").ReplyRecord>} overrides
+ * @returns {import("../../evals/summary.js").ReplyRecord}
+ */
+const record = (overrides) => ({
+  tune: "t",
+  level: "comparison",
+  bar: 1,
+  beat: 1,
+  reference: "G",
+  outcome: "ok",
+  code: null,
+  servedBy: "m",
+  message: "",
+  schemaValid: true,
+  score: { suggestions: 2, agreeing: 2, onOnset: 2, clashing: 0, hit: false },
+  withholds: null,
+  ms: 100,
+  firstDeltaMs: 40,
+  ...overrides,
+});
+
+test("summarize counts excluded and failed replies apart from the scored ones", () => {
+  const s = summarize([
+    record({ score: { suggestions: 2, agreeing: 1, onOnset: 1, clashing: 1, hit: true } }),
+    record({ ms: 300 }),
+    record({ outcome: "excluded", servedBy: "fallback", score: null, ms: 9999 }),
+    record({ outcome: "failed", code: "upstream", schemaValid: false, score: null }),
+    record({ outcome: "invalid", code: "invalid_output", schemaValid: false, score: null }),
+  ]);
+  assert.equal(s.replies, 5);
+  assert.equal(s.excluded, 1);
+  assert.equal(s.failed, 1);
+  assert.deepEqual(s.schemaValidity, { count: 2, total: 3 }, "invalid output counts against");
+  assert.deepEqual(s.agreement, { count: 3, total: 4 });
+  assert.deepEqual(s.hitRate, { count: 1, total: 2 });
+  assert.deepEqual(s.clashRate, { count: 1, total: 3 });
+  assert.equal(s.pedagogy, null, "no nudges");
+  assert.deepEqual(s.latencyMs, { p50: 100, p95: 300 }, "excluded replies don't count");
+});
+
+test("summarize scores pedagogy on nudges only, and hit rate never on them", () => {
+  const s = summarize([
+    record({ level: "nudge", withholds: true }),
+    record({ level: "nudge", withholds: false }),
+  ]);
+  assert.deepEqual(s.pedagogy, { count: 1, total: 2 });
+  assert.equal(s.hitRate, null);
+});
+
+test("formatRate shows the count with the percentage, and a dash for nothing", () => {
+  assert.equal(formatRate({ count: 3, total: 12 }), "3/12 (25%)");
+  assert.equal(formatRate({ count: 0, total: 0 }), "—");
+  assert.equal(formatRate(null), "—");
+});
