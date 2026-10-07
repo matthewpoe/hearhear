@@ -16,7 +16,13 @@
  * @import { KeyLabelMode } from "../store/ui.js"
  */
 
-import { midiToDegree, spell, ticksPerBar, ticksPerBeat } from "../theory/index.js";
+import {
+  TICKS_PER_QUARTER,
+  midiToDegree,
+  spell,
+  ticksPerBar,
+  ticksPerBeat,
+} from "../theory/index.js";
 import { chordView } from "../chords/chordView.js";
 
 /**
@@ -69,7 +75,7 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
   const fifths = hidden ? null : keyFifths(key);
   const signature = fifths === null ? new Map() : keySignature(fifths);
   const barTicks = ticksPerBar(meter);
-  const beatTicks = ticksPerBeat(meter);
+  const beamTicks = beamGroupTicks(meter);
   const chordByNote = new Map(song.chords.map((c) => [c.noteId, c]));
 
   /** @param {number} tick */
@@ -95,14 +101,16 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
   };
 
   /**
-   * Append one glyph, beaming short notes within a beat.
+   * Append one glyph, beaming flagged notes (shorter than a quarter) within a
+   * beam group: a beat, or a dotted quarter in compound meter. Groups count
+   * from the first downbeat, so a pickup groups as the end of a full bar.
    * @param {string} token
    * @param {number} start
    * @param {number} ticks
    */
   const append = (token, start, ticks) => {
-    const beat = Math.floor((start - bar.barStart) / beatTicks);
-    const short = ticks < beatTicks;
+    const beat = Math.floor((start - meter.pickupTicks) / beamTicks);
+    const short = ticks < TICKS_PER_QUARTER;
     const beam = short && previousShort.short && previousShort.beat === beat;
     bar.text += (beam ? "" : " ") + token;
     previousShort = { beat, short };
@@ -162,6 +170,17 @@ export function songToAbc(song, { mode, labelStyle, showDegrees }) {
     if (syllables.some((s) => s !== "*")) lines.push(`w:${syllables.join(" ")}`);
   }
   return { abc: [...header, ...lines].join("\n") + "\n", pieces };
+}
+
+/**
+ * Ticks in one beam group: a beat in simple meter, and three eighths (a
+ * dotted quarter) in compound meter (3/8, 6/8, 9/8, 12/8), so 6/8 beams in
+ * two groups of three rather than one flag per eighth.
+ * @param {import("../types.js").Meter} meter
+ */
+export function beamGroupTicks(meter) {
+  const compound = meter.beatUnit === 8 && meter.beatsPerBar % 3 === 0;
+  return compound ? ticksPerBeat(meter) * 3 : ticksPerBeat(meter);
 }
 
 /**

@@ -320,9 +320,33 @@
 </section>
 
 <style>
-  /* Compact: about 150px tall at desktop width, so the staff keeps the room. */
+  /* Keys are about 1.5x the old 5.5rem where the window is tall enough, and
+     shrink with the viewport's height so the staff stays the hero. */
   .piano {
     padding: var(--space-1) var(--space-3) var(--space-2);
+  }
+  /* On a wide screen the bar's controls and help sit in a column beside the
+     keys instead of in rows above them, so the taller keys cost the page no
+     more height than the old dock did. Below 72rem the column would squeeze
+     the keys under their 1.75rem minimum, so they stack as before. */
+  @media (min-width: 72rem) {
+    .piano {
+      display: grid;
+      grid-template-columns: 18rem minmax(0, 1fr);
+      gap: var(--space-3);
+      align-items: start;
+      padding-top: var(--space-2);
+    }
+    .bar {
+      align-content: start;
+      gap: var(--space-1) var(--space-2);
+      margin-bottom: 0;
+    }
+    .help {
+      flex-basis: 100%;
+      font-size: 0.8125rem;
+      line-height: 1.35;
+    }
   }
   .bar {
     display: flex;
@@ -333,8 +357,9 @@
   }
   h2 {
     margin: 0;
+    color: var(--sound);
     font-size: var(--text-sm);
-    font-weight: 500;
+    font-weight: 700;
   }
   .status,
   .sound,
@@ -363,9 +388,9 @@
     cursor: pointer;
   }
   .switch button[aria-pressed="true"] {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--surface);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .armed {
     margin-left: var(--space-3);
@@ -393,7 +418,13 @@
     --white-width: calc(100% / var(--whites));
     position: relative;
     min-width: calc(var(--whites) * 1.75rem);
-    height: 5.5rem;
+    height: clamp(5.5rem, 16vh, 8.25rem);
+  }
+  /* A phone already gives the dock a third of the screen. */
+  @media (max-width: 40rem) {
+    .keys {
+      height: clamp(5.5rem, 11vh, 7rem);
+    }
   }
 
   .key {
