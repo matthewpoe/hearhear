@@ -9,7 +9,8 @@
  * --limit N sends only the first N requests and prints their summary without
  * writing results: a smoke run before paying for a full live one.
  * --concurrency N keeps up to N requests in flight (default 4, the server's
- * TUTOR_MAX_CONCURRENT). Results keep the requests' order however they finish.
+ * TUTOR_MAX_CONCURRENT), after the first request goes alone. Results keep the
+ * requests' order however they finish.
  *
  * Environment: EVAL_URL (instead of --url); TUTOR_ACCESS_CODE, sent as
  * X-Tutor-Access when set (the live tutor requires it).
@@ -32,6 +33,7 @@ import {
   sameHarmony,
   scoreSuggestions,
 } from "./metrics.js";
+import { runPool } from "./pool.js";
 import { evalRequest, evalSnapshot } from "./request.js";
 import { resultsTable, summarize } from "./summary.js";
 import { AccessError, callTutor } from "./tutorCall.js";
@@ -175,17 +177,9 @@ async function run({ tune, song, chord, level, bar, beat, body }) {
   };
 }
 
-// Up to `concurrency` requests in flight; each record lands at its request's index.
+// The first request alone, then up to `concurrency` in flight, in request order.
 /** @type {ReplyRecord[]} */
-const records = new Array(sent.length);
-let next = 0;
-async function worker() {
-  while (next < sent.length) {
-    const index = next++;
-    records[index] = await run(sent[index]);
-  }
-}
-await Promise.all(Array.from({ length: Math.min(concurrency, sent.length) }, worker));
+const records = await runPool(sent, concurrency, run);
 
 const byTune = [];
 const baselineTotals = { hits: 0, clashing: 0, points: 0 };

@@ -49,3 +49,63 @@ for (const [status, code] of /** @type {const} */ ([
     }
   });
 }
+
+/**
+ * Answer the first `refusals` requests with a 503 of `code` (Retry-After 0),
+ * then a short stream with a suggestions event.
+ * @param {number} refusals
+ * @param {string} code
+ */
+async function busyThenStream(refusals, code) {
+  const seen = { requests: 0 };
+  const server = createServer((req, res) => {
+    seen.requests += 1;
+    req.resume();
+    if (seen.requests <= refusals) {
+      res.writeHead(503, { "Content-Type": "application/json", "Retry-After": "0" });
+      res.end(JSON.stringify({ error: { code, message: "" } }));
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/event-stream" });
+    res.write(`event: message\ndata: ${JSON.stringify({ delta: "Listen." })}\n\n`);
+    res.end(`event: suggestions\ndata: ${JSON.stringify({ suggestions: [] })}\n\n`);
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve(undefined)));
+  const { port } = /** @type {import("node:net").AddressInfo} */ (server.address());
+  return { url: `http://127.0.0.1:${port}`, seen, close: () => server.close() };
+}
+
+test("callTutor waits out a 503 busy and retries", async () => {
+  const server = await busyThenStream(2, "busy");
+  try {
+    const exchange = await callTutor(server.url, {}, undefined);
+    assert.equal(exchange.outcome, "ok");
+    assert.equal(exchange.message, "Listen.");
+    assert.equal(server.seen.requests, 3);
+  } finally {
+    server.close();
+  }
+});
+
+test("callTutor gives up on busy after three retries", async () => {
+  const server = await busyThenStream(Infinity, "busy");
+  try {
+    const exchange = await callTutor(server.url, {}, undefined);
+    assert.equal(exchange.outcome, "http_error");
+    assert.equal(exchange.code, "busy");
+    assert.equal(server.seen.requests, 4);
+  } finally {
+    server.close();
+  }
+});
+
+test("callTutor doesn't retry other 503s, such as the daily budget", async () => {
+  const server = await busyThenStream(Infinity, "over_budget");
+  try {
+    const exchange = await callTutor(server.url, {}, undefined);
+    assert.equal(exchange.code, "over_budget");
+    assert.equal(server.seen.requests, 1);
+  } finally {
+    server.close();
+  }
+});

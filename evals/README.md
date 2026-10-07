@@ -12,10 +12,11 @@ node evals/run.js --limit 3    # smoke run: first 3 requests, prints a summary, 
 node evals/run.js --concurrency 1   # one request at a time (default 4)
 ```
 
-- `--concurrency N` keeps up to N requests in flight; the default, 4, matches the server's `TUTOR_MAX_CONCURRENT`, so a local server never answers `503 busy`. Replies finish in any order, but `latest.json` keeps them in request order, so a run's results don't depend on the concurrency (only the latencies do). `--limit` still sends the first N requests in that order.
+- `--concurrency N` keeps up to N requests in flight; the default, 4, matches the server's `TUTOR_MAX_CONCURRENT`. The first request goes alone, so a wrong access code costs one strike, not one per worker; the pool starts after it. The server frees a slot only when a stream ends, so a pool as wide as the cap can still be answered `503 busy`; the harness waits out its `Retry-After` and retries, as for a rate limit. Replies finish in any order, but `latest.json` keeps them in request order, so a run's results don't depend on the concurrency (only the latencies do). `--limit` still sends the first N requests in that order.
 
 - `EVAL_URL` replaces `--url`.
 - `TUTOR_ACCESS_CODE`, when set, is sent as `X-Tutor-Access` (the live tutor's passphrase), percent-encoded as the app sends it. Fixture mode needs none. If the live tutor answers `401 access_required` (code missing or wrong) or `429 access_locked` (too many wrong codes), the harness says so and stops at once, without retrying: the whole run ends, including requests still in flight.
+- Any other thrown error (the server going away mid-run, say) also ends the run, and no results are written. HTTP and stream errors the tutor reports are recorded as failed replies instead.
 - The model reported in the results is the `served_by` of the replies the server's own model served, so the harness needs no setting for it.
 
 ### A live run
@@ -26,9 +27,9 @@ make eval-live                                   # 3-request smoke run, then ask
 make eval-live CONFIRM=1                         # the same, without the question
 ```
 
-`make eval-live` (`scripts/eval-live.sh`) starts a local server on a free port with `TUTOR_MODE=live`, `TUTOR_RATE_LIMIT="60/minute;1000/day"`, and `TUTOR_DAILY_TOKEN_BUDGET=2000000`, taking the key and the access code from the caller's environment only (it fails fast if either is unset, never prints them, and never reads `.env`). It waits for `/api/health` to report live mode, sends `--limit 3`, and prints how to check that smoke run's cost in the Anthropic Console before asking whether to send the full 123 requests. With no terminal to ask, it stops unless `CONFIRM=1` is set. The server stops when the target exits.
+`make eval-live` (`scripts/eval-live.sh`) starts a local server on a free port with `TUTOR_MODE=live`, `TUTOR_RATE_LIMIT="240/minute;4000/day"` (four requests in flight can pass 60 a minute, so the limit leaves room for the default concurrency), and `TUTOR_DAILY_TOKEN_BUDGET=2000000`, taking the key and the access code from the caller's environment only (it fails fast if either is unset, never prints them, and never reads `.env`). It waits for `/api/health` to report live mode, sends `--limit 3`, and prints how to check that smoke run's cost in the Anthropic Console before asking whether to send the full 123 requests. With no terminal to ask, it stops unless `CONFIRM=1` is set. The server stops when the target exits.
 
-One run is 123 requests (41 change points × 3 levels). The server's default limit is 10 a minute and 100 a day per IP, so run against a local server with `TUTOR_RATE_LIMIT` raised. The harness waits out a `rate_limited` 429's `Retry-After` (at most 120 s; 60 s if the header is missing or not a number of seconds) and retries, up to three times. Try a live server with `--limit` first.
+One run is 123 requests (41 change points × 3 levels). The server's default limit is 10 a minute and 100 a day per IP, so run against a local server with `TUTOR_RATE_LIMIT` raised. The harness waits out a `rate_limited` 429's or a `busy` 503's `Retry-After` (at most 120 s; 60 s if the header is missing or not a number of seconds) and retries, up to three times. Try a live server with `--limit` first.
 
 The harness asks `/api/health` which mode the server is in. In fixture mode the server replays its canned replies (about Ode to Joy, not these tunes), so a fixture run measures the plumbing, not the model, and the results say so.
 

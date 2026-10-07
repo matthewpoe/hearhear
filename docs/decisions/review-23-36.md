@@ -27,4 +27,9 @@ Four items from Matthew's review of PRs 23–36, on `fix/review-23-36`.
 
 - `evals/run.js` builds the full request list first, then sends it through a pool of `--concurrency` workers (default 4, the server's `TUTOR_MAX_CONCURRENT`). Each record is stored at its request's index, and the per-tune summaries and baseline are computed after the run from the requests actually sent, so `--limit` gives the same records and baseline counts as before.
 - An access refusal (401/429) still calls `process.exit(1)` from inside the worker, which ends the run with the other requests still in flight. Against a stand-in server that refuses everything after 200 ms, the run sent 4 requests (one per worker), printed the access message, and exited 1.
+- **After the merge gate:**
+  - **The first request goes alone, then the pool starts.** This lives in `evals/pool.js`, `runPool`. A wrong access code now costs one strike, not four: against the refusing stand-in, the run sent 1 request.
+  - **`503 busy` is retried like a 429.** The server frees its in-flight slot only after a stream ends, so four workers at a cap of 4 can race it. The harness honors Retry-After, up to 3 retries. Only `busy` is retried; other 503s such as `over_budget` are not.
+  - **`scripts/eval-live.sh` now sets `TUTOR_RATE_LIMIT="240/minute;4000/day"`.** At the old 60 a minute, four requests in flight could hit the limit.
+  - **Tests:** `tests/evals/pool.test.js` and the busy cases in `tests/evals/tutorCall.test.js`, against a stub server with Retry-After 0.
 - **Fixture check:** I ran the full fixture eval (123 requests) at `--concurrency 1` and at the default 4 against a local fixture server. Apart from `ms`, `firstDeltaMs`, `latencyMs`, and the run date, the two `latest.json` files were identical. Both differ from the committed `latest.json`, because the fixture replies' text has changed since that file was generated. So the results files were restored and not committed.
