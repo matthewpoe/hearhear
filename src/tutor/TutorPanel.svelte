@@ -5,7 +5,8 @@
   // the song they were made for, then handed to the chord row (Stream D2) as
   // alternatives to audition. Nothing here changes the song.
   import { song } from "../store/song.js";
-  import { ui } from "../store/ui.js";
+  import { untrack } from "svelte";
+  import { ui, keyLabelMode } from "../store/ui.js";
   import { suggestions, isStale } from "../store/suggestions.js";
   import { toTutorSnapshot } from "../store/snapshot.js";
   import { askTutor, TutorError } from "./client.js";
@@ -36,12 +37,33 @@
   let failureCode = $state("");
   /** @type {AbortController | null} */
   let controller = null;
+  /** @type {HTMLTextAreaElement | undefined} */
+  let textarea = $state();
 
   const hasReply = $derived(log.some((turn) => turn.role === "tutor"));
+  /** A reply has arrived and nothing has been asked since. */
+  const replied = $derived(status === "idle" && hasReply);
   const offered = $derived($suggestions.items.length);
   const stale = $derived(offered > 0 && isStale($suggestions, $song.version));
+  const songId = $derived($song.id);
 
   $effect(() => () => controller?.abort());
+
+  // A different song starts a new conversation: its history says nothing about
+  // this one, escalation waits for a nudge about it, and a reply still in
+  // flight belongs to the old song. Suggestions are left alone: loading bumps
+  // the song's version, which marks them stale.
+  $effect(() => {
+    void songId;
+    untrack(() => {
+      controller?.abort();
+      controller = null;
+      log = [];
+      pending = null;
+      status = "idle";
+      failureCode = "";
+    });
+  });
 
   /**
    * @param {string | null} asked
@@ -53,11 +75,16 @@
     const history = log.slice(-MAX_TURNS).map(({ role, text }) => ({ role, text }));
     pending = { question: asked, level, reply: "" };
     status = "loading";
-    controller = new AbortController();
+    const exchange = new AbortController();
+    controller = exchange;
+    const view = ui.get();
     try {
       const reply = await askTutor(
         {
-          snapshot: toTutorSnapshot(current, { labelStyle: ui.get().labelStyle }),
+          snapshot: toTutorSnapshot(current, {
+            labelStyle: view.labelStyle,
+            keyHidden: keyLabelMode(current, view) === "hidden",
+          }),
           hint_level: level,
           question: asked,
           history,
@@ -66,12 +93,13 @@
           onDelta: (text) => {
             if (pending) pending.reply += text;
           },
-          signal: controller.signal,
+          signal: exchange.signal,
         },
       );
+      if (exchange.signal.aborted) return;
       const raw = Array.isArray(reply.suggestions) ? reply.suggestions : [];
       const { items, dropped } = checkSuggestions(raw, current);
-      const replyLevel = reply.hint_level in LEVEL_NAMES ? reply.hint_level : level;
+      const replyLevel = Object.hasOwn(LEVEL_NAMES, reply.hint_level) ? reply.hint_level : level;
       suggestions.replace({
         snapshotVersion: current.version,
         hintLevel: replyLevel,
@@ -87,7 +115,7 @@
       pending = null;
       status = "idle";
     } catch (error) {
-      if (controller?.signal.aborted) return;
+      if (exchange.signal.aborted) return;
       if (!(error instanceof TutorError)) console.error("Tutor exchange failed", error);
       failureCode = error instanceof TutorError ? error.code : "unknown";
       status = "failed";
@@ -96,13 +124,20 @@
 
   /** @param {HintLevel} level */
   function ask(level) {
+    // Enter still fires while a reply streams; keep the draft for later.
+    if (status === "loading") return;
     const asked = question.trim() || null;
     question = "";
     send(asked, level);
+    // The button just pressed is now disabled; keep focus in the panel.
+    textarea?.focus();
   }
 
   function retry() {
-    if (pending) send(pending.question, pending.level);
+    if (!pending) return;
+    send(pending.question, pending.level);
+    // Try again unmounts as the retry starts; keep focus in the panel.
+    textarea?.focus();
   }
 
   /** @param {SubmitEvent} event */
@@ -154,13 +189,16 @@
     </p>
   {/if}
 
-  <div class="status" role="status">
+  <!-- Always in the accessibility tree, so each change is announced. When all
+       there is to say is that a reply arrived, the line is for screen readers. -->
+  <div class="status" class:quiet={replied && !offered && !$suggestions.dropped} role="status">
     {#if status === "loading"}
       <span class="thinking">The tutor is listening to your song<span class="dots"></span></span>
     {:else if stale}
       You've changed the song since the tutor's suggestions, so they're marked stale. Ask again for
       fresh ones.
-    {:else if hasReply && (offered || $suggestions.dropped)}
+    {:else if replied}
+      <span class="visually-hidden">The tutor replied.</span>
       {#if offered}
         {offered === 1 ? "1 suggestion is" : `${offered} suggestions are`} on the chord row to audition.
       {/if}
@@ -184,6 +222,7 @@
     <label for="tutor-question">Your question</label>
     <textarea
       id="tutor-question"
+      bind:this={textarea}
       bind:value={question}
       {onkeydown}
       rows="2"
@@ -211,6 +250,7 @@
 
 <style>
   .tutor {
+    position: relative;
     display: grid;
     gap: var(--space-3);
     padding: var(--space-4);
@@ -228,8 +268,18 @@
     margin: 0;
     color: var(--ink-muted);
   }
-  .status:empty {
-    display: none;
+  /* Hidden visually but never removed from the accessibility tree: a live
+     region that leaves the tree and returns with its content isn't reliably
+     announced. */
+  .status:empty,
+  .status.quiet,
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .log {
