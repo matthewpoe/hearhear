@@ -30,6 +30,12 @@ export function createShelf(storage) {
   const list = createReadable(/** @type {ShelfEntry[]} */ ([]));
 
   const writeIndex = () => memory.setMySongs([...copies.keys()]);
+  /**
+   * Raw takes read so far, by id (null: none), so a view asking on every
+   * song change reads storage once per tune. Every write goes through here.
+   * @type {Map<string, RawTake | null>}
+   */
+  const takes = new Map();
 
   function publish() {
     list.set([...copies.values()].map(({ id, title }) => ({ id, title })));
@@ -57,7 +63,11 @@ export function createShelf(storage) {
      * @param {string} id
      * @returns {RawTake | null}
      */
-    take: (id) => (copies.has(id) ? memory.recallTake(id) : null),
+    take(id) {
+      if (!copies.has(id)) return null;
+      if (!takes.has(id)) takes.set(id, memory.recallTake(id));
+      return takes.get(id) ?? null;
+    },
 
     /**
      * Keep a tune's raw take beside it.
@@ -66,6 +76,7 @@ export function createShelf(storage) {
      */
     saveTake(id, take) {
       memory.saveTake(id, take);
+      takes.set(id, take);
     },
 
     /**
@@ -76,7 +87,10 @@ export function createShelf(storage) {
      * @param {RawTake | null} [take]
      */
     add(song, at = copies.size, take = null) {
-      if (take) memory.saveTake(song.id, take);
+      if (take) {
+        memory.saveTake(song.id, take);
+        takes.set(song.id, take);
+      }
       const entries = [...copies.entries()].filter(([id]) => id !== song.id);
       entries.splice(Math.min(at, entries.length), 0, [song.id, song]);
       copies.clear();
@@ -107,11 +121,12 @@ export function createShelf(storage) {
       const song = copies.get(id);
       if (!song) return null;
       const at = [...copies.keys()].indexOf(id);
-      const take = memory.recallTake(id);
+      const take = takes.get(id) ?? memory.recallTake(id);
       copies.delete(id);
       writeIndex();
       memory.forget(id);
       memory.forgetTake(id);
+      takes.delete(id);
       publish();
       return { song, at, take };
     },

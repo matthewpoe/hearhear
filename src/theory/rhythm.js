@@ -185,10 +185,20 @@ function readSwing(gaps, feel = "auto") {
    */
   const onGrid = (beat) =>
     positive.filter((g) => GRID.some((n) => Math.abs(g / beat - n) <= 0.1)).length;
+  // A swung pair sits inside one beat, so its long note is never longer than
+  // the straight beat. Pairs with a longer first note (a half note before a
+  // dotted quarter, 4:3) are never swing candidates, whatever their sum.
+  const swingSums = [];
+  for (let i = 0; i + 1 < gaps.length; i++) {
+    if (swingRatio(gaps[i], gaps[i + 1]) && gaps[i] <= straightBeat * (1 + SAME_GAP)) {
+      swingSums.push(gaps[i] + gaps[i + 1]);
+    }
+  }
   let beatMs = straightBeat;
   if (sums.length > 0) {
+    // Every long-short pair, for the dotted-figure check below.
     const pairSum = mostCommonGap(sums);
-    const swingBeat = plausibleBeat(pairSum);
+    const swingBeat = swingSums.length > 0 ? plausibleBeat(mostCommonGap(swingSums)) : NaN;
     // A pair that sums to twice a gap the take also plays is a dotted figure
     // (dotted quarter and eighth over two beats), not a swung beat.
     const pairGaps = new Set(swungPairs(gaps, pairSum).flatMap((i) => [i, i + 1]));
@@ -197,8 +207,10 @@ function readSwing(gaps, feel = "auto") {
     );
     if (feel === "swing") {
       // The player says it swings: no dotted-figure guard, ties go to swing.
-      if (explained(swingBeat) >= explained(straightBeat)) beatMs = swingBeat;
+      if (Number.isFinite(swingBeat) && explained(swingBeat) >= explained(straightBeat))
+        beatMs = swingBeat;
     } else if (
+      Number.isFinite(swingBeat) &&
       !dotted &&
       // A swung pair is 1.33 to 1.67 times its long gap (3:1 to 3:2), which
       // is often the most common gap; a dotted figure over two beats is 2.

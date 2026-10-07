@@ -16,8 +16,8 @@
  */
 
 import songSchema from "../../contracts/song.schema.json" with { type: "json" };
-import { isLyric, isSwing, validateSong } from "./song.js";
-import { isTitle } from "./songLimits.js";
+import { MAX_MIDI, MIN_MIDI, isLyric, isSwing, validateSong } from "./song.js";
+import { MAX_NOTES, isTitle } from "./songLimits.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
 export const STORE_VERSION = 1;
@@ -258,11 +258,11 @@ export function createSongMemory(storage) {
           isObject(take) &&
           Number.isFinite(take.endMs) &&
           Array.isArray(take.presses) &&
-          take.presses.length <= 400 &&
+          take.presses.length <= MAX_NOTES &&
           take.presses.every(
             (/** @type {unknown} */ p) =>
               isObject(p) &&
-              isInt(p.midi, 21, 108) &&
+              isInt(p.midi, MIN_MIDI, MAX_MIDI) &&
               Number.isFinite(p.downMs) &&
               (p.upMs === undefined || p.upMs === null || Number.isFinite(p.upMs)),
           );
