@@ -125,8 +125,8 @@ export function isOnScreen(rect, viewport) {
 const ACTIONS_ELSEWHERE = 1;
 
 /**
- * Count one user action (a click or tap, or keyboard focus moving) against
- * the showing tip. Actions on the tip or its subject (the anchor element)
+ * Count one user action (a click or tap, or a key press that activates the
+ * focused control; moving focus alone isn't one) against the showing tip. Actions on the tip or its subject (the anchor element)
  * don't count; the second action elsewhere folds the tip away.
  * @param {number} elsewhere actions elsewhere so far, for this tip
  * @param {boolean} onSubject the action was on the tip or its anchor
@@ -135,6 +135,19 @@ const ACTIONS_ELSEWHERE = 1;
 export function countAction(elsewhere, onSubject) {
   const next = onSubject ? elsewhere : elsewhere + 1;
   return { elsewhere: next, fold: next > ACTIONS_ELSEWHERE };
+}
+
+/** Keys that activate or change the focused control (Tab and the rest only move focus). */
+const ACTIVATING = new Set([" ", "Enter", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+
+/**
+ * Whether a key press counts as an action for `countAction`: it activates or
+ * changes the focused control. Moving focus doesn't, so a keyboard user can
+ * Tab to a tip's subject without folding the tip.
+ * @param {string} key a KeyboardEvent's `key`
+ */
+export function isActivatingKey(key) {
+  return ACTIVATING.has(key);
 }
 
 /** @typedef {{ top: number, left: number, bottom: number, right: number }} Rect */

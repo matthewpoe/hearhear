@@ -6,6 +6,7 @@ import {
   isDue,
   actedOn,
   countAction,
+  isActivatingKey,
   isOnScreen,
   dismiss,
   placeCallout,
@@ -109,6 +110,30 @@ describe("countAction", () => {
     assert.deepEqual(first, { elsewhere: 1, fold: false });
     assert.deepEqual(countAction(first.elsewhere, true), { elsewhere: 1, fold: false });
     assert.deepEqual(countAction(first.elsewhere, false), { elsewhere: 2, fold: true });
+  });
+});
+
+describe("isActivatingKey", () => {
+  it("counts keys that activate or change a control", () => {
+    for (const key of [" ", "Enter", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]) {
+      assert.equal(isActivatingKey(key), true, key);
+    }
+  });
+  it("doesn't count keys that only move focus or modify", () => {
+    for (const key of ["Tab", "Shift", "Escape", "Home", "a"]) {
+      assert.equal(isActivatingKey(key), false, key);
+    }
+  });
+  it("so a Tab walk folds nothing, while two presses elsewhere fold the tip", () => {
+    let count = { elsewhere: 0, fold: false };
+    for (const key of ["Tab", "Tab", "Tab", "Tab"]) {
+      if (isActivatingKey(key)) count = countAction(count.elsewhere, false);
+    }
+    assert.deepEqual(count, { elsewhere: 0, fold: false });
+    for (const key of ["Enter", " "]) {
+      if (isActivatingKey(key)) count = countAction(count.elsewhere, false);
+    }
+    assert.deepEqual(count, { elsewhere: 2, fold: true });
   });
 });
 

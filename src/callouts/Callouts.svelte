@@ -6,7 +6,8 @@
   // in a fixed layer that follows its anchor on scroll and resize. A tip never
   // takes focus when it appears; it is announced politely and sits in the tab
   // order right after the toggle. Doing what a tip asks counts it as seen; a
-  // second action somewhere else folds it into a "Tip" chip by the toggle.
+  // second click or key press somewhere else folds it into a "Tip" chip by the
+  // toggle.
   import { tick, untrack } from "svelte";
   import content from "../../content/callouts.json";
   import { song } from "../store/song.js";
@@ -15,6 +16,7 @@
     nextCallout,
     actedOn,
     countAction,
+    isActivatingKey,
     dismiss,
     placeCallout,
     scrollForTip,
@@ -83,14 +85,21 @@
   }
 
   /**
-   * Whether a callout's subject is in view, so its tip can show. The dock is
-   * always in view.
+   * Whether a callout's subject is in view, so its tip can show on its own.
+   * The dock is always in view. The tip Next asked for (`requested`) only
+   * needs its subject on the page, since Next scrolls to it.
    * @param {Callout} callout
    */
   function inView(callout) {
     const target = targetOf(callout);
     if (!target) return false;
+    if (callout.id === requested) return true;
     return target.closest(".keyboard-dock") !== null || isOnScreen(rectOf(target), visibleArea());
+  }
+
+  /** @param {Callout} callout */
+  function onPage(callout) {
+    return targetOf(callout) !== null;
   }
 
   ui.update({ calloutsOn: loadOn() });
@@ -100,10 +109,10 @@
   let closed = $state(false);
   /** Tips folded into the "Tip" chip during this visit, by id. */
   let folded = $state(/** @type {Set<string>} */ (new Set()));
+  /** The tip Next went to, which shows while Next scrolls its subject into view. */
+  let requested = $state(/** @type {string | null} */ (null));
   /** Actions elsewhere since the current tip appeared or was unfolded. */
   let elsewhere = 0;
-  /** Whether the latest input was a pointer, so a click counts once, not again as focus. */
-  let pointing = false;
   /** Bumped when the page's elements change or it scrolls, so anchors are looked up again. */
   let pageChanges = $state(0);
   let position = $state({ top: 0, left: 0 });
@@ -129,20 +138,22 @@
     };
   });
 
-  /** @param {ReadonlySet<string>} ids */
-  function upNext(ids) {
+  /**
+   * @param {ReadonlySet<string>} ids
+   * @param {(callout: Callout) => boolean} hasAnchor
+   */
+  function upNext(ids, hasAnchor) {
     void pageChanges;
-    return nextCallout(callouts, {
-      dismissed: ids,
-      labelsHidden,
-      facts,
-      hasAnchor: inView,
-    });
+    return nextCallout(callouts, { dismissed: ids, labelsHidden, facts, hasAnchor });
   }
 
-  const current = $derived($ui.calloutsOn && !closed ? upNext(dismissed) : null);
+  // A tip shows on its own only once its subject is in view; Next goes to the
+  // next tip whose subject is anywhere on the page, and scrolls to it.
+  const current = $derived($ui.calloutsOn && !closed ? upNext(dismissed, inView) : null);
   const open = $derived(current !== null && !folded.has(current.id));
-  const another = $derived(current ? upNext(dismiss(dismissed, current.id)) !== null : false);
+  const another = $derived(
+    current ? upNext(dismiss(dismissed, current.id), onPage) !== null : false,
+  );
   const titleId = $derived(current ? `callout-${current.id}-title` : undefined);
 
   // Doing what a tip asks (loading a song, playing it, choosing a key,
@@ -226,6 +237,7 @@
     if (!current) return;
     dismissed = dismiss(dismissed, current.id);
     saveDismissed(dismissed);
+    requested = upNext(dismissed, onPage)?.id ?? null;
     await tick();
     // The viewer asked for the next tip, so take them to it: scroll its
     // anchor into view, as block: "nearest" would, or further when that would
@@ -284,14 +296,14 @@
   }
 
   /**
-   * Count a click, tap, or keyboard focus move against the open tip. One on
-   * the tip, its subject (the anchor element), or the tips toggle is free;
-   * the second one anywhere else folds the tip into the chip.
-   * @param {Event} event
+   * Count a click, tap, or key press that activates something against the
+   * open tip. One on the tip, its subject (the anchor element), or the tips
+   * toggle is free; the second one anywhere else folds the tip into the chip.
+   * Moving focus alone doesn't count, so Tab can reach a tip's subject.
+   * @param {EventTarget | null} target
    */
-  function onAction(event) {
-    if (!current || !open || !(event.target instanceof Node)) return;
-    const target = event.target;
+  function onAction(target) {
+    if (!current || !open || !(target instanceof Node)) return;
     const subject = document.getElementById(current.anchor);
     const onSubject = [box, subject, toggle].some((el) => el?.contains(target) ?? false);
     const counted = countAction(elsewhere, onSubject);
@@ -301,13 +313,12 @@
 
   /** @param {PointerEvent} event */
   function onPointerdown(event) {
-    pointing = true;
-    onAction(event);
+    onAction(event.target);
   }
 
-  /** @param {FocusEvent} event */
-  function onFocusin(event) {
-    if (!pointing) onAction(event);
+  /** @param {KeyboardEvent} event */
+  function onKeyAction(event) {
+    if (isActivatingKey(event.key)) onAction(document.activeElement);
   }
 
   /** Escape closes the tip from inside it, or when nothing else has focus. @param {KeyboardEvent} event */
@@ -323,9 +334,8 @@
 
 <svelte:window
   onkeydown={onKeydown}
-  onkeydowncapture={() => (pointing = false)}
+  onkeydowncapture={onKeyAction}
   onpointerdowncapture={onPointerdown}
-  onfocusincapture={onFocusin}
 />
 
 <button
@@ -352,7 +362,10 @@
 {/if}
 
 <p class="visually-hidden" aria-live="polite">
-  {#if current && open}Tip: {current.title ? `${current.title} ` : ""}{current.text}{/if}
+  {#if current && open}Tip: {current.title
+      ? `${current.title} `
+      : ""}{current.text}{:else if current && folded.has(current.id)}Tip folded; press Tip to show
+    it again.{/if}
 </p>
 
 {#if current && open}
