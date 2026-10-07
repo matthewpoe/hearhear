@@ -11,6 +11,7 @@
   import TrustPanel from "./trust/TrustPanel.svelte";
   import Piano from "./input/Piano.svelte";
   import ThemeToggle from "./ThemeToggle.svelte";
+  import StaffPanelToggle from "./StaffPanelToggle.svelte";
   import SongPicker from "./toolbar/SongPicker.svelte";
   import Callouts from "./callouts/Callouts.svelte";
   import GuidedEntry from "./guided/GuidedEntry.svelte";
@@ -62,6 +63,7 @@
   <div class="masthead-tools">
     <Callouts />
     <ThemeToggle />
+    <StaffPanelToggle />
   </div>
   <GuidedEntry />
 </header>
