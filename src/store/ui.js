@@ -17,8 +17,16 @@ import { createReadable } from "../lib/readable.js";
  *   windowOctave: number,
  *   labelStyle: LabelStyle,
  *   showDegrees: boolean,
+ *   keyLabelsHidden: boolean,
  *   calloutsOn: boolean,
  * }} UiState
+ *
+ * `keyLabelsHidden` keeps a demo from giving away its answer: while true, every
+ * key-relative label (melody degrees under the staff and on the piano keys,
+ * chord numerals and Nashville numbers, function colors and shapes) stays off.
+ * A demo sets it when it loads its tune with the key marked provisional; the
+ * user committing a key guess clears it. Free play never sets it: there the
+ * provisional C is arbitrary and the number row needs "1 is home" visible.
  */
 
 /** @returns {UiState} */
@@ -31,6 +39,7 @@ export function initialUi() {
     windowOctave: 0,
     labelStyle: "roman",
     showDegrees: true,
+    keyLabelsHidden: false,
     calloutsOn: true,
   };
 }

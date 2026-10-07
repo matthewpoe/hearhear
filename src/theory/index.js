@@ -376,21 +376,24 @@ export function guessRhythm(events) {
 }
 
 /**
- * Voice a chord with nearest-inversion voice leading in a fixed register below
- * the melody, so auditioned alternatives differ only in harmony.
+ * Voice a chord with nearest-inversion voice leading, entirely below the
+ * melody. `below` is the lowest melody note in the passage being played, so
+ * every chord in that passage, and every alternative auditioned there, sits
+ * in the same register: A and B differ only in harmony, and the left hand
+ * never collides with a low melody (Q- and A-row notes).
  * @param {ChordSpec} chord
- * @param {number[] | null} previous the previous chord's voicing, if any
- * @param {{ low: number, high: number }} [register] MIDI bounds, default C3–C4
- * @returns {number[]} MIDI, ascending
+ * @param {number[] | null} previous the previous chord's voicing in the passage, if any
+ * @param {{ below: number }} placement MIDI of the passage's lowest melody note
+ * @returns {number[]} MIDI, ascending, every note lower than `below`
  */
-export function voice(chord, previous, register = { low: 48, high: 60 }) {
-  void previous; // STUB(A): root position, no voice leading.
-  const rootMidi =
-    register.low + (((((TNote.chroma(chord.root) ?? 0) - register.low) % 12) + 12) % 12);
-  return chordTones(chord).map((pc) => {
-    const up = ((((TNote.chroma(pc) ?? 0) - rootMidi) % 12) + 12) % 12;
-    return rootMidi + up;
-  });
+export function voice(chord, previous, { below }) {
+  void previous; // STUB(A): close root position just under the melody, no voice leading.
+  const tones = chordTones(chord).map((pc) => TNote.chroma(pc) ?? 0);
+  let root = below - 1;
+  while (((root % 12) + 12) % 12 !== tones[0]) root--;
+  const voicing = tones.map((pc) => root + ((pc - tones[0] + 12) % 12));
+  const shift = voicing.at(-1) >= below ? 12 : 0;
+  return voicing.map((m) => m - shift);
 }
 
 // --- Meter and transforms ---------------------------------------------------
