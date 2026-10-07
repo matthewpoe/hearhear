@@ -44,11 +44,11 @@ function place(store, bar, beat, numeral) {
 }
 
 /** @param {Song} song */
-const state = (song, tutorReplies = 0, played = false, loadedThisTour = true) => ({
+const state = (song, played = false, loadedThisTour = true) => ({
   song,
-  tutorReplies,
   played,
   loadedThisTour,
+  facts: { keyCommitted: song.notes.length > 0 && !song.key.provisional },
 });
 
 describe("the guided path's content", () => {
@@ -92,17 +92,15 @@ describe("the guided path's content", () => {
       "half-cadence": () => place(store, 4, 3, "V"),
       land: () => place(store, 8, 3, "I"),
     };
-    let replies = 0;
     let played = false;
     /** @type {Record<string, boolean>} */
     let facts = {};
     /** @type {number[]} */
     let recentDegrees = [];
-    const at = () => ({ ...state(store.get(), replies, played), facts, recentDegrees });
+    const at = () => ({ ...state(store.get(), played), facts, recentDegrees });
     for (const step of steps) {
       assert.equal(conditionMet(step.done, at()), step.id === "load", step.id);
-      if (step.id === "ask") replies = 1;
-      else if (step.id === "listen") played = true;
+      if (step.id === "listen") played = true;
       else if (step.done.type === "fact") facts = { ...facts, [step.done.fact]: true };
       else if (step.done.type === "degrees") {
         for (const degree of step.done.degrees) {
@@ -153,13 +151,13 @@ describe("conditionMet", () => {
 
   it("wants the song loaded during this run, so a fresh tour starts at step 1", () => {
     const met = { type: /** @type {const} */ ("songLoaded"), song: "ode-to-joy" };
-    assert.ok(!conditionMet(met, state(tune, 0, false, false)));
+    assert.ok(!conditionMet(met, state(tune, false, false)));
   });
 
   it("counts a committed key only, and the right one for keyChosen", () => {
     const store = demo();
     const d = /** @type {const} */ ({ type: "keyChosen", tonic: "D", mode: "major" });
-    const any = /** @type {const} */ ({ type: "keyCommitted" });
+    const any = /** @type {const} */ ({ type: "fact", fact: "keyCommitted" });
     assert.ok(!conditionMet(d, state(store.get())));
     assert.ok(!conditionMet(any, state(store.get())));
     store.rekey({ tonic: "G", mode: "major", provisional: false });
@@ -185,14 +183,8 @@ describe("conditionMet", () => {
   it("wants Play pressed on a loaded song", () => {
     const played = /** @type {const} */ ({ type: "played" });
     assert.ok(!conditionMet(played, state(tune)));
-    assert.ok(conditionMet(played, state(tune, 0, true)));
-    assert.ok(!conditionMet(played, state({ ...tune, notes: [] }, 0, true)));
-  });
-
-  it("wants a tutor reply", () => {
-    const replied = /** @type {const} */ ({ type: "tutorReplied" });
-    assert.ok(!conditionMet(replied, state(tune, 0)));
-    assert.ok(conditionMet(replied, state(tune, 2)));
+    assert.ok(conditionMet(played, state(tune, true)));
+    assert.ok(!conditionMet(played, state({ ...tune, notes: [] }, true)));
   });
 });
 

@@ -14,10 +14,8 @@ import { numeralOf, positionOf } from "../theory/index.js";
  * When a step is done (content/guided-path.json): what its action produces.
  * @typedef {{ type: "songLoaded", song: string }
  *   | { type: "keyChosen", tonic: string, mode: "major" | "minor" }
- *   | { type: "keyCommitted" }
  *   | { type: "chordAt", bar: number, beat: number, numeral: string }
  *   | { type: "played" }
- *   | { type: "tutorReplied" }
  *   | { type: "degrees", degrees: number[] }
  *   | { type: "fact", fact: string }} Condition
  *
@@ -55,14 +53,12 @@ import { numeralOf, positionOf } from "../theory/index.js";
  * @typedef {{ status: string, song: string, steps: Step[] }} GuidedPath
  *
  * What the conditions read: the song on the staff, whether it has been
- * played since it was loaded, how many replies the tutor has given in its
- * conversation, and whether a tune was loaded since this run of the tour
+ * played since it was loaded, whether a tune was loaded since this run of the tour
  * started (so a fresh tour never skips its load step), the scale degrees of
  * the last notes played, and the facts.
  * @typedef {{
  *   song: Song,
  *   played: boolean,
- *   tutorReplies: number,
  *   loadedThisTour: boolean,
  *   recentDegrees?: number[],
  *   facts?: Record<string, boolean>,
@@ -71,10 +67,10 @@ import { numeralOf, positionOf } from "../theory/index.js";
 
 /**
  * The facts the component reads from the stores, as opposed to the page:
- * the tour's tune now sounds in another key or octave, and the recorder is
- * armed or recording.
+ * any home is chosen (the key isn't provisional), the tour's tune now sounds
+ * in another key or octave, and the recorder is armed or recording.
  */
-export const FACTS = /** @type {const} */ (["transposed", "recordStarted"]);
+export const FACTS = /** @type {const} */ (["keyCommitted", "transposed", "recordStarted"]);
 
 /** How many recent degrees the component keeps, for `degrees` conditions. */
 export const RECENT_DEGREES = 8;
@@ -115,7 +111,7 @@ export function numeralAt(song, bar, beat) {
  */
 export function conditionMet(
   condition,
-  { song, played, tutorReplies, loadedThisTour, recentDegrees = [], facts },
+  { song, played, loadedThisTour, recentDegrees = [], facts },
 ) {
   switch (condition.type) {
     case "songLoaded":
@@ -126,14 +122,10 @@ export function conditionMet(
         song.key.tonic === condition.tonic &&
         song.key.mode === condition.mode
       );
-    case "keyCommitted":
-      return song.notes.length > 0 && !song.key.provisional;
     case "chordAt":
       return numeralAt(song, condition.bar, condition.beat) === condition.numeral;
     case "played":
       return played && song.notes.length > 0;
-    case "tutorReplied":
-      return tutorReplies > 0;
     case "degrees":
       return endsWith(recentDegrees, condition.degrees);
     case "fact":

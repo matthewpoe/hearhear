@@ -37,8 +37,6 @@
   /** The tour's tune, as a demo loads it. */
   const tourTune = DEMO_TUNES.find(({ song: t }) => t.id === path.song)?.song;
 
-  /** Replies in the tutor's conversation, counted from its log. */
-  let tutorReplies = $state(0);
   /** Play was pressed (the playhead moved) since this song was loaded. */
   let played = $state(false);
   /**
@@ -63,6 +61,7 @@
   const facts = $derived.by(() => {
     void pageChanges;
     return {
+      keyCommitted: $song.notes.length > 0 && !$song.key.provisional,
       transposed:
         tourTune !== undefined &&
         $song.id === tourTune.id &&
@@ -78,7 +77,6 @@
   const appState = $derived({
     song: $song,
     played,
-    tutorReplies,
     loadedThisTour,
     recentDegrees,
     facts,
@@ -313,25 +311,6 @@
   });
   $effect(() => {
     if ($ui.playheadNoteId !== null) played = true;
-  });
-
-  // The tutor step is done once a reply is in the conversation. Finished
-  // turns sit in the log list; the one still streaming is marked busy.
-  $effect(() => {
-    const count = () => {
-      tutorReplies = document.querySelectorAll(
-        "#tutor ol.log > li.turn.tutor:not([aria-busy])",
-      ).length;
-    };
-    const observer = new MutationObserver(count);
-    observer.observe(document.getElementById("tutor") ?? document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["aria-busy"],
-    });
-    count();
-    return () => observer.disconnect();
   });
 
   /**

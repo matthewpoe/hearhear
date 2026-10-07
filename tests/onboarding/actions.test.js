@@ -12,16 +12,7 @@ import { actionParts } from "../../src/guided/actions.js";
 import { FACTS } from "../../src/guided/steps.js";
 
 /** What a step's `done` can observe (src/guided/steps.js conditionMet). */
-const CONDITIONS = [
-  "songLoaded",
-  "played",
-  "keyChosen",
-  "keyCommitted",
-  "chordAt",
-  "tutorReplied",
-  "degrees",
-  "fact",
-];
+const CONDITIONS = ["songLoaded", "played", "keyChosen", "chordAt", "degrees", "fact"];
 
 /** @param {string} file */
 const source = (file) => readFile(new URL(`../../src/${file}`, import.meta.url), "utf8");
