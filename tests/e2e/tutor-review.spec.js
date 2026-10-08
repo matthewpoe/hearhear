@@ -2,8 +2,8 @@
 // chosen key and a placed chord, saying why while it can't be pressed; then it
 // asks for a review of the whole chart (mode "review") and the fixture's
 // review comes back with suggestion cards. Hovering or focusing a card rings
-// its note on the staff, and leaving it clears the ring. Fixture mode, so
-// nothing calls Claude. Passes axe.
+// its note on the staff, and leaving it clears the ring (or hands it back to
+// the card holding focus). Fixture mode, so nothing calls Claude. Passes axe.
 
 import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
@@ -103,6 +103,16 @@ test("Review my chords reviews the chart, and a suggestion card rings its note",
   // Focus does the same, for a keyboard user, and blur clears it.
   await first.getByRole("button", { name: /^Hear / }).focus();
   await expect(note).toHaveClass(/\bis-suggested\b/);
+
+  // Hovering another card moves the ring there; leaving it hands the ring
+  // back to the focused card instead of clearing it.
+  await ideas.last().hover();
+  await expect(ringed).toHaveCount(1);
+  await expect(note).not.toHaveClass(/\bis-suggested\b/);
+  await page.locator("#tutor > h2").hover();
+  await expect(note).toHaveClass(/\bis-suggested\b/);
+  await expect(ringed).toHaveCount(1);
+
   await page.locator("#tutor-question").focus();
   await expect(ringed).toHaveCount(0);
 
