@@ -214,10 +214,23 @@ def test_tutor_over_budget_fixture(client: TestClient) -> None:
     [
         {"question": "x" * 1001},
         {"history": [{"role": "student", "text": "hi"}] * 13},
-        {"hint_level": "verdict"},
+        {"mode": "nudge"},
+        {"mode": None},
+        {"mode": "question"},
+        {"mode": "question", "question": "   "},
+        {"hint_level": "answer"},
         {"snapshot": {**SNAPSHOT, "midi": [60]}},
     ],
-    ids=["long-question", "long-history", "bad-hint-level", "extra-field"],
+    ids=[
+        "long-question",
+        "long-history",
+        "bad-mode",
+        "no-mode",
+        "question-without-text",
+        "blank-question",
+        "old-hint-level",
+        "extra-field",
+    ],
 )
 def test_tutor_rejects_out_of_bounds_requests(client: TestClient, change: dict[str, Any]) -> None:
     body = {"snapshot": SNAPSHOT, "mode": "review", **change}
