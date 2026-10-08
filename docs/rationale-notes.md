@@ -49,6 +49,18 @@ Raw material for the written rationale and the video talk track, organized under
 - **One obvious next step, and fewer controls (the night before the freeze).** I showed the app to my partner on a phone, and it was still crowded and unclear. The beginner tips had already given way to one guided walkthrough that teaches the real controls; now the page itself has a spine of three calls to action: pick a song, find its key, place a chord. Before a song is picked it's the song list and nothing else. Finding home gets "Give me a hint", one clue per press (where the tune comes to rest, then the notes written with sharps or flats), never the key. Placing a chord starts at one named note, and afterwards the app describes the relationship and what the chord does, never a verdict, because a rub is sometimes the point. The tool row lost the From the top / This bar choice, Swing, Voice leading (into the chord dropdown), the scale-degrees switch and the dark theme's staff choice: each was one more thing for a newcomer to wonder about.
 - **Process:** parallel workstreams in Claude Code workflows against agreed contracts, Fable adversarial reviews at each checkpoint, and a decision log that records every time I overrule Claude or a reviewer.
 
+## The eval, reframed
+
+- **The headline is playable alternatives at a note.** How often the tutor offers at least two different chords I could play on the note I asked about, right away.
+- **Why not score against a hymnal.** A hymnal prints one answer, but many chords are right under most melody notes, and ear training is about hearing the options side by side. Scoring a match to one printed chord would reward recall over teaching, so the hymnal's chord is a secondary line, "includes the conventional choice".
+- **Plausible is judged by code, with no reference answer.** A chord counts when the melody note is a chord tone or a tension over it, it fits the melody through the rest of the bar (a fixed threshold of 0.5, set before any live run and never tuned; the results show 0.4 and 0.6 beside it for sensitivity), and it's a chord a musician would recognize in the key.
+- **Off-target ideas are reported on their own line.** Two good chords plus a deliberate contrast is good teaching, so an off-target idea doesn't zero the reply; the share of them is its own number. The same rule scores the dropdown's top three and the "does this work?" replies, and a "does this work?" reply only counts when it also passes no verdict.
+
+## Known limits
+
+- Phrase recording starts each new phrase on the next bar line, so a pickup into a phrase shifts; there's no count-in yet.
+- Feel (Straight/Swing) re-reads the recorded takes, which replaces hand edits to the tune, so it now asks before replacing them.
+
 ## Extensions (cut for depth over breadth)
 
 - Record mode with rhythm guessing and duration editing (cut to the 8-hour line; the theory is built)
