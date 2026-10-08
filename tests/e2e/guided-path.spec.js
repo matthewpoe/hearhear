@@ -384,6 +384,13 @@ test("while the lesson runs, the Chords step suggests the lesson's note, not one
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
+  // The notation library arrives after the clicks below, as on a slow
+  // network: the staff's first draw then follows the lesson's last look for
+  // its note, and the ring has to survive it.
+  await page.route(/\/abcjs-[^/]*\.js$/, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    await route.continue();
+  });
   // Resume the lesson at its V-at-bar-4 step.
   const at = steps.findIndex((/** @type {{ id: string }} */ s) => s.id === "half-cadence");
   await page.addInitScript((at) => localStorage.setItem("hearhear.guided.step", String(at)), at);
