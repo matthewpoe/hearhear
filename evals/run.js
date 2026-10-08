@@ -70,7 +70,7 @@ const sent = ctx.jobs.slice(0, limit);
  * @param {Job} job
  * @returns {Promise<ReplyRecord>}
  */
-async function run({ tune, kind, reference, placed, level, bar, beat, body }) {
+async function run({ tune, kind, mode, placed, bar, beat, body }) {
   let exchange;
   try {
     exchange = await callTutor(baseUrl, body, accessCode);
@@ -83,7 +83,6 @@ async function run({ tune, kind, reference, placed, level, bar, beat, body }) {
   const event = exchange.suggestionsEvent;
   const servedBy = event?.served_by ?? null;
   const reply = event && {
-    hint_level: event.hint_level,
     message: exchange.message,
     suggestions: event.suggestions,
   };
@@ -94,14 +93,14 @@ async function run({ tune, kind, reference, placed, level, bar, beat, body }) {
   let outcome = "failed";
   if (exchange.outcome === "ok") outcome = event?.fallback === true ? "excluded" : "ok";
   else if (exchange.code === "invalid_output") outcome = "invalid";
-  console.log(`${tune} bar ${bar} beat ${beat} ${kind} ${level}: ${outcome}`);
+  const where = bar === null ? "" : ` bar ${bar} beat ${beat}`;
+  console.log(`${tune}${where} ${kind}: ${outcome}`);
   return {
     tune,
     kind,
-    level,
+    mode,
     bar,
     beat,
-    reference: reference ? letterOf(reference) : null,
     placed: placed ? letterOf(placed) : null,
     outcome,
     code: exchange.code,
@@ -113,8 +112,7 @@ async function run({ tune, kind, reference, placed, level, bar, beat, body }) {
     schemaValid: Boolean(reply && checkReply(reply)),
     score: null,
     alternatives: null,
-    verdict: null,
-    withholds: null,
+    prose: null,
     ms: Math.round(exchange.ms),
     firstDeltaMs: exchange.firstDeltaMs === null ? null : Math.round(exchange.firstDeltaMs),
   };

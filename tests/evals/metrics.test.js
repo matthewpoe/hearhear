@@ -3,15 +3,15 @@ import assert from "node:assert/strict";
 import {
   FIT_THRESHOLD,
   baselineChord,
-  chordNamesIn,
+  chartChordAt,
   dropdownTop,
-  nudgeWithholds,
   numeralAgreesWithLetter,
   percentile,
   plausible,
   recognized,
   sameHarmony,
   scoreAlternatives,
+  scoreReviewAlternatives,
   scoreSuggestions,
   usesVerdict,
 } from "../../evals/metrics.js";
@@ -72,47 +72,6 @@ test("sameHarmony matches root and triad quality, so sevenths count as their tri
   assert.equal(sameHarmony({ root: "G", type: "M" }, { root: "C", type: "M" }), false);
 });
 
-test("chordNamesIn flags numerals, chord symbols, and Nashville chords", () => {
-  assert.deepEqual(chordNamesIn("Try a V7/IV here."), ["V7/IV"]);
-  assert.deepEqual(chordNamesIn("Compare Em and A7, then the ii."), ["Em", "A7", "ii"]);
-  assert.deepEqual(chordNamesIn("Does the 6m feel sad?"), ["6m"]);
-  assert.deepEqual(chordNamesIn("Hear the V-I pull?"), ["V"]);
-  assert.deepEqual(chordNamesIn("Is that a G chord?"), ["G chord"]);
-});
-
-test("chordNamesIn flags every letter-and-quality phrase, but not the key's name", () => {
-  assert.deepEqual(chordNamesIn("Try D major there, or E minor."), ["D major", "E minor"]);
-  assert.deepEqual(chordNamesIn("Hold a D major triad under it."), ["D major triad"]);
-  assert.deepEqual(chordNamesIn("An F# diminished seventh, then C augmented."), [
-    "F# diminished seventh",
-    "C augmented",
-  ]);
-  assert.deepEqual(chordNamesIn("We are in G major."), []);
-  assert.deepEqual(chordNamesIn("The key of E minor, and the G major scale."), []);
-});
-
-test("chordNamesIn lets ordinary prose, notes, degrees, and bars through", () => {
-  const nudge =
-    "Before I say anything, listen to the long E in bar 4. I think it wants to rest. " +
-    "Hold just the 5 underneath, i.e. the dominant note, and compare. A drone helps.";
-  assert.deepEqual(chordNamesIn(nudge), []);
-});
-
-test("a nudge withholds when the model offered nothing to strip and names no chord", () => {
-  assert.ok(nudgeWithholds({ message: "Listen to bar 4.", dropped: 0, withheld: 0 }));
-  assert.equal(nudgeWithholds({ message: "Try IV.", dropped: 0, withheld: 0 }), false);
-  assert.equal(
-    nudgeWithholds({ message: "Listen.", dropped: 0, withheld: 1 }),
-    false,
-    "the server held back a suggestion the model offered",
-  );
-  assert.equal(
-    nudgeWithholds({ message: "Listen.", dropped: 1, withheld: 0 }),
-    false,
-    "an invalid suggestion was still an offer",
-  );
-});
-
 test("baselineChord picks the best-fitting candidate", () => {
   // B A G D under bar 1: G major holds B, G, and D; only A is outside it.
   assert.deepEqual(baselineChord(song, "n1"), { root: "G", type: "M" });
@@ -125,33 +84,18 @@ test("baselineChord ignores chords already placed in the song", () => {
   assert.deepEqual(baselineChord(placed, "n2"), { root: "G", type: "M" });
 });
 
-test("scoreSuggestions counts agreement, onsets, clashes, and a hit at the change point", () => {
-  const point = { bar: 1, beat: 1, reference: { root: "G", type: "M" } };
+test("scoreSuggestions counts agreement, onsets, and clashes", () => {
   const s = (/** @type {object} */ x) => ({ confidence: "low", reason: "", ...x });
   const score = scoreSuggestions(
     [
-      s({ bar: 1, beat: 1, numeral: "I", letter: "G" }), // hit
+      s({ bar: 1, beat: 1, numeral: "I", letter: "G" }),
       s({ bar: 1, beat: 1, numeral: "bVI", letter: "Eb" }), // B over Bb: a clash
       s({ bar: 1, beat: 1, numeral: "V", letter: "A" }), // disagrees: not judged
       s({ bar: 1, beat: 1.5, numeral: "vi", letter: "Em" }), // agrees, no onset there
     ],
     song,
-    point,
   );
-  assert.deepEqual(score, { suggestions: 4, agreeing: 3, onOnset: 2, clashing: 1, hit: true });
-});
-
-test("a matching chord elsewhere is not a hit", () => {
-  const point = { bar: 1, beat: 1, reference: { root: "G", type: "M" } };
-  const score = scoreSuggestions([{ bar: 1, beat: 3, numeral: "I", letter: "G" }], song, point);
-  assert.equal(score.hit, false);
-  assert.equal(score.onOnset, 1);
-});
-
-test("scoreSuggestions never hits without a reference", () => {
-  const point = { bar: 1, beat: 1, reference: null };
-  const score = scoreSuggestions([{ bar: 1, beat: 1, numeral: "I", letter: "G" }], song, point);
-  assert.equal(score.hit, false);
+  assert.deepEqual(score, { suggestions: 4, agreeing: 3, onOnset: 2, clashing: 1 });
 });
 
 /** @param {string} id */
@@ -278,4 +222,44 @@ test("usesVerdict lets a negated verdict word affirm the choice", () => {
   ]) {
     assert.equal(usesVerdict(m), false, m);
   }
+});
+
+test("chartChordAt is the student's chord sounding at a note", () => {
+  const charted = { ...song, chords: [{ id: "c1", noteId: "n2", root: "D", type: "M" }] };
+  assert.equal(chartChordAt(charted, noteOf("n1")), null, "before the first chord");
+  assert.deepEqual(chartChordAt(charted, noteOf("n2")), { root: "D", type: "M" });
+  assert.deepEqual(chartChordAt(charted, noteOf("n4")), { root: "D", type: "M" }, "held on");
+});
+
+test("scoreReviewAlternatives judges each card at its own note, the chart's chord set aside", () => {
+  const charted = { ...song, chords: [{ id: "c1", noteId: "n1", root: "G", type: "M" }] };
+  const card = (
+    /** @type {number} */ beat,
+    /** @type {string} */ numeral,
+    /** @type {string} */ letter,
+  ) => ({
+    bar: 1,
+    beat,
+    numeral,
+    letter,
+  });
+  const two = scoreReviewAlternatives([card(1, "iii", "Bm"), card(4, "V", "D")], charted);
+  assert.equal(two.alternatives, true, "two plausible ideas at two places");
+  assert.equal(two.plausible, 2);
+
+  const echo = scoreReviewAlternatives([card(1, "I", "G"), card(4, "V", "D")], charted);
+  assert.equal(echo.considered, 1, "the G the student already has there is no alternative");
+  assert.equal(echo.alternatives, false);
+
+  const off = scoreReviewAlternatives(
+    [card(1, "iii", "Bm"), card(4, "V", "D"), card(1, "bVI", "Eb"), card(2.5, "IV", "C")],
+    charted,
+  );
+  assert.equal(off.alternatives, true, "off-target ideas beside two good ones don't cancel them");
+  assert.equal(off.offTarget, 2, "a clash, and a card on no melody onset");
+
+  const same = scoreReviewAlternatives([card(4, "V", "D"), card(4, "V7", "D7")], charted);
+  assert.equal(same.distinct, 2, "V and V7 are distinct ideas");
+  const dup = scoreReviewAlternatives([card(4, "V", "D"), card(4, "V", "D")], charted);
+  assert.equal(dup.plausible, 1, "the same chord at the same place counts once");
 });

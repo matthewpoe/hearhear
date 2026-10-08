@@ -21,25 +21,59 @@
     return rate && rate.total ? `${rate.count} of ${rate.total}` : "nothing to count";
   }
 
-  const points = byTune.reduce((sum, t) => sum + t.points, 0);
+  const reviews = byTune.filter((t) => t.kinds.review).length;
 
   const measures = [
     {
       label: "Gives you alternatives to try",
       rate: headline.alternatives,
-      gloss: `At ${points} melody notes in ${byTune.length} tunes, how often the tutor offered two or more different chords for the note you asked about that are playable there: each fits the melody, doesn't clash with it, and is a chord a musician would recognize in the key. There's rarely one right chord; the point is options your ear can compare.`,
+      gloss: `Over ${headline.replies} requests (a review of the whole chart for each of ${reviews} tunes, and “does this work?” questions), how often the tutor offered two or more different chords you can audition that are playable where it put them: each fits the melody, doesn't clash with it, and is a chord a musician would recognize in the key. There's rarely one right chord; the point is options your ear can compare.`,
+    },
+    {
+      label: "Every chord it names has a card to play",
+      rate: headline.alternativesCarded,
+      gloss:
+        "How often every chord the tutor suggests in words also comes as a card you can audition, at the bar it talks about. Chords it says are already yours (“your IV”) don't need one. Read by rule, so it can miss.",
+    },
+    {
+      label: "Points out where the tune repeats",
+      rate: headline.repeatCited,
+      gloss:
+        "When the melody repeats a phrase (found by code: two runs of bars with the same scale degrees), how often a review named both places, so you can reuse what you learned.",
+    },
+    {
+      label: "Keeps it to three things to try",
+      rate: headline.testsWithinThree,
+      gloss: "Replies that list at most three numbered tests, so a lesson stays playable.",
+    },
+    {
+      label: "Only cites bars the song has",
+      rate: headline.barsExist,
+      gloss: "Replies where every bar the tutor mentions is a bar in the song.",
+    },
+    {
+      label: "Options, not verdicts",
+      rate: headline.verdictFree,
+      gloss:
+        "Replies that never call a chord wrong, incorrect, or a mistake. “Nothing wrong with it” is fine.",
+    },
+    {
+      label: "Answers “does this work?” with options, not a verdict",
+      rate: headline.checkAlternatives,
+      gloss:
+        "When you place a reasonable chord and ask about it, how often the tutor offered two or more other playable chords to compare it with, without calling your chord wrong.",
     },
     {
       label: "The app's own top three, for comparison",
       rate: headline.baseline.alternatives,
       gloss:
-        "The same test for the dropdown's three best-fitting chords, which use rules, not Claude.",
+        "The same alternatives test for the dropdown's three best-fitting chords at the notes you asked about, which use rules, not Claude.",
     },
     {
-      label: "Ideas that miss the note",
+      label: "Ideas that miss",
       rate: headline.offTarget,
       gloss:
-        "Of all the tutor's ideas for the note you asked about, how many weren't playable there by the same test. Lower is better, but it's counted on its own line, so a deliberate contrast beside good options doesn't cancel them.",
+        "Of all the tutor's cards, how many weren't playable where it put them by the same test. Lower is better, but it's counted on its own line, so a deliberate contrast beside good options doesn't cancel them.",
     },
     {
       label: "Ideas beyond the obvious",
@@ -48,28 +82,16 @@
         "Of the tutor's playable ideas, how many the dropdown's top three wouldn't have shown you. This is where the tutor earns its keep.",
     },
     {
-      label: "Answers “does this work?” with options, not a verdict",
-      rate: headline.checkAlternatives,
-      gloss:
-        "When you place a reasonable chord and ask about it, how often the tutor offered two or more other playable chords to compare it with, without calling your chord wrong or a mistake.",
-    },
-    {
       label: "Includes the conventional choice",
-      rate: headline.hitRate,
+      rate: headline.conventional,
       gloss:
-        "How often the tutor's ideas included the chord a published hymnal printed there. A miss isn't wrong: a hymnal picks one good chord of several.",
+        "When you ask about a less obvious chord, how often the tutor's ideas also included the most conventional one there (the dropdown's best fit). A miss isn't wrong: there are several good chords.",
     },
     {
       label: "Clashes with the melody",
       rate: headline.clashRate,
       gloss:
         "How often a suggested chord rubs against the melody note it sits under. Lower is better, and your ear will catch the ones that slip through.",
-    },
-    {
-      label: "Holds back at a nudge",
-      rate: headline.pedagogy,
-      gloss:
-        "How often the first hint pointed you where to listen without naming or offering a chord: the model's own restraint. The app holds chords back at a nudge anyway, so you never see one early.",
     },
     {
       label: "Replies the app could read",
@@ -102,7 +124,7 @@
       {:else}
         <p class="meta">
           From the eval run on {date}, against <span class="model">{run.model}</span>, with
-          {headline.replies} questions about {byTune.length} public-domain tunes.
+          {headline.replies} requests about {byTune.length} tunes.
         </p>
 
         <dl class="measures">
