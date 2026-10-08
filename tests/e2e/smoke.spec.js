@@ -17,14 +17,13 @@ test("the app loads under the production CSP, with every region and no a11y viol
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hear Hear", level: 1 })).toBeVisible();
-  // The empty landing is step 1 alone: the song list, and the keyboard. No
-  // staff, chords or tutor until a song is picked.
-  for (const region of ["Pick a song", "Keyboard"]) {
+  // The empty landing: the song list leads, with the tutor and the keyboard.
+  // No staff until a song is picked.
+  for (const region of ["Pick a song", "Keyboard", "Tutor"]) {
     await expect(page.getByRole("region", { name: region, exact: true })).toBeVisible();
   }
   const staff = page.getByRole("region", { name: "Staff", exact: true });
   await expect(staff).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Tutor", exact: true })).toHaveCount(0);
 
   // Light by default.
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");

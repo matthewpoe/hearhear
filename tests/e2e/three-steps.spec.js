@@ -39,11 +39,12 @@ for (const [width, height] of [
     await page.goto("/");
     await page.getByRole("button", { name: "Leave lesson" }).click();
 
-    // 1. Only the song list, and the line about recording your own.
+    // 1. The song list leads the full interface (the tutor shows too), with
+    // the line about recording your own.
     const landing = page.locator("#landing");
     await expect(landing.getByRole("heading", { name: "Pick a song" })).toBeVisible();
     await expect(landing).toContainText("You can record your own once you get the hang of it.");
-    await expect(page.locator("#tutor")).toHaveCount(0);
+    await expect(page.locator("#tutor")).toBeVisible();
     await expect(page.locator("#staff")).toHaveCount(0);
     await axe(page);
     await screen(page, `1-song-${width}`);
