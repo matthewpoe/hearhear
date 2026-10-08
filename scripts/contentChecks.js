@@ -54,8 +54,8 @@ export function eventFailures(where, song, songId, events) {
   if (events.at(-1)?.event !== "done") failures.push(`${where}: last event must be done`);
   for (const { event, data } of events) {
     if (event !== "suggestions") continue;
-    const { hint_level, suggestions } = data;
-    const reply = { hint_level, message: "", suggestions };
+    const { suggestions } = data;
+    const reply = { message: "", suggestions };
     if (!checkReply(reply)) failures.push(`${where}: ${ajv.errorsText(checkReply.errors)}`);
     if (!song) continue;
     for (const { bar, beat, numeral, letter } of suggestions) {

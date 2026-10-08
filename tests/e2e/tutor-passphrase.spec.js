@@ -28,6 +28,8 @@ test("a live tutor asks for the passphrase before the first question", async ({ 
   );
   /** @type {string[]} the access code each tutor request carried */
   const sent = [];
+  /** @type {string[]} the mode each answered request asked in */
+  const modes = [];
   await page.route("/api/tutor", (route) => {
     const request = route.request();
     const code = decodeURIComponent(request.headers()["x-tutor-access"] ?? "");
@@ -38,13 +40,13 @@ test("a live tutor asks for the passphrase before the first question", async ({ 
         json: { error: { code: "access_required", message: "Passphrase required." } },
       });
     }
-    const { snapshot } = request.postDataJSON();
+    const { snapshot, mode } = request.postDataJSON();
+    modes.push(mode);
     return route.fulfill({
       headers: { "content-type": "text/event-stream" },
       body:
         sse("message", { delta: "Listen to where bar 4 lands." }) +
         sse("suggestions", {
-          hint_level: "nudge",
           suggestions: [],
           snapshot_version: snapshot.version,
           dropped: 0,
@@ -96,6 +98,7 @@ test("a live tutor asks for the passphrase before the first question", async ({ 
   await expect(field).toHaveCount(0);
   await expect(change).toBeVisible();
   expect(sent).toEqual([WRONG, RIGHT]);
+  expect(modes, "a typed question asks in question mode").toEqual(["question"]);
 
   // Kept for the tab: a reload doesn't ask again.
   await page.reload();

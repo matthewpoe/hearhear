@@ -287,14 +287,13 @@
     "snapshot": {
       "$ref": "#/$defs/Snapshot"
     },
-    "hint_level": {
-      "default": "nudge",
+    "mode": {
+      "description": "review: read the whole chart (the question is optional). question: answer the student's question about the chart.",
       "enum": [
-        "nudge",
-        "comparison",
-        "answer"
+        "review",
+        "question"
       ],
-      "title": "Hint Level",
+      "title": "Mode",
       "type": "string"
     },
     "question": {
@@ -321,7 +320,8 @@
     }
   },
   "required": [
-    "snapshot"
+    "snapshot",
+    "mode"
   ],
   "title": "TutorRequest",
   "type": "object"

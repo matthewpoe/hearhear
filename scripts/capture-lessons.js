@@ -27,6 +27,7 @@ import { AccessError, callTutor } from "../evals/tutorCall.js";
 import { createSongStore } from "../src/store/song.js";
 import { toTutorSnapshot } from "../src/store/snapshot.js";
 import { chordFromNumeral, positionOf } from "../src/theory/index.js";
+import { CONTROLS } from "../src/lib/controls.js";
 import { eventFailures, hiddenKeyFailures, recordedFailures } from "./contentChecks.js";
 
 const root = new URL("../", import.meta.url);
@@ -37,7 +38,7 @@ const readJson = async (/** @type {URL} */ url) => JSON.parse(await readFile(url
  *   id: string, label?: string, song: string, follows?: string,
  *   key: "committed" | "provisional", key_hidden?: boolean,
  *   chords: { bar: number, beat: number, numeral: string }[],
- *   hint_level: "nudge" | "comparison" | "answer", question: string,
+ *   mode: "review" | "question", question?: string,
  * }} PlannedExchange
  * @typedef {{ role: "student" | "tutor", text: string }} Turn
  */
@@ -81,10 +82,17 @@ export function snapshotFor(song, planned) {
  */
 export const requestFor = (planned, song, history) => ({
   snapshot: snapshotFor(song, planned),
-  hint_level: planned.hint_level,
-  question: planned.question,
+  mode: planned.mode,
+  question: planned.question ?? null,
   history,
 });
+
+/**
+ * What a later exchange's history says the student asked: the question, or
+ * for a review without one, the button's name, as the tutor panel shows it.
+ * @param {string | null | undefined} question
+ */
+const askedAs = (question) => question ?? CONTROLS.review;
 
 /**
  * Turn arrival times into the fixtures' `delayMs`: each event's wait after
@@ -216,7 +224,7 @@ export async function capture({
     const lesson = {
       name: planned.id,
       song: song.id,
-      description: planned.label ?? planned.question,
+      description: planned.label ?? askedAs(planned.question),
       ...(planned.follows ? { follows: planned.follows } : {}),
       served_by: suggestions.served_by,
       fallback: suggestions.fallback,
@@ -228,7 +236,10 @@ export async function capture({
     const file = new URL(`${planned.id}.json`, out);
     await mkdir(out, { recursive: true });
     await writeFile(file, await format(JSON.stringify(lesson), { parser: "json" }));
-    replies.set(planned.id, { question: planned.question, message: messageOf(exchange.events) });
+    replies.set(planned.id, {
+      question: askedAs(planned.question),
+      message: messageOf(exchange.events),
+    });
     log(
       `saved ${planned.id} (${Math.round(exchange.ms)} ms, ${suggestions.suggestions.length} suggestions)`,
     );
@@ -248,7 +259,7 @@ export async function capture({
 async function savedReply(out, id) {
   try {
     const { request, events } = await readJson(new URL(`${id}.json`, out));
-    return { question: request.question, message: messageOf(events) };
+    return { question: askedAs(request.question), message: messageOf(events) };
   } catch {
     return null;
   }

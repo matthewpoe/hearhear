@@ -1,191 +1,197 @@
 {
-  "name": "comparison",
+  "name": "question",
   "song": "ode-to-joy",
-  "description": "Hint level comparison: two candidates to audition, no verdict.",
+  "description": "Mode question: why the ending of Ode to Joy lands, with two alternatives at the last bar.",
   "events": [
     {
       "event": "message",
       "data": {
-        "delta": "Here are two to try under the long "
+        "delta": "The ending lands because bar 8 "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "2 in bar 4, beat 3. Under V, that "
+        "delta": "finishes what bar 4 left open. Bars "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "2 is the chord's fifth, and the "
+        "delta": "5 to 7 repeat 1 to 3, but bar 4 "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "phrase pauses on tension that wants "
+        "delta": "stops on a long 2 over V, a half "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "to go home: a half cadence, a question "
+        "delta": "cadence, while bar 8 falls from 2 "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "the second phrase answers. Under "
+        "delta": "to 1 as the chords move V to I: an "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "ii, the 2 is the root, so the melody "
+        "delta": "authentic cadence. V carries the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "sits more solidly, but the chord "
+        "delta": "leading tone, a half step under "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "steps away from home without pulling "
+        "delta": "home, and when I arrives the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "back as hard. Tunes built from two "
+        "delta": "melody's 1 is the chord's root, so "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "matching phrases, like this one, "
+        "delta": "the tension and the tune resolve "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "often pause on V at the halfway "
+        "delta": "together. That V to I close ends "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "point so the second line can answer "
+        "delta": "countless hymns and folk "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "it. I have a guess, but your ear "
+        "delta": "songs.\n\nFor a stronger pull, V7 at "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "is the judge here.\n\n"
+        "delta": "bar 8, beat 1 adds 4 above the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "1. Try the V suggestion under bar "
+        "delta": "leading tone, and the two squeeze "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "4, beat 3, and listen to the bar "
+        "delta": "inward by half steps onto 3 and 1. "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "it plays.\n"
+        "delta": "For a surprise, vi at bar 8, beat 3 "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "2. Try the ii suggestion in the "
+        "delta": "holds the 1 as its third and dodges "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "same spot.\n"
+        "delta": "home: a deceptive cadence.\n\n1. Hear "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "3. See whether one of them makes "
+        "delta": "V7 at bar 8, beat 1, then your V: "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "the long 2 want to keep going into "
+        "delta": "does the last bar pull harder?\n2. "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "bar 5."
+        "delta": "Hear vi at bar 8, beat 3, then your "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "I: which one lets you stop?"
       },
       "delayMs": 45
     },
     {
       "event": "suggestions",
       "data": {
-        "hint_level": "comparison",
         "snapshot_version": 3,
         "dropped": 0,
         "suggestions": [
           {
-            "bar": 4,
-            "beat": 3,
-            "numeral": "V",
-            "letter": "A",
-            "confidence": "medium",
-            "reason": "The held E is the 5th of A: a half cadence that leaves the phrase open."
+            "bar": 8,
+            "beat": 1,
+            "numeral": "V7",
+            "letter": "A7",
+            "confidence": "high",
+            "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
           },
           {
-            "bar": 4,
+            "bar": 8,
             "beat": 3,
-            "numeral": "ii",
-            "letter": "Em",
-            "confidence": "low",
-            "reason": "The held E is the root of Em: a gentler pause that moves away from home instead of pulling back to it."
+            "numeral": "vi",
+            "letter": "Bm",
+            "confidence": "medium",
+            "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
           }
         ]
       },
