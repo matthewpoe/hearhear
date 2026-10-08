@@ -3,54 +3,99 @@
  * is judged at. Shared by run.js (which sends them) and score.js (which
  * re-scores a saved run against them), so both read the same songs and points.
  *
- * - every hymn tune in evals/dataset, at every change point, at every hint
- *   level ("ask": what could go here?);
- * - the demo tunes in content/songs, at a few downbeats, at the comparison
- *   level ("ask"), and at a few others with a plausible chord placed there
- *   ("check": does this work?).
+ * - a review of every hymn tune in evals/dataset, with the hymnal's printed
+ *   chords placed as the student's chart (mode "review");
+ * - a review of every demo tune in content/songs, with the dropdown's top
+ *   pick placed at each downbeat (mode "review");
+ * - "does this work?" about a plausible chord placed at a few downbeats of
+ *   each demo tune (mode "question").
  *
- * @import { ChordSpec, Note, Song } from "../src/types.js"
+ * @import { Chord, ChordSpec, Note, Song } from "../src/types.js"
+ * @import { Chart, Repeat } from "./prose.js"
  */
 
 import { readFile } from "node:fs/promises";
 import { numeralOf, positionOf } from "../src/theory/index.js";
-import { DEMO_TUNES, demoPoints, loadDemo } from "./dataset/demos.js";
+import { DEMO_TUNES, demoChart, demoPoints, loadDemo } from "./dataset/demos.js";
 import { loadTunes } from "./dataset/derive.js";
-import { evalRequest, evalSnapshot } from "./request.js";
-
-export const LEVELS = /** @type {const} */ (["nudge", "comparison", "answer"]);
+import { barsOf, findRepeats } from "./prose.js";
+import { checkQuestion, evalRequest, evalSnapshot } from "./request.js";
 
 const root = new URL("../", import.meta.url);
 /** @param {string} path */
 export const readJson = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 
 /**
- * One request to send: a note at one hint level. `song` is the melody with no
- * chords; `reference` is the hymnal's chord there (hymn tunes only); `placed`
- * the chord a "check" request asks about.
+ * One request to send. `song` carries the chords the request shows the
+ * tutor: the student's chart for a review, only the placed chord for a
+ * check. `placed`, `bar`, and `beat`: the chord a check asks about and
+ * where (null for a review). `bars`: the bars the song has. `repeats`: the
+ * repeats code finds in its melody. `chart`: the chords shown, by bar and
+ * beat.
  * @typedef {{
  *   tune: string,
- *   kind: "ask" | "check",
+ *   kind: "review" | "check",
+ *   mode: "review" | "question",
  *   song: Song,
- *   reference: ChordSpec | null,
  *   placed: ChordSpec | null,
- *   level: (typeof LEVELS)[number],
- *   bar: number,
- *   beat: number,
+ *   bar: number | null,
+ *   beat: number | null,
+ *   bars: Set<number>,
+ *   repeats: Repeat[],
+ *   chart: Chart,
  *   body: object,
  * }} Job
  */
 
 /**
- * A note the baseline is judged at, on the melody the tutor sees.
- * @typedef {{ melody: Song, note: Note, reference: ChordSpec | null }} BaselinePoint
+ * A note the baseline is judged at: a check's note, on the bare melody, and
+ * the chord placed there.
+ * @typedef {{ melody: Song, note: Note, placed: ChordSpec }} BaselinePoint
  */
 
 /**
  * A job's identity within a run, for matching a saved reply to it.
- * @param {{ tune: string, kind: string, level: string, bar: number, beat: number }} j
+ * @param {{ tune: string, kind: string, bar: number | null, beat: number | null }} j
  */
-export const jobKey = (j) => `${j.tune}|${j.kind}|${j.level}|${j.bar}|${j.beat}`;
+export const jobKey = (j) => `${j.tune}|${j.kind}|${j.bar ?? ""}|${j.beat ?? ""}`;
+
+/**
+ * The chords placed in a song, by bar and beat.
+ * @param {Song} song
+ * @returns {Chart}
+ */
+function chartOf(song) {
+  return song.chords.map((c) => {
+    const note = /** @type {Note} */ (song.notes.find((n) => n.id === c.noteId));
+    const { bar, beat } = positionOf(note.start, song.meter);
+    return { bar, beat, chord: { root: c.root, type: c.type } };
+  });
+}
+
+/**
+ * A review of a song with a chart.
+ * @param {string} tune
+ * @param {Song} song
+ * @param {Chord[]} chords the student's chart
+ * @returns {Job}
+ */
+function review(tune, song, chords) {
+  const snapshot = evalSnapshot(song, chords);
+  const charted = { ...song, chords };
+  return {
+    tune,
+    kind: "review",
+    mode: "review",
+    song: charted,
+    placed: null,
+    bar: null,
+    beat: null,
+    bars: barsOf(snapshot),
+    repeats: findRepeats(snapshot),
+    chart: chartOf(charted),
+    body: evalRequest(snapshot, "review"),
+  };
+}
 
 /**
  * @returns {Promise<{
@@ -64,37 +109,15 @@ export async function buildJobs() {
   const tunes = [];
   /** @type {Job[]} */
   const jobs = [];
-  /** The baseline's notes, by tune, in the order the tutor is asked about them. */
+  /** The baseline's notes, by tune: the checks' notes. */
   /** @type {Map<string, BaselinePoint[]>} */
   const points = new Map();
   for (const tune of await loadTunes()) {
     /** @type {Song} */
     const song = await readJson(`evals/dataset/songs/${tune.id}.json`);
     tunes.push(tune);
-    // The tutor and the baseline both see the melody with no chords: what goes there is the question.
-    const melody = { ...song, chords: [] };
-    const snapshot = evalSnapshot(song);
-    const picks = [];
-    for (const chord of song.chords) {
-      const note = /** @type {Note} */ (melody.notes.find((n) => n.id === chord.noteId));
-      const { bar, beat } = positionOf(note.start, melody.meter);
-      picks.push({ melody, note, reference: chord });
-      for (const level of LEVELS) {
-        const body = evalRequest(snapshot, level, bar, beat);
-        jobs.push({
-          tune: tune.id,
-          kind: "ask",
-          song: melody,
-          reference: chord,
-          placed: null,
-          level,
-          bar,
-          beat,
-          body,
-        });
-      }
-    }
-    points.set(tune.id, picks);
+    jobs.push(review(tune.id, song, song.chords));
+    points.set(tune.id, []);
   }
   for (const id of DEMO_TUNES) {
     const song = await loadDemo(id);
@@ -104,45 +127,31 @@ export async function buildJobs() {
       case: "Demo tune: no reference, judged for plausibility.",
     });
     const melody = { ...song, chords: [] };
-    const snapshot = evalSnapshot(song);
-    const { ask, check } = demoPoints(song);
+    jobs.push(review(id, melody, demoChart(melody)));
+    /** @type {BaselinePoint[]} */
     const picks = [];
-    for (const note of ask) {
+    for (const { note, placed } of demoPoints(song)) {
       const { bar, beat } = positionOf(note.start, melody.meter);
-      picks.push({ melody, note, reference: null });
-      const body = evalRequest(snapshot, "comparison", bar, beat);
-      jobs.push({
-        tune: id,
-        kind: "ask",
-        song: melody,
-        reference: null,
-        placed: null,
-        level: "comparison",
-        bar,
-        beat,
-        body,
-      });
-    }
-    for (const { note, placed } of check) {
-      const { bar, beat } = positionOf(note.start, melody.meter);
-      const chord = { id: "c1", noteId: note.id, ...placed };
-      const body = evalRequest(
-        evalSnapshot(song, [chord]),
-        "comparison",
-        bar,
-        beat,
-        numeralOf(placed, song.key),
-      );
+      const chords = [{ id: "c1", noteId: note.id, ...placed }];
+      const snapshot = evalSnapshot(song, chords);
+      const withPlaced = { ...melody, chords };
+      picks.push({ melody, note, placed });
       jobs.push({
         tune: id,
         kind: "check",
-        song: melody,
-        reference: null,
+        mode: "question",
+        song: withPlaced,
         placed,
-        level: "comparison",
         bar,
         beat,
-        body,
+        bars: barsOf(snapshot),
+        repeats: findRepeats(snapshot),
+        chart: chartOf(withPlaced),
+        body: evalRequest(
+          snapshot,
+          "question",
+          checkQuestion(numeralOf(placed, song.key), bar, beat),
+        ),
       });
     }
     points.set(id, picks);

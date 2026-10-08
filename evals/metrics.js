@@ -121,87 +121,24 @@ export function baselineChord(song, noteId) {
  */
 export const clashes = (midi, chord) => analyzeNoteOverChord(midi, chord).role === "clash";
 
-const ROMAN = "(?:VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)";
-const ROMAN_CHORD = new RegExp(
-  `^[b#♭♯]?${ROMAN}(?:°7?|ø7?|\\+|maj7|m7|7|6|sus[24])?(?:/[b#]?${ROMAN})?$`,
-);
-const LETTER_CHORD =
-  /^[A-G][#b♯♭]?(?:m7b5|maj7|min|maj|dim7?|aug|sus[24]|m7|m6|M7|m|7|6|°7?|ø7?|\+)$/;
-const NASHVILLE_CHORD = /^[b#♭♯]?[1-7](?:m7?|maj7|°7?|ø7?|\+|sus[24])$/;
-const CHORD_NOUN = "(?:chord|triad|seventh)";
-const LETTER_PHRASE = new RegExp(
-  `\\b[A-G][#b♯♭]? (?:(?:major|minor|diminished|augmented)(?: ${CHORD_NOUN})?|${CHORD_NOUN})\\b`,
-  "g",
-);
-const ENDS_IN_CHORD_NOUN = new RegExp(`${CHORD_NOUN}$`);
-/** "in G major", "the key of E minor", "G major scale": naming the key, not a chord. */
-const KEY_BEFORE = /\b(?:in|key of|key is)\s+$/i;
-const KEY_AFTER = /^\s+(?:key|scale)\b/i;
-
-/**
- * Chord names and numerals in a tutor message, which a nudge must not give.
- * Rule-checked, so it errs toward letting prose through: a bare "I" or "i" is
- * read as the pronoun, a bare letter as a melody note ("the long E"), and a
- * bare digit as a scale degree or bar number, and "in G major" names the key.
- * Anything with a chord suffix (Em, A7, 6m, V7/IV), any other Roman numeral,
- * "G chord", or "D major" (with or without "triad" after it) is flagged.
- * @param {string} message
- * @returns {string[]} the offending words, empty when the message gives none
- */
-export function chordNamesIn(message) {
-  const words = message.split(/[\s,;:!?"“”'‘’()[\]–—-]+|\.(?=\s|$)/).filter(Boolean);
-  const named = words.filter(
-    (w) =>
-      w !== "I" &&
-      w !== "i" &&
-      (ROMAN_CHORD.test(w) || LETTER_CHORD.test(w) || NASHVILLE_CHORD.test(w)),
-  );
-  const phrases = [...message.matchAll(LETTER_PHRASE)]
-    .filter(
-      (m) =>
-        ENDS_IN_CHORD_NOUN.test(m[0]) ||
-        !(
-          KEY_BEFORE.test(message.slice(0, m.index)) ||
-          KEY_AFTER.test(message.slice(m.index + m[0].length))
-        ),
-    )
-    .map((m) => m[0]);
-  return [...named, ...phrases];
-}
-
-/**
- * Did the model hold back the answer at a nudge, on its own? The server
- * withholds every suggestion from a nudge, so an empty list proves nothing:
- * the model held back only if it offered nothing at all (`dropped`, the
- * invalid ones, plus `withheld`, the valid ones the server held back, is 0)
- * and its message names no chord or numeral.
- * @param {{ message: string, dropped: number, withheld: number }} reply
- */
-export const nudgeWithholds = (reply) =>
-  reply.dropped + reply.withheld === 0 && chordNamesIn(reply.message).length === 0;
-
 /**
  * @typedef {{ bar: number, beat: number, numeral: string, letter: string }} SuggestionLike
  * @typedef {{
- *   suggestions: number, agreeing: number, onOnset: number, clashing: number, hit: boolean
+ *   suggestions: number, agreeing: number, onOnset: number, clashing: number
  * }} SuggestionScore
  */
 
 /**
- * Score one reply's suggestions against a change point's reference chord.
- * Only suggestions whose numeral and letter agree are judged further: they
- * must land on a melody onset to be checked for a clash, and a hit is one at
- * the change point whose chord shares the reference's root and quality.
+ * Score one reply's suggestions: how many name the same chord by numeral and
+ * letter, and of those, how many land on a melody onset and clash there.
  * @param {SuggestionLike[]} suggestions
  * @param {Song} song
- * @param {{ bar: number, beat: number, reference: ChordSpec | null }} point no hit without a reference
  * @returns {SuggestionScore}
  */
-export function scoreSuggestions(suggestions, song, point) {
+export function scoreSuggestions(suggestions, song) {
   let agreeing = 0;
   let onOnset = 0;
   let clashing = 0;
-  let hit = false;
   for (const s of suggestions) {
     if (!numeralAgreesWithLetter(s.numeral, s.letter, song.key)) continue;
     agreeing += 1;
@@ -210,10 +147,8 @@ export function scoreSuggestions(suggestions, song, point) {
     if (!note) continue;
     onOnset += 1;
     if (clashes(note.midi, chord)) clashing += 1;
-    const atPoint = s.bar === point.bar && Math.abs(s.beat - point.beat) < BEAT_TOLERANCE;
-    if (atPoint && point.reference && sameHarmony(chord, point.reference)) hit = true;
   }
-  return { suggestions: suggestions.length, agreeing, onOnset, clashing, hit };
+  return { suggestions: suggestions.length, agreeing, onOnset, clashing };
 }
 
 /**
@@ -376,6 +311,79 @@ export function scoreAlternatives(
   }
   return {
     atPoint: here.length,
+    considered,
+    offTarget,
+    distinct: seen.length,
+    plausible: good,
+    beyond,
+    alternatives: good >= 2,
+  };
+}
+
+/**
+ * The student's chord sounding at a melody note: the last chord placed on
+ * a note that starts at or before it, or null before the first.
+ * @param {Song} song the song with the student's chart
+ * @param {import("../src/types.js").Note} note
+ * @returns {ChordSpec | null}
+ */
+export function chartChordAt(song, note) {
+  const starts = new Map(song.notes.map((n) => [n.id, n.start]));
+  /** @type {ChordSpec | null} */
+  let current = null;
+  let currentStart = -Infinity;
+  for (const c of song.chords) {
+    const start = starts.get(c.noteId);
+    if (start !== undefined && start <= note.start && start >= currentStart) {
+      current = { root: c.root, type: c.type };
+      currentStart = start;
+    }
+  }
+  return current;
+}
+
+/**
+ * Score a review's ideas across the whole chart, each at its own note: the
+ * ones weighed (`considered`: every card but one that repeats the student's
+ * chord sounding there, which is no alternative), how many of those aren't
+ * plausible (`offTarget`; a card off any melody onset can't be judged, so
+ * it is off-target), the distinct ideas by place and chord, how many are
+ * plausible, and how many plausible ones the dropdown's top 3 at that note
+ * wouldn't have offered (`beyond`). Like `scoreAlternatives`, it gives
+ * playable alternatives when at least two distinct ideas are plausible; the
+ * same chord at two places counts twice, since each is a different thing to
+ * try.
+ * @param {SuggestionLike[]} suggestions
+ * @param {Song} song the song with the student's chart
+ * @param {number} [threshold] FIT_THRESHOLD; others only for the sensitivity line
+ * @returns {AlternativesScore}
+ */
+export function scoreReviewAlternatives(suggestions, song, threshold = FIT_THRESHOLD) {
+  /** @type {string[]} */
+  const seen = [];
+  let considered = 0;
+  let offTarget = 0;
+  let good = 0;
+  let beyond = 0;
+  for (const s of suggestions) {
+    const note = noteAt(song, s.bar, s.beat);
+    const agrees = numeralAgreesWithLetter(s.numeral, s.letter, song.key);
+    const chord = agrees ? chordFromNumeral(s.numeral, song.key) : null;
+    const current = note ? chartChordAt(song, note) : null;
+    if (chord && current && sameHarmony(chord, current)) continue;
+    considered += 1;
+    const ok = note ? plausible(s, song, note, threshold) : false;
+    if (!ok) offTarget += 1;
+    if (!chord || !note) continue;
+    const id = `${s.bar}:${s.beat}:${Note.chroma(chord.root)}:${chord.type}`;
+    if (seen.includes(id)) continue;
+    seen.push(id);
+    if (!ok) continue;
+    good += 1;
+    if (!dropdownTop(song, note.id).some((t) => sameHarmony(t, chord))) beyond += 1;
+  }
+  return {
+    atPoint: suggestions.length,
     considered,
     offTarget,
     distinct: seen.length,
