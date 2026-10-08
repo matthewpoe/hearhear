@@ -29,6 +29,8 @@ Live run against claude-opus-5-5.
 
 The **review** rows are reviews of a whole chart: a hymn with its hymnal's printed chords, or a demo tune with the dropdown's top pick at each downbeat. The **check** rows are "does this work?" questions: a plausible chord placed at one note. The **all** row counts both. The **baseline** rows are the dropdown's top 3 at the checks' notes, judged by the same rule.
 
+**Named alternatives have cards** is experimental: the prose parser can't yet tell the student's chord from an alternative when the reply doesn't say "your", and it misses carded chords (see amazing-grace). It isn't shown on the trust panel.
+
 **Off-target ideas** (reported on their own, not a veto on the headline): 3/51 (6%) of the tutor's ideas weren't plausible where they were placed; the dropdown's top 3, 0/24 (0%).
 
 **Threshold sensitivity.** The fit threshold is fixed at 0.5, set before any live run. Playable alternatives at 0.4, 9/20 (45%) (dropdown 12/12 (100%)); at 0.5, 9/20 (45%) (dropdown 12/12 (100%)); at 0.6, 9/20 (45%) (dropdown 10/12 (83%)).

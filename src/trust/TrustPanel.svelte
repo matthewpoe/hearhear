@@ -23,17 +23,38 @@
 
   const reviews = byTune.filter((t) => t.kinds.review).length;
 
+  /**
+   * One measure summed over the tunes for one kind of request.
+   * @param {"review" | "check"} kind
+   * @param {"alternatives"} key
+   * @returns {Rate}
+   */
+  function kindRate(kind, key) {
+    let count = 0;
+    let total = 0;
+    for (const tune of byTune) {
+      /** @type {Record<string, Rate> | undefined} */
+      const k = /** @type {any} */ (tune.kinds)[kind];
+      const r = k?.[key];
+      if (r) {
+        count += r.count;
+        total += r.total;
+      }
+    }
+    return total ? { count, total } : null;
+  }
+
   const measures = [
     {
-      label: "Gives you alternatives to try",
-      rate: headline.alternatives,
-      gloss: `Over ${headline.replies} requests (a review of the whole chart for each of ${reviews} tunes, and “does this work?” questions), how often the tutor offered two or more different chords you can audition that are playable where it put them: each fits the melody, doesn't clash with it, and is a chord a musician would recognize in the key. There's rarely one right chord; the point is options your ear can compare.`,
+      label: "Reviews give you alternatives to try",
+      rate: kindRate("review", "alternatives"),
+      gloss: `In a review of the whole chart (one for each of ${reviews} tunes), how often the tutor offered two or more different chords you can audition that are playable where it put them: each fits the melody, doesn't clash with it, and is a chord a musician would recognize in the key. There's rarely one right chord; the point is options your ear can compare.`,
     },
     {
-      label: "Every chord it names has a card to play",
-      rate: headline.alternativesCarded,
+      label: "“Does this work?” questions give alternatives",
+      rate: kindRate("check", "alternatives"),
       gloss:
-        "How often every chord the tutor suggests in words also comes as a card you can audition, at the bar it talks about. Chords it says are already yours (“your IV”) don't need one. Read by rule, so it can miss.",
+        "When you place a reasonable chord and ask about it, how often the tutor also offered two or more other playable chords to compare it with. Usually it explains your chord instead; that's the gap this line shows.",
     },
     {
       label: "Points out where the tune repeats",
