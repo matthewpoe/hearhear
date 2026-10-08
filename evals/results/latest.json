@@ -1,6 +1,6 @@
 {
   "run": {
-    "date": "2026-10-08T02:00:10.729Z",
+    "date": "2026-10-08T02:36:41.980Z",
     "mode": "fixture",
     "model": "fixture",
     "endpoint": "http://127.0.0.1:8011/api/tutor",
@@ -24,8 +24,8 @@
     "alternativesCarded": { "count": 12, "total": 20 },
     "conventional": { "count": 0, "total": 12 },
     "clashRate": { "count": 0, "total": 0 },
-    "latencyMs": { "p50": 1215, "p95": 2843 },
-    "firstDeltaMs": { "p50": 72, "p95": 122 },
+    "latencyMs": { "p50": 1142, "p95": 2748 },
+    "firstDeltaMs": { "p50": 50, "p95": 52 },
     "baseline": {
       "alternatives": { "count": 12, "total": 12 },
       "offTarget": { "count": 0, "total": 24 },
@@ -73,8 +73,8 @@
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2843, "p95": 2843 },
-          "firstDeltaMs": { "p50": 120, "p95": 120 }
+          "latencyMs": { "p50": 2745, "p95": 2745 },
+          "firstDeltaMs": { "p50": 50, "p95": 50 }
         }
       },
       "baseline": {
@@ -106,8 +106,8 @@
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2764, "p95": 2764 },
-          "firstDeltaMs": { "p50": 76, "p95": 76 }
+          "latencyMs": { "p50": 2747, "p95": 2747 },
+          "firstDeltaMs": { "p50": 51, "p95": 51 }
         }
       },
       "baseline": {
@@ -139,8 +139,8 @@
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2774, "p95": 2774 },
-          "firstDeltaMs": { "p50": 75, "p95": 75 }
+          "latencyMs": { "p50": 2749, "p95": 2749 },
+          "firstDeltaMs": { "p50": 50, "p95": 50 }
         }
       },
       "baseline": {
@@ -172,8 +172,8 @@
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2774, "p95": 2774 },
-          "firstDeltaMs": { "p50": 74, "p95": 74 }
+          "latencyMs": { "p50": 2747, "p95": 2747 },
+          "firstDeltaMs": { "p50": 50, "p95": 50 }
         }
       },
       "baseline": {
@@ -205,8 +205,8 @@
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2775, "p95": 2775 },
-          "firstDeltaMs": { "p50": 73, "p95": 73 }
+          "latencyMs": { "p50": 2748, "p95": 2748 },
+          "firstDeltaMs": { "p50": 50, "p95": 50 }
         },
         "check": {
           "replies": 3,
@@ -225,8 +225,8 @@
           "alternativesCarded": { "count": 3, "total": 3 },
           "conventional": { "count": 0, "total": 3 },
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 1177, "p95": 1177 },
-          "firstDeltaMs": { "p50": 72, "p95": 74 }
+          "latencyMs": { "p50": 1142, "p95": 1143 },
+          "firstDeltaMs": { "p50": 52, "p95": 52 }
         }
       },
       "baseline": {
@@ -258,8 +258,8 @@
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2769, "p95": 2769 },
-          "firstDeltaMs": { "p50": 76, "p95": 76 }
+          "latencyMs": { "p50": 2740, "p95": 2740 },
+          "firstDeltaMs": { "p50": 50, "p95": 50 }
         },
         "check": {
           "replies": 3,
@@ -278,8 +278,8 @@
           "alternativesCarded": { "count": 3, "total": 3 },
           "conventional": { "count": 0, "total": 3 },
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 1187, "p95": 1188 },
-          "firstDeltaMs": { "p50": 53, "p95": 57 }
+          "latencyMs": { "p50": 1136, "p95": 1137 },
+          "firstDeltaMs": { "p50": 49, "p95": 49 }
         }
       },
       "baseline": {
@@ -311,8 +311,8 @@
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2847, "p95": 2847 },
-          "firstDeltaMs": { "p50": 69, "p95": 69 }
+          "latencyMs": { "p50": 2747, "p95": 2747 },
+          "firstDeltaMs": { "p50": 49, "p95": 49 }
         },
         "check": {
           "replies": 3,
@@ -331,8 +331,8 @@
           "alternativesCarded": { "count": 3, "total": 3 },
           "conventional": { "count": 0, "total": 3 },
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 1215, "p95": 1260 },
-          "firstDeltaMs": { "p50": 76, "p95": 138 }
+          "latencyMs": { "p50": 1135, "p95": 1153 },
+          "firstDeltaMs": { "p50": 49, "p95": 65 }
         }
       },
       "baseline": {
@@ -364,8 +364,8 @@
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2829, "p95": 2829 },
-          "firstDeltaMs": { "p50": 53, "p95": 53 }
+          "latencyMs": { "p50": 2744, "p95": 2744 },
+          "firstDeltaMs": { "p50": 47, "p95": 47 }
         },
         "check": {
           "replies": 3,
@@ -384,8 +384,8 @@
           "alternativesCarded": { "count": 3, "total": 3 },
           "conventional": { "count": 0, "total": 3 },
           "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 1194, "p95": 1259 },
-          "firstDeltaMs": { "p50": 68, "p95": 122 }
+          "latencyMs": { "p50": 1137, "p95": 1138 },
+          "firstDeltaMs": { "p50": 49, "p95": 50 }
         }
       },
       "baseline": {
@@ -406,7 +406,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
       "suggestions": [
         {
           "bar": 4,
@@ -479,8 +479,8 @@
         "uncarded": ["V", "V", "V", "V", "V", "V", "V"],
         "conventional": null
       },
-      "ms": 2843,
-      "firstDeltaMs": 120
+      "ms": 2745,
+      "firstDeltaMs": 50
     },
     {
       "tune": "joyful-joyful",
@@ -492,7 +492,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
       "suggestions": [
         {
           "bar": 4,
@@ -549,8 +549,8 @@
         "uncarded": ["V", "V", "V"],
         "conventional": null
       },
-      "ms": 2764,
-      "firstDeltaMs": 76
+      "ms": 2747,
+      "firstDeltaMs": 51
     },
     {
       "tune": "veni-emmanuel",
@@ -562,7 +562,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
       "suggestions": [
         {
           "bar": 4,
@@ -636,8 +636,8 @@
         "uncarded": ["V", "V", "V", "V", "V", "V", "V", "V"],
         "conventional": null
       },
-      "ms": 2774,
-      "firstDeltaMs": 75
+      "ms": 2749,
+      "firstDeltaMs": 50
     },
     {
       "tune": "god-rest-ye",
@@ -649,7 +649,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
       "suggestions": [
         {
           "bar": 4,
@@ -706,8 +706,8 @@
         "uncarded": ["V", "V", "V"],
         "conventional": null
       },
-      "ms": 2774,
-      "firstDeltaMs": 74
+      "ms": 2747,
+      "firstDeltaMs": 50
     },
     {
       "tune": "st-james-infirmary",
@@ -719,7 +719,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
       "suggestions": [
         {
           "bar": 4,
@@ -793,8 +793,8 @@
         "uncarded": ["V", "V", "V", "V", "V", "V", "V", "V"],
         "conventional": null
       },
-      "ms": 2775,
-      "firstDeltaMs": 73
+      "ms": 2748,
+      "firstDeltaMs": 50
     },
     {
       "tune": "st-james-infirmary",
@@ -806,7 +806,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -847,8 +847,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1169,
-      "firstDeltaMs": 72
+      "ms": 1142,
+      "firstDeltaMs": 52
     },
     {
       "tune": "st-james-infirmary",
@@ -860,7 +860,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -901,8 +901,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1177,
-      "firstDeltaMs": 71
+      "ms": 1143,
+      "firstDeltaMs": 52
     },
     {
       "tune": "st-james-infirmary",
@@ -914,7 +914,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -955,8 +955,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1177,
-      "firstDeltaMs": 74
+      "ms": 1141,
+      "firstDeltaMs": 51
     },
     {
       "tune": "sweet-georgia-brown",
@@ -968,7 +968,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
       "suggestions": [
         {
           "bar": 4,
@@ -1042,8 +1042,8 @@
         "uncarded": ["V", "V", "V", "V", "V", "V", "V", "V"],
         "conventional": null
       },
-      "ms": 2769,
-      "firstDeltaMs": 76
+      "ms": 2740,
+      "firstDeltaMs": 50
     },
     {
       "tune": "sweet-georgia-brown",
@@ -1055,7 +1055,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1096,8 +1096,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1156,
-      "firstDeltaMs": 53
+      "ms": 1137,
+      "firstDeltaMs": 49
     },
     {
       "tune": "sweet-georgia-brown",
@@ -1109,7 +1109,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1150,8 +1150,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1188,
-      "firstDeltaMs": 53
+      "ms": 1136,
+      "firstDeltaMs": 49
     },
     {
       "tune": "sweet-georgia-brown",
@@ -1163,7 +1163,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1204,8 +1204,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1187,
-      "firstDeltaMs": 57
+      "ms": 1136,
+      "firstDeltaMs": 48
     },
     {
       "tune": "when-the-saints",
@@ -1217,7 +1217,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
       "suggestions": [
         {
           "bar": 4,
@@ -1274,8 +1274,8 @@
         "uncarded": ["V", "V", "V", "V"],
         "conventional": null
       },
-      "ms": 2847,
-      "firstDeltaMs": 69
+      "ms": 2747,
+      "firstDeltaMs": 49
     },
     {
       "tune": "when-the-saints",
@@ -1287,7 +1287,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1328,8 +1328,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1260,
-      "firstDeltaMs": 138
+      "ms": 1153,
+      "firstDeltaMs": 65
     },
     {
       "tune": "when-the-saints",
@@ -1341,7 +1341,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1382,8 +1382,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1194,
-      "firstDeltaMs": 76
+      "ms": 1135,
+      "firstDeltaMs": 49
     },
     {
       "tune": "when-the-saints",
@@ -1395,7 +1395,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1436,8 +1436,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1215,
-      "firstDeltaMs": 53
+      "ms": 1135,
+      "firstDeltaMs": 48
     },
     {
       "tune": "greensleeves",
@@ -1449,7 +1449,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
       "suggestions": [
         {
           "bar": 4,
@@ -1506,8 +1506,8 @@
         "uncarded": ["V", "V", "V", "V"],
         "conventional": null
       },
-      "ms": 2829,
-      "firstDeltaMs": 53
+      "ms": 2744,
+      "firstDeltaMs": 47
     },
     {
       "tune": "greensleeves",
@@ -1519,7 +1519,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1560,8 +1560,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1259,
-      "firstDeltaMs": 122
+      "ms": 1133,
+      "firstDeltaMs": 49
     },
     {
       "tune": "greensleeves",
@@ -1573,7 +1573,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1614,8 +1614,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1194,
-      "firstDeltaMs": 68
+      "ms": 1138,
+      "firstDeltaMs": 49
     },
     {
       "tune": "greensleeves",
@@ -1627,7 +1627,7 @@
       "outcome": "ok",
       "code": null,
       "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 3 and 1. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
       "suggestions": [
         {
           "bar": 8,
@@ -1668,8 +1668,8 @@
         "uncarded": [],
         "conventional": false
       },
-      "ms": 1165,
-      "firstDeltaMs": 64
+      "ms": 1137,
+      "firstDeltaMs": 50
     }
   ]
 }
