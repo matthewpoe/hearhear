@@ -2,7 +2,7 @@
 
 An ear-training tutor for working out piano music by ear. **Think in relationships, not pitches:** the number row is the instrument (1 is always home), chords are numbers, and Claude is a tutor whose every suggestion comes back as something you can _play_, so your ear is the verifier.
 
-**Try it now, nothing to install: [hearhear.up.railway.app](https://hearhear.up.railway.app).** Start with the 90-second guided demo; no musical background needed. The live Claude tutor takes the passphrase from the submission email, and everything else, including the demo's recorded tutor replies, is open.
+**Try it now, nothing to install: [hearhear.up.railway.app](https://hearhear.up.railway.app).** Start with the 90-second guided demo; no musical background needed. The live Claude tutor takes the passphrase from the submission email, and everything else, including the demo's sample tutor replies, is open.
 
 **Cut for depth over breadth** (the full list is in [docs/backlog.md](docs/backlog.md)):
 
