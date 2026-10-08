@@ -1,5 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { chordFromNumeral } from "../../src/theory/index.js";
 import {
   barCitations,
   citesRepeat,
@@ -156,8 +158,8 @@ test("a card must sit at the bar (and beat) the prose cites", () => {
 });
 
 test("the student's own chords are not alternatives", () => {
-  const none = (/** @type {string} */ prose, chart = /** @type {any[]} */ ([]), asked = null) =>
-    namedAlternatives(prose, [], C, chart, asked);
+  const none = (/** @type {string} */ prose, chart = /** @type {any[]} */ ([])) =>
+    namedAlternatives(prose, [], C, chart);
   assert.deepEqual(none("Your Dm is a fine choice.").alternatives, [], "your Dm without a card");
   assert.deepEqual(none("You have IV here, which works.").alternatives, []);
   assert.deepEqual(none("You've got V7 there.").alternatives, []);
@@ -170,11 +172,71 @@ test("the student's own chords are not alternatives", () => {
     ["V"],
     "the chart's IV in a cited bar",
   );
-  const asked = { bar: 2, beat: 1, chord: { root: "G", type: "M" } };
   assert.deepEqual(
-    none("V works here because the melody's D is its fifth.", [], /** @type {any} */ (asked))
-      .alternatives,
-    [],
-    "the chord a check asks about",
+    none("IV at bar 3 sets up V. Then V at bar 4.", chart).alternatives,
+    ["V", "V"],
+    "the chart's IV in bar 3 isn't a V in bar 4",
   );
+  const placed = [{ bar: 2, beat: 1, chord: { root: "G", type: "M" } }];
+  assert.deepEqual(
+    none("V works here because the melody's D is its fifth.", placed).alternatives,
+    [],
+    "with no bar in sight, a chord the chart has: in a check, the chord asked about",
+  );
+  assert.deepEqual(
+    none("In bar 2 the tune turns. V there pulls home.", placed).alternatives,
+    [],
+    "an earlier sentence on the line gives the place",
+  );
+  assert.deepEqual(
+    none("In bar 2 the tune turns.\nV there pulls home.", [
+      { bar: 5, beat: 1, chord: { root: "G", type: "M" } },
+    ]).alternatives,
+    [],
+    "a new line starts with no place, and the chart has V somewhere",
+  );
+});
+
+test("the review fixture names no alternative without its card", async () => {
+  const fixture = JSON.parse(
+    await readFile(new URL("../../contracts/fixtures/tutor/review.json", import.meta.url), "utf8"),
+  );
+  const message = fixture.events
+    .filter((/** @type {{ event: string }} */ e) => e.event === "message")
+    .map((/** @type {{ data: { delta: string } }} */ e) => e.data.delta)
+    .join("");
+  const { suggestions } = fixture.events.find(
+    (/** @type {{ event: string }} */ e) => e.event === "suggestions",
+  ).data;
+  const D = { tonic: "D", mode: /** @type {const} */ ("major"), provisional: false };
+  // Its chart, as the fixture describes it: I | V | I | I V | I | V | I | V I.
+  /** @type {[number, number, string][]} */
+  const plan = [
+    [1, 1, "I"],
+    [2, 1, "V"],
+    [3, 1, "I"],
+    [4, 1, "I"],
+    [4, 3, "V"],
+    [5, 1, "I"],
+    [6, 1, "V"],
+    [7, 1, "I"],
+    [8, 1, "V"],
+    [8, 3, "I"],
+  ];
+  const chart = plan.map(([bar, beat, numeral]) => ({
+    bar,
+    beat,
+    chord: /** @type {import("../../src/types.js").ChordSpec} */ (chordFromNumeral(numeral, D)),
+  }));
+  const named = namedAlternatives(message, suggestions, D, chart);
+  assert.ok(named.alternatives.length > 0, "it names alternatives");
+  assert.deepEqual(named.uncarded, []);
+  assert.ok(numberedTests(message) <= 3);
+  const repeats = [
+    {
+      first: /** @type {[number, number]} */ ([1, 3]),
+      second: /** @type {[number, number]} */ ([5, 7]),
+    },
+  ];
+  assert.equal(citesRepeat(message, repeats), true);
 });

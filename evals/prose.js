@@ -330,54 +330,58 @@ const cardChord = (s, key) => chordFromNumeral(s.numeral, key) ?? chordFromLette
 
 /**
  * Every chord a message names as an alternative, and the ones with no card
- * in `suggestions` to audition. A chord counts as the student's own, not an
- * alternative, when the prose gives it to them (`STUDENTS_BEFORE`,
- * `STUDENTS_AFTER`), or when its sentence cites bars and the chart has that
- * chord in one of them ("IV at bar 3 sets up V"), or, for a "does this
- * work?" request, when it is the chord asked about (`asked`), named without
- * a bar or at that bar. An alternative has its card when a suggestion names
- * the same root and triad quality (V7 matches a V card), at a bar (and beat)
- * the sentence cites if it cites any.
+ * in `suggestions` to audition.
+ *
+ * A chord's place is the bars its sentence cites, plus those of the last
+ * sentence earlier on the same line that cites any ("In bar 7 the line climbs. ii under the 2 turns
+ * it into a ii-V-I" puts that ii in bar 7). A chord counts as the student's
+ * own, not an alternative, when the prose gives it to them
+ * (`STUDENTS_BEFORE`, `STUDENTS_AFTER`), or when the chart has it at its
+ * place ("IV at bar 3 sets up V"), or, with no place at all, anywhere in the
+ * chart ("V wants home", about the student's V; in a check, the chord asked
+ * about). An alternative has its card when a suggestion names the same root
+ * and triad quality (V7 matches a V card), at its place if it has one.
  *
  * Limits: a chord named only to explain ("the E is the third of C") reads as
- * an alternative; a possessive the patterns miss ("what you've got in bar 3
- * is IV") does too; "your IV, then try V" reads both as the student's only
- * when joined by a list word. A sentence's citations cover every chord in
- * it.
+ * an alternative unless the chart has it there; a possessive the patterns
+ * miss ("what you've got in bar 3 is IV") reads as one too; with no bar in
+ * sight, a suggestion of a chord the chart has elsewhere ("try IV") reads as
+ * the student's. Every chord in a sentence shares its place.
  * @param {string} message
  * @param {SuggestionLike[]} suggestions
  * @param {Key} key
  * @param {Chart} chart
- * @param {{ bar: number, beat: number, chord: ChordSpec } | null} [asked] the chord a check asks about
  * @returns {{ alternatives: string[], uncarded: string[] }}
  */
-export function namedAlternatives(message, suggestions, key, chart, asked = null) {
+export function namedAlternatives(message, suggestions, key, chart) {
   /** @type {string[]} */
   const alternatives = [];
   /** @type {string[]} */
   const uncarded = [];
+  let line = -1;
+  /** @type {BarCitation[]} */
+  let earlier = [];
   for (const sentence of sentences(message)) {
-    const cited = barCitations(sentence.text);
+    const lineOf = message.slice(0, sentence.index).split("\n").length;
+    if (lineOf !== line) [line, earlier] = [lineOf, []];
+    const own = barCitations(sentence.text);
+    const place = [...earlier, ...own];
+    if (own.length) earlier = own;
     const inChart = (/** @type {ChordSpec} */ chord) =>
       chart.some(
-        (c) => sameHarmony(c.chord, chord) && atCited({ ...c, numeral: "", letter: "" }, cited),
+        (c) =>
+          sameHarmony(c.chord, chord) &&
+          (!place.length || atCited({ ...c, numeral: "", letter: "" }, place)),
       );
     for (const { text, index, chord } of namedChords(sentence.text, key)) {
       const before = sentence.text.slice(0, index);
       const after = sentence.text.slice(index);
       if (STUDENTS_BEFORE.test(before) || STUDENTS_AFTER.test(after)) continue;
-      if (cited.length && inChart(chord)) continue;
-      if (
-        asked &&
-        sameHarmony(asked.chord, chord) &&
-        (!cited.length || cited.some((c) => asked.bar >= c.from && asked.bar <= c.to))
-      ) {
-        continue;
-      }
+      if (inChart(chord)) continue;
       alternatives.push(text);
       const carded = suggestions.some((s) => {
         const c = cardChord(s, key);
-        return c && sameHarmony(c, chord) && (!cited.length || atCited(s, cited));
+        return c && sameHarmony(c, chord) && (!place.length || atCited(s, place));
       });
       if (!carded) uncarded.push(text);
     }

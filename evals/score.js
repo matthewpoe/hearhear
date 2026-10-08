@@ -18,7 +18,7 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { format } from "prettier";
+import { format, resolveConfig } from "prettier";
 import { chordFromNumeral, letterOf, numeralOf, positionOf } from "../src/theory/index.js";
 import { buildJobs, jobKey } from "./jobs.js";
 import {
@@ -82,11 +82,7 @@ function scoreReply(record, job, threshold) {
   const { song, placed, kind, bar, beat } = job;
   const check = kind === "check";
   const melody = { ...song, chords: [] };
-  const asked =
-    check && placed
-      ? { bar: /** @type {number} */ (bar), beat: /** @type {number} */ (beat), chord: placed }
-      : null;
-  const named = namedAlternatives(record.message, suggestions, song.key, job.chart, asked);
+  const named = namedAlternatives(record.message, suggestions, song.key, job.chart);
   return {
     ...record,
     score: scoreSuggestions(suggestions, song),
@@ -232,7 +228,10 @@ export async function scoreResults(saved, ctx) {
  */
 export async function writeResults(results) {
   const { run, headline, requests } = /** @type {any} */ (results);
-  const json = await format(JSON.stringify(results), { parser: "json" });
+  // The repo's Prettier settings (its print width), so `make lint` passes what this writes.
+  const config = (await resolveConfig(new URL("evals/results/latest.json", root))) ?? {};
+  const style = { printWidth: config.printWidth };
+  const json = await format(JSON.stringify(results), { ...style, parser: "json" });
   await writeFile(new URL("evals/results/latest.json", root), json);
 
   const sensitivity = headline.sensitivity
@@ -259,7 +258,7 @@ The **review** rows are reviews of a whole chart: a hymn with its hymnal's print
 `;
   await writeFile(
     new URL("evals/results/README.md", root),
-    await format(readme, { parser: "markdown" }),
+    await format(readme, { ...style, parser: "markdown" }),
   );
 }
 
