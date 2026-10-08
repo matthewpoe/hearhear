@@ -17,12 +17,18 @@ const messageOf = (events) =>
     .map((e) => e.data.delta)
     .join("");
 
-test("there is a shape fixture for each request mode, and none for a hint level", () => {
+test("there is a shape fixture for each request mode, and suggestions carry only their fields", () => {
   const names = fixtures.map((f) => f.name).sort();
   assert.deepEqual(names, ["malformed", "over-budget", "question", "review"]);
   for (const f of fixtures) {
     const event = f.events.find((/** @type {{ event: string }} */ e) => e.event === "suggestions");
-    assert.ok(!event || !("hint_level" in event.data), f.name);
+    if (event) {
+      assert.deepEqual(
+        Object.keys(event.data).sort(),
+        ["dropped", "snapshot_version", "suggestions"],
+        f.name,
+      );
+    }
   }
 });
 
