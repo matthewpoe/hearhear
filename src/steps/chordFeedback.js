@@ -13,8 +13,7 @@
 
 import { analyzeNoteOverChord, fit, positionOf, spellMelody } from "../theory/index.js";
 import { displayNote } from "../theory/noteDisplay.js";
-import { chordView } from "../chords/chordView.js";
-import { chordSymbol } from "../staff/abc.js";
+import { chordView, labelText } from "../chords/chordView.js";
 
 /** At or above this fit, the melody over the span sits inside the chord. */
 const INSIDE = 0.75;
@@ -66,7 +65,7 @@ export function placedChord(before, after) {
 /**
  * What the placed chord does with the melody, in two short sentences: the
  * note it sits on, then the span and the chord's function. The chord is
- * named in the user's label style, as on the staff (chordSymbol).
+ * named in the user's label style, as on the chips and the staff.
  * @param {Song} song
  * @param {string} noteId
  * @param {ChordSpec} chord
@@ -93,8 +92,7 @@ export function describePlacement(song, noteId, chord, labelStyle = "roman") {
     color: "Some notes under it pass outside the chord, as color.",
     rub: "Much of the melody under it rubs against the chord; sometimes that rub is the point.",
   }[kind];
-  const view = { mode: /** @type {const} */ ("confirmed"), labelStyle };
-  const { fn } = chordView(chord, song.key, view.mode, labelStyle);
-  const does = `${chordSymbol(chord, song.key, view)}: ${DOES[/** @type {keyof typeof DOES} */ (fn)]}`;
+  const view = chordView(chord, song.key, "confirmed", labelStyle);
+  const does = `${labelText(view)}: ${DOES[/** @type {keyof typeof DOES} */ (view.fn)]}`;
   return { relation: `${onNote} ${span}`, does, kind };
 }

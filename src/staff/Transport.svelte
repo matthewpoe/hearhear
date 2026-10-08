@@ -45,6 +45,8 @@
   const loading = $derived($audioStatus === "loading");
   const samplesFailed = $derived($audioStatus === "failed");
   const songId = $derived($song.id);
+  /** A take is armed or running: the record bar's Stop is the one control. */
+  const recording = $derived($recorder.status === "armed" || $recorder.status === "recording");
 
   // Another song (or the same one reopened) starts from the top again.
   $effect(() => {
@@ -189,31 +191,35 @@
 
 <div class="transport" role="group" aria-label="Playback">
   <!-- One button that toggles, so focus stays put when playback starts. It
-       does what Space does: play, pause, resume. Stop sits beside it. -->
-  <Tip id="play-tip" text={`${mainTip} ${GLOSS.playKeys}`}>
-    <button
-      type="button"
-      class="control"
-      aria-describedby="play-tip"
-      onclick={playing ? pause : paused ? resume : () => play()}
-      disabled={!playing && (loading || samplesFailed || $song.notes.length === 0)}
-    >
-      <span class="icon" class:play={!playing} class:pause={playing} aria-hidden="true"
-      ></span>{mainLabel}
-    </button>
-  </Tip>
-  <Tip id="stop-tip" text={GLOSS.stop}>
-    <button
-      type="button"
-      class="stop"
-      aria-label="Stop"
-      aria-describedby="stop-tip"
-      disabled={!playing && !paused}
-      onclick={stopAll}
-    >
-      <span class="square" aria-hidden="true"></span>
-    </button>
-  </Tip>
+       does what Space does: play, pause, resume. Stop sits beside it. While
+       a take records both step aside (Space is the recorder's too): the
+       record bar's Stop is the one control, and they come back with Stop. -->
+  {#if !recording}
+    <Tip id="play-tip" text={`${mainTip} ${GLOSS.playKeys}`}>
+      <button
+        type="button"
+        class="control"
+        aria-describedby="play-tip"
+        onclick={playing ? pause : paused ? resume : () => play()}
+        disabled={!playing && (loading || samplesFailed || $song.notes.length === 0)}
+      >
+        <span class="icon" class:play={!playing} class:pause={playing} aria-hidden="true"
+        ></span>{mainLabel}
+      </button>
+    </Tip>
+    <Tip id="stop-tip" text={GLOSS.stop}>
+      <button
+        type="button"
+        class="stop"
+        aria-label="Stop"
+        aria-describedby="stop-tip"
+        disabled={!playing && !paused}
+        onclick={stopAll}
+      >
+        <span class="square" aria-hidden="true"></span>
+      </button>
+    </Tip>
+  {/if}
   <!-- "Paused." is announced; on screen the button reads Resume. -->
   <p class="status" class:shown={loading || samplesFailed || failed} role="status">
     {#if paused}
@@ -287,8 +293,13 @@
     color: var(--ink);
     cursor: pointer;
   }
+  /* Disabled reads as disabled: no fill, a dashed ring, and faded (its outline still 3:1). */
   .stop:disabled {
+    border-style: dashed;
+    border-color: var(--ink-muted);
+    background: transparent;
     color: var(--ink-muted);
+    opacity: 0.65;
     cursor: not-allowed;
   }
   .square {

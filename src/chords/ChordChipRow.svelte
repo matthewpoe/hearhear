@@ -54,15 +54,23 @@
   const unplaced = $derived($suggestions.items.length - ideas.length);
   const stale = $derived(isStale($suggestions, $song.version));
 
-  /** @param {string} noteId */
-  const ring = (noteId) => mark(SUGGESTED, [noteId]);
-  const unring = () => mark(SUGGESTED, []);
+  // The card being looked at: the hovered one, else the one holding keyboard
+  // focus. Tracked as one, so leaving a hovered card hands the ring back to
+  // the focused card instead of clearing it.
+  /** @type {string | null} */
+  let hovered = $state(null);
+  /** @type {string | null} */
+  let focused = $state(null);
+  // A card can go (a new reply, a new song) while it is hovered or focused,
+  // without a leave or blur: then it no longer counts.
+  /** @param {string | null} id */
+  const cardOf = (id) => ideas.find((s) => s.idea.id === id) ?? null;
+  const active = $derived(cardOf(hovered) ?? cardOf(focused));
 
-  // A card can go (a new reply, a new song) while it is hovered or focused.
   $effect(() => {
-    void $suggestions;
-    return unring;
+    mark(SUGGESTED, active ? [active.idea.noteId] : []);
   });
+  $effect(() => () => mark(SUGGESTED, []));
 </script>
 
 {#if chips.length === 0}
@@ -112,10 +120,10 @@
         {@const view = viewOf(idea.chord)}
         <li
           class="idea"
-          onpointerenter={() => ring(idea.noteId)}
-          onpointerleave={unring}
-          onfocusin={() => ring(idea.noteId)}
-          onfocusout={unring}
+          onpointerenter={() => (hovered = idea.id)}
+          onpointerleave={() => (hovered = null)}
+          onfocusin={() => (focused = idea.id)}
+          onfocusout={() => (focused = null)}
         >
           <ChordBadge {view} />
           <span class="where">{place?.where}</span>

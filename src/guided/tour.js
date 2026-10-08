@@ -12,6 +12,11 @@ import content from "../../content/guided-path.json" with { type: "json" };
 import { createReadable } from "../lib/readable.js";
 import { clampStep, loadProgress, saveProgress } from "./steps.js";
 
+/** @import { GuidedPath } from "./steps.js" */
+
+/** The walkthrough's content (content/guided-path.json), typed. */
+export const guidedPath = /** @type {GuidedPath} */ (content);
+
 export const STEP_COUNT = content.steps.length;
 
 const SEEN_KEY = "hearhear.guided.dismissed";

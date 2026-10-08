@@ -25,7 +25,7 @@ import {
   pulseTicks,
   ticksPerBar,
 } from "../theory/index.js";
-import { chordView } from "../chords/chordView.js";
+import { chordView, labelText } from "../chords/chordView.js";
 
 /**
  * Note lengths abcjs can draw as one glyph, in ticks (12 per quarter, written
@@ -54,8 +54,6 @@ const SPOKEN_ACCIDENTAL = {
 };
 const DOT_ABOVE = "̇";
 const DOT_BELOW = "̣";
-/** Nashville's superscript seventh, written as a superscript character. */
-const SUPERSCRIPT = { 7: "⁷" };
 
 /**
  * @typedef {{ mode: KeyLabelMode, labelStyle: LabelStyle, showDegrees: boolean, showWords?: boolean }} StaffView
@@ -287,9 +285,7 @@ function abcPitch({ letter, accidental, octave }, signature, inForce) {
  */
 export function chordSymbol(chord, key, { mode, labelStyle }) {
   if (mode === "hidden") return HIDDEN_CHORD_MARK;
-  const { text, sup } = chordView(chord, key, mode, labelStyle);
-  const sups = [...sup].map((c) => SUPERSCRIPT[/** @type {keyof typeof SUPERSCRIPT} */ (c)] ?? c);
-  const name = (text + sups.join("")).replace(/["%\\\r\n]/g, "");
+  const name = labelText(chordView(chord, key, mode, labelStyle)).replace(/["%\\\r\n]/g, "");
   return name && !/^[\^_<>@]/.test(name) ? name : "?";
 }
 
