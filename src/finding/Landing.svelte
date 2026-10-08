@@ -252,8 +252,13 @@
 
 <section id="landing" class:empty aria-label={empty ? "Pick a song" : "Next step"}>
   {#if empty}
-    <!-- Step 1, inside the full workspace: what the three steps are, then
-         the tune cards, the invitation, and the Record card. -->
+    <!-- Step 1 leads: what the app is for, the three steps, then the tune
+         cards, the invitation, and the Record card. -->
+    <p class="welcome">Hear a tune. Find where home is.</p>
+    <p class="invite">
+      Pick a song, listen, and guess which note feels like home. Your ear does the finding; Hear
+      Hear makes every guess quick to test.
+    </p>
     <div class="welcome-head">
       <h2><span class="num" aria-hidden="true">1</span> Pick a song</h2>
       <!-- Each step's mark means what it draws: a melody's shape in gold,
@@ -496,6 +501,13 @@
     color: var(--accent);
     font-size: var(--text-xl);
     font-weight: 500;
+  }
+  .welcome {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: 1.2;
   }
   .invite {
     max-width: 40rem;
