@@ -181,8 +181,9 @@
   #record-chooser ul {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
   }
-  /* Cards are what you do: a violet band, and a violet edge and lift on
-     hover. The lift is motion, so reduced motion keeps only the edge. */
+  /* Cards are what you do: a violet band, and a violet edge and shadow on
+     hover. They don't move: a card that lifts under the pointer is a moving
+     target (and made the e2e clicks wait for it to settle). */
   .hero button {
     display: grid;
     align-content: start;
@@ -199,18 +200,12 @@
     cursor: pointer;
     transition:
       border-color var(--dur-fast) var(--ease),
-      box-shadow var(--dur-fast) var(--ease),
-      transform var(--dur-fast) var(--ease);
+      box-shadow var(--dur-fast) var(--ease);
   }
   .hero button:hover:not(:disabled),
   .hero button:focus-visible {
     border-color: var(--accent);
     box-shadow: 0 6px 18px -10px var(--accent);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .hero button:hover:not(:disabled) {
-      transform: translateY(-2px);
-    }
   }
   .hero button:disabled {
     cursor: default;
