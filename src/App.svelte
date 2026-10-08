@@ -57,7 +57,10 @@
 
 <header class="masthead">
   <h1>Hear Hear</h1>
-  <p class="tagline">Think in relationships, not pitches.</p>
+  <!-- Before a song is picked, the welcome's intro carries the tagline. -->
+  {#if hasSong}
+    <p class="tagline">Think in relationships, not pitches.</p>
+  {/if}
   {#if hasSong}
     <SongPicker />
   {/if}
@@ -74,7 +77,7 @@
   {#if hasSong}
     <Staff />
   {/if}
-  <div class="columns">
+  <div class="columns" class:solo={!hasSong}>
     <div class="step">
       <Landing />
       {#if hasSong}<ChordDropdown />{/if}
@@ -179,6 +182,10 @@
     .columns {
       grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
       align-items: start;
+    }
+    /* The welcome has no side column: it lays out its own width. */
+    .columns.solo {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
   /* On phones the tagline would cost a line of the music's space. */

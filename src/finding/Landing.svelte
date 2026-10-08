@@ -252,10 +252,54 @@
 
 <section id="landing" class:empty aria-label={empty ? "Pick a song" : "Next step"}>
   {#if empty}
-    <!-- Step 1 alone: the song list and nothing else. -->
+    <!-- Step 1: the song list, the action. Beside it on a wide screen (under
+         the Record card on a narrow one), what the three steps are; the
+         invitation to record sits under the demo cards. -->
     <h2><span class="num" aria-hidden="true">1</span> Pick a song</h2>
-    <SongPicker hero />
-    <p class="invite">You can record your own once you get the hang of it.</p>
+    <SongPicker hero>
+      {#snippet aside()}
+        <div class="intro">
+          <!-- The masthead's h1 names the app; this is its poster. -->
+          <p class="wordmark" aria-hidden="true">Hear Hear</p>
+          <p class="motto">Think in relationships, not pitches.</p>
+          <p class="what">
+            Work a tune out by ear. Every note is a number counted from home, so what you learn
+            works in any key.
+          </p>
+          <!-- Each step's mark means what it draws: a melody's shape in gold,
+             home as the tonic's blue circle, and the three chord functions'
+             shapes (tokens.css). Decorative: the words say it all. -->
+          <ol class="how" aria-label="How it works">
+            <li class="now">
+              <svg viewBox="0 0 48 32" aria-hidden="true" focusable="false">
+                <path class="melody" d="M4 22H12L16 12H24L28 18H34L38 8H44" />
+              </svg>
+              <span class="step-name"><span class="num" aria-hidden="true">1</span> Song</span>
+              <span class="step-what">Pick a tune and hear it.</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 48 32" aria-hidden="true" focusable="false">
+                <circle class="tonic" cx="24" cy="16" r="11" />
+              </svg>
+              <span class="step-name"><span class="num" aria-hidden="true">2</span> Key</span>
+              <span class="step-what">Find home by ear.</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 48 32" aria-hidden="true" focusable="false">
+                <circle class="tonic" cx="8" cy="16" r="6.5" />
+                <path class="subdominant" d="M24 9.5L31 22.5H17Z" />
+                <rect class="dominant" x="34" y="9.5" width="13" height="13" />
+              </svg>
+              <span class="step-name"><span class="num" aria-hidden="true">3</span> Chords</span>
+              <span class="step-what">Hear which chords fit.</span>
+            </li>
+          </ol>
+        </div>
+      {/snippet}
+      {#snippet foot()}
+        <p class="invite">You can record your own once you get the hang of it.</p>
+      {/snippet}
+    </SongPicker>
   {/if}
 
   <div class="sound" role="status">
@@ -610,18 +654,95 @@
     border: 2px solid var(--sound);
   }
 
-  /* The landing's song cards (SongPicker's hero list, styled from here so the
-     picker's own file stays untouched): violet tiles with a violet band. */
-  section :global(#song-chooser button) {
-    border-color: var(--accent-soft);
-    border-left: var(--band) solid var(--accent);
-    background: var(--accent-soft);
+  .intro {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    padding: var(--space-3) var(--space-4) var(--space-4);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--paper);
   }
-  section :global(#song-chooser button:hover) {
-    border-color: var(--accent);
+  .intro p {
+    margin: 0;
   }
-  section :global(#song-chooser .title) {
-    color: var(--accent);
+  /* The wordmark again, larger: a square-cornered violet block. */
+  .wordmark {
+    justify-self: start;
+    padding: 0 var(--space-2);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 1.5rem;
     font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+  }
+  .motto {
+    font-size: var(--text-xl);
+    font-weight: 500;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  .what {
+    color: var(--ink-muted);
+  }
+  .how {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    padding: var(--space-3) 0 0;
+    border-top: 1px solid var(--rule);
+    list-style: none;
+  }
+  .how li {
+    display: grid;
+    gap: var(--space-1);
+    align-content: start;
+    font-size: var(--text-sm);
+  }
+  .how svg {
+    width: 3rem;
+    height: 2rem;
+    overflow: visible;
+  }
+  .step-name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-weight: 600;
+  }
+  .step-name .num {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.7rem;
+  }
+  /* You're on step 1: its number takes the current step's violet. */
+  .how .now .num {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .step-what {
+    color: var(--ink-muted);
+  }
+  .melody {
+    fill: none;
+    stroke: var(--melody);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .tonic {
+    fill: var(--fn-tonic);
+  }
+  .subdominant {
+    fill: var(--fn-subdominant);
+    stroke: var(--fn-subdominant-edge);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .dominant {
+    fill: var(--fn-dominant);
   }
 </style>
