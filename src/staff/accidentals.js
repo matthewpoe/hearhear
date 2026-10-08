@@ -10,7 +10,7 @@
 import { spell, spellMelody } from "../theory/index.js";
 import { displayNote } from "../theory/noteDisplay.js";
 import { parseSpelling } from "./abc.js";
-import { MAX_MIDI, MIN_MIDI } from "../store/song.js";
+import { MAX_MIDI, MIN_MIDI } from "../store/songLimits.js";
 
 /** Menu order: the common ones first, the doubles last. */
 const ACCIDENTALS = [

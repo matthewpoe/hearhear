@@ -3,8 +3,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { LENGTH_STEP, movePitch, spokenLength, stepLength } from "../../src/staff/noteEdits.js";
-import { MAX_MIDI, MIN_MIDI, createSongStore, emptySong } from "../../src/store/song.js";
-import { MAX_NOTE_TICKS } from "../../src/store/songLimits.js";
+import { createSongStore, emptySong } from "../../src/store/song.js";
+import { MAX_MIDI, MAX_NOTE_TICKS, MIN_MIDI } from "../../src/store/songLimits.js";
 import { TICKS_PER_QUARTER } from "../../src/theory/index.js";
 
 test("a length step is an eighth", () => {
