@@ -6,7 +6,7 @@ describe("ask requests", () => {
   it("reach the listening panel until it stops listening", () => {
     /** @type {unknown[]} */
     const heard = [];
-    const request = /** @type {const} */ ({ question: "Why?", level: "answer", fixture: "" });
+    const request = /** @type {const} */ ({ question: "Why?", mode: "question", fixture: "" });
     assert.equal(requestAsk(request), false, "nobody listening");
     const stop = onAskRequest((r) => heard.push(r));
     assert.equal(requestAsk(request), true);

@@ -6,8 +6,7 @@
  * stays a rest, so later bars never shift (see DECISIONS.md).
  */
 
-import { MAX_MIDI, MIN_MIDI } from "../store/song.js";
-import { MAX_NOTE_TICKS } from "../store/songLimits.js";
+import { MAX_MIDI, MAX_NOTE_TICKS, MIN_MIDI } from "../store/songLimits.js";
 import { TICKS_PER_QUARTER } from "../theory/index.js";
 
 /** Longer and Shorter step by an eighth: the rhythm grid's shortest value. */

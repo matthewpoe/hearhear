@@ -9,6 +9,7 @@ import {
   clampStep,
   conditionMet,
   hintFor,
+  lessonNote,
   loadProgress,
   noteAt,
   numeralAt,
@@ -18,7 +19,7 @@ import {
 } from "../../src/guided/steps.js";
 
 /** @import { Song } from "../../src/types.js" */
-/** @import { Step } from "../../src/guided/steps.js" */
+/** @import { GuidedPath, Step } from "../../src/guided/steps.js" */
 
 const tune = /** @type {Song} */ (ode);
 const steps = /** @type {Step[]} */ (path.steps);
@@ -268,5 +269,28 @@ describe("stepTarget", () => {
       target: { type: "note", bar: 99, beat: 1 },
     });
     assert.equal(stepTarget(off, tune), null);
+  });
+});
+
+describe("lessonNote", () => {
+  const guided = /** @type {GuidedPath} */ (path);
+  /** @param {string} id */
+  const on = (id) => ({ running: true, index: steps.findIndex((s) => s.id === id) });
+
+  it("is the lesson's note while a step rings one, so step 3 points there too", () => {
+    const song = demo().get();
+    assert.equal(lessonNote(guided, on("half-cadence"), song), noteAt(song, 4, 3));
+    assert.equal(lessonNote(guided, on("land"), song), noteAt(song, 8, 3));
+  });
+
+  it("is null while the lesson rings a control, or another tune is open", () => {
+    const song = demo().get();
+    assert.equal(lessonNote(guided, on("ask"), song), null);
+    assert.equal(lessonNote(guided, on("half-cadence"), { ...song, id: "other" }), null);
+  });
+
+  it("is undefined outside the lesson, so step 3 picks its own note", () => {
+    const song = demo().get();
+    assert.equal(lessonNote(guided, { running: false, index: 4 }, song), undefined);
   });
 });
