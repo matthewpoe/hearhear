@@ -74,7 +74,9 @@
   let result = $state();
 
   $effect(() => {
-    if (autofocus) heading?.focus();
+    // Not on a page load that opened the tune by itself: focus moves only
+    // after the visitor has done something (otherwise a stray ring shows).
+    if (autofocus && (navigator.userActivation?.hasBeenActive ?? true)) heading?.focus();
   });
 
   /**
