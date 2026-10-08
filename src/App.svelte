@@ -15,6 +15,7 @@
   import GuidedEntry from "./guided/GuidedEntry.svelte";
   import GuidedPath from "./guided/GuidedPath.svelte";
   import RecordBar from "./record/RecordBar.svelte";
+  import StepBanner from "./finding/StepBanner.svelte";
   import { song } from "./store/song.js";
 
   /** A song is open: before one is picked, step 1 (the song list) leads the page. */
@@ -70,6 +71,8 @@
 <main class="workspace">
   <!-- Record mode: the take in progress, or the open tune's title (if it's the user's). -->
   <RecordBar />
+  <!-- The first three steps, one banner over the workspace. -->
+  <StepBanner />
   <!-- The empty landing has nothing to play or print, so no staff yet. -->
   {#if hasSong}
     <Staff />

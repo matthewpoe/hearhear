@@ -6,7 +6,7 @@ import { song } from "./store/song.js";
 import { ui } from "./store/ui.js";
 import { installPersistence } from "./store/persist.js";
 import { songStorage } from "./store/storage.js";
-import { loadDemo } from "./finding/demoTunes.js";
+import { DEMO_TUNES, loadDemo } from "./finding/demoTunes.js";
 import { stop } from "./audio/index.js";
 
 const target = document.getElementById("app");
@@ -22,5 +22,9 @@ const memory = installPersistence({
   stop,
 });
 window.addEventListener("pagehide", memory.flush);
+
+// A first visit opens on the real interface: Ode to Joy, its key hidden, with
+// step 1's banner over it to pick a song (StepBanner.svelte).
+if (song.get().notes.length === 0) song.open(DEMO_TUNES[0].song);
 
 export default mount(App, { target });
