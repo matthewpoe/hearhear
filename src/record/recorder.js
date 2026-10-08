@@ -65,6 +65,8 @@ import { createReadMarks } from "./readMarks.js";
  *   the latest again), not a whole take.
  * - added: how many notes the phrase just recorded added, until the next
  *   thing the recorder does.
+ * - over: the take armed is the whole tune again (Start over): until its
+ *   first note the staff shows blank, not the notes it replaces.
  * @typedef {{
  *   status: "idle" | "armed" | "recording" | "naming",
  *   startedAtMs: number,
@@ -74,6 +76,7 @@ import { createReadMarks } from "./readMarks.js";
  *   discarded: string | null,
  *   phrase: boolean,
  *   added: number,
+ *   over: boolean,
  * }} RecorderState
  */
 
@@ -102,6 +105,7 @@ const IDLE = {
   discarded: null,
   phrase: false,
   added: 0,
+  over: false,
 };
 
 /**
@@ -221,8 +225,18 @@ export function createRecorder({
         chords: base.chords.filter((c) => keptIds.has(c.noteId)),
       });
     } else if (base) {
-      const { notes } = recordedSong({ id: base.id, title: base.title, ...take });
-      song.load({ ...base, id: draftId(base), notes, tempo: take.tempo, chords: [] });
+      // The tune again from scratch: its swing is the new take's, not the old one's.
+      const { notes, swing } = recordedSong({ id: base.id, title: base.title, ...take });
+      const rest = { ...base };
+      delete rest.swing;
+      song.load({
+        ...rest,
+        ...(swing ? { swing } : {}),
+        id: draftId(base),
+        notes,
+        tempo: take.tempo,
+        chords: [],
+      });
     } else {
       song.load(recordedSong({ ...fresh, ...take, key: armedKey }));
     }
@@ -246,7 +260,7 @@ export function createRecorder({
       };
       newestId = fresh.id;
     }
-    set({ status: "recording", startedAtMs: atMs, notes: 0 });
+    set({ status: "recording", startedAtMs: atMs, notes: 0, over: false });
   }
 
   /** @param {NoteEvent} event */
@@ -365,7 +379,7 @@ export function createRecorder({
     discarded = null;
     stopAudio();
     listen();
-    state.set({ ...IDLE, status: "armed", phrase: plan !== null });
+    state.set({ ...IDLE, status: "armed", phrase: plan !== null, over: base !== null && !plan });
   }
 
   /** End the take; before its first note, put the recorder away. */
@@ -410,10 +424,12 @@ export function createRecorder({
           take.notes.map((n) => ({ ...n, start: n.start + phrased.at })),
         );
       } else {
+        // Start over is a new take: it reads its own swing, so a tune once
+        // read as swung doesn't stay swung (Feel can still change it).
         ids = song.replaceTake(
           before.notes.map((n) => n.id),
           take.notes,
-          { tempo: take.tempo },
+          { tempo: take.tempo, swing: take.swing ? RECORDED_SWING : null },
         );
       }
       forgetDraft(draftId(before));

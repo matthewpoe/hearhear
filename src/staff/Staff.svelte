@@ -49,6 +49,8 @@
   const wordsShown = $derived(showWords && hasLyrics($song));
   /** A take is armed or running: Play, Stop, Undo and Redo step aside. */
   const recording = $derived($recorder.status === "armed" || $recorder.status === "recording");
+  /** Start over is armed: the old notes are going, so the staff shows blank until the first note. */
+  const blank = $derived($recorder.status === "armed" && $recorder.over);
   const notation = $derived(songToAbc($song, { mode, labelStyle, showDegrees, showWords }));
 
   /** Note groups in reading order; one per note (its first glyph). */
@@ -417,7 +419,7 @@
   {/if}
   <!-- abcjs sizes the host with a percentage padding, which resolves against
        its parent's width, so the width cap sits on this wrapper. -->
-  <div class="frame">
+  <div class="frame" class:blank>
     <div class="notation mode-{mode}" class:words={wordsShown} bind:this={host}></div>
   </div>
   <NoteMenu
@@ -497,6 +499,10 @@
      a panel of its own in the dark theme, so every rule below follows. */
   /* Capped so the drawing doesn't scale up past two systems' worth of
      height on wide screens: the step panel and keyboard share the fold. */
+  /* Hidden, not removed: the staff keeps its size and abcjs its host. */
+  .frame.blank {
+    visibility: hidden;
+  }
   .frame {
     --ink: var(--staff-ink);
     --ink-muted: var(--staff-ink-muted);

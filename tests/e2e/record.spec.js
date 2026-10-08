@@ -165,7 +165,7 @@ test("the masthead's Record button starts a new tune beside a demo, and the bar 
   await axe(page);
 });
 
-test("while a take records, the staff's Play, Stop, Undo and Redo step aside, and come back after Stop", async ({
+test("while a take records, the staff's Play, Stop, Undo and Redo step aside and come back; Start over blanks the staff", async ({
   page,
 }) => {
   await page.goto("/");
@@ -203,4 +203,17 @@ test("while a take records, the staff's Play, Stop, Undo and Redo step aside, an
   await expect(undo).toHaveCSS("border-top-style", "dashed");
   await expect(page.locator("#landing")).toBeVisible();
   await axe(page);
+
+  // Start over blanks the staff until the first note: the old notes are going.
+  const notation = page.locator("#staff svg");
+  await expect(notation).toBeVisible();
+  await bar.getByRole("button", { name: "Start over" }).click();
+  await expect(bar.getByText("Ready to record")).toBeVisible();
+  await expect(notation).toBeHidden();
+  await expect(play).toHaveCount(0);
+  await tapTune(page, ["Digit5"]);
+  await expect(notation).toBeVisible();
+  await expect(staffNotes(page)).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(staffNotes(page)).toHaveCount(1);
 });
