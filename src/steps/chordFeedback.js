@@ -8,13 +8,18 @@
  * span, and analyzeNoteOverChord for the note it sits on. It never names a
  * chord to try: the next thing to try is a place, not an answer.
  *
- * @import { ChordSpec, LabelStyle, Note, Song } from "../types.js"
+ * @import { ChordSpec, Note, Song } from "../types.js"
  */
 
-import { analyzeNoteOverChord, fit, positionOf, spellMelody } from "../theory/index.js";
+import {
+  analyzeNoteOverChord,
+  fit,
+  functionOf,
+  numeralOf,
+  positionOf,
+  spellMelody,
+} from "../theory/index.js";
 import { displayNote } from "../theory/noteDisplay.js";
-import { chordView } from "../chords/chordView.js";
-import { chordSymbol } from "../staff/abc.js";
 
 /** At or above this fit, the melody over the span sits inside the chord. */
 const INSIDE = 0.75;
@@ -65,15 +70,13 @@ export function placedChord(before, after) {
 
 /**
  * What the placed chord does with the melody, in two short sentences: the
- * note it sits on, then the span and the chord's function. The chord is
- * named in the user's label style, as on the staff (chordSymbol).
+ * note it sits on, then the span and the chord's function.
  * @param {Song} song
  * @param {string} noteId
  * @param {ChordSpec} chord
- * @param {LabelStyle} [labelStyle]
  * @returns {{ relation: string, does: string, kind: "inside" | "color" | "rub" } | null}
  */
-export function describePlacement(song, noteId, chord, labelStyle = "roman") {
+export function describePlacement(song, noteId, chord) {
   const index = song.notes.findIndex((n) => n.id === noteId);
   if (index < 0) return null;
   const note = song.notes[index];
@@ -93,8 +96,7 @@ export function describePlacement(song, noteId, chord, labelStyle = "roman") {
     color: "Some notes under it pass outside the chord, as color.",
     rub: "Much of the melody under it rubs against the chord; sometimes that rub is the point.",
   }[kind];
-  const view = { mode: /** @type {const} */ ("confirmed"), labelStyle };
-  const { fn } = chordView(chord, song.key, view.mode, labelStyle);
-  const does = `${chordSymbol(chord, song.key, view)}: ${DOES[/** @type {keyof typeof DOES} */ (fn)]}`;
+  const numeral = numeralOf(chord, song.key);
+  const does = `${numeral}: ${DOES[functionOf(numeral, song.key.mode)]}`;
   return { relation: `${onNote} ${span}`, does, kind };
 }
