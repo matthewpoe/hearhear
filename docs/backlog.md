@@ -41,6 +41,23 @@ The musician and non-musician walkthroughs on the deployed app found these. The 
 - **Collapse the jargon in beginner mode.**
 - **The dropdown ranks ii above V at Ode to Joy's bar 8 beat 1** (0.95 to 0.92), because the D passing on beat 2½ clashes a little with A major. If a guided step asks for the chord before the landing, the top suggestion won't be V (`docs/overnight/ear-check.md`).
 
+## Recording, input, and accounts (Oct 7)
+
+- **Record chords from the chord row while recording,** so a phrase captures melody and harmony in one pass.
+- **Punch-in mid-tune:** re-record from a chosen bar without redoing the phrases before it.
+- **A count-in for phrase recording,** so a phrase that starts on a pickup is captured on the right beat. (Distinct from the meter prompt's count-in bar above, which sets up the click test.)
+- **Sign in to save sessions.** A recording lives in the browser tab today and is gone when the tab closes. (This is the "persistence" extension below, made concrete.)
+- **MIDI keyboard input and hum or voice input.** (The PRD's "Web MIDI and microphone input" below; listed here because the video names it as next.)
+- **Time signatures beyond the current set.**
+
+## Songs
+
+- **Ain't Misbehavin'** as a built-in song.
+
+## Code health
+
+- **Split the large components** into smaller ones.
+
 ## Extensions from the PRD
 
 Lyrics under the staff; a full Nashville chart view and slash chords; an idiom picker with idiom-specific vocabularies; intermediate and advanced levels; Web MIDI and microphone input; persistence; a third demo tune ("When the Saints Go Marching In").
