@@ -16,8 +16,8 @@
  */
 
 import songSchema from "../../contracts/song.schema.json" with { type: "json" };
-import { MAX_MIDI, MIN_MIDI, isLyric, isSwing, validateSong } from "./song.js";
-import { MAX_NOTES, isTitle } from "./songLimits.js";
+import { isLyric, isSwing, validateSong } from "./song.js";
+import { MAX_MIDI, MAX_NOTES, MIN_MIDI, isTitle } from "./songLimits.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
 export const STORE_VERSION = 1;

@@ -18,17 +18,16 @@ import { rekeySong, transposeSong, ticksPerBar } from "../theory/index.js";
 import {
   DEFAULT_TEMPO,
   MAX_LYRIC_CHARS,
+  MAX_MIDI,
   MAX_NOTES,
   MAX_SWING,
   MAX_TITLE_CHARS,
+  MIN_MIDI,
   MIN_SWING,
   charCount,
   isTitle,
 } from "./songLimits.js";
 
-/** The piano's range, A0 to C8: every note's MIDI lies within it. */
-export const MIN_MIDI = 21;
-export const MAX_MIDI = 108;
 const UNDO_LIMIT = 200;
 
 /** @returns {Song} An empty song in provisional C major, 4/4. */
