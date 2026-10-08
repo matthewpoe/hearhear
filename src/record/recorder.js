@@ -51,6 +51,7 @@ import {
   recordedSong,
   takeNotes,
 } from "./take.js";
+import { createReadMarks } from "./readMarks.js";
 
 /**
  * - status: "idle"; "armed" (waiting for the first note); "recording";
@@ -145,6 +146,8 @@ export function createRecorder({
   let base = null;
   /** A phrase onto `base`, rather than the whole tune again. @type {PhrasePlan | null} */
   let plan = null;
+  /** The note sets read straight from a take, so Feel knows hand edits. */
+  const reads = createReadMarks();
   /** The new tune's id and title, for a take that makes one. */
   let fresh = { id: "", title: "" };
   /**
@@ -386,8 +389,11 @@ export function createRecorder({
     /** @type {string[]} */
     let ids;
     const phrased = plan;
+    // A phrase keeps the notes before it, and any hand edits to them.
+    let editsKept = false;
     if (base) {
       const before = base;
+      editsKept = phrased !== null && reads.edited(before);
       base = null;
       plan = null;
       // Back to the tune as it was, then the take in one undoable step.
@@ -419,6 +425,7 @@ export function createRecorder({
     // The raw take stays beside the tune, a phrase at a time, so Feel can
     // read it all again and the bar knows which notes the latest phrase is.
     shelf.saveTake(song.get().id, packPhrases([...kept, { ...played, ids }]));
+    if (!editsKept) reads.mark(song.get());
     // A phrase onto a named tune needs no name: the bar offers the next one.
     if (phrased) set({ status: "idle", phrase: false, added: ids.length });
     else set({ status: "naming", afterTake: true });
@@ -550,7 +557,16 @@ export function createRecorder({
       return { ...phrase, ids: ids.slice(at - count, at) };
     });
     shelf.saveTake(current.id, packPhrases(kept));
+    reads.mark(song.get());
     return true;
+  }
+
+  /**
+   * Whether the open tune's notes were changed by hand since they were last
+   * read from its take, so a re-read would replace those edits.
+   */
+  function edited() {
+    return reads.edited(song.get());
   }
 
   /** Put away the Undo offer. */
@@ -596,6 +612,7 @@ export function createRecorder({
     undoDiscard,
     dismiss,
     reread,
+    edited,
     phrases,
   };
 }
