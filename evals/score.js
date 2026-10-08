@@ -22,6 +22,7 @@ import { format, resolveConfig } from "prettier";
 import { chordFromNumeral, letterOf, numeralOf, positionOf } from "../src/theory/index.js";
 import { buildJobs, jobKey } from "./jobs.js";
 import {
+  BEAT_TOLERANCE,
   FIT_THRESHOLD,
   baselineChord,
   clashes,
@@ -60,7 +61,7 @@ function conventionalAt(suggestions, job) {
     const chord = chordFromNumeral(s.numeral, melody.key);
     return (
       s.bar === job.bar &&
-      Math.abs(s.beat - /** @type {number} */ (job.beat)) < 0.001 &&
+      Math.abs(s.beat - /** @type {number} */ (job.beat)) < BEAT_TOLERANCE &&
       chord !== null &&
       sameHarmony(chord, top)
     );

@@ -42,6 +42,16 @@ test("barCitations reads bars, ranges, lists, and beats, never a bare number", (
   ]);
   assert.deepEqual(at("measures 3 to 4"), [[3, 4, null]]);
   assert.deepEqual(at("The 5 in the tune, 3 times."), []);
+  assert.deepEqual(at("Play bar 3, 5 times."), [[3, 3, null]], "a count after a comma is no bar");
+  assert.deepEqual(at("Bars 2, 4, 6; then 8."), [
+    [2, 2, null],
+    [4, 4, null],
+    [6, 6, null],
+  ]);
+  assert.deepEqual(at("Bars 2, 4."), [
+    [2, 2, null],
+    [4, 4, null],
+  ]);
 });
 
 test("missingBars: a bar the song doesn't have fails, every cited bar that exists passes", () => {
@@ -104,6 +114,15 @@ test("numberedTests counts numbered things to try; more than three is too many",
   assert.equal(numberedTests("Try (1) IV, then (2) vi."), 2);
   assert.equal(numberedTests("Test 1 is IV; test 2 is vi."), 2);
   assert.equal(numberedTests("Bar 4. Then bar 5. Then bar 6. Then bar 7."), 0, "not a list");
+  const steps = "Step 1: play IV in bar 2.\nStep 2: try vi in bar 3.\n3. Hold V in bar 4.";
+  assert.equal(numberedTests(steps), 3, "Step N: lines count with N. lines");
+});
+
+test("namedChords reads English words as words, not chords", () => {
+  assert.deepEqual(names("Go back to bar 5."), [], "Go is no G diminished");
+  assert.deepEqual(names("Do you hear the 3 resolve?"), [], "Do is no D diminished");
+  assert.deepEqual(names("Am I hearing it right?"), [], "Am I is a question, not A minor");
+  assert.deepEqual(names("Try Am in bar 3, and G°."), ["Am", "G°"]);
 });
 
 test("namedChords reads every label style, but not pronouns, notes, degrees, or the key", () => {

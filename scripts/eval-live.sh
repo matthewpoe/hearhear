@@ -9,6 +9,12 @@
 # question). The server stops when the script exits.
 set -euo pipefail
 
+# Requests in the smoke run and in the full run (evals/jobs.js builds the 20).
+smoke=3
+full=20
+# The full run costs about full/smoke times the smoke run, rounded.
+factor=$(((full + smoke / 2) / smoke))
+
 missing=()
 [ -n "${ANTHROPIC_API_KEY:-}" ] || missing+=(ANTHROPIC_API_KEY)
 [ -n "${TUTOR_ACCESS_CODE:-}" ] || missing+=(TUTOR_ACCESS_CODE)
@@ -41,22 +47,22 @@ curl -fsS "${url}/api/health" 2>/dev/null | grep -q '"tutor_mode":"live"' || {
   exit 1
 }
 
-echo "Live server on ${url}. Smoke run: 3 requests."
-node evals/run.js --url "$url" --limit 3
+echo "Live server on ${url}. Smoke run: ${smoke} requests."
+node evals/run.js --url "$url" --limit "$smoke"
 
-cat <<'EOF'
+cat <<EOF
 
-Before the full run (20 requests), check what those 3 cost: in the Anthropic
+Before the full run (${full} requests), check what those ${smoke} cost: in the Anthropic
 Console (console.anthropic.com), open Usage and Cost and look at today's tokens
-and spend for the tutor's model. Multiply by about 41 for the full run.
+and spend for the tutor's model. Multiply by about ${factor} for the full run.
 EOF
 
 if [ "${CONFIRM:-}" != "1" ]; then
   if [ -t 0 ]; then
-    read -r -p "Send the full 20 requests now? Type yes to go on: " answer
+    read -r -p "Send the full ${full} requests now? Type yes to go on: " answer
     [ "$answer" = "yes" ] || { echo "Stopped before the full run."; exit 0; }
   else
-    echo "Stopped before the full run. Run \`make eval-live CONFIRM=1\` to send all 20 requests."
+    echo "Stopped before the full run. Run \`make eval-live CONFIRM=1\` to send all ${full} requests."
     exit 0
   fi
 fi
