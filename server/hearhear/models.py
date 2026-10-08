@@ -17,8 +17,7 @@ MAX_MESSAGE_CHARS = 1000
 MAX_TITLE_CHARS = 120
 MAX_BODY_BYTES = 128 * 1024
 
-# "review": read the whole chart (a question is optional). "question": answer
-# the student's question about it.
+# What each mode asks of the tutor is worded once, in prompt.MODE_LINES.
 Mode = Literal["review", "question"]
 LabelStyle = Literal["roman", "nashville", "letters", "roman+letters"]
 
@@ -138,8 +137,8 @@ class TutorRequest(Strict):
     mode: Annotated[
         Mode,
         Field(
-            description="review: read the whole chart (the question is optional). "
-            "question: answer the student's question about the chart.",
+            description="review or question; what each asks of the tutor is "
+            "worded once, in MODE_LINES (server/hearhear/prompt.py).",
         ),
     ]
     question: Annotated[str, Field(max_length=MAX_MESSAGE_CHARS)] | None = None

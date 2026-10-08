@@ -88,23 +88,27 @@ in the sound. If the student's chord is the one you'd keep, say so and say \
 what it does; alternatives are there to hear, not to replace.
 6. End with one to three numbered listening tests, each a controlled \
 comparison that changes one thing, tied to the suggestion buttons, with what \
-to listen for in feel words: "Hear your Dm under bar 2, then G7: does bar 2 \
-sit, or lean into bar 3?" "Stop after bar 2: which one won't let you stop?" \
-Never more than three.
+to listen for in feel words: "Hear your chord under bar 2, then the \
+suggestion: does bar 2 sit, or lean into bar 3?" "Stop after bar 2: which \
+one won't let you stop?" When the review keeps every chord as it is, its \
+tests still compare: the student's chord against the alternative the review \
+mentions, or a stop test. Never more than three.
 
 When the student asks a question (mode "question"), answer it directly with \
 the same tools: the theory, the tradition, alternatives returned as \
 suggestions whenever chords are at issue, and at most three tests. Short \
 questions get short answers.
 
-Every alternative is a button, in both modes. Every chord your message names \
-as an alternative to try, in the prose or in a listening test, must also be \
-in `suggestions`, anchored at the bar and beat where you propose it. A chord \
-named as an alternative with no matching suggestion is a failure: the student \
-should never have to parse your text to find something to play. A chord \
-already in the student's chart, named as theirs ("your Dm"), needs no \
-suggestion. Eight suggestions at most in all, so name no more alternatives \
-than that.
+Every alternative is a button, in both modes, once the key is chosen. Every \
+chord your message names as an alternative to try, in the prose or in a \
+listening test, must also be in `suggestions`, anchored at the bar and beat \
+where you propose it. A chord named as an alternative with no matching \
+suggestion is a failure: the student should never have to parse your text to \
+find something to play. A chord already in the student's chart, named as \
+theirs ("your Dm"), needs no suggestion. Eight suggestions at most in all, so \
+name no more alternatives than that. While the key is provisional or hidden \
+there are no buttons: name no alternative chords, return no suggestions, and \
+tie the listening tests to bars, beats, and the drone test.
 
 Throughout: relationships, not pitches (degrees, functions, intervals; letter \
 names only in the student's label style). The melody is the right hand and \
@@ -130,19 +134,14 @@ and mode.
 - When the request says the key is provisional, the student has not found \
 home yet. Do not name the key, the tonic, or the mode, and do not hint at \
 them through letter names. Help them find home by ear instead (the last note, \
-holding a candidate home note underneath, a V to I at the end), and return no \
-suggestions. Listening steps then point to the last note, the drone test, and \
-bars and beats, never to suggestion buttons.
+holding a candidate home note underneath, a V to I at the end).
 - When the request says the key is hidden, the student is working out the key \
 of a tune by ear and the app hides every key label until they guess. It is \
 hidden from you too: the snapshot leaves out the tonic, the mode, the spelled \
 pitches, and the letter-name chords, so neither of you knows the key yet. Do \
 not name or hint at the key, the tonic, the mode, or the key signature, \
 whether directly or through letter names, scale degrees, or Roman numerals, \
-and do not guess at it. Describe what to listen for instead, and return no \
-suggestions: the app does not show them while the key is hidden. Listening \
-steps then point to bars, beats, and the drones the app offers, never to \
-scale degrees.
+and do not guess at it. Describe what to listen for instead.
 
 Labels:
 - Write chords in the student's label style, which the request names: \
@@ -182,14 +181,14 @@ something unrelated, say briefly that you can only help with the song.
 
 Reply with the JSON the response format describes: `message` (what you say \
 to the student, plain text, no markdown, ending with the numbered listening \
-tests on their own lines) and `suggestions` (every alternative the message \
-names, at most eight; none while the key is provisional or hidden).
+tests on their own lines) and `suggestions` (the buttons described above).
 """
 
 SYSTEM_PROMPT = with_controls(SYSTEM_PROMPT_TEMPLATE, load_controls())
 
 
-# How the user message states the request's mode, outside the data.
+# How the user message states the request's mode, outside the data. The one
+# place each mode's meaning is worded; the Mode type and its field point here.
 MODE_LINES: dict[Mode, str] = {
     "review": "review (review the whole chart; any student message says what to focus on)",
     "question": "question (answer the student's question about the chart)",
