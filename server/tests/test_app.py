@@ -289,6 +289,33 @@ def test_a_lesson_not_recorded_yet_plays_the_sample_reply(
     assert len(stream["suggestions"]["suggestions"]) == 4, "the review sample, for a review"
 
 
+def test_a_lesson_recorded_as_a_question_never_answers_a_review(
+    client: TestClient, recorded: Path
+) -> None:
+    # The guided path's question lesson must not come back as a chart review.
+    (recorded / "asked.json").write_text(json.dumps({**LESSON, "request": {"mode": "question"}}))
+    review = {"snapshot": SNAPSHOT, "mode": "review"}
+    response = client.post("/api/tutor", json=review, headers={"X-Tutor-Fixture": "lesson:asked"})
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "lesson_not_found"
+
+    question = {"snapshot": SNAPSHOT, "mode": "question", "question": "Why does it land?"}
+    response = client.post("/api/tutor", json=question, headers={"X-Tutor-Fixture": "lesson:asked"})
+    assert response.status_code == 200
+    assert dict(events(response.text))["suggestions"]["served_by"] == "recorded"
+
+
+def test_a_lesson_recorded_as_a_review_never_answers_a_question(
+    client: TestClient, recorded: Path
+) -> None:
+    (recorded / "reviewed.json").write_text(json.dumps({**LESSON, "request": {"mode": "review"}}))
+    question = {"snapshot": SNAPSHOT, "mode": "question", "question": "Why does it land?"}
+    headers = {"X-Tutor-Fixture": "lesson:reviewed"}
+    assert client.post("/api/tutor", json=question, headers=headers).status_code == 404
+    review = {"snapshot": SNAPSHOT, "mode": "review"}
+    assert client.post("/api/tutor", json=review, headers=headers).status_code == 200
+
+
 @pytest.mark.parametrize("name", ["lesson:../secret", "lesson:", "lesson:Ode"])
 def test_a_lesson_name_that_isnt_a_plain_id_is_a_404_never_another_file(
     client: TestClient, recorded: Path, name: str

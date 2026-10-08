@@ -27,12 +27,30 @@ export function onAskRequest(listener) {
 }
 
 /**
- * The recorded lesson the guided path's current step names ("lesson:<id>"),
- * or "" when it names none or the walkthrough isn't running. A question the
- * viewer asks meanwhile replays it: the step answers anyone, at no cost, so
+ * A recorded lesson: its X-Tutor-Fixture value ("lesson:<id>") and the mode
+ * it was recorded for (content/lessons/plan.json).
+ * @typedef {{ fixture: string, mode: Mode }} StepLesson
+ */
+
+/**
+ * The recorded lesson the guided path's current step names, or null when it
+ * names none or the walkthrough isn't running. A request of the lesson's
+ * mode sent meanwhile replays it: the step answers anyone, at no cost, so
  * the panel doesn't ask for the passphrase up front then.
  */
-export const stepLesson = createReadable("");
+export const stepLesson = createReadable(/** @type {StepLesson | null} */ (null));
+
+/**
+ * The fixture a request of `mode` carries while `lesson` is the step's: the
+ * lesson's, only when it was recorded for that mode (a question's recorded
+ * answer never comes back as a review, nor a review as an answer), else ""
+ * so the request goes to the tutor as anyone's would.
+ * @param {StepLesson | null} lesson
+ * @param {Mode} mode
+ */
+export function lessonFixture(lesson, mode) {
+  return lesson && lesson.mode === mode ? lesson.fixture : "";
+}
 
 /**
  * Ask the tutor panel to send a question. False when no panel is listening.

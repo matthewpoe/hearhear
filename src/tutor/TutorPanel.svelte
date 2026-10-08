@@ -21,7 +21,7 @@
   import { suggestions, isStale } from "../store/suggestions.js";
   import { toTutorSnapshot } from "../store/snapshot.js";
   import { askTutor, TutorError } from "./client.js";
-  import { onAskRequest, stepLesson } from "./requests.js";
+  import { onAskRequest, stepLesson, lessonFixture } from "./requests.js";
   import { checkSuggestions } from "./validate.js";
   import { failureText, canRetry } from "./failures.js";
   import { replySteps } from "./replySteps.js";
@@ -235,7 +235,7 @@
     const asked = question.trim();
     question = "";
     const keyboard = activatedByKeyboard();
-    send(asked, "question", $stepLesson);
+    send(asked, "question", lessonFixture($stepLesson, "question"));
     // The button just pressed is now disabled; keep a keyboard user in the panel.
     if (keyboard) textarea?.focus();
   }
@@ -243,7 +243,7 @@
   function review() {
     if (!canReview) return;
     const keyboard = activatedByKeyboard();
-    send(null, "review", $stepLesson);
+    send(null, "review", lessonFixture($stepLesson, "review"));
     if (keyboard) textarea?.focus();
   }
 
