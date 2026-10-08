@@ -55,357 +55,364 @@
     {
       "event": "message",
       "data": {
-        "delta": "long 1. Your chords follow it, V "
+        "delta": "long 1, home. Your chords follow "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "under the first ending and V to I "
+        "delta": "it, V under the first ending and V "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "under the second, so the tune asks "
+        "delta": "to I under the second, so the tune "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "a question and then answers it: a "
+        "delta": "asks a question and then answers "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "half cadence, then an authentic "
+        "delta": "it: a half cadence, then an "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "cadence. That pairing is the "
+        "delta": "authentic cadence. That pairing is "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "backbone of hymns and folk tunes "
+        "delta": "the backbone of hymns and folk "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "built from two matching lines, and "
+        "delta": "tunes built from two matching "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "it is why this one sounds so sure "
+        "delta": "lines, and it is why this one "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "of itself.\n\nUnder the long 2 in bar "
+        "delta": "sounds so sure of itself.\n\nUnder "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "4, your V puts the melody on the "
+        "delta": "the long 2 in bar 4, your V puts "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "chord's fifth. V wants home because "
+        "delta": "the melody on the chord's fifth. V "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "its third, the leading tone, sits a "
+        "delta": "wants home because its third, the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "half step under 1, and ending a "
+        "delta": "leading tone, sits a half step "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "phrase on it leaves that pull "
+        "delta": "under 1, and ending a phrase on it "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "hanging. ii would hold the same 2, "
+        "delta": "leaves that pull hanging. ii would "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "as its root, so the melody gives no "
+        "delta": "hold the same 2, as its root, so "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "evidence either way here. What "
+        "delta": "the melody gives no evidence either "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "decides it is where the music goes "
+        "delta": "way here. What decides it is where "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "next: bar 5 starts over on I, and V "
+        "delta": "the music goes next: bar 5 starts "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "leans into that restart, while ii "
+        "delta": "over on I, and V leans into that "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "steps aside more softly and lets "
+        "delta": "restart, while ii steps aside more "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "bar 5 sound like a fresh start "
+        "delta": "softly and lets bar 5 sound like a "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "rather than an arrival.\n\nTwo more "
+        "delta": "fresh start rather than an "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "spots are worth another listen. In "
+        "delta": "arrival.\n\nTwo more spots are worth "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "bar 2, your V holds through beat 3, "
+        "delta": "another listen. In bar 2, your V "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "where the melody's 3 sits over it "
+        "delta": "holds through beat 3, where the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "as a sixth, a gentle rub before the "
+        "delta": "melody's 3 sits over it as a sixth, "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "2 on beat 4 settles back in. I "
+        "delta": "a gentle rub before the 2 on beat 4 "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "under beat 3 would make that 3 the "
+        "delta": "settles back in. I under beat 3 "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "chord's third: smoother, with the "
+        "delta": "would make that 3 the chord's "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "harmony moving twice as fast. If "
+        "delta": "third: smoother, with the harmony "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "you like the lean, that's the case "
+        "delta": "moving twice as fast. If you like "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "for your chart.\n\nIn bar 7 the line "
+        "delta": "the lean, that's the case for your "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "climbs 1-2-3 toward the final "
+        "delta": "chart.\n\nIn bar 7 the line climbs "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "cadence, and your I holds under all "
+        "delta": "1-2-3 toward the final cadence, and "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "of it. ii under the 2 on beat 3 "
+        "delta": "your I holds under all of it. ii "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "turns bars 7 and 8 into a ii-V-I, "
+        "delta": "under the 2 on beat 3 turns bars 7 "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "one of the most common ways home. "
+        "delta": "and 8 into a ii-V-I, one of the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "V/V there, the applied dominant of "
+        "delta": "most common ways home. V/V there, "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "V, does the same job with more "
+        "delta": "the applied dominant of V, does the "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "push: its third is a raised 4, "
+        "delta": "same job with more push: its third "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "which leans up a half step into the "
+        "delta": "is a raised 4, which leans up a "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "V of bar 8.\n\n1. Hear your V under "
+        "delta": "half step into the V of bar 8.\n\n1. "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "bar 4, beat 3, then ii: does the "
+        "delta": "Hear your V under bar 4, beat 3, "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "phrase ask a question, or just "
+        "delta": "then ii: does the phrase ask a "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "pause?\n2. Hear I at bar 2, beat 3, "
+        "delta": "question, or just pause?\n2. Hear I "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "then your V: which one leans harder "
+        "delta": "at bar 2, beat 3, then your V: "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "into bar 3?\n3. Hear ii at bar 7, "
+        "delta": "which one leans harder into bar "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "beat 3, then V/V: which one makes "
+        "delta": "3?\n3. Hear ii at bar 7, beat 3, "
       },
       "delayMs": 45
     },
     {
       "event": "message",
       "data": {
-        "delta": "the last bar feel more inevitable?"
+        "delta": "then V/V: which one makes the last "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "bar feel more inevitable?"
       },
       "delayMs": 45
     },

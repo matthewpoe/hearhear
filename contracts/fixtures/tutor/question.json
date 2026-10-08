@@ -118,7 +118,7 @@
     {
       "event": "message",
       "data": {
-        "delta": "inward by half steps onto 3 and 1. "
+        "delta": "inward by half steps onto 1 and 3. "
       },
       "delayMs": 45
     },
