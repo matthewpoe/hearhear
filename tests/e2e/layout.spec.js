@@ -38,10 +38,10 @@ for (const [width, height] of [
     expect(row.overflows).toBe(false);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
 
-    // The staff comes first under the masthead, wholly above the keyboard.
+    // The staff comes right under the step banner, wholly above the keyboard.
     const staff = await page.locator("#staff").boundingBox();
     const dock = await page.locator(".keyboard-dock").boundingBox();
-    expect(staff && dock && staff.y < 80 && staff.y + staff.height <= dock.y).toBe(true);
+    expect(staff && dock && staff.y < 380 && staff.y + staff.height <= dock.y).toBe(true);
 
     // Before the demo's key is guessed, the chord row waits: A plays no chord
     // (the placeholder key isn't home), while the number row still plays.

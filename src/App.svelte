@@ -15,9 +15,10 @@
   import GuidedEntry from "./guided/GuidedEntry.svelte";
   import GuidedPath from "./guided/GuidedPath.svelte";
   import RecordBar from "./record/RecordBar.svelte";
+  import StepBanner from "./finding/StepBanner.svelte";
   import { song } from "./store/song.js";
 
-  /** A song is open: before one is picked, the page is the song list alone. */
+  /** A song is open: before one is picked, step 1 (the song list) leads the page. */
   const hasSong = $derived($song.notes.length > 0);
 
   /** @type {HTMLElement | undefined} */
@@ -70,6 +71,8 @@
 <main class="workspace">
   <!-- Record mode: the take in progress, or the open tune's title (if it's the user's). -->
   <RecordBar />
+  <!-- The first three steps, one banner over the workspace. -->
+  <StepBanner />
   <!-- The empty landing has nothing to play or print, so no staff yet. -->
   {#if hasSong}
     <Staff />
@@ -79,22 +82,18 @@
       <Landing />
       {#if hasSong}<ChordDropdown />{/if}
     </div>
-    <!-- Before a song is picked the page is step 1 alone: the song list. -->
-    {#if hasSong}
-      <div class="side">
-        <TutorPanel />
-        <TrustPanel />
-      </div>
-    {/if}
+    <!-- The whole interface shows from the first load; the song list is step 1's hero. -->
+    <div class="side">
+      <TutorPanel />
+      <TrustPanel />
+    </div>
   </div>
-  {#if hasSong}
-    <p class="credits">
-      Piano samples: Salamander Grand Piano by Alexander Holm,
-      <a href="https://creativecommons.org/licenses/by/3.0/" rel="license noopener" target="_blank"
-        >CC BY 3.0</a
-      >.
-    </p>
-  {/if}
+  <p class="credits">
+    Piano samples: Salamander Grand Piano by Alexander Holm,
+    <a href="https://creativecommons.org/licenses/by/3.0/" rel="license noopener" target="_blank"
+      >CC BY 3.0</a
+    >.
+  </p>
 </main>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->

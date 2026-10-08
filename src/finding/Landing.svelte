@@ -246,7 +246,12 @@
 
 <section id="landing" class:empty aria-label={empty ? "Pick a song" : "Next step"}>
   {#if empty}
-    <!-- Step 1 alone: the song list and nothing else. -->
+    <!-- Step 1 leads: what the app is for, then the song list. -->
+    <p class="welcome">Hear a tune. Find where home is.</p>
+    <p class="invite">
+      Pick a song, listen, and guess which note feels like home. Your ear does the finding; Hear
+      Hear makes every guess quick to test.
+    </p>
     <h2><span class="num" aria-hidden="true">1</span> Pick a song</h2>
     <SongPicker hero />
     <p class="invite">You can record your own once you get the hang of it.</p>
@@ -465,6 +470,13 @@
     color: var(--accent);
     font-size: var(--text-xl);
     font-weight: 500;
+  }
+  .welcome {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: 1.2;
   }
   .invite {
     max-width: 40rem;

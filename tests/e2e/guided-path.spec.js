@@ -159,20 +159,21 @@ for (const viewport of [
     await page.goto("/");
     const tour = page.getByRole("region", { name: "Guided lesson" });
     await expect(tour).toBeVisible();
-    const entry = page.getByRole("button", { name: "Guided lesson" });
+    const entry = page.getByRole("button", { name: "Guided lesson", exact: true });
     await expect(entry).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Show me how" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Beginner tips" })).toHaveCount(0);
     const heading = page.locator("#guided-step-title");
     await expect(heading).not.toBeFocused();
     const count = tour.getByText(/^Guided lesson · step \d+\/\d+$/);
-    await expect(count).toHaveText(`Guided lesson · step 1/${steps.length - 1}`);
+    // Ode to Joy opens on a first visit, so the lesson starts at "Hear it".
+    await expect(count).toHaveText(`Guided lesson · step 2/${steps.length - 1}`);
     await expect(tour.getByText("Draft", { exact: true })).toBeVisible();
     // The Draft badge carries the placeholder note, for screen readers too.
     await expect(tour.getByText(/placeholder: pending Matthew's ear check/i)).toBeAttached();
     // The step's action is in the accent color.
     const act = tour.locator(".act");
-    await expect(act).toHaveText("Load Ode to Joy");
+    await expect(act).toHaveText("Press Play");
     expect(
       await act.evaluate((el) => {
         const probe = document.createElement("span");
@@ -210,13 +211,6 @@ for (const viewport of [
       await expect(page.locator("#piano .key.held").first()).toBeAttached();
       await page.keyboard.up(key);
     };
-
-    // 1. Load the tune from its card on the welcome.
-    await expectStep("load", { selector: "#song-chooser button", text: "Ode to Joy" });
-    await page
-      .locator("#song-chooser")
-      .getByRole("button", { name: /Ode to Joy/ })
-      .click();
 
     // 2. Play, from the staff's own button. Loading alone doesn't count.
     const transport = page.locator("#staff [aria-label='Playback']");
