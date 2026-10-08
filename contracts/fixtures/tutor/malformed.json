@@ -83,7 +83,6 @@
     {
       "event": "suggestions",
       "data": {
-        "hint_level": "comparison",
         "snapshot_version": 3,
         "dropped": 1,
         "suggestions": [

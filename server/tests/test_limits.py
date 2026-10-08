@@ -13,7 +13,7 @@ from hearhear.models import MAX_BODY_BYTES
 
 def oversized_body() -> bytes:
     """A valid request padded past the cap with whitespace."""
-    body = json.dumps({"snapshot": SNAPSHOT}).encode()
+    body = json.dumps({"snapshot": SNAPSHOT, "mode": "review"}).encode()
     return body + b" " * (MAX_BODY_BYTES - len(body) + 1)
 
 
@@ -43,7 +43,7 @@ def test_chunked_oversized_body_without_content_length_is_413(client: TestClient
 
 
 def test_chunked_body_under_the_cap_reaches_the_endpoint(client: TestClient) -> None:
-    body = json.dumps({"snapshot": SNAPSHOT, "hint_level": "nudge"}).encode()
+    body = json.dumps({"snapshot": SNAPSHOT, "mode": "review"}).encode()
 
     def pieces() -> Iterator[bytes]:
         yield body[:50]
@@ -57,7 +57,7 @@ def test_chunked_body_under_the_cap_reaches_the_endpoint(client: TestClient) -> 
 
 
 def test_body_at_exactly_the_cap_is_accepted(client: TestClient) -> None:
-    body = json.dumps({"snapshot": SNAPSHOT}).encode()
+    body = json.dumps({"snapshot": SNAPSHOT, "mode": "review"}).encode()
     body += b" " * (MAX_BODY_BYTES - len(body))
     response = client.post("/api/tutor", content=body, headers={"Content-Type": "application/json"})
     assert response.status_code == 200
@@ -71,13 +71,13 @@ def two_per_minute(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> TestC
 
 def ask(client: TestClient, forwarded_for: str | None = None) -> int:
     headers = {"X-Forwarded-For": forwarded_for} if forwarded_for else {}
-    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    body = {"snapshot": SNAPSHOT, "mode": "review"}
     return client.post("/api/tutor", json=body, headers=headers).status_code
 
 
 def test_rate_limit_returns_429_with_the_error_envelope(two_per_minute: TestClient) -> None:
     assert [ask(two_per_minute) for _ in range(2)] == [200, 200]
-    response = two_per_minute.post("/api/tutor", json={"snapshot": SNAPSHOT})
+    response = two_per_minute.post("/api/tutor", json={"snapshot": SNAPSHOT, "mode": "review"})
     assert response.status_code == 429
     assert response.json()["error"]["code"] == "rate_limited"
     assert "a minute" in response.json()["error"]["message"]
@@ -86,7 +86,7 @@ def test_rate_limit_returns_429_with_the_error_envelope(two_per_minute: TestClie
 def test_429_says_when_to_retry(two_per_minute: TestClient) -> None:
     for _ in range(2):
         ask(two_per_minute)
-    response = two_per_minute.post("/api/tutor", json={"snapshot": SNAPSHOT})
+    response = two_per_minute.post("/api/tutor", json={"snapshot": SNAPSHOT, "mode": "review"})
     retry_after = response.headers["retry-after"]
     assert retry_after.isdigit(), "an integer number of seconds"
     assert 1 <= int(retry_after) <= 60
@@ -97,7 +97,7 @@ def test_429_on_the_daily_limit_does_not_promise_a_minute(
 ) -> None:
     monkeypatch.setattr(app_module, "settings", settings_with(rate_limit="1/day"))
     ask(client)
-    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT})
+    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "mode": "review"})
     assert response.status_code == 429
     assert int(response.headers["retry-after"]) > 60
     assert "a minute" not in response.json()["error"]["message"]

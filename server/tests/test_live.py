@@ -22,7 +22,6 @@ from hearhear.budget import TokenBudget
 from hearhear.models import TutorReply, TutorRequest
 
 REPLY: dict[str, Any] = {
-    "hint_level": "comparison",
     "message": 'Try both under the long E. Does it "rest" or lean?',
     "suggestions": [
         {
@@ -136,7 +135,7 @@ def use_fake(monkeypatch: pytest.MonkeyPatch, fake: FakeClient) -> FakeClient:
 
 
 def ask(client: TestClient, **extra: Any) -> Any:
-    body = {"snapshot": SNAPSHOT, "hint_level": "comparison", **extra}
+    body = {"snapshot": SNAPSHOT, "mode": "review", **extra}
     return client.post("/api/tutor", json=body)
 
 
@@ -160,7 +159,6 @@ def test_live_stream_follows_the_protocol(
     assert message == REPLY["message"]
     final = dict(stream)["suggestions"]
     assert final == {
-        "hint_level": "comparison",
         "suggestions": [REPLY["suggestions"][0]],
         "snapshot_version": 7,
         "dropped": 1,
@@ -225,7 +223,7 @@ def test_fixture_header_is_ignored_in_live_mode(
     fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
     response = live_mode.post(
         "/api/tutor",
-        json={"snapshot": SNAPSHOT},
+        json={"snapshot": SNAPSHOT, "mode": "review"},
         headers={"X-Tutor-Fixture": "over-budget"},
     )
     assert len(fake.calls) == 1
@@ -289,7 +287,7 @@ def test_an_unexpected_stop_is_invalid_output(
 def test_reply_with_a_bad_message_is_invalid_output(
     live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    bad = {**REPLY, "hint_level": "verdict"}
+    bad = {**REPLY, "message": 42}
     use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(bad))))
     stream = events(ask(live_mode).text)
     assert stream[-2] == ("error", {"code": "invalid_output", "message": live.INVALID_MESSAGE})
@@ -314,9 +312,7 @@ def test_logs_carry_usage_but_never_the_students_words(
     assert entry["served_by"] == "claude-opus-5-5"
     assert entry["fallback"] is False
     assert entry["withheld_hidden"] == 0
-    assert entry["withheld_provisional"] == 0
-    assert entry["withheld_nudge"] == 0
-    assert entry["hint_clamped"] == 0
+    assert entry["mode"] == "review"
 
 
 def logged_events(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, dict[str, Any]]]:
@@ -387,8 +383,6 @@ def test_hidden_key_withholds_every_suggestion(
     assert (final["dropped"], final["withheld"]) == (1, 1), "one invalid, one withheld"
     entry = dict(logged)["tutor_live"]
     assert entry["withheld_hidden"] == 1
-    assert entry["withheld_provisional"] == 0
-    assert entry["withheld_nudge"] == 0
     assert entry["dropped"] == 1, "validation failures only"
     assert entry["key_hidden"] is True
     assert "Key hidden: yes" in fake.calls[0]["messages"][0]["content"]
@@ -405,76 +399,51 @@ def test_visible_key_withholds_nothing(
     assert dict(logged)["tutor_live"]["withheld_hidden"] == 0
 
 
-def test_a_nudge_withholds_every_suggestion_and_reports_a_nudge(
-    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(
+    "extra",
+    [{"mode": "review"}, {"mode": "question", "question": "Is V right in bar 4?"}],
+    ids=["review", "question"],
+)
+def test_a_provisional_key_is_not_clamped_in_either_mode(
+    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch, extra: dict[str, Any]
 ) -> None:
-    """REPLY claims `comparison`; the request asked for a nudge."""
+    """Only a hidden key holds suggestions back: the provisional-key and nudge
+    clamps are gone, so a review or an answer keeps its alternatives."""
     logged = logged_events(monkeypatch)
-    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
-    final = dict(events(ask(live_mode, hint_level="nudge").text))["suggestions"]
-    assert final["hint_level"] == "nudge"
-    assert final["suggestions"] == []
-    assert (final["dropped"], final["withheld"]) == (1, 1), "one invalid, one withheld"
-    entry = dict(logged)["tutor_live"]
-    assert entry["withheld_nudge"] == 1
-    assert entry["withheld_hidden"] == entry["withheld_provisional"] == 0
-    assert entry["hint_clamped"] == 1
-
-
-def test_a_provisional_key_withholds_every_suggestion(
-    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    logged = logged_events(monkeypatch)
-    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
+    fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
     snapshot = {**SNAPSHOT, "key": {**SNAPSHOT["key"], "provisional": True}}
-    final = dict(events(ask(live_mode, snapshot=snapshot).text))["suggestions"]
-    assert final["hint_level"] == "comparison"
-    assert final["suggestions"] == []
-    assert (final["dropped"], final["withheld"]) == (1, 1), "one invalid, one withheld"
+    final = dict(events(ask(live_mode, snapshot=snapshot, **extra).text))["suggestions"]
+    assert final["suggestions"] == [REPLY["suggestions"][0]]
+    assert (final["dropped"], final["withheld"]) == (1, 0)
+    assert "hint_level" not in final
     entry = dict(logged)["tutor_live"]
-    assert entry["withheld_provisional"] == 1
-    assert entry["withheld_hidden"] == entry["withheld_nudge"] == 0
-    assert entry["hint_clamped"] == 0
+    assert entry["withheld_hidden"] == 0
+    assert entry["mode"] == extra["mode"]
+    assert set(entry) >= {"withheld_hidden"}
+    assert not {"withheld_provisional", "withheld_nudge", "hint_clamped"} & set(entry)
+    assert "Key provisional: yes" in fake.calls[0]["messages"][0]["content"]
 
 
-def test_a_hidden_key_counts_as_hidden_even_when_provisional_and_a_nudge(
+def test_a_hidden_key_withholds_even_when_provisional(
     live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     logged = logged_events(monkeypatch)
     use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
     key = {**SNAPSHOT["key"], "provisional": True}
     snapshot = {**SNAPSHOT, "key": key, "key_hidden": True}
-    final = dict(events(ask(live_mode, snapshot=snapshot, hint_level="nudge").text))["suggestions"]
+    final = dict(events(ask(live_mode, snapshot=snapshot).text))["suggestions"]
     assert (final["dropped"], final["withheld"]) == (1, 1), "each withheld one counted once"
-    entry = dict(logged)["tutor_live"]
-    assert (entry["withheld_hidden"], entry["withheld_provisional"], entry["withheld_nudge"]) == (
-        1,
-        0,
-        0,
-    )
+    assert dict(logged)["tutor_live"]["withheld_hidden"] == 1
 
 
-def test_a_reply_claiming_more_than_was_asked_reports_the_requested_level(
+def test_a_reply_that_claims_a_hint_level_is_invalid_output(
     live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    logged = logged_events(monkeypatch)
+    """The reply schema has no hint level any more; an old-shape reply is
+    malformed, not clamped."""
     use_fake(monkeypatch, FakeClient(sdk_events(json.dumps({**REPLY, "hint_level": "answer"}))))
-    final = dict(events(ask(live_mode, hint_level="comparison").text))["suggestions"]
-    assert final["hint_level"] == "comparison"
-    assert len(final["suggestions"]) == 1, "a comparison keeps its suggestions"
-    entry = dict(logged)["tutor_live"]
-    assert entry["hint_clamped"] == 1
-    assert REPLY["message"] not in json.dumps(logged)
-
-
-def test_a_reply_claiming_less_than_was_asked_is_left_alone(
-    live_mode: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    logged = logged_events(monkeypatch)
-    use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
-    final = dict(events(ask(live_mode, hint_level="answer").text))["suggestions"]
-    assert final["hint_level"] == "comparison"
-    assert dict(logged)["tutor_live"]["hint_clamped"] == 0
+    stream = events(ask(live_mode).text)
+    assert stream[-2] == ("error", {"code": "invalid_output", "message": live.INVALID_MESSAGE})
 
 
 def iteration(kind: str, model: str, input_tokens: int, output_tokens: int) -> SimpleNamespace:
@@ -557,7 +526,7 @@ def test_an_error_before_message_start_charges_nothing(
 
 def test_a_client_that_disconnects_mid_stream_is_charged_the_most_the_turn_could_cost() -> None:
     budget = TokenBudget(1_000_000)
-    request = TutorRequest.model_validate({"snapshot": SNAPSHOT, "hint_level": "comparison"})
+    request = TutorRequest.model_validate({"snapshot": SNAPSHOT, "mode": "review"})
     stream = live.stream_live(
         request,
         client=FakeClient(sdk_events(json.dumps(REPLY), chunk=4)),  # type: ignore[arg-type]
@@ -756,7 +725,9 @@ def test_the_cap_leaves_fixture_mode_alone(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     one_slot_taken(monkeypatch)
-    assert client.post("/api/tutor", json={"snapshot": SNAPSHOT}).status_code == 200
+    assert (
+        client.post("/api/tutor", json={"snapshot": SNAPSHOT, "mode": "review"}).status_code == 200
+    )
 
 
 def test_live_mode_replays_a_recorded_lesson_without_a_code(
@@ -768,7 +739,7 @@ def test_live_mode_replays_a_recorded_lesson_without_a_code(
     app_module.budget.spend(10)
     response = live_mode.post(
         "/api/tutor",
-        json={"snapshot": SNAPSHOT},
+        json={"snapshot": SNAPSHOT, "mode": "review"},
         headers={"X-Tutor-Fixture": "lesson:ode-ending"},
     )
     assert response.status_code == 200
@@ -793,20 +764,20 @@ def test_live_mode_plays_the_sample_reply_for_a_lesson_not_recorded_yet(
     del live_mode.headers["X-Tutor-Access"]
     response = live_mode.post(
         "/api/tutor",
-        json={"snapshot": SNAPSHOT, "hint_level": "nudge"},
+        json={"snapshot": SNAPSHOT, "mode": "review"},
         headers={"X-Tutor-Fixture": "lesson:ode-unfinished"},
     )
     assert response.status_code == 200
     stream = events(response.text)
-    nudge = json.loads((app_module.settings.fixtures_dir / "nudge.json").read_text())
-    first = next(step["data"] for step in nudge["events"] if step["event"] == "message")
+    sample = json.loads((app_module.settings.fixtures_dir / "review.json").read_text())
+    first = next(step["data"] for step in sample["events"] if step["event"] == "message")
     assert stream[0] == ("message", first)
     assert dict(stream)["suggestions"]["served_by"] == "fixture"
     lesson_logs = [fields for event, fields in logged if event == "tutor_lesson"]
     assert lesson_logs == [
         {
             "request_id": response.headers["x-request-id"],
-            "hint_level": "nudge",
+            "mode": "review",
             "source": "fixture",
         }
     ]
@@ -822,7 +793,7 @@ def test_live_mode_logs_a_recorded_lesson_as_recorded(
     )
     response = live_mode.post(
         "/api/tutor",
-        json={"snapshot": SNAPSHOT},
+        json={"snapshot": SNAPSHOT, "mode": "review"},
         headers={"X-Tutor-Fixture": "lesson:ode-ending"},
     )
     assert response.status_code == 200
@@ -836,7 +807,7 @@ def test_live_mode_refuses_a_lesson_path_outside_the_lessons(
     fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
     response = live_mode.post(
         "/api/tutor",
-        json={"snapshot": SNAPSHOT},
+        json={"snapshot": SNAPSHOT, "mode": "review"},
         headers={"X-Tutor-Fixture": "lesson:../secret"},
     )
     assert response.status_code == 404
@@ -850,7 +821,9 @@ def test_live_mode_still_gates_a_shape_fixture_name(
     fake = use_fake(monkeypatch, FakeClient(sdk_events(json.dumps(REPLY))))
     del live_mode.headers["X-Tutor-Access"]
     response = live_mode.post(
-        "/api/tutor", json={"snapshot": SNAPSHOT}, headers={"X-Tutor-Fixture": "nudge"}
+        "/api/tutor",
+        json={"snapshot": SNAPSHOT, "mode": "review"},
+        headers={"X-Tutor-Fixture": "review"},
     )
     assert response.status_code == 401
     assert fake.calls == []

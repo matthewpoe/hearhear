@@ -89,7 +89,7 @@ describe("toTutorSnapshot", () => {
       toTutorSnapshot(/** @type {any} */ (stJames), { labelStyle: "roman" }),
       toTutorSnapshot({ ...song, title: "x".repeat(500) }, { labelStyle: "roman" }),
     ]) {
-      assert.ok(validate({ snapshot: s, hint_level: "nudge" }), JSON.stringify(validate.errors));
+      assert.ok(validate({ snapshot: s, mode: "review" }), JSON.stringify(validate.errors));
     }
   });
 

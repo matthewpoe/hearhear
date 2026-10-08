@@ -235,7 +235,6 @@ async def stream_live(
                 outcome = "ok"
                 data, clamp = suggestions_data(
                     request,
-                    hint_level=reply.hint_level,
                     suggestions=[s.model_dump() for s in reply.suggestions],
                     dropped=dropped,
                     # The SDK refuses a stream without message_start, so this is
@@ -253,7 +252,7 @@ async def stream_live(
             model=model,
             served_by=served_by,
             fallback=fallback,
-            hint_level=request.hint_level,
+            mode=request.mode,
             key_hidden=request.snapshot.key_hidden,
             outcome=outcome,
             dropped=dropped,

@@ -1,6 +1,7 @@
 """A tune the user recorded reaches the tutor like a demo: its title rides as
-data inside the snapshot tags, and the clamp withholds suggestions while its
-key is provisional. Fixture mode only; nothing here calls Claude."""
+data inside the snapshot tags, and its review carries suggestions whether or
+not home is found yet: only a hidden key holds them back. Fixture mode only;
+nothing here calls Claude."""
 
 import json
 import re
@@ -43,27 +44,27 @@ def recorded_snapshot(*, provisional: bool, bars: int = 2) -> dict[str, Any]:
 
 
 def suggestions_for(client: TestClient, snapshot: dict[str, Any]) -> dict[str, Any]:
-    body = {"snapshot": snapshot, "hint_level": "comparison"}
-    response = client.post("/api/tutor", json=body, headers={"X-Tutor-Fixture": "comparison"})
+    body = {"snapshot": snapshot, "mode": "review"}
+    response = client.post("/api/tutor", json=body)
     assert response.status_code == 200
     result: dict[str, Any] = dict(events(response.text))["suggestions"]
     return result
 
 
 def test_a_typed_title_stays_inside_the_snapshot_data() -> None:
-    request = TutorRequest.model_validate({"snapshot": recorded_snapshot(provisional=True)})
+    request = TutorRequest.model_validate(
+        {"mode": "review", "snapshot": recorded_snapshot(provisional=True)}
+    )
     text = user_message(request)
     assert text.count("</snapshot>") == 1, "the title can't close the tag"
     (body,) = re.findall(r"<snapshot>(.*?)</snapshot>", text, flags=re.S)
     assert json.loads(body)["title"] == TYPED_TITLE
 
 
-def test_a_recorded_tune_with_a_provisional_key_has_its_suggestions_withheld(
-    client: TestClient,
-) -> None:
+def test_a_recorded_tune_with_a_provisional_key_is_not_clamped(client: TestClient) -> None:
     suggestions = suggestions_for(client, recorded_snapshot(provisional=True))
-    assert suggestions["suggestions"] == []
-    assert suggestions["withheld"] > 0
+    assert suggestions["withheld"] == 0
+    assert len(suggestions["suggestions"]) > 0
 
 
 def test_once_home_is_found_the_recorded_tune_gets_suggestions(client: TestClient) -> None:
@@ -75,5 +76,5 @@ def test_once_home_is_found_the_recorded_tune_gets_suggestions(client: TestClien
 def test_a_full_take_fits_the_request_contract() -> None:
     # 400 notes, the most a take holds: 100 bars of four.
     snapshot = recorded_snapshot(provisional=True, bars=100)
-    request = TutorRequest.model_validate({"snapshot": snapshot})
+    request = TutorRequest.model_validate({"mode": "review", "snapshot": snapshot})
     assert sum(len(bar.notes) for bar in request.snapshot.bars) == 400

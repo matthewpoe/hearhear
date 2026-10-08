@@ -8,8 +8,10 @@
 </script>
 
 <script>
-  // The tutor conversation under the chord grid. Each send carries a fresh
-  // snapshot of the song, the question, and the session's recent history. The
+  // The tutor conversation under the chord grid. "Review my chords" asks for
+  // a read of the whole chart; a typed question asks about it. Each send
+  // carries a fresh snapshot of the song, the question (if any), the mode, and
+  // the session's recent history. The
   // reply streams in as plain text; its suggestions are re-validated against
   // the song they were made for, then handed to the chord row (Stream D2) as
   // alternatives to audition. Nothing here changes the song.
@@ -23,27 +25,23 @@
   import { checkSuggestions } from "./validate.js";
   import { failureText, canRetry } from "./failures.js";
   import { replySteps } from "./replySteps.js";
+  import { CONTROLS } from "../lib/controls.js";
 
-  /** @import { HintLevel, Turn } from "./client.js" */
+  /** @import { Mode, Turn } from "./client.js" */
 
   /** The request schema's cap on history turns and on each turn's text. */
   const MAX_TURNS = 12;
   const MAX_TURN_CHARS = 4000;
   const MAX_QUESTION_CHARS = 1000;
 
-  /** @type {Record<HintLevel, string>} */
-  const LEVEL_NAMES = { nudge: "Nudge", comparison: "Options", answer: "Answer" };
-
-  /** @typedef {Turn & { level?: HintLevel }} LoggedTurn */
-
   let question = $state("");
   /** Every turn this session, for display; the request sends the last 12. */
-  let log = $state(/** @type {LoggedTurn[]} */ ([]));
+  let log = $state(/** @type {Turn[]} */ ([]));
   /** @type {"idle" | "loading" | "failed"} */
   let status = $state("idle");
   /** The exchange in flight (or the one that failed), shown below the log. */
   let pending = $state(
-    /** @type {{ question: string | null, level: HintLevel, reply: string, fixture: string } | null} */ (
+    /** @type {{ question: string | null, mode: Mode, reply: string, fixture: string } | null} */ (
       null
     ),
   );
@@ -72,6 +70,20 @@
   const hasSong = $derived($song.notes.length > 0);
   const canAsk = $derived(hasSong && status !== "loading" && question.trim() !== "");
   /**
+   * Why "Review my chords" can't be pressed yet, or "" when it can: the review
+   * reads the student's chart against a chosen home, so it needs both.
+   */
+  const reviewBlocked = $derived(
+    !hasSong
+      ? "Load a tune first."
+      : keyLabelMode($song, $ui) !== "confirmed"
+        ? "Choose the key first."
+        : $song.chords.length === 0
+          ? "Place a chord first: click a note on the staff."
+          : "",
+  );
+  const canReview = $derived(!reviewBlocked && status !== "loading");
+  /**
    * The server replays recorded replies (TUTOR_MODE=fixture): known from
    * /api/health.
    */
@@ -97,9 +109,9 @@
 
   // A question asked on the viewer's behalf (the guided path), as if typed.
   $effect(() =>
-    onAskRequest(({ question: asked, level, fixture }) => {
+    onAskRequest(({ question: asked, mode, fixture }) => {
       if (status === "loading" || !hasSong) return;
-      send(asked, level, fixture);
+      send(asked, mode, fixture);
     }),
   );
 
@@ -121,8 +133,7 @@
   });
 
   // A different song starts a new conversation: its history says nothing about
-  // this one, escalation waits for a nudge about it, and a reply still in
-  // flight belongs to the old song. Its suggestions go too: both demo songs
+  // this one, and a reply still in flight belongs to the old song. Its suggestions go too: both demo songs
   // number their notes from n1, so a stale suggestion could otherwise sit on
   // the new song's note with the same id.
   $effect(() => {
@@ -140,14 +151,14 @@
 
   /**
    * @param {string | null} asked
-   * @param {HintLevel} level
+   * @param {Mode} mode
    * @param {string} [fixture] a recorded lesson to replay (the guided path's)
    */
-  async function send(asked, level, fixture = "") {
+  async function send(asked, mode, fixture = "") {
     if (status === "loading") return;
     const current = song.get();
     const history = log.slice(-MAX_TURNS).map(({ role, text }) => ({ role, text }));
-    pending = { question: asked, level, reply: "", fixture };
+    pending = { question: asked, mode, reply: "", fixture };
     status = "loading";
     const exchange = new AbortController();
     controller = exchange;
@@ -160,7 +171,7 @@
             labelStyle: view.labelStyle,
             keyHidden: keyLabelMode(current, view) === "hidden",
           }),
-          hint_level: level,
+          mode,
           question: asked,
           history,
         },
@@ -177,18 +188,16 @@
       sampleReply = reply.served_by === "fixture";
       const raw = Array.isArray(reply.suggestions) ? reply.suggestions : [];
       const { items, dropped } = checkSuggestions(raw, current);
-      const replyLevel = Object.hasOwn(LEVEL_NAMES, reply.hint_level) ? reply.hint_level : level;
       suggestions.replace({
         snapshotVersion: current.version,
-        hintLevel: replyLevel,
         items,
         dropped: dropped + (Number(reply.dropped) || 0),
       });
       const tutorText = (pending?.reply ?? "").slice(0, MAX_TURN_CHARS);
       log = [
         ...log,
-        ...(asked ? [{ role: /** @type {const} */ ("student"), text: asked }] : []),
-        { role: "tutor", text: tutorText, level: replyLevel },
+        { role: "student", text: askedAs(asked, mode) },
+        { role: "tutor", text: tutorText },
       ];
       pending = null;
       status = "idle";
@@ -210,24 +219,38 @@
     }
   }
 
-  /** @param {HintLevel} level */
-  function ask(level) {
+  /**
+   * What the conversation shows the student asked: their question, or for a
+   * review without one, the button's name.
+   * @param {string | null} asked
+   * @param {Mode} mode
+   */
+  function askedAs(asked, mode) {
+    return asked ?? (mode === "review" ? CONTROLS.review : "");
+  }
+
+  function ask() {
     // Enter still fires while a reply streams; keep the draft for later.
-    if (status === "loading" || !hasSong) return;
-    // A nudge answers a question; the escalations build on the last reply.
-    if (level === "nudge" && !question.trim()) return;
-    const asked = question.trim() || null;
+    if (status === "loading" || !hasSong || !question.trim()) return;
+    const asked = question.trim();
     question = "";
     const keyboard = activatedByKeyboard();
-    send(asked, level, $stepLesson);
+    send(asked, "question", $stepLesson);
     // The button just pressed is now disabled; keep a keyboard user in the panel.
+    if (keyboard) textarea?.focus();
+  }
+
+  function review() {
+    if (!canReview) return;
+    const keyboard = activatedByKeyboard();
+    send(null, "review", $stepLesson);
     if (keyboard) textarea?.focus();
   }
 
   function retry() {
     if (!pending) return;
     const keyboard = activatedByKeyboard();
-    send(pending.question, pending.level, pending.fixture);
+    send(pending.question, pending.mode, pending.fixture);
     // Try again unmounts as the retry starts; keep a keyboard user in the panel.
     if (keyboard) textarea?.focus();
   }
@@ -267,14 +290,14 @@
   /** @param {SubmitEvent} event */
   function onsubmit(event) {
     event.preventDefault();
-    ask("nudge");
+    ask();
   }
 
   /** Enter sends; Shift+Enter starts a new line. @param {KeyboardEvent} event */
   function onkeydown(event) {
     if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
       event.preventDefault();
-      ask("nudge");
+      ask();
     }
   }
 </script>
@@ -297,22 +320,17 @@
     <ol class="log" aria-label="Conversation">
       {#each log as turn, i (i)}
         <li class="turn {turn.role}">
-          <span class="who">
-            {turn.role === "student" ? "You" : "Tutor"}
-            {#if turn.level}<span class="level">· {LEVEL_NAMES[turn.level]}</span>{/if}
-          </span>
+          <span class="who">{turn.role === "student" ? "You" : "Tutor"}</span>
           {#if turn.role === "tutor"}{@render reply(turn.text)}{:else}<p>{turn.text}</p>{/if}
         </li>
       {/each}
       {#if pending}
-        {#if pending.question}
-          <li class="turn student">
-            <span class="who">You</span>
-            <p>{pending.question}</p>
-          </li>
-        {/if}
+        <li class="turn student">
+          <span class="who">You</span>
+          <p>{askedAs(pending.question, pending.mode)}</p>
+        </li>
         <li class="turn tutor" aria-busy={status === "loading"}>
-          <span class="who">Tutor <span class="level">· {LEVEL_NAMES[pending.level]}</span></span>
+          <span class="who">Tutor</span>
           {#if pending.reply}{@render reply(pending.reply)}{/if}
         </li>
       {/if}
@@ -321,8 +339,8 @@
     <p class="intro">Load a tune first.</p>
   {:else}
     <p class="intro">
-      Ask about any chord or bar, or just ask what to listen for. The tutor starts with a nudge; ask
-      for more when you want it.
+      Place your chords, then press {CONTROLS.review} for a read of the whole chart: what it does, what
+      to hear again, and what else to try. Or ask about any chord or bar.
     </p>
   {/if}
 
@@ -413,22 +431,21 @@
       maxlength={MAX_QUESTION_CHARS}
       placeholder={hasSong ? "Why does bar 4 feel unfinished?" : ""}></textarea>
     <div class="actions">
-      <button type="submit" class="primary" disabled={!canAsk}>Ask</button>
-      <div class="escalate" role="group" aria-label="Ask for more">
-        <button
-          type="button"
-          class="secondary"
-          disabled={status === "loading" || !hasReply}
-          onclick={() => ask("comparison")}>Show me options</button
-        >
-        <button
-          type="button"
-          class="secondary"
-          disabled={status === "loading" || !hasReply}
-          onclick={() => ask("answer")}>Tell me</button
-        >
-      </div>
+      <button type="submit" class="secondary" disabled={!canAsk}>Ask</button>
+      <!-- A disabled button can't take focus, so why it's disabled is
+           visible text beside it, and its description. -->
+      <button
+        type="button"
+        class="primary"
+        disabled={!canReview}
+        title={reviewBlocked || undefined}
+        aria-describedby={reviewBlocked ? "tutor-review-why" : undefined}
+        onclick={review}>{CONTROLS.review}</button
+      >
     </div>
+    {#if reviewBlocked}
+      <p id="tutor-review-why" class="why">{reviewBlocked}</p>
+    {/if}
   </form>
 </section>
 
@@ -496,8 +513,11 @@
     font-weight: 500;
     color: var(--ink-muted);
   }
-  .level {
-    font-weight: 400;
+  .why {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    text-align: end;
   }
   .turn p {
     margin: var(--space-1) 0 0;
@@ -576,8 +596,7 @@
   textarea::placeholder {
     color: var(--ink-muted);
   }
-  .actions,
-  .escalate {
+  .actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
