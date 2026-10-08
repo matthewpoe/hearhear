@@ -29,12 +29,8 @@
   import { playWithVisuals } from "../staff/playback.js";
   import { recorder, shelf } from "../record/tunes.js";
   import { isUserTune } from "../record/take.js";
-  import guidedContent from "../../content/guided-path.json";
-  import { tour } from "../guided/tour.js";
+  import { guidedPath, tour } from "../guided/tour.js";
   import { lessonNote } from "../guided/steps.js";
-
-  /** @import { GuidedPath } from "../guided/steps.js" */
-  const guidedPath = /** @type {GuidedPath} */ (guidedContent);
 
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
