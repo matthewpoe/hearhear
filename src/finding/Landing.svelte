@@ -381,6 +381,11 @@
     border-radius: var(--radius-md);
     background: var(--surface);
   }
+  /* Nothing to say (while a take records, the steps and questions wait for
+     Stop): no empty card. It comes back with the first thing it shows. */
+  section:not(:has(> :global(:not(.sound)), > .sound:not(:empty))) {
+    display: none;
+  }
   .path {
     display: flex;
     flex-wrap: wrap;

@@ -47,6 +47,8 @@
   const showWords = $derived($ui.showWords);
   /** Whether the staff writes a words line, so its syllables get their own style. */
   const wordsShown = $derived(showWords && hasLyrics($song));
+  /** A take is armed or running: Play, Stop, Undo and Redo step aside. */
+  const recording = $derived($recorder.status === "armed" || $recorder.status === "recording");
   const notation = $derived(songToAbc($song, { mode, labelStyle, showDegrees, showWords }));
 
   /** Note groups in reading order; one per note (its first glyph). */
@@ -388,7 +390,8 @@
        wraps only on narrow screens. -->
   <div class="header">
     <Transport />
-    <span class="divider" aria-hidden="true"></span>
+    <!-- While a take records the transport's buttons step aside, and so does its divider. -->
+    {#if !recording}<span class="divider" aria-hidden="true"></span>{/if}
     <LabelControls />
     <span class="divider" aria-hidden="true"></span>
     <div class="switches" role="group" aria-label="Sound and staff">

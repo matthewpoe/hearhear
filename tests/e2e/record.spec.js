@@ -164,3 +164,43 @@ test("the masthead's Record button starts a new tune beside a demo, and the bar 
   await expect(page.locator("#staff svg")).toHaveAttribute("aria-label", "Notation: Ode to Joy");
   await axe(page);
 });
+
+test("while a take records, the staff's Play, Stop, Undo and Redo step aside, and come back after Stop", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Leave lesson" }).click();
+  await page.getByRole("button", { name: /^Record a tune/ }).click();
+  const bar = page.getByRole("region", { name: "Your tune" });
+  await expect(bar.getByText("Ready to record")).toBeVisible();
+  await tapTune(page, ["Digit1", "Digit2", "Digit3"]);
+  await expect(bar.getByText("Recording", { exact: true })).toBeVisible();
+  await expect(staffNotes(page)).toHaveCount(3);
+
+  // Recording: the record bar's Stop is the one control.
+  const staff = page.locator("#staff");
+  const play = staff.getByRole("button", { name: "Play" });
+  const transportStop = staff.getByRole("button", { name: "Stop", exact: true });
+  const undo = staff.getByRole("button", { name: "Undo", exact: true });
+  const redo = staff.getByRole("button", { name: "Redo", exact: true });
+  for (const control of [play, transportStop, undo, redo]) await expect(control).toHaveCount(0);
+  // No empty step card under the staff while the steps wait for Stop.
+  await expect(page.locator("#landing")).toBeHidden();
+  // Undo's key leaves the take alone too.
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(staffNotes(page)).toHaveCount(3);
+  await expect(bar.getByText("Recording", { exact: true })).toBeVisible();
+
+  // After Stop they're back: Play works, and Undo and Redo read as disabled.
+  await page.keyboard.press("Escape");
+  await bar.getByLabel("Name your tune").press("Enter");
+  await expect(play).toBeVisible();
+  await expect(play).toBeEnabled();
+  await expect(transportStop).toBeDisabled();
+  await expect(undo).toBeDisabled();
+  await expect(redo).toBeDisabled();
+  await expect(undo).toHaveCSS("cursor", "not-allowed");
+  await expect(undo).toHaveCSS("border-top-style", "dashed");
+  await expect(page.locator("#landing")).toBeVisible();
+  await axe(page);
+});
