@@ -98,8 +98,15 @@ export function validateSong(song) {
 }
 
 /**
- * The highest id counter in a song. Ids are a prefix plus a base-36 counter
- * ("n1a", "c3") so they stay short and deterministic in tests.
+ * Ids are a prefix plus a base-36 counter ("n1a", "c3") so they stay short
+ * and deterministic in tests.
+ * @param {"n" | "c"} prefix
+ * @param {number} counter
+ */
+const formatId = (prefix, counter) => prefix + counter.toString(36);
+
+/**
+ * The highest id counter in a song.
  * @param {{ notes: { id: string }[], chords: { id: string }[] }} song
  */
 function highestId(song) {
@@ -107,6 +114,19 @@ function highestId(song) {
     (max, { id }) => Math.max(max, parseInt(id.slice(1), 36) || 0),
     0,
   );
+}
+
+/**
+ * Ids for `count` new notes, numbered past every note in `notes`, so they
+ * never clash with them. Pure: the same notes give the same ids, so a take
+ * redrawn over the same tune keeps its notes' ids.
+ * @param {{ id: string }[]} notes
+ * @param {number} count
+ * @returns {string[]}
+ */
+export function noteIdsAfter(notes, count) {
+  const highest = highestId({ notes, chords: [] });
+  return Array.from({ length: count }, (_, i) => formatId("n", highest + i + 1));
 }
 
 /**
@@ -155,7 +175,7 @@ export function createSongStore(initial = emptySong()) {
   // Monotonic, so a deleted note's id is never reissued: selection and open
   // dropdowns anchor by id and must not jump to a different note.
   let lastId = highestId(initial);
-  const newId = (/** @type {"n" | "c"} */ prefix) => prefix + (++lastId).toString(36);
+  const newId = (/** @type {"n" | "c"} */ prefix) => formatId(prefix, ++lastId);
 
   const publishHistory = () =>
     history.set({ canUndo: past.length > 0, canRedo: future.length > 0 });
