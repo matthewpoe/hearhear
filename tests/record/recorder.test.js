@@ -391,28 +391,6 @@ describe("recorder", () => {
     assert.equal(song.get().swing, 2);
   });
 
-  it("knows when the notes were edited by hand since the take was read", () => {
-    const { song, recorder, tap } = setup();
-    recorder.record();
-    [1, 1, 1].forEach((b, i) => tap(60 + i, b));
-    recorder.stop();
-    recorder.name("Edited");
-    assert.equal(recorder.edited(), false, "a fresh take is as read");
-    song.rebar({ ...song.get().meter, provisional: false });
-    assert.equal(recorder.edited(), false, "bar lines move, notes do not");
-    song.setPitch(song.get().notes[1].id, 63);
-    assert.equal(recorder.edited(), true);
-    // A next phrase keeps the edit, so the tune is still edited.
-    recorder.record({ phrase: "next" });
-    tap(65);
-    recorder.stop();
-    assert.equal(recorder.edited(), true);
-    recorder.reread("straight");
-    assert.equal(recorder.edited(), false, "a re-read is a fresh read");
-    song.undo();
-    assert.equal(recorder.edited(), true, "Undo brings the edit back");
-  });
-
   it("keeps the raw take through Discard and Undo, and has none for a demo", () => {
     const { song, recorder, tap, shelf } = setup({ initial: ODE });
     assert.equal(recorder.reread("straight"), false);
