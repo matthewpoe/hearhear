@@ -48,7 +48,7 @@ const marks = new Map();
 /**
  * Mark notes with a class that stays through redraws (a resize, a font load,
  * an edit) until it's marked again or cleared with an empty list: the key
- * step's hints and the chords step's start note.
+ * step's hints, the chords step's start note, and the lesson's spotlit note.
  * @param {string} className
  * @param {string[]} noteIds
  */

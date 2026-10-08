@@ -4,10 +4,10 @@
  * Its styles live in GuidedPath.svelte, which is always on the page. An
  * element gets the
  * `data-spotlight` attribute; a note on the staff gets the SPOTLIGHT_NOTE
- * class through the staff's own highlight(), since its SVG is redrawn.
+ * class as a staff mark, which the staff puts back after every redraw.
  */
 
-import { clearHighlight, highlight } from "../staff/staffEvents.js";
+import { mark } from "../staff/staffEvents.js";
 
 export const SPOTLIGHT_ATTRIBUTE = "data-spotlight";
 export const SPOTLIGHT_NOTE = "spotlight";
@@ -23,13 +23,13 @@ export function spotlight(el) {
 }
 
 /**
- * Ring a note on the staff until the returned function is called. Call it
- * again after the staff redraws, which drops the class.
+ * Ring a note on the staff until the returned function is called. It's a
+ * mark, so it outlasts redraws the lesson doesn't hear about (abcjs arriving
+ * after the song, a web font loading) and lands on a note not drawn yet.
  * @param {string} noteId
  * @returns {() => void}
  */
 export function spotlightNote(noteId) {
-  clearHighlight(SPOTLIGHT_NOTE);
-  highlight([noteId], SPOTLIGHT_NOTE);
-  return () => clearHighlight(SPOTLIGHT_NOTE);
+  mark(SPOTLIGHT_NOTE, [noteId]);
+  return () => mark(SPOTLIGHT_NOTE, []);
 }
