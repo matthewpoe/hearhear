@@ -5,7 +5,7 @@
   // the dock's measured height (--dock-height, the page's scroll padding)
   // includes it. It teaches the real interface: the strip shows the step's
   // one-line instruction (its action in the accent color), the step count,
-  // the Draft badge, and Leave lesson (Finish on the last step), and never does
+  // and Leave lesson (Finish on the last step), and never does
   // a step for the viewer. Instead it spotlights the real control the step
   // asks for (spotlight.js) and scrolls it into view. There is no Next or Back: a step advances only when the app shows
   // it done, and one already done when the tour reaches it is skipped. The
@@ -109,7 +109,10 @@
       const inStrip = active === document.body || (strip?.contains(active) ?? false);
       goTo(at + 1);
       await tick();
-      if (inStrip && !strip?.contains(document.activeElement)) {
+      // Not before the visitor has done anything: a first visit opens its tune
+      // by itself, and focus moved then would show a stray ring.
+      const acted = navigator.userActivation?.hasBeenActive ?? true;
+      if (acted && inStrip && !strip?.contains(document.activeElement)) {
         document.getElementById("guided-step-title")?.focus({ preventScroll: true });
       }
     });
@@ -355,8 +358,6 @@
             ? "Guided lesson · done"
             : `Guided lesson · step ${index + 1}/${steps.filter((s) => !s.sendOff).length}`}</span
         >
-        <span class="badge" title={path.status}>Draft</span>
-        <span class="visually-hidden">({path.status})</span>
         <p class="line">
           <strong id="guided-step-title" tabindex="-1">{step.title}:</strong>
           {#each actionParts(step.line) as part, i (i)}{#if part.act}<strong class="act"
@@ -401,12 +402,6 @@
   .count {
     flex: none;
     color: var(--ink-muted);
-  }
-  .badge {
-    flex: none;
-    padding: 0 var(--space-2);
-    border: 1px solid var(--ink-muted);
-    border-radius: var(--radius-sm);
   }
   p {
     margin: 0;

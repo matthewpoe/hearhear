@@ -168,9 +168,8 @@ for (const viewport of [
     const count = tour.getByText(/^Guided lesson · step \d+\/\d+$/);
     // Ode to Joy opens on a first visit, so the lesson starts at "Hear it".
     await expect(count).toHaveText(`Guided lesson · step 2/${steps.length - 1}`);
-    await expect(tour.getByText("Draft", { exact: true })).toBeVisible();
-    // The Draft badge carries the placeholder note, for screen readers too.
-    await expect(tour.getByText(/placeholder: pending Matthew's ear check/i)).toBeAttached();
+    // No "Draft" badge: it read as unfinished to first-time visitors.
+    await expect(tour.getByText("Draft", { exact: true })).toHaveCount(0);
     // The step's action is in the accent color.
     const act = tour.locator(".act");
     await expect(act).toHaveText("Press Play");
