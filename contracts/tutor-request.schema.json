@@ -288,7 +288,7 @@
       "$ref": "#/$defs/Snapshot"
     },
     "mode": {
-      "description": "review: read the whole chart (the question is optional). question: answer the student's question about the chart.",
+      "description": "review or question; what each asks of the tutor is worded once, in MODE_LINES (server/hearhear/prompt.py).",
       "enum": [
         "review",
         "question"

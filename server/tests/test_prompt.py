@@ -8,6 +8,7 @@ from helpers import REPO_ROOT, SNAPSHOT
 from hearhear.models import TutorRequest
 from hearhear.prompt import (
     CONTROL_TOKEN,
+    MODE_LINES,
     SYSTEM_PROMPT,
     SYSTEM_PROMPT_TEMPLATE,
     load_controls,
@@ -157,7 +158,7 @@ def test_system_prompt_says_a_hidden_key_is_hidden_from_claude_too() -> None:
 def test_system_prompt_forbids_hinting_at_a_hidden_key() -> None:
     rule = SYSTEM_PROMPT[SYSTEM_PROMPT.index("the key is hidden") :]
     rule = rule[: rule.index("\n- ")]
-    for must in ["Do not", "name or hint at the key", "letter names", "return no suggestions"]:
+    for must in ["Do not", "name or hint at the key", "letter names", "Roman numerals"]:
         assert must in rule, must
 
 
@@ -289,11 +290,12 @@ def test_every_alternative_named_is_a_suggestion_in_both_modes() -> None:
     assert "is a failure" in rule
     assert "never have to parse your text to find something to play" in rule
     assert '"your Dm"' in rule, "the student's own chords are not alternatives"
-    # The review's own step says so too, and the question mode points back to it.
+    assert "once the key is chosen" in rule, "the buttons wait for the key"
+    # The review's own step says so too, and the reply format points back to it.
     assert "Every chord you name here must also be in `suggestions`, at that bar and beat" in (
         prompt
     )
-    assert "suggestions` (every alternative the message names" in prompt
+    assert "`suggestions` (the buttons described above)" in prompt
 
 
 def test_relationships_not_pitches_and_comparisons_in_harmony_only() -> None:
@@ -315,12 +317,63 @@ def test_listening_tests_use_controls_the_app_has() -> None:
     assert "which the student asks for with Review my chords" in prompt
 
 
-def test_provisional_key_steps_never_point_to_suggestion_buttons() -> None:
+NO_BUTTONS_RULE = (
+    "While the key is provisional or hidden there are no buttons: name no alternative "
+    "chords, return no suggestions, and tie the listening tests to bars, beats, and the "
+    "drone test."
+)
+
+
+def test_a_provisional_or_hidden_key_has_no_buttons_stated_once() -> None:
+    """The rule sits in the button paragraph, the only place it is said: the
+    key bullets and the reply format don't restate it."""
+    prompt = _prompt()
+    assert prompt.count(NO_BUTTONS_RULE) == 1
+    buttons = prompt[prompt.index("Every alternative is a button") : prompt.index("Throughout:")]
+    assert NO_BUTTONS_RULE in buttons
+    assert prompt.count("no suggestions") == 1
+    for restated in [
+        "Listening steps then",
+        "never to suggestion buttons",
+        "none while the key is provisional or hidden",
+    ]:
+        assert restated not in prompt, restated
+
+
+def test_each_reply_rule_is_stated_once() -> None:
+    prompt = _prompt()
+    for rule in ["Eight suggestions at most", "Every alternative is a button", "is a failure"]:
+        assert prompt.count(rule) == 1, rule
+    assert "at most eight" not in prompt, "the reply format points to the rule, not restates it"
+
+
+def test_the_example_tests_are_label_neutral() -> None:
+    """Whatever the label style or key, the example names no chord."""
     prompt = _prompt()
     assert (
-        "Listening steps then point to the last note, the drone test, and bars and beats, "
-        "never to suggestion buttons" in prompt
+        '"Hear your chord under bar 2, then the suggestion: does bar 2 sit, or lean into '
+        'bar 3?"' in prompt
     )
+    assert "your Dm under bar 2" not in prompt
+    assert "then G7" not in prompt
+
+
+def test_a_review_that_keeps_every_chord_still_compares() -> None:
+    assert (
+        "When the review keeps every chord as it is, its tests still compare: the "
+        "student's chord against the alternative the review mentions, or a stop test." in _prompt()
+    )
+
+
+def test_each_mode_is_worded_once_in_mode_lines() -> None:
+    """MODE_LINES is the source; the Mode field's description points to it."""
+    description = TutorRequest.model_fields["mode"].description or ""
+    assert "MODE_LINES" in description
+    for line in MODE_LINES.values():
+        wording = line[line.index("(") + 1 : line.index(")")]
+        assert wording not in description, wording
+    schema = json.loads((REPO_ROOT / "contracts" / "tutor-request.schema.json").read_text())
+    assert schema["properties"]["mode"]["description"] == description
 
 
 def test_every_control_the_prompt_names_is_in_controls_json() -> None:
