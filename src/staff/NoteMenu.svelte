@@ -16,7 +16,7 @@
   /** @import { AccidentalChoice } from "./accidentals.js" */
   import { tick } from "svelte";
   import { song } from "../store/song.js";
-  import { noteOff, noteOn } from "../audio/index.js";
+  import { tapNote } from "../audio/index.js";
   import { spellMelody } from "../theory/index.js";
   import { placeOn, sideFor } from "../chords/placement.js";
   import { spokenNote } from "../theory/noteDisplay.js";
@@ -145,8 +145,7 @@
 
   /** @param {number} midi */
   function sound(midi) {
-    noteOn(midi);
-    setTimeout(() => noteOff(midi), NOTE_MS);
+    tapNote(midi, NOTE_MS);
   }
 
   /** The note as the staff now spells it (in context), said aloud. */

@@ -19,7 +19,7 @@
   import Transport from "./Transport.svelte";
   import WordsSwitch from "./WordsSwitch.svelte";
   import MoreMenu from "../toolbar/MoreMenu.svelte";
-  import AccidentalMenu from "./AccidentalMenu.svelte";
+  import NoteMenu from "./NoteMenu.svelte";
   import History from "../toolbar/History.svelte";
   import LabelControls from "../toolbar/LabelControls.svelte";
   import { recorder } from "../record/tunes.js";
@@ -417,7 +417,7 @@
   <div class="frame">
     <div class="notation mode-{mode}" class:words={wordsShown} bind:this={host}></div>
   </div>
-  <AccidentalMenu
+  <NoteMenu
     request={accidentalMenu}
     onclose={closeAccidentals}
     onannounce={(text) => (pitchStatus = text)}
