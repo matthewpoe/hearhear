@@ -201,6 +201,26 @@ export function stepTarget(step, song) {
 }
 
 /**
+ * The note the running lesson points at on the staff, so onboarding's chord
+ * step suggests that note rather than one of its own and the page points at
+ * one place. Undefined when the lesson isn't running (the chord step picks
+ * its own); null when it is but its current step targets no note on this
+ * tune (another tune is open, or the step rings a control), so the chord
+ * step suggests nothing.
+ * @param {GuidedPath} path
+ * @param {{ running: boolean, index: number }} tour
+ * @param {Song} song
+ * @returns {Note | null | undefined}
+ */
+export function lessonNote(path, tour, song) {
+  if (!tour.running) return undefined;
+  const step = path.steps[tour.index];
+  if (!step || song.id !== path.song) return null;
+  const noteId = stepTarget(step, song)?.noteId;
+  return song.notes.find((n) => n.id === noteId) ?? null;
+}
+
+/**
  * A step index kept inside the path.
  * @param {number} index
  * @param {number} count

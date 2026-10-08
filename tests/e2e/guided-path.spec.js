@@ -379,3 +379,38 @@ test("another song mid-walk asks for the tour's tune back, and spotlights the so
     .poll(() => spotlit(page, { selector: "#staff [aria-label='Playback'] button" }))
     .toBe(true);
 });
+
+test("while the lesson runs, the Chords step suggests the lesson's note, not one of its own", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  // Resume the lesson at its V-at-bar-4 step.
+  const at = steps.findIndex((/** @type {{ id: string }} */ s) => s.id === "half-cadence");
+  await page.addInitScript((at) => localStorage.setItem("hearhear.guided.step", String(at)), at);
+  await page.goto("/");
+  await page
+    .locator("#song-chooser")
+    .getByRole("button", { name: /Ode to Joy/ })
+    .click();
+  await expect(page.locator("#guided-step-title")).toHaveText(`${titleOf("half-cadence")}:`);
+  const question = page.locator("#key-prompt");
+  await question
+    .getByRole("group", { name: "Home note" })
+    .getByRole("button", { name: "D", exact: true })
+    .click();
+  await question.getByRole("button", { name: "Next: find the chords" }).click();
+
+  // One place on the page: the lesson's spotlit note is step 3's ringed note.
+  const chordsStep = page.locator("#chords-step");
+  const ringed = page.locator("#staff [role='button'].is-start");
+  await expect(chordsStep).toContainText(/Try a chord under the note at bar 4/);
+  await expect(ringed).toHaveCount(1);
+  await expect(ringed).toHaveAttribute("data-note-id", "nf");
+  await expect.poll(() => spotlit(page, { noteId: "nf" })).toBe(true);
+
+  // Out of the lesson, step 3 picks its own note again: bar 1's first.
+  await page.getByRole("button", { name: "Leave lesson" }).click();
+  await expect(chordsStep).toContainText("Try a chord under the first note of bar 1");
+  await expect(ringed).toHaveCount(1);
+  await expect(ringed).not.toHaveAttribute("data-note-id", "nf");
+});
