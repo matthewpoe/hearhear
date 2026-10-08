@@ -9,13 +9,13 @@ export ANTHROPIC_API_KEY=… TUTOR_ACCESS_CODE=…   # in your shell, never a fi
 make capture-lessons                              # asks first; CONFIRM=1 skips the question
 ```
 
-It prints how many requests the plan sends and a rough size (8 requests, a few cents each), asks, then starts a local live server on a free port (`TUTOR_RATE_LIMIT="60/minute;1000/day"`, `TUTOR_DAILY_TOKEN_BUDGET=2000000`), records each exchange, and stops the server. To record from the deployed site instead, set `TUTOR_URL=https://…`: then only `TUTOR_ACCESS_CODE` is needed, sent as the passphrase header, and no server starts. Neither value is read from `.env` or printed.
+It prints how many requests the plan sends and a rough size (4 requests, a few cents each), asks, then starts a local live server on a free port (`TUTOR_RATE_LIMIT="60/minute;1000/day"`, `TUTOR_DAILY_TOKEN_BUDGET=2000000`), records each exchange, and stops the server. To record from the deployed site instead, set `TUTOR_URL=https://…`: then only `TUTOR_ACCESS_CODE` is needed, sent as the passphrase header, and no server starts. Neither value is read from `.env` or printed.
 
 `node scripts/capture-lessons.js --url … --only <id>` re-records one exchange. A follow-up re-recorded alone takes its history from the saved file of the exchange it follows.
 
 ## The plan
 
-Each exchange in `plan.json` gives the song, whether the key is committed or still provisional, whether key labels are hidden (`key_hidden`), the chords placed (by bar, beat, and numeral), the hint level, and the question. The script builds the snapshot through the app's own song store and `toTutorSnapshot`, so the request is the one the app would send. `follows` names an earlier exchange: its question and the tutor's recorded reply become this exchange's history.
+Each exchange in `plan.json` gives the song, whether the key is committed or still provisional, whether key labels are hidden (`key_hidden`), the chords placed (by bar, beat, and numeral), the mode (`review` for the whole chart, where the question is optional, or `question`), and the question. The script builds the snapshot through the app's own song store and `toTutorSnapshot`, so the request is the one the app would send. `follows` names an earlier exchange: its question (for a review, the button's name, "Review my chords", as the tutor panel shows it) and the tutor's recorded reply become this exchange's history. The plan records the product as it's used: a review of a fully chorded Ode to Joy, a follow-up question, and two questions about the chart, one of them the guided path's "Ask why" lesson (`ode-ending`).
 
 ## What a recorded file holds
 

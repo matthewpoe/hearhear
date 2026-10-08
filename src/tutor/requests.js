@@ -3,7 +3,7 @@
  * the guided path's tutor step. The tutor panel listens and sends each one as
  * if it had been typed, so it shows in the conversation like any other.
  *
- * @import { HintLevel } from "./client.js"
+ * @import { Mode } from "./client.js"
  */
 
 import { createReadable } from "../lib/readable.js";
@@ -11,7 +11,7 @@ import { createReadable } from "../lib/readable.js";
 /**
  * `fixture` names a recorded lesson for the server to replay ("lesson:<id>"),
  * or is empty to ask the tutor as anyone would.
- * @typedef {{ question: string, level: HintLevel, fixture: string }} AskRequest
+ * @typedef {{ question: string | null, mode: Mode, fixture: string }} AskRequest
  */
 
 /** @type {Set<(request: AskRequest) => void>} */

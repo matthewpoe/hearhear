@@ -24,14 +24,13 @@ import { createReadable } from "../lib/readable.js";
  *
  * @typedef {{
  *   snapshotVersion: number | null,
- *   hintLevel: "nudge" | "comparison" | "answer" | null,
  *   items: Suggestion[],
  *   dropped: number,
  * }} SuggestionSet
  */
 
 /** @returns {SuggestionSet} */
-const empty = () => ({ snapshotVersion: null, hintLevel: null, items: [], dropped: 0 });
+const empty = () => ({ snapshotVersion: null, items: [], dropped: 0 });
 
 /** Create a suggestions store. The app uses the `suggestions` singleton below. */
 export function createSuggestionsStore() {

@@ -22,7 +22,16 @@ const record = (overrides) => ({
   withheld: 0,
   schemaValid: true,
   score: { suggestions: 2, agreeing: 2, onOnset: 2, clashing: 0, hit: false },
-  alternatives: { atPoint: 2, distinct: 2, plausible: 2, beyond: 1, alternatives: true },
+  suggestions: [],
+  alternatives: {
+    atPoint: 2,
+    considered: 2,
+    offTarget: 0,
+    distinct: 2,
+    plausible: 2,
+    beyond: 1,
+    alternatives: true,
+  },
   verdict: null,
   withholds: null,
   ms: 100,
@@ -71,19 +80,34 @@ test("summarize counts the nudges the server had to clamp", () => {
 });
 
 test("summarize scores alternatives on asks, beyond over plausible ones, and checks apart", () => {
-  const none = { atPoint: 1, distinct: 1, plausible: 1, beyond: 0, alternatives: false };
+  const none = {
+    atPoint: 2,
+    considered: 2,
+    offTarget: 1,
+    distinct: 2,
+    plausible: 1,
+    beyond: 0,
+    alternatives: false,
+  };
   const s = summarize([
     record({}),
     record({ level: "answer", reference: null, alternatives: none }),
     record({ level: "nudge", alternatives: null }),
     record({ kind: "check", reference: null, placed: "C", verdict: true }),
     record({ kind: "check", reference: null, placed: "C", verdict: false, alternatives: none }),
+    record({ kind: "check", reference: null, placed: "C", verdict: false }),
   ]);
   assert.deepEqual(s.alternatives, { count: 1, total: 2 }, "asks at comparison and answer");
   assert.deepEqual(s.beyond, { count: 1, total: 3 });
+  assert.deepEqual(s.offTarget, { count: 1, total: 4 }, "asks only, out of ideas weighed");
   assert.deepEqual(s.hitRate, { count: 0, total: 1 }, "only replies with a reference");
-  assert.deepEqual(s.checkAlternatives, { count: 1, total: 2 });
-  assert.deepEqual(s.verdictFree, { count: 1, total: 2 });
+  assert.deepEqual(
+    s.checkAlternatives,
+    { count: 1, total: 3 },
+    "options and no verdict: alternatives with a verdict don't count",
+  );
+  assert.deepEqual(s.checkOffTarget, { count: 1, total: 6 });
+  assert.deepEqual(s.verdictFree, { count: 2, total: 3 });
   assert.equal(summarize([record({})]).checkAlternatives, null, "no checks");
 });
 

@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, it, mock } from "node:test";
 import { askTutor, TutorError } from "../../src/tutor/client.js";
 
 /** @type {any} */
-const REQUEST = { snapshot: {}, hint_level: "nudge", question: null, history: [] };
+const REQUEST = {
+  snapshot: {},
+  mode: /** @type {const} */ ("review"),
+  question: null,
+  history: [],
+};
 
 /** Make the next fetch answer with `response`. @param {Response} response */
 function answer(response) {
@@ -30,7 +35,7 @@ describe("askTutor", () => {
   afterEach(() => mock.restoreAll());
 
   it("streams deltas and resolves with the suggestions event", async () => {
-    const suggestions = { hint_level: "nudge", suggestions: [], snapshot_version: 3, dropped: 0 };
+    const suggestions = { suggestions: [], snapshot_version: 3, dropped: 0 };
     answer(
       stream(
         'event: message\ndata: {"delta":"Listen "}\n\n' +

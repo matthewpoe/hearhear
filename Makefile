@@ -1,5 +1,5 @@
 # Clone to running app: `make install && make dev`.
-.PHONY: install dev test lint format typecheck contracts check smoke build eval-live capture-lessons
+.PHONY: install dev test lint format typecheck contracts check smoke build eval-live eval-score capture-lessons
 
 install:
 	npm ci
@@ -40,6 +40,10 @@ build:
 # from your shell, never a file; smoke-tests 3 requests, then asks (or CONFIRM=1).
 eval-live:
 	@CONFIRM=$(CONFIRM) ./scripts/eval-live.sh
+
+# Re-score the saved eval run (evals/results/latest.json) with no requests.
+eval-score:
+	node evals/score.js
 
 # Record the demo's lessons (content/lessons/plan.json) from the live tutor. Reads
 # ANTHROPIC_API_KEY and TUTOR_ACCESS_CODE from your shell, never a file; set

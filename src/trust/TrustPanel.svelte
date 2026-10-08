@@ -27,13 +27,19 @@
     {
       label: "Gives you alternatives to try",
       rate: headline.alternatives,
-      gloss: `At ${points} melody notes in ${byTune.length} tunes, how often the tutor offered two or more different chords for the note you asked about, every one playable there: it fits the melody, doesn't clash with it, and is a chord a musician would recognize in the key. There's rarely one right chord; the point is options your ear can compare.`,
+      gloss: `At ${points} melody notes in ${byTune.length} tunes, how often the tutor offered two or more different chords for the note you asked about that are playable there: each fits the melody, doesn't clash with it, and is a chord a musician would recognize in the key. There's rarely one right chord; the point is options your ear can compare.`,
     },
     {
       label: "The app's own top three, for comparison",
       rate: headline.baseline.alternatives,
       gloss:
         "The same test for the dropdown's three best-fitting chords, which use rules, not Claude.",
+    },
+    {
+      label: "Ideas that miss the note",
+      rate: headline.offTarget,
+      gloss:
+        "Of all the tutor's ideas for the note you asked about, how many weren't playable there by the same test. Lower is better, but it's counted on its own line, so a deliberate contrast beside good options doesn't cancel them.",
     },
     {
       label: "Ideas beyond the obvious",
@@ -45,7 +51,7 @@
       label: "Answers “does this work?” with options, not a verdict",
       rate: headline.checkAlternatives,
       gloss:
-        "When you place a reasonable chord and ask about it, how often the tutor offered two or more other playable chords to compare it with.",
+        "When you place a reasonable chord and ask about it, how often the tutor offered two or more other playable chords to compare it with, without calling your chord wrong or a mistake.",
     },
     {
       label: "Includes the conventional choice",

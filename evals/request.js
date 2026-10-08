@@ -22,17 +22,20 @@ export function evalSnapshot(song, chords = []) {
 }
 
 /**
- * One request body for POST /api/tutor. With `placed` (the numeral of the
- * chord the player put there), it asks whether that chord works instead.
+ * One request body for POST /api/tutor, a question about one note. With
+ * `placed` (the numeral of the chord the player put there), it asks whether
+ * that chord works instead. `level` is the job's old hint level, no longer
+ * sent: the tutor has no hint levels, and every eval request is a question
+ * until the eval's review cases replace this.
  * @param {ReturnType<typeof evalSnapshot>} snapshot
- * @param {"nudge" | "comparison" | "answer"} level
+ * @param {string} level
  * @param {number} bar
  * @param {number} beat
  * @param {string} [placed]
  */
 export const evalRequest = (snapshot, level, bar, beat, placed) => ({
   snapshot,
-  hint_level: level,
+  mode: "question",
   question: placed
     ? `Does ${placed} work under the melody note at bar ${bar}, beat ${beat}?`
     : `What chord could go under the melody note at bar ${bar}, beat ${beat}?`,

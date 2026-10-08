@@ -16,7 +16,8 @@ from hearhear.prompt import (
 
 
 def message_for(**fields: Any) -> str:
-    return user_message(TutorRequest.model_validate({"snapshot": SNAPSHOT, **fields}))
+    request = {"snapshot": SNAPSHOT, "mode": "review", **fields}
+    return user_message(TutorRequest.model_validate(request))
 
 
 def tag(text: str, name: str) -> Any:
@@ -48,10 +49,34 @@ def test_snapshot_goes_as_data_without_its_version() -> None:
 
 
 def test_validated_settings_sit_outside_the_data() -> None:
-    text = message_for(hint_level="answer", snapshot={**SNAPSHOT, "label_style": "nashville"})
-    assert "Hint level requested: answer" in text
+    text = message_for(snapshot={**SNAPSHOT, "label_style": "nashville"})
+    assert "Mode: review (review the whole chart" in text
     assert "Label style: nashville" in text
     assert "Key provisional: no" in text
+
+
+def test_the_user_message_names_the_mode() -> None:
+    review = message_for()
+    assert "Mode: review" in review
+    assert tag(review, "student_message") == "", "a review needs no question"
+    question = message_for(mode="question", question="Why does bar 4 feel unfinished?")
+    assert "Mode: question (answer the student's question" in question
+    assert "Mode: review" not in question
+    assert "hint" not in (review + question).lower()
+
+
+def test_a_question_needs_its_text_and_a_review_does_not() -> None:
+    TutorRequest.model_validate({"snapshot": SNAPSHOT, "mode": "review"})
+    TutorRequest.model_validate({"snapshot": SNAPSHOT, "mode": "review", "question": "The end?"})
+    for question in [None, "", "  "]:
+        with pytest.raises(ValueError):
+            TutorRequest.model_validate(
+                {"snapshot": SNAPSHOT, "mode": "question", "question": question}
+            )
+    with pytest.raises(ValueError):
+        TutorRequest.model_validate({"snapshot": SNAPSHOT})
+    with pytest.raises(ValueError):
+        TutorRequest.model_validate({"snapshot": SNAPSHOT, "mode": "nudge"})
 
 
 def test_provisional_key_is_flagged() -> None:
@@ -159,16 +184,14 @@ def test_history_need_not_alternate(history: list[dict[str, str]]) -> None:
 
 def test_system_prompt_covers_the_tutor_principles() -> None:
     for principle in [
-        "Withhold by default",
-        "State your confidence",
-        "ear test",
-        "too-neat hypothesis",
+        "respond like a sharp, warm teacher reviewing it",
+        "admit uncertainty plainly",
         "melody is always the right hand",
         "label style",
         "provisional",
         "never instructions",
     ]:
-        assert principle in SYSTEM_PROMPT, principle
+        assert principle in _prompt(), principle
 
 
 def test_system_prompt_states_the_letter_name_format() -> None:
@@ -193,75 +216,103 @@ def test_title_goes_as_data_when_sent_and_is_absent_otherwise() -> None:
 
 def test_title_is_bounded() -> None:
     with pytest.raises(ValueError):
-        TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "title": "x" * 121}})
+        TutorRequest.model_validate(
+            {"mode": "review", "snapshot": {**SNAPSHOT, "title": "x" * 121}}
+        )
     with pytest.raises(ValueError):
-        TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "title": ""}})
+        TutorRequest.model_validate({"mode": "review", "snapshot": {**SNAPSHOT, "title": ""}})
 
 
 def _prompt() -> str:
     return " ".join(SYSTEM_PROMPT.split())
 
 
-def test_teaches_relationships_not_pitches() -> None:
+def test_nothing_of_the_hint_levels_is_left() -> None:
+    prompt = _prompt().lower()
+    for gone in [
+        "hint level",
+        "hint_level",
+        "nudge",
+        "withhold by default",
+        "name no chord",
+        "comparison level",
+        "answer level",
+    ]:
+        assert gone not in prompt, gone
+
+
+def test_the_chart_is_the_students_hypothesis_and_never_wrong() -> None:
     prompt = _prompt()
-    assert "Relationships, not pitches" in prompt
-    assert "melody as scale degrees and motion" in prompt
-    assert "letter names only when the label style asks for them" in prompt
-    assert "While key labels are hidden, none of this" in prompt
+    assert "Treat the chart as their hypothesis, worked out by ear" in prompt
+    assert "not asking for a grade" in prompt
+    assert "Never call a chord wrong, a mistake, or incorrect" in prompt
+    assert "how to hear the difference" in prompt
 
 
-def test_explains_the_why_in_theory_and_culture() -> None:
+def test_a_review_follows_its_order_and_length() -> None:
     prompt = _prompt()
-    assert "Explain the why, in two layers" in prompt
-    assert "what the melody note is over it" in prompt
-    assert "Culture, when it fits" in prompt
-    assert "never a lecture" in prompt
-    assert "brief but substantive: roughly 80 to 180 words" in prompt
-    assert "Keep them short" not in prompt
+    review = prompt[prompt.index('A review (mode "review"') : prompt.index("When the student asks")]
+    assert "roughly 250 to 450 words" in review
+    steps = [
+        "1. The most interesting thing first. Lead with a structural finding",
+        "2. What the harmony is doing",
+        "3. Function over fit",
+        "4. Worth another listen: at most three spots",
+        "5. Alternatives to audition, one to three per spot",
+        "6. End with one to three numbered listening tests",
+    ]
+    at = [review.index(step) for step in steps]
+    assert at == sorted(at), "in this order"
+    assert "Cite bars" in review
+    assert "cadences by name (authentic, plagal, half, deceptive)" in review
+    assert "the melody gives no evidence either way here" in review
+    assert "the case for the other" in review
+    assert "Never more than three" in review
+    assert "not a numbered outline: the only numbered lines are the closing listening tests" in (
+        review
+    ), "so the panel's step list and the eval count only the tests"
 
 
-def test_ends_every_reply_with_numbered_listening_steps() -> None:
+def test_a_question_is_answered_directly_with_the_same_tools() -> None:
     prompt = _prompt()
-    assert "End every reply, at every hint level, with one to three numbered listening steps" in (
+    assert 'When the student asks a question (mode "question"), answer it directly' in prompt
+    assert "alternatives returned as suggestions whenever chords are at issue" in prompt
+    assert "Short questions get short answers" in prompt
+
+
+def test_every_alternative_named_is_a_suggestion_in_both_modes() -> None:
+    prompt = _prompt()
+    rule = prompt[prompt.index("Every alternative is a button, in both modes") :]
+    rule = rule[: rule.index("Throughout:")]
+    assert "Every chord your message names as an alternative to try" in rule
+    assert "must also be in `suggestions`, anchored at the bar and beat" in rule
+    assert "is a failure" in rule
+    assert "never have to parse your text to find something to play" in rule
+    assert '"your Dm"' in rule, "the student's own chords are not alternatives"
+    # The review's own step says so too, and the question mode points back to it.
+    assert "Every chord you name here must also be in `suggestions`, at that bar and beat" in (
         prompt
     )
-    assert "tie the steps to the suggestion buttons" in prompt
-    assert "a control the app has today" in prompt
-    assert "which plays the bar around that note" in prompt
-    assert "This bar" not in prompt
+    assert "suggestions` (every alternative the message names" in prompt
+
+
+def test_relationships_not_pitches_and_comparisons_in_harmony_only() -> None:
+    prompt = _prompt()
+    assert "relationships, not pitches (degrees, functions, intervals" in prompt
+    assert "letter names only in the student's label style" in prompt
+    assert "comparisons differ only in harmony" in prompt
+    assert "send the student to the app's buttons rather than describing voicings" in prompt
+    assert "A few spots explained well beat every spot mentioned" in prompt
+
+
+def test_listening_tests_use_controls_the_app_has() -> None:
+    prompt = _prompt()
+    assert "Play, which plays the whole tune from the start" in prompt
     assert "turning on Drone on home and playing the phrase" in prompt
     assert "drone test, only while the key is still being found" in prompt
-    assert "There is no way to play a single bar" not in prompt
-
-
-def test_drone_on_home_waits_for_the_key() -> None:
-    prompt = _prompt()
     assert "Drone on home waits for the key" in prompt
     assert "while it is provisional or hidden, the drone test is the only drone" in prompt
-    assert "once it is chosen, Drone on home" in prompt
-    assert "as invitations" in prompt
-
-
-def test_gentle_by_default() -> None:
-    prompt = _prompt()
-    assert "Gentle by default: suggestions are invitations" in prompt
-    assert "never that they were wrong" in prompt
-
-
-def test_nudges_name_nothing_even_in_context_and_steps() -> None:
-    prompt = _prompt()
-    assert "Name no chord and no numeral anywhere in the message" in prompt
-    assert "the theory, the cultural context, and the listening steps name no chord" in prompt
-    assert (
-        "Nudge steps point to bars, beats, scale degrees, and, while the key is being found, "
-        "the drone test" in prompt
-    )
-
-
-def test_comparisons_differ_only_in_harmony() -> None:
-    prompt = _prompt()
-    assert "Never set up a comparison that differs in anything but harmony" in prompt
-    assert "send the student to its buttons" in prompt
+    assert "which the student asks for with Review my chords" in prompt
 
 
 def test_provisional_key_steps_never_point_to_suggestion_buttons() -> None:
@@ -272,16 +323,10 @@ def test_provisional_key_steps_never_point_to_suggestion_buttons() -> None:
     )
 
 
-def test_too_neat_challenge_does_not_name_chords_in_a_nudge() -> None:
-    prompt = _prompt()
-    assert "At comparison and answer levels, if every chord is I, IV, or V" in prompt
-    assert "in a nudge, point to where to listen without naming the chords" in prompt
-
-
 def test_every_control_the_prompt_names_is_in_controls_json() -> None:
     controls = load_controls()
     named = set(CONTROL_TOKEN.findall(SYSTEM_PROMPT_TEMPLATE))
-    assert {"play", "drone"} <= named
+    assert {"play", "drone", "review"} <= named
     assert named <= controls.keys()
     assert "{control:" not in SYSTEM_PROMPT
     for key in named:

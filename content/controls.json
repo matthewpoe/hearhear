@@ -2,6 +2,7 @@
   "$comment": "The user-facing names of the controls the tutor may point to. The buttons read their labels from here, and server/hearhear/prompt.py interpolates them into the system prompt at startup, so a rename changes both at once. N is a bar number, filled in by the app. Matthew owns this wording.",
   "controls": {
     "play": "Play",
+    "review": "Review my chords",
     "drone": "Drone on home",
     "voiceLeading": "Voice leading",
     "printLeadSheet": "Print lead sheet",
