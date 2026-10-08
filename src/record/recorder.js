@@ -36,7 +36,6 @@ import { createReadable } from "../lib/readable.js";
 import { emptySong, noteIdsAfter } from "../store/song.js";
 import {
   MAX_TAKE_NOTES,
-  RECORDED_SWING,
   beatMsAt,
   cleanTitle,
   isUserTune,
@@ -50,6 +49,8 @@ import {
   readPhrases,
   recordedSong,
   takeNotes,
+  takeSwing,
+  withTakeSwing,
 } from "./take.js";
 import { createReadMarks } from "./readMarks.js";
 
@@ -205,7 +206,7 @@ export function createRecorder({
    * Put the take on the staff: a new tune, or the tune being recorded again.
    * A phrase shows with the notes it keeps, from where it starts, its notes
    * numbered past the tune's own so their ids never clash.
-   * @param {{ notes: { midi: number, start: number, dur: number }[], tempo: number }} take
+   * @param {{ notes: { midi: number, start: number, dur: number }[], tempo: number, swing: boolean }} take
    */
   function show(take) {
     if (base && plan) {
@@ -226,12 +227,9 @@ export function createRecorder({
       });
     } else if (base) {
       // The tune again from scratch: its swing is the new take's, not the old one's.
-      const { notes, swing } = recordedSong({ id: base.id, title: base.title, ...take });
-      const rest = { ...base };
-      delete rest.swing;
+      const { notes } = recordedSong({ id: base.id, title: base.title, ...take });
       song.load({
-        ...rest,
-        ...(swing ? { swing } : {}),
+        ...withTakeSwing(base, take.swing),
         id: draftId(base),
         notes,
         tempo: take.tempo,
@@ -429,7 +427,7 @@ export function createRecorder({
         ids = song.replaceTake(
           before.notes.map((n) => n.id),
           take.notes,
-          { tempo: take.tempo, swing: take.swing ? RECORDED_SWING : null },
+          { tempo: take.tempo, swing: takeSwing(take.swing) },
         );
       }
       forgetDraft(draftId(before));
@@ -564,7 +562,7 @@ export function createRecorder({
     const ids = song.replaceTake(
       current.notes.map((n) => n.id),
       notes,
-      { tempo: take.tempo, swing: take.swing ? RECORDED_SWING : null },
+      { tempo: take.tempo, swing: takeSwing(take.swing) },
     );
     let at = 0;
     const kept = read.map((phrase, i) => {
