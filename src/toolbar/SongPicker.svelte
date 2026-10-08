@@ -17,12 +17,10 @@
   import { recorder, shelf } from "../record/tunes.js";
 
   /**
-   * The welcome's own words, placed around the cards: `aside` (its intro)
-   * beside the demo cards and above the Record card on a wide screen, under
-   * the Record card on a narrow one; `foot` under the demo cards.
-   * @type {{ hero?: boolean, aside?: Snippet, foot?: Snippet }}
+   * `foot`: the welcome's own words, under the demo cards.
+   * @type {{ hero?: boolean, foot?: Snippet }}
    */
-  let { hero = false, aside, foot } = $props();
+  let { hero = false, foot } = $props();
 
   /** Each demo card's melody shape: its opening bars, in no key (contour.js). */
   const SHAPES = new Map(DEMO_TUNES.map(({ song: t }) => [t.id, contour(t)]));
@@ -60,71 +58,65 @@
 
 {#if hero}
   <div class="hero">
-    <div class="main">
-      <div class="shelf" id="song-chooser" role="group" aria-labelledby="song-chooser-title">
-        <h3 id="song-chooser-title">Load a song</h3>
-        <ul>
-          {#each DEMO_TUNES as { song: tune, blurb } (tune.id)}
-            {@const shape = SHAPES.get(tune.id)}
-            <li>
-              <button type="button" class="tune" onclick={() => choose(tune)}>
-                {#if shape}
-                  <!-- The tune's shape, decorative: the blurb says what it is. -->
-                  <svg
-                    class="contour"
-                    viewBox="0 0 {shape.width} {shape.height}"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    {#each STAFF as y (y)}
-                      <line class="staff-line" x1="0" x2={shape.width} y1={y} y2={y} />
-                    {/each}
-                    <path class="thread" d={shape.path} />
-                    {#each shape.dashes as d, i (i)}
-                      <line class="note" x1={d.x} x2={d.x + d.w} y1={d.y} y2={d.y} />
-                    {/each}
-                  </svg>
-                {/if}
-                <span class="title">{tune.title}</span>
-                <span class="blurb">{blurb}</span>
-              </button>
-            </li>
-          {/each}
-        </ul>
-      </div>
-      {@render foot?.()}
-    </div>
-    <div class="side">
-      <div class="shelf" id="record-chooser" role="group" aria-labelledby="record-chooser-title">
-        <h3 id="record-chooser-title">Play a melody</h3>
-        <ul>
+    <div class="shelf" id="song-chooser" role="group" aria-labelledby="song-chooser-title">
+      <h3 id="song-chooser-title">Load a song</h3>
+      <ul>
+        {#each DEMO_TUNES as { song: tune, blurb } (tune.id)}
+          {@const shape = SHAPES.get(tune.id)}
           <li>
-            <button
-              type="button"
-              id="record-card"
-              class="record-card"
-              disabled={busy}
-              onclick={() => recorder.record()}
-            >
-              <span class="rec" aria-hidden="true"><span class="dot"></span></span>
-              <span class="words">
-                <span class="title">Record a tune</span>
-                <span class="blurb">Noodle on your keyboard. Hear Hear writes it down for you.</span
+            <button type="button" class="tune" onclick={() => choose(tune)}>
+              {#if shape}
+                <!-- The tune's shape, decorative: the blurb says what it is. -->
+                <svg
+                  class="contour"
+                  viewBox="0 0 {shape.width} {shape.height}"
+                  aria-hidden="true"
+                  focusable="false"
                 >
-              </span>
+                  {#each STAFF as y (y)}
+                    <line class="staff-line" x1="0" x2={shape.width} y1={y} y2={y} />
+                  {/each}
+                  <path class="thread" d={shape.path} />
+                  {#each shape.dashes as d, i (i)}
+                    <line class="note" x1={d.x} x2={d.x + d.w} y1={d.y} y2={d.y} />
+                  {/each}
+                </svg>
+              {/if}
+              <span class="title">{tune.title}</span>
+              <span class="blurb">{blurb}</span>
             </button>
           </li>
-          {#each $tunes as tune (tune.id)}
-            <li>
-              <button type="button" onclick={() => recorder.openTune(tune.id)}>
-                <span class="title">{tune.title}</span>
-                <span class="blurb">Your tune</span>
-              </button>
-            </li>
-          {/each}
-        </ul>
-      </div>
-      {#if aside}<div class="aside">{@render aside()}</div>{/if}
+        {/each}
+      </ul>
+    </div>
+    {@render foot?.()}
+    <div class="shelf" id="record-chooser" role="group" aria-labelledby="record-chooser-title">
+      <h3 id="record-chooser-title">Play a melody</h3>
+      <ul>
+        <li>
+          <button
+            type="button"
+            id="record-card"
+            class="record-card"
+            disabled={busy}
+            onclick={() => recorder.record()}
+          >
+            <span class="rec" aria-hidden="true"><span class="dot"></span></span>
+            <span class="words">
+              <span class="title">Record a tune</span>
+              <span class="blurb">Noodle on your keyboard. Hear Hear writes it down for you.</span>
+            </span>
+          </button>
+        </li>
+        {#each $tunes as tune (tune.id)}
+          <li>
+            <button type="button" onclick={() => recorder.openTune(tune.id)}>
+              <span class="title">{tune.title}</span>
+              <span class="blurb">Your tune</span>
+            </button>
+          </li>
+        {/each}
+      </ul>
     </div>
   </div>
 {:else}
@@ -161,22 +153,10 @@
 {/if}
 
 <style>
-  .hero,
-  .main,
-  .side {
+  .hero {
     display: grid;
-    gap: var(--space-4) var(--space-5);
-    align-items: start;
+    gap: var(--space-3);
     min-width: 0;
-  }
-  @media (min-width: 64rem) {
-    .hero:has(.aside) {
-      grid-template-columns: minmax(0, 2fr) minmax(17rem, 1fr);
-    }
-    /* The intro leads the side column; the Record card follows it. */
-    .aside {
-      order: -1;
-    }
   }
   .shelf {
     display: grid;
@@ -191,11 +171,15 @@
   }
   ul {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14.5rem), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
     gap: var(--space-3);
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  /* Recording's cards are wider: two to a row on a laptop, one on a phone. */
+  #record-chooser ul {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
   }
   /* Cards are what you do: a violet band, and a violet edge and lift on
      hover. The lift is motion, so reduced motion keeps only the edge. */
@@ -205,7 +189,7 @@
     gap: var(--space-1);
     width: 100%;
     height: 100%;
-    padding: var(--space-3);
+    padding: var(--space-2) var(--space-3) var(--space-3);
     border: 1px solid var(--rule);
     border-top: var(--band) solid var(--accent);
     border-radius: var(--radius-md);
@@ -233,7 +217,7 @@
   }
   .hero .title {
     color: var(--accent);
-    font-size: var(--text-lg);
+    font-size: 1.125rem;
     font-weight: 500;
     line-height: 1.25;
   }
