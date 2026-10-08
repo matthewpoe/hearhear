@@ -16,6 +16,8 @@ describe("song limits", () => {
     assert.equal(limits.DEFAULT_TEMPO, SONG.tempo.default);
     assert.equal(limits.MAX_NOTES, SONG.notes.maxItems);
     assert.equal(limits.MAX_LYRIC_CHARS, songSchema.$defs.note.properties.lyric.maxLength);
+    assert.equal(limits.MIN_MIDI, songSchema.$defs.note.properties.midi.minimum);
+    assert.equal(limits.MAX_MIDI, songSchema.$defs.note.properties.midi.maximum);
     assert.equal(limits.MIN_SWING, SONG.swing.minimum);
     assert.equal(limits.MAX_SWING, SONG.swing.maximum);
   });

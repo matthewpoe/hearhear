@@ -138,6 +138,16 @@ export function noteOff(midi) {
 }
 
 /**
+ * Sound one live note for `ms`, then let it go: noteOn now, noteOff later.
+ * @param {number} midi
+ * @param {number} ms
+ */
+export function tapNote(midi, ms) {
+  noteOn(midi);
+  setTimeout(() => noteOff(midi), ms);
+}
+
+/**
  * Wake the engine and play the cues `build` makes from the current song,
  * unless stop() or a newer request comes first.
  * @param {TickRange} range

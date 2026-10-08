@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
-import { createSongStore, emptySong, validateSong } from "../../src/store/song.js";
+import { createSongStore, emptySong, noteIdsAfter, validateSong } from "../../src/store/song.js";
 
 /** @param {import("../../src/types.js").Song} [song] */
 function storeWith(song = /** @type {any} */ (ode)) {
@@ -259,5 +259,13 @@ describe("validateSong", () => {
   it("rejects a pickup of a full bar", () => {
     const bad = { ...emptySong(), meter: { ...emptySong().meter, pickupTicks: 48 } };
     assert.throws(() => validateSong(bad), /pickup/);
+  });
+});
+
+describe("noteIdsAfter", () => {
+  it("numbers new notes past the highest note id, in base 36", () => {
+    assert.deepEqual(noteIdsAfter([{ id: "n9" }, { id: "n2" }], 3), ["na", "nb", "nc"]);
+    assert.deepEqual(noteIdsAfter([], 2), ["n1", "n2"]);
+    assert.deepEqual(noteIdsAfter([{ id: "n1" }], 0), []);
   });
 });
