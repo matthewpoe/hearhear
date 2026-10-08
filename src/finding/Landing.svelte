@@ -336,7 +336,7 @@
           </div>
           {#if pendingFeel}
             <div class="feel-confirm" role="status">
-              <p>Re-reading your recording replaces your note edits.</p>
+              <p>Re-reading your recording replaces your note edits and chords.</p>
               <button type="button" onclick={confirmFeel}>
                 Re-read as {pendingFeel === "swing" ? "Swing" : "Straight"}
               </button>

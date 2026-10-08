@@ -562,8 +562,9 @@ export function createRecorder({
   }
 
   /**
-   * Whether the open tune's notes were changed by hand since they were last
-   * read from its take, so a re-read would replace those edits.
+   * Whether the open tune's notes were changed by hand, or chords placed on
+   * them, since they were last read from its take, so a re-read would replace
+   * those edits and drop those chords.
    */
   function edited() {
     return reads.edited(song.get());

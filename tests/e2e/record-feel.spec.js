@@ -115,7 +115,7 @@ test("once the notes are edited by hand, Feel asks before a re-read replaces the
   const problems = [];
   page.on("pageerror", (error) => problems.push(error.message));
   const { feel, straight, swing, durations } = await recordSwungLine(page);
-  const warning = feel.getByText("Re-reading your recording replaces your note edits.");
+  const warning = feel.getByText("Re-reading your recording replaces your note edits and chords.");
 
   // No edits: Feel re-reads at once, with no question.
   await feel.locator("label", { hasText: "Swing" }).click();
