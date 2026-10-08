@@ -1,5 +1,7 @@
 # Stream F: tutor panel (wave-1 slice)
 
+> Superseded by the review-mode decision (Oct 7): see DECISIONS.md.
+
 Format: **date — decision.** Why. _Rejected:_ alternatives.
 
 - **2026-10-07 — Three small modules behind the panel: `sse.js` (event framing), `client.js` (POST, stream reader, error codes), `validate.js` (suggestion re-validation), plus `failures.js` for the copy.** Each is plain JS with no Svelte, so the stream and validation logic can be exercised in Node. _Rejected:_ one `client.js` that also validates (mixes network and theory); `EventSource` (GET-only, per `tutor-sse.md`).
@@ -17,6 +19,8 @@ Format: **date — decision.** Why. _Rejected:_ alternatives.
 - **2026-10-07 — Tests for the pure modules (corrected in the wave-1 fixes).** The original entry said "No tests added" because "the brief limits JS tests to `tests/theory/`". That was wrong: `tests/store/` already existed, `package.json` runs `tests/**/*.test.js`, and D6 now allows unit tests for pure non-UI modules explicitly. `tests/tutor/` covers `sse.js`, `validate.js`, and `client.js`'s error mapping; the panel itself has no UI tests.
 
 ## Wave-1 fixes (2026-10-07)
+
+> Superseded by the review-mode decision (Oct 7): see DECISIONS.md.
 
 Matthew's triage of the Fable review, applied.
 
