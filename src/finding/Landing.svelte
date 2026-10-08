@@ -159,15 +159,15 @@
    * A feel waiting on the user's say: a re-read replaces the notes, so once
    * they've been edited by hand Feel asks first. The radios show the feel
    * chosen (the tune's own, or the one being asked about). Any change to the
-   * song puts the question away and the radios back on the tune's feel.
+   * song puts the question away, and with it the radios go back on the
+   * tune's feel.
    * @type {"straight" | "swing" | null}
    */
   let pendingFeel = $state(null);
-  let feelChoice = $derived(feel);
+  let feelChoice = $derived(pendingFeel ?? feel);
   $effect(() => {
     void $song;
     pendingFeel = null;
-    feelChoice = feel;
   });
 
   /** @param {"straight" | "swing"} value */
@@ -178,13 +178,12 @@
 
   function keepEdits() {
     pendingFeel = null;
-    feelChoice = feel;
   }
 
   function confirmFeel() {
     const value = pendingFeel;
     pendingFeel = null;
-    if (value) recorder.reread(value);
+    if (value && !recorder.reread(value)) feelChoice = feel;
   }
 
   /** A demo's prompt waits for its guess; anywhere else the user can put it off. */
@@ -294,6 +293,44 @@
     </ol>
   {/if}
 
+  <!-- Feel: how a recorded tune's take is read, Straight or Swing. It shows
+       in the Rhythm step and stays in the Chords step, so after any take
+       (Start over, a phrase) the choice is still there to change. -->
+  {#snippet feelControl()}
+    {#if canReread}
+      <fieldset class="feel" aria-describedby="feel-gloss">
+        <legend>Feel <span class="gloss">— how your playing is read</span></legend>
+        <div class="segmented">
+          {#each FEELS as [value, label] (value)}
+            <label class:checked={feelChoice === value}>
+              <input
+                type="radio"
+                name="record-feel"
+                {value}
+                bind:group={feelChoice}
+                onchange={() => chooseFeel(value)}
+              />
+              {label}
+            </label>
+          {/each}
+        </div>
+        {#if pendingFeel}
+          <div class="feel-confirm" role="status">
+            <p>Re-reading your recording replaces your note edits and chords.</p>
+            <button type="button" onclick={confirmFeel}>
+              Re-read as {pendingFeel === "swing" ? "Swing" : "Straight"}
+            </button>
+            <button type="button" onclick={keepEdits}>Keep my edits</button>
+          </div>
+        {/if}
+        <p id="feel-gloss" class="gloss">
+          Swing writes long-short pairs as even eighths that play back swung. Straight writes them
+          as you played them, dotted where they're uneven. Undo takes a change back.
+        </p>
+      </fieldset>
+    {/if}
+  {/snippet}
+
   {#if view === "prompt"}
     <!-- Remount per song, so easy mode ranks the homes of the tune now loaded. -->
     {#key $song.id}
@@ -304,7 +341,9 @@
         autofocus={(demo && $song.key.provisional && intent === "ask") || intent === "reopened"}
       />
     {/key}
-  {:else if path.current === "rhythm"}
+  {:else if !recording && path.current === "rhythm"}
+    <!-- While a take records the steps wait for Stop, as the key question
+         does (Feel can't re-read a take that is still being played). -->
     <div class="rhythm" role="group" aria-labelledby="rhythm-title">
       <h2 id="rhythm-title">Does this rhythm sound right?</h2>
       <p>
@@ -312,41 +351,10 @@
         {$song.meter.beatsPerBar}/{$song.meter.beatUnit} at {$song.tempo} beats a minute. Press Play and
         tap along: do the bar lines fall where the beat feels strongest?
       </p>
-      {#if canReread}
-        <fieldset class="feel" aria-describedby="feel-gloss">
-          <legend>Feel <span class="gloss">— how your playing is read</span></legend>
-          <div class="segmented">
-            {#each FEELS as [value, label] (value)}
-              <label class:checked={feelChoice === value}>
-                <input
-                  type="radio"
-                  name="record-feel"
-                  {value}
-                  bind:group={feelChoice}
-                  onchange={() => chooseFeel(value)}
-                />
-                {label}
-              </label>
-            {/each}
-          </div>
-          {#if pendingFeel}
-            <div class="feel-confirm" role="status">
-              <p>Re-reading your recording replaces your note edits and chords.</p>
-              <button type="button" onclick={confirmFeel}>
-                Re-read as {pendingFeel === "swing" ? "Swing" : "Straight"}
-              </button>
-              <button type="button" onclick={keepEdits}>Keep my edits</button>
-            </div>
-          {/if}
-          <p id="feel-gloss" class="gloss">
-            Swing writes long-short pairs as even eighths that play back swung. Straight writes them
-            as you played them, dotted where they're uneven. Undo takes a change back.
-          </p>
-        </fieldset>
-      {/if}
+      {@render feelControl()}
       <button type="button" onclick={confirmRhythm}>Sounds right</button>
     </div>
-  {:else if path.current === "chords"}
+  {:else if !recording && path.current === "chords"}
     <div id="chords-step" class="chords-step" role="group" aria-labelledby="chords-step-title">
       <h2 id="chords-step-title">Start placing chords</h2>
       {#if start}
@@ -355,6 +363,7 @@
           each chord to hear it under the tune.
         </p>
       {/if}
+      {@render feelControl()}
       <div class="placement" role="status">
         {#if placement}
           <p>{placement.relation}</p>
@@ -375,6 +384,11 @@
     border-top: var(--band) solid var(--accent);
     border-radius: var(--radius-md);
     background: var(--surface);
+  }
+  /* Nothing to say (while a take records, the steps and questions wait for
+     Stop): no empty card. It comes back with the first thing it shows. */
+  section:not(:has(> :global(:not(.sound)), > .sound:not(:empty))) {
+    display: none;
   }
   .path {
     display: flex;
@@ -587,13 +601,15 @@
   .rhythm h2 {
     font-size: var(--text-lg);
   }
-  .rhythm p {
+  .rhythm p,
+  .feel p {
     max-width: 40rem;
     margin: 0;
     color: var(--ink-muted);
   }
   .sound button,
-  .rhythm button {
+  .rhythm button,
+  .feel-confirm button {
     padding: var(--space-1) var(--space-3);
     border: 1px solid var(--ink);
     border-radius: var(--radius-lg);

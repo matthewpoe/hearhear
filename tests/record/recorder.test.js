@@ -192,6 +192,38 @@ describe("recorder", () => {
     assert.equal(song.get().tempo, first.tempo);
   });
 
+  it("Start over reads its own swing: a swung tune taken again straight isn't swung", () => {
+    const { song, recorder, tap } = setup();
+    recorder.record();
+    [1, 2 / 3, 1 / 3, 2 / 3, 1 / 3, 2 / 3, 1 / 3, 1].forEach((b, i) => tap(60 + i, b));
+    recorder.stop();
+    recorder.name("Swingy");
+    assert.equal(song.get().swing, 2);
+    recorder.record({ again: true });
+    assert.equal(recorder.get().over, true, "armed to start over: the staff shows blank");
+    [1, 1, 1, 1].forEach((b, i) => tap(60 + i, b));
+    assert.equal(recorder.get().over, false, "the first note ends the blank");
+    assert.equal("swing" in song.get(), false, "the take on the staff is straight");
+    recorder.stop();
+    assert.equal("swing" in song.get(), false);
+    song.undo();
+    assert.equal(song.get().swing, 2, "Undo brings the swung take back");
+  });
+
+  it("only Start over arms a blank staff: a new tune and a next phrase don't", () => {
+    const { recorder, tap } = setup();
+    recorder.record();
+    assert.equal(recorder.get().over, false);
+    [1, 1, 1, 1].forEach((b, i) => tap(60 + i, b));
+    recorder.stop();
+    recorder.name("Phrases");
+    recorder.record({ phrase: "next" });
+    assert.equal(recorder.get().status, "armed");
+    assert.equal(recorder.get().over, false);
+    recorder.stop();
+    assert.equal(recorder.get().over, false, "cancelled before a note: idle again");
+  });
+
   it("discards a new tune back to the song open before it, and Undo restores it", () => {
     const { song, recorder, tap, shelf, opened, storage } = setup({ initial: ODE });
     recorder.record();

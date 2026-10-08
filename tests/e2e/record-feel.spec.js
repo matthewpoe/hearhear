@@ -156,3 +156,43 @@ test("once the notes are edited by hand, Feel asks before a re-read replaces the
 
   expect(problems).toEqual([]);
 });
+
+test("Feel stays in the Chords step, and Start over reads its own feel", async ({ page }) => {
+  /** @type {string[]} */
+  const problems = [];
+  page.on("pageerror", (error) => problems.push(error.message));
+  const { rhythm, durations } = await recordSwungLine(page);
+  const marking = page.locator("#staff .abcjs-tempo");
+  await rhythm.getByRole("button", { name: "Sounds right" }).click();
+
+  // Past the Rhythm step, Feel is still there to change.
+  const chords = page.getByRole("group", { name: "Start placing chords" });
+  const feel = chords.getByRole("group", { name: /^Feel/ });
+  await feel.locator("label", { hasText: "Swing" }).click();
+  await expect(feel.getByRole("radio", { name: "Swing" })).toBeChecked();
+  await expect(marking).toContainText("Swing");
+  await expect.poll(durations).toBe(EVEN);
+  await axe(page);
+
+  // Start over with plain quarters: the new take isn't swung because the old one was.
+  const bar = page.getByRole("region", { name: "Your tune" });
+  await bar.getByRole("button", { name: "Start over" }).click();
+  await expect(bar.getByText("Ready to record")).toBeVisible();
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
+  for (const key of ["Digit1", "Digit2", "Digit3", "Digit4"]) {
+    await page.keyboard.down(key);
+    await page.clock.runFor(HOLD_MS);
+    await page.keyboard.up(key);
+    await page.clock.runFor(BEAT_MS - HOLD_MS);
+  }
+  await page.keyboard.press("Escape");
+  await page.clock.resume();
+  await bar.getByLabel("Name your tune").press("Enter");
+  await expect.poll(durations).toBe("12 12 12 12");
+  await expect(marking).toHaveCount(0);
+  await expect(feel.getByRole("radio", { name: "Straight" })).toBeChecked();
+  await feel.locator("label", { hasText: "Swing" }).click();
+  await expect(feel.getByRole("radio", { name: "Swing" })).toBeChecked();
+
+  expect(problems).toEqual([]);
+});
