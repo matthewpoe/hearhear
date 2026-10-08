@@ -29,6 +29,12 @@
   import { playWithVisuals } from "../staff/playback.js";
   import { recorder, shelf } from "../record/tunes.js";
   import { isUserTune } from "../record/take.js";
+  import guidedContent from "../../content/guided-path.json";
+  import { tour } from "../guided/tour.js";
+  import { lessonNote } from "../guided/steps.js";
+
+  /** @import { GuidedPath } from "../guided/steps.js" */
+  const guidedPath = /** @type {GuidedPath} */ (guidedContent);
 
   /** Notes of free play before the prompt asks: about a phrase. */
   const PHRASE_NOTES = 8;
@@ -69,8 +75,16 @@
   /** The step path: Key, Rhythm, Chords, with the key current while its question shows. */
   const path = $derived(nextStep($song, { keyOpen: view === "prompt" }));
 
-  /** Step 3's suggested place to start: one specific note with no chord yet. */
-  const start = $derived(path.current === "chords" ? startingNote($song) : null);
+  /**
+   * Step 3's suggested place to start: one specific note with no chord yet.
+   * While the guided lesson runs it is the lesson's note instead (or none),
+   * so the page points at one place.
+   */
+  const start = $derived.by(() => {
+    if (path.current !== "chords") return null;
+    const lesson = lessonNote(guidedPath, $tour, $song);
+    return lesson === undefined ? startingNote($song) : lesson;
+  });
   const startWords = $derived.by(() => {
     if (!start) return "";
     const { bar, beat } = positionOf(start.start, $song.meter);
