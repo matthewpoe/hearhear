@@ -45,6 +45,12 @@ const store = createReadable({
   index: loadProgress(STEP_COUNT),
   /** Move focus to the strip when it starts: yes when asked for, no on its own. */
   focus: false,
+  /**
+   * The viewer navigated to this step (Back or Next), so it waits for them
+   * even when it's already done (autoStep in steps.js). Moving on because a
+   * step was done, or resuming, isn't held.
+   */
+  held: false,
 });
 
 /** @type {{ subscribe: typeof store.subscribe, get: typeof store.get }} */
@@ -52,7 +58,7 @@ export const tour = { subscribe: store.subscribe, get: store.get };
 
 /** Start (or resume) from the masthead: focus goes to the step. */
 export function startTour() {
-  store.set({ ...store.get(), running: true, focus: true });
+  store.set({ ...store.get(), running: true, focus: true, held: false });
 }
 
 /** On a first visit, start on its own, without taking focus. */
@@ -73,9 +79,34 @@ export function finishTour() {
   leaveTour();
 }
 
-/** @param {number} index */
-export function goTo(index) {
+/**
+ * Move to a step. `held` when the viewer chose it (Back, Next), so it waits
+ * for them even if it's already done.
+ * @param {number} index
+ * @param {{ held?: boolean }} [options]
+ */
+export function goTo(index, { held = false } = {}) {
   const next = clampStep(index, STEP_COUNT);
-  store.set({ ...store.get(), index: next });
+  store.set({ ...store.get(), index: next, held });
   saveProgress(next);
+}
+
+/** Back a step, held there even if it's done. */
+export function stepBack() {
+  goTo(store.get().index - 1, { held: true });
+}
+
+/** On to the next step without doing this one, held there even if it's done. */
+export function stepNext() {
+  goTo(store.get().index + 1, { held: true });
+}
+
+/** The step's hold is over: it isn't done now, so doing it moves on. */
+export function releaseHold() {
+  if (store.get().held) store.set({ ...store.get(), held: false });
+}
+
+/** Back to the first step, unheld (the strip's restart() reloads the tune bare). */
+export function restartTour() {
+  goTo(0);
 }

@@ -5,10 +5,14 @@
   // the dock's measured height (--dock-height, the page's scroll padding)
   // includes it. It teaches the real interface: the strip shows the step's
   // one-line instruction (its action in the accent color), the step count,
-  // the Draft badge, and Leave lesson (Finish on the last step), and never does
-  // a step for the viewer. Instead it spotlights the real control the step
-  // asks for (spotlight.js) and scrolls it into view. There is no Next or Back: a step advances only when the app shows
-  // it done, and one already done when the tour reaches it is skipped. The
+  // Back, Next and Restart, and Leave lesson (Finish on the last step), and
+  // never does a step for the viewer. Instead it spotlights the real control
+  // the step asks for (spotlight.js) and scrolls it into view. A step
+  // advances when the app shows it done, and one already done when the tour
+  // reaches it that way is skipped; Back and Next move without doing it, and
+  // a step reached with them waits for the viewer even if it's done (autoStep
+  // in steps.js). With another song open mid-walk, the strip says so and
+  // offers the tour's tune back. The
   // viewer can leave at any time and resume later from the masthead
   // (GuidedEntry.svelte). It starts on its own on a first visit (tour.js),
   // without taking focus. It reads the app only through public behavior: the
@@ -24,8 +28,27 @@
   import { LOWEST, keyBindings } from "../input/keyBindings.js";
   import { recorder } from "../record/tunes.js";
   import { midiToDegree } from "../theory/index.js";
-  import { conditionMet, hintFor, pushDegree, stepTarget } from "./steps.js";
-  import { tour, goTo, leaveTour, finishTour, autoStart } from "./tour.js";
+  import lessons from "../../content/lessons/plan.json";
+  import {
+    autoStep,
+    conditionMet,
+    hintFor,
+    lessonOf,
+    needsTune,
+    pushDegree,
+    stepTarget,
+  } from "./steps.js";
+  import {
+    tour,
+    goTo,
+    leaveTour,
+    finishTour,
+    autoStart,
+    stepBack,
+    stepNext,
+    releaseHold,
+    restartTour,
+  } from "./tour.js";
   import { actionParts, pageFacts } from "./actions.js";
   import { spotlight, spotlightNote } from "./spotlight.js";
   import { stepLesson } from "../tutor/requests.js";
@@ -84,26 +107,31 @@
   const met = $derived(conditionMet(step.done, appState));
   /**
    * Another song is on the staff mid-walk (the song select, or a recording):
-   * every step after the first is about the tour's tune, so the strip asks
-   * for it back and spotlights the song select rather than a silent step.
+   * every step after the first is about the tour's tune, so the strip says
+   * so, offers it back, and spotlights the song select rather than a silent
+   * step.
    */
-  const offSong = $derived(index > 0 && $song.id !== path.song);
+  const offSong = $derived(needsTune(path, index) && $song.id !== path.song);
+  const tuneTitle = tourTune?.title ?? "the lesson's tune";
   const hint = $derived(
     offSong
-      ? `[[Load ${tourTune?.title ?? "the tune"}]] again to keep going.`
+      ? `This step is about ${tuneTitle}, and another song is open.`
       : hintFor(step, appState),
   );
   const last = $derived(index === steps.length - 1);
 
-  // Doing a step's action is the only way forward: the step advances once
-  // the app shows it done, and one already done when the tour reaches it
-  // (a key already chosen, a chord already placed) is skipped. The last step
-  // stays until Finish, which it always offers, so a tutor that can't reply
-  // never strands it. If focus was in the strip, or had dropped to the page,
-  // it moves to the new step's heading.
+  // Doing a step's action moves on: the step advances once the app shows it
+  // done, and one already done when the tour reaches it that way (a key
+  // already chosen, a chord already placed) is skipped. A step the viewer
+  // went to with Back or Next waits for them instead (autoStep). The last
+  // step stays until Finish, which it always offers. If focus was in the
+  // strip, or had dropped to the page, it moves to the new step's heading.
   $effect(() => {
     const at = index;
-    if (!$tour.running || last || !met) return;
+    if (!$tour.running) return;
+    const move = autoStep({ met, held: $tour.held, last });
+    if (move === "release") untrack(releaseHold);
+    if (move !== "advance") return;
     untrack(async () => {
       const active = document.activeElement;
       const inStrip = active === document.body || (strip?.contains(active) ?? false);
@@ -120,6 +148,7 @@
   // resets Play, so the next step asks for it again. A fresh run always gets
   // the tour's tune bare (no key, no chords): one already open is reloaded at
   // the start, and a saved copy the song list brings back is reloaded too.
+  // Restart (restart()) is a fresh run on the spot.
   $effect(() => {
     const now = $song;
     const on = $tour.running;
@@ -161,11 +190,13 @@
     });
   });
 
-  // A step that names a recorded lesson: the viewer's question replays it,
-  // so the tutor answers during the walkthrough without the access code.
+  // A step that names a recorded lesson: a request of the lesson's mode (the
+  // review step's "Review my chords") replays it, so the tutor answers during
+  // the walkthrough without the access code. Not recorded yet, the server
+  // plays the sample reply for that mode.
   $effect(() => {
-    stepLesson.set($tour.running && step.lesson ? `lesson:${step.lesson}` : "");
-    return () => stepLesson.set("");
+    stepLesson.set($tour.running ? lessonOf(step, lessons) : null);
+    return () => stepLesson.set(null);
   });
 
   // The closing line isn't a step to complete: doing its action (pressing
@@ -221,7 +252,7 @@
    * @returns {{ el: Element | null, more?: Element[], noteId?: string }}
    */
   function targetOf(at) {
-    const offTune = at > 0 && song.get().id !== path.song;
+    const offTune = needsTune(path, at) && song.get().id !== path.song;
     const target = offTune ? { songId: path.song } : stepTarget(steps[at], song.get());
     if (!target) return { el: null };
     if (target.codes) {
@@ -333,6 +364,58 @@
   });
 
   /**
+   * Back or Next. A step the viewer chose waits for them (autoStep), and
+   * what the event steps listen for (Play pressed, the notes just played)
+   * starts over, so doing that step again moves on. Focus stays on the
+   * button, or goes to the step when the button it was on goes away.
+   * @param {() => void} move
+   */
+  async function navigate(move) {
+    played = false;
+    recentDegrees = [];
+    move();
+    await keepFocus();
+  }
+  const back = () => navigate(stepBack);
+  const next = () => navigate(stepNext);
+
+  /**
+   * Restart: a fresh run from step 1, on the spot. Nothing counts as loaded
+   * for it yet, so with a song on the staff the tour's tune opens bare (no
+   * key, no chords), which is step 1 done; from the welcome, step 1 asks for
+   * the tune's card. Cleared before the step moves, so step 1 never reads
+   * the last run's load.
+   */
+  async function restart() {
+    played = false;
+    recentDegrees = [];
+    loadedThisTour = false;
+    const now = song.get();
+    songAtStart = now;
+    restartTour();
+    if (tourTune && now.notes.length > 0) loadDemo(tourTune);
+    await keepFocus();
+  }
+
+  /**
+   * The tour's tune back, as the song list opens it: this tab's copy with
+   * its key and chords if there is one, else fresh. The step stays put.
+   */
+  async function backToTune() {
+    if (tourTune) song.open(tourTune);
+    await keepFocus();
+  }
+
+  /** A pressed strip button that went away, or can't be pressed now, hands focus to the step. */
+  async function keepFocus() {
+    await tick();
+    const active = document.activeElement;
+    if (strip && (!strip.contains(active) || active?.matches(":disabled"))) {
+      document.getElementById("guided-step-title")?.focus({ preventScroll: true });
+    }
+  }
+
+  /**
    * A button by its accessible name (aria-label or text) inside an element.
    * @param {Element} within
    * @param {string} name
@@ -351,12 +434,11 @@
     <section class="strip" aria-label="Guided lesson" bind:this={strip}>
       <div class="row">
         <span class="count"
-          >{step.sendOff
-            ? "Guided lesson · done"
-            : `Guided lesson · step ${index + 1}/${steps.filter((s) => !s.sendOff).length}`}</span
+          ><span class="prefix">Guided lesson ·</span>
+          {step.sendOff
+            ? "done"
+            : `step ${index + 1}/${steps.filter((s) => !s.sendOff).length}`}</span
         >
-        <span class="badge" title={path.status}>Draft</span>
-        <span class="visually-hidden">({path.status})</span>
         <p class="line">
           <strong id="guided-step-title" tabindex="-1">{step.title}:</strong>
           {#each actionParts(step.line) as part, i (i)}{#if part.act}<strong class="act"
@@ -364,6 +446,27 @@
               >{:else}{part.text}{/if}{/each}
           {#if met}<span class="done">Done.</span>{/if}
         </p>
+        <div class="nav" role="group" aria-label="Lesson steps">
+          <button
+            type="button"
+            class="step"
+            aria-label="Back a step"
+            disabled={index === 0}
+            onclick={back}>Back</button
+          >
+          {#if !last}
+            <button
+              type="button"
+              class="step"
+              class:primary={met}
+              aria-label="Next step"
+              onclick={next}>Next</button
+            >
+          {/if}
+          <button type="button" class="step" aria-label="Restart lesson" onclick={restart}
+            >Restart</button
+          >
+        </div>
         {#if last}
           <button type="button" class={met ? "primary" : "link"} onclick={finishTour}>Finish</button
           >
@@ -375,6 +478,9 @@
           {#each actionParts(hint) as part, i (i)}{#if part.act}<strong class="act"
                 >{part.text}</strong
               >{:else}{part.text}{/if}{/each}
+          {#if offSong}<button type="button" class="primary" onclick={backToTune}
+              >Back to {tuneTitle}</button
+            >{/if}
         </p>{/if}
     </section>
   {/if}
@@ -402,11 +508,22 @@
     flex: none;
     color: var(--ink-muted);
   }
-  .badge {
+  /* Back, Next, Restart: small, so the step's line keeps the room. */
+  .nav {
     flex: none;
+    display: flex;
+    gap: var(--space-1);
+  }
+  .step {
     padding: 0 var(--space-2);
-    border: 1px solid var(--ink-muted);
-    border-radius: var(--radius-sm);
+  }
+  .step:disabled {
+    border-color: var(--rule);
+    color: var(--ink-muted);
+    cursor: default;
+  }
+  .hint button {
+    margin-inline-start: var(--space-2);
   }
   p {
     margin: 0;
@@ -489,6 +606,23 @@
       flex-basis: 100%;
       order: 1;
       white-space: normal;
+    }
+    /* The region is already named "Guided lesson": at phone width the count
+       says just "step 3/8" on screen, so it, the steps and the way out share
+       one line. */
+    .prefix {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .row {
+      gap: var(--space-1) var(--space-2);
+    }
+    .row > .link {
+      margin-inline-start: auto;
     }
   }
 </style>
