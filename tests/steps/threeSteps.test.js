@@ -5,6 +5,7 @@ import saints from "../../content/songs/when-the-saints.json" with { type: "json
 import { HINT_COUNT, keyHints } from "../../src/steps/keyHints.js";
 import { describePlacement, placedChord, startingNote } from "../../src/steps/chordFeedback.js";
 import { positionOf } from "../../src/theory/index.js";
+import { chordView, labelText } from "../../src/chords/chordView.js";
 
 /** @type {import("../../src/types.js").Song} */
 const song = /** @type {any} */ ({ ...ode, chords: [] });
@@ -106,6 +107,15 @@ describe("describePlacement", () => {
     assert.match(describePlacement(song, first.id, A7, "nashville")?.does ?? "", /^5⁷: tension/);
     assert.match(describePlacement(song, first.id, A7, "roman+letters")?.does ?? "", /^V7 · A7: /);
     assert.match(describePlacement(song, first.id, A7)?.does ?? "", /^V7: tension/);
+  });
+
+  it("names the chord with the chips' label (chordView), not the staff's ABC text", () => {
+    const A7 = { root: "A", type: "7" };
+    for (const style of /** @type {const} */ (["roman", "nashville", "letters", "roman+letters"])) {
+      const label = labelText(chordView(A7, song.key, "confirmed", style));
+      assert.ok(describePlacement(song, first.id, A7, style)?.does.startsWith(`${label}: `));
+    }
+    assert.equal(labelText(chordView(A7, song.key, "confirmed", "nashville")), "5⁷");
   });
 
   it("describes a rub without flagging it", () => {

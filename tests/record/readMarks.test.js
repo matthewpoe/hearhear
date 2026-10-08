@@ -29,6 +29,19 @@ describe("createReadMarks", () => {
     assert.equal(reads.edited({ ...tune, notes: read.map((n) => ({ ...n })) }), false);
   });
 
+  it("sees a chord placed after a read, since a re-read drops it", () => {
+    const reads = createReadMarks();
+    reads.mark({ ...tune, chords: [] });
+    const chord = { id: "c1", noteId: "n1", root: "C", type: "maj" };
+    assert.equal(reads.edited({ ...tune, chords: [chord] }), true);
+    assert.equal(reads.edited({ ...tune, chords: [{ ...chord, type: "min" }] }), true);
+    // Taking the chord off again is back to the read.
+    assert.equal(reads.edited({ ...tune, chords: [] }), false);
+    // A tune read with its chords (a phrase kept them) is clean with them.
+    reads.mark({ ...tune, chords: [chord] });
+    assert.equal(reads.edited({ ...tune, chords: [chord] }), false);
+  });
+
   it("keeps each tune's reads apart", () => {
     const reads = createReadMarks();
     reads.mark(tune);

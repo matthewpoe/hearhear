@@ -32,6 +32,19 @@ export const HIDDEN_NAME = "Chord, name hidden until you find home";
 /** Chord types whose Nashville number ends in a seventh written as a superscript. */
 const SEVENTHS = new Set(["7", "m7", "dim7", "m7b5"]);
 
+/** Nashville's superscript seventh, written as a superscript character. */
+const SUPERSCRIPT = { 7: "⁷" };
+
+/**
+ * A view's label as one line of plain text, the superscript written as a
+ * superscript character: "V", "5⁷", "A", "V · A" ("" in hidden mode).
+ * @param {ChordView} view
+ */
+export function labelText({ text, sup }) {
+  const sups = [...sup].map((c) => SUPERSCRIPT[/** @type {keyof typeof SUPERSCRIPT} */ (c)] ?? c);
+  return text + sups.join("");
+}
+
 /** @type {Record<HarmonicFunction, string>} */
 const FUNCTION_NAMES = {
   tonic: "tonic, home",

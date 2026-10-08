@@ -21,7 +21,7 @@
   import { suggestions, isStale } from "../store/suggestions.js";
   import { toTutorSnapshot } from "../store/snapshot.js";
   import { askTutor, TutorError } from "./client.js";
-  import { onAskRequest, stepLesson } from "./requests.js";
+  import { stepLesson } from "./requests.js";
   import { checkSuggestions } from "./validate.js";
   import { failureText, canRetry } from "./failures.js";
   import { replySteps } from "./replySteps.js";
@@ -107,14 +107,6 @@
 
   $effect(() => () => controller?.abort());
 
-  // A question asked on the viewer's behalf (the guided path), as if typed.
-  $effect(() =>
-    onAskRequest(({ question: asked, mode, fixture }) => {
-      if (status === "loading" || !hasSong) return;
-      send(asked, mode, fixture);
-    }),
-  );
-
   // Only says whether to show the demo notice, or to ask for the passphrase
   // up front; the tutor's own requests have their own failure states, so a
   // failed check leaves both off until a question finds out.
@@ -194,11 +186,7 @@
         dropped: dropped + (Number(reply.dropped) || 0),
       });
       const tutorText = (pending?.reply ?? "").slice(0, MAX_TURN_CHARS);
-      log = [
-        ...log,
-        { role: "student", text: askedAs(asked, mode) },
-        { role: "tutor", text: tutorText },
-      ];
+      log = [...log, { role: "student", text: askedAs(asked) }, { role: "tutor", text: tutorText }];
       pending = null;
       status = "idle";
     } catch (error) {
@@ -221,12 +209,11 @@
 
   /**
    * What the conversation shows the student asked: their question, or for a
-   * review without one, the button's name.
+   * review (which sends none), the button's name.
    * @param {string | null} asked
-   * @param {Mode} mode
    */
-  function askedAs(asked, mode) {
-    return asked ?? (mode === "review" ? CONTROLS.review : "");
+  function askedAs(asked) {
+    return asked ?? CONTROLS.review;
   }
 
   function ask() {
@@ -327,7 +314,7 @@
       {#if pending}
         <li class="turn student">
           <span class="who">You</span>
-          <p>{askedAs(pending.question, pending.mode)}</p>
+          <p>{askedAs(pending.question)}</p>
         </li>
         <li class="turn tutor" aria-busy={status === "loading"}>
           <span class="who">Tutor</span>

@@ -115,7 +115,7 @@ test("once the notes are edited by hand, Feel asks before a re-read replaces the
   const problems = [];
   page.on("pageerror", (error) => problems.push(error.message));
   const { feel, straight, swing, durations } = await recordSwungLine(page);
-  const warning = feel.getByText("Re-reading your recording replaces your note edits.");
+  const warning = feel.getByText("Re-reading your recording replaces your note edits and chords.");
 
   // No edits: Feel re-reads at once, with no question.
   await feel.locator("label", { hasText: "Swing" }).click();
@@ -135,10 +135,11 @@ test("once the notes are edited by hand, Feel asks before a re-read replaces the
   await page.keyboard.press("Escape");
   await expect(menu).toHaveCount(0);
 
-  // Feel now asks first, leaving the notes and the radios as they were.
+  // Feel now asks first, leaving the notes as they were; the radios show the
+  // feel being asked about, and Keep my edits puts them back.
   await feel.locator("label", { hasText: "Swing" }).click();
   await expect(warning).toBeVisible();
-  await expect(straight).toBeChecked();
+  await expect(swing).toBeChecked();
   expect(await durations()).toBe(edited);
   await axe(page);
   await feel.getByRole("button", { name: "Keep my edits" }).click();
@@ -152,6 +153,46 @@ test("once the notes are edited by hand, Feel asks before a re-read replaces the
   await expect(swing).toBeChecked();
   await expect.poll(durations).toBe(EVEN);
   await expect(warning).toHaveCount(0);
+
+  expect(problems).toEqual([]);
+});
+
+test("Feel stays in the Chords step, and Start over reads its own feel", async ({ page }) => {
+  /** @type {string[]} */
+  const problems = [];
+  page.on("pageerror", (error) => problems.push(error.message));
+  const { rhythm, durations } = await recordSwungLine(page);
+  const marking = page.locator("#staff .abcjs-tempo");
+  await rhythm.getByRole("button", { name: "Sounds right" }).click();
+
+  // Past the Rhythm step, Feel is still there to change.
+  const chords = page.getByRole("group", { name: "Start placing chords" });
+  const feel = chords.getByRole("group", { name: /^Feel/ });
+  await feel.locator("label", { hasText: "Swing" }).click();
+  await expect(feel.getByRole("radio", { name: "Swing" })).toBeChecked();
+  await expect(marking).toContainText("Swing");
+  await expect.poll(durations).toBe(EVEN);
+  await axe(page);
+
+  // Start over with plain quarters: the new take isn't swung because the old one was.
+  const bar = page.getByRole("region", { name: "Your tune" });
+  await bar.getByRole("button", { name: "Start over" }).click();
+  await expect(bar.getByText("Ready to record")).toBeVisible();
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
+  for (const key of ["Digit1", "Digit2", "Digit3", "Digit4"]) {
+    await page.keyboard.down(key);
+    await page.clock.runFor(HOLD_MS);
+    await page.keyboard.up(key);
+    await page.clock.runFor(BEAT_MS - HOLD_MS);
+  }
+  await page.keyboard.press("Escape");
+  await page.clock.resume();
+  await bar.getByLabel("Name your tune").press("Enter");
+  await expect.poll(durations).toBe("12 12 12 12");
+  await expect(marking).toHaveCount(0);
+  await expect(feel.getByRole("radio", { name: "Straight" })).toBeChecked();
+  await feel.locator("label", { hasText: "Swing" }).click();
+  await expect(feel.getByRole("radio", { name: "Swing" })).toBeChecked();
 
   expect(problems).toEqual([]);
 });

@@ -1,30 +1,9 @@
 /**
- * Questions another part of the app asks the tutor on the viewer's behalf:
- * the guided path's tutor step. The tutor panel listens and sends each one as
- * if it had been typed, so it shows in the conversation like any other.
- *
- * @import { Mode } from "./client.js"
+ * The guided path's hold on the tutor: the recorded lesson its current step
+ * names, so a question the viewer asks then replays that lesson.
  */
 
 import { createReadable } from "../lib/readable.js";
-
-/**
- * `fixture` names a recorded lesson for the server to replay ("lesson:<id>"),
- * or is empty to ask the tutor as anyone would.
- * @typedef {{ question: string | null, mode: Mode, fixture: string }} AskRequest
- */
-
-/** @type {Set<(request: AskRequest) => void>} */
-const listeners = new Set();
-
-/**
- * @param {(request: AskRequest) => void} listener
- * @returns {() => void} stops listening
- */
-export function onAskRequest(listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
 
 /**
  * The recorded lesson the guided path's current step names ("lesson:<id>"),
@@ -33,12 +12,3 @@ export function onAskRequest(listener) {
  * the panel doesn't ask for the passphrase up front then.
  */
 export const stepLesson = createReadable("");
-
-/**
- * Ask the tutor panel to send a question. False when no panel is listening.
- * @param {AskRequest} request
- */
-export function requestAsk(request) {
-  for (const listener of listeners) listener(request);
-  return listeners.size > 0;
-}

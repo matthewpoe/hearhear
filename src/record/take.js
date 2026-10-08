@@ -248,6 +248,29 @@ export function toPresses(stored) {
 export const RECORDED_SWING = 2;
 
 /**
+ * The swing a take plays back with: RECORDED_SWING when it reads as swung,
+ * none when it doesn't. The one rule for a take's swing, on the staff while
+ * it records, at Stop, and on a Feel re-read.
+ * @param {boolean | undefined} swung
+ * @returns {number | null}
+ */
+export function takeSwing(swung) {
+  return swung ? RECORDED_SWING : null;
+}
+
+/**
+ * A tune with a take's swing in place of its own (a new tune, or Start over):
+ * a tune once swung doesn't stay swung because of it.
+ * @param {Song} tune
+ * @param {boolean | undefined} swung
+ * @returns {Song}
+ */
+export function withTakeSwing({ swing: _replaced, ...tune }, swung) {
+  const swing = takeSwing(swung);
+  return swing ? { ...tune, swing } : tune;
+}
+
+/**
  * A recorded tune: 4/4 with no pickup, the tempo from the take, and the key
  * provisional until the key question finds home: the key the number row was
  * in when the take was armed (C by default), so every press of the take maps
@@ -258,8 +281,8 @@ export const RECORDED_SWING = 2;
  * @returns {Song}
  */
 export function recordedSong({ id, title, notes, tempo, swing = false, key }) {
-  return {
-    ...(swing ? { swing: RECORDED_SWING } : {}),
+  /** @type {Song} */
+  const tune = {
     schemaVersion: 1,
     id,
     title,
@@ -270,4 +293,5 @@ export function recordedSong({ id, title, notes, tempo, swing = false, key }) {
     notes: notes.map((n, i) => ({ id: `n${(i + 1).toString(36)}`, ...n })),
     chords: [],
   };
+  return withTakeSwing(tune, swing);
 }
