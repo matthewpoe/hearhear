@@ -43,7 +43,7 @@
   const rec = recorder;
   const busy = $derived($rec.status === "armed" || $rec.status === "recording");
 
-  /** @type {1 | 2 | 3 | null} */
+  /** 4: the first three are done; the banner stays so the page never jumps. @type {1 | 2 | 3 | 4 | null} */
   const step = $derived(
     busy || $song.notes.length === 0
       ? null
@@ -53,37 +53,34 @@
           ? 2
           : $song.chords.length === 0
             ? 3
-            : null,
+            : 4,
   );
+
+  /** Step 2 sends the student to the key box: scroll to it and ring it. */
+  function toKeyBox(scroll = true) {
+    const box = document.getElementById("key-prompt");
+    if (!box) return;
+    box.classList.remove("banner-ring");
+    if (scroll) box.scrollIntoView({ behavior: "smooth", block: "center" });
+    void box.offsetWidth;
+    box.classList.add("banner-ring");
+  }
+
+  $effect(() => {
+    if (step === 2) tick().then(() => toKeyBox(false));
+  });
 
   /** @param {import("../types.js").Song} tune */
   function choose(tune) {
     markPicked();
     if (tune.id !== $song.id) song.open(tune);
   }
-
-  // Step 2's buttons press the real controls, so they behave exactly as the
-  // ones on the page do: the transport's Play, and the key box's by-ear path.
-  function press(/** @type {string} */ selector) {
-    /** @type {HTMLButtonElement | null} */ (document.querySelector(selector))?.click();
-  }
-
-  async function findByEar() {
-    const box = document.getElementById("key-prompt");
-    box?.classList.remove("banner-ring");
-    press("#key-prompt button.help[aria-expanded='false']");
-    await tick();
-    box?.scrollIntoView({ behavior: "smooth", block: "center" });
-    // Restart the ring so it pulses on every press.
-    void box?.offsetWidth;
-    box?.classList.add("banner-ring");
-  }
 </script>
 
 {#if step}
   {#key step}
     <section class="banner" aria-labelledby="step-banner-title" aria-live="polite">
-      <span class="num" aria-hidden="true">{step}</span>
+      <span class="num" aria-hidden="true">{step === 4 ? "✓" : step}</span>
       <div class="text">
         {#if step === 1}
           <h2 id="step-banner-title">Pick a song</h2>
@@ -91,7 +88,7 @@
             <b class="do">Choose a tune</b>, or keep Ode to Joy, which is open below. Its key is
             hidden, so your ear finds home.
           </p>
-          <div class="chips" role="group" aria-label="Songs">
+          <div class="chips" id="song-chooser" role="group" aria-label="Songs">
             {#each DEMO_TUNES as { song: tune } (tune.id)}
               <button
                 type="button"
@@ -112,20 +109,17 @@
         {:else if step === 2}
           <h2 id="step-banner-title">Identify the key</h2>
           <p>
-            <b class="hear">Press Play</b> and listen for the note that feels like home, then
-            <b class="do">pick it below</b>. Not sure? <b class="hear">Help me find it</b> plays the tune
-            over three candidate homes; choose the one that settles.
+            Your ear finds home in the box below:
+            <button type="button" class="link" onclick={() => toKeyBox()}
+              ><b class="do">by eye or by ear ↓</b></button
+            >
           </p>
-          <div class="chips">
-            <button
-              type="button"
-              class="action hear"
-              onclick={() => press(".transport button.control")}>▶ Play</button
-            >
-            <button type="button" class="action hear-soft" onclick={findByEar}
-              >Help me find it</button
-            >
-          </div>
+        {:else if step === 4}
+          <h2 id="step-banner-title">You're set</h2>
+          <p>
+            <b class="do">Keep placing chords</b>, then press <b class="do">Review my chords</b> for the
+            tutor's read of your chart: what it does, and what else to try.
+          </p>
         {:else}
           <h2 id="step-banner-title">Place a chord</h2>
           <p>
@@ -135,7 +129,7 @@
           </p>
         {/if}
       </div>
-      <span class="count">Step {step} of 3</span>
+      {#if step < 4}<span class="count">Step {step} of 3</span>{/if}
     </section>
   {/key}
 {/if}
@@ -205,8 +199,18 @@
   .do {
     color: var(--accent);
   }
+  /* Darker than --sound, so green text keeps 4.5:1 on the banner's tint. */
   .hear {
-    color: var(--sound);
+    color: color-mix(in srgb, var(--sound) 78%, #000);
+  }
+  .link {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
   .count {
     flex: none;
@@ -220,8 +224,7 @@
     gap: 8px;
     margin-top: 4px;
   }
-  .chip,
-  .action {
+  .chip {
     min-height: 40px;
     padding: 6px 14px;
     border: 1.5px solid var(--accent);
@@ -239,22 +242,10 @@
   .chip.record span {
     color: #c7362b;
   }
-  .action.hear {
-    border-color: var(--sound);
-    background: var(--sound);
-    color: var(--sound-ink);
-  }
-  .action.hear-soft {
-    border-color: var(--sound);
-    background: var(--surface);
-    color: var(--sound);
-  }
-  .chip:hover,
-  .action:hover {
+  .chip:hover {
     filter: brightness(0.95);
   }
-  .chip:focus-visible,
-  .action:focus-visible {
+  .chip:focus-visible {
     outline: 3px solid var(--focus);
     outline-offset: 2px;
   }

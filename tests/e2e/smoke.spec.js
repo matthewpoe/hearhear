@@ -17,13 +17,13 @@ test("the app loads under the production CSP, with every region and no a11y viol
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hear Hear", level: 1 })).toBeVisible();
-  // The empty landing: the song list leads, with the tutor and the keyboard.
-  // No staff until a song is picked.
+  // A first visit opens on the real interface: step 1's banner over the
+  // staff (Ode to Joy, its key hidden), the tutor and the keyboard.
   for (const region of ["Pick a song", "Keyboard", "Tutor"]) {
     await expect(page.getByRole("region", { name: region, exact: true })).toBeVisible();
   }
   const staff = page.getByRole("region", { name: "Staff", exact: true });
-  await expect(staff).toHaveCount(0);
+  await expect(staff).toBeVisible();
 
   // Light by default.
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
