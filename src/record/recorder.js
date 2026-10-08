@@ -33,7 +33,7 @@
  */
 
 import { createReadable } from "../lib/readable.js";
-import { emptySong } from "../store/song.js";
+import { emptySong, noteIdsAfter } from "../store/song.js";
 import {
   MAX_TAKE_NOTES,
   RECORDED_SWING,
@@ -205,9 +205,9 @@ export function createRecorder({
       const { replacing, at } = plan;
       const kept = base.notes.filter((n) => !replacing.has(n.id));
       const keptIds = new Set(kept.map((n) => n.id));
-      let counter = Math.max(0, ...base.notes.map((n) => parseInt(n.id.slice(1), 36) || 0));
-      const added = take.notes.map((n) => ({
-        id: `n${(++counter).toString(36)}`,
+      const ids = noteIdsAfter(base.notes, take.notes.length);
+      const added = take.notes.map((n, i) => ({
+        id: ids[i],
         ...n,
         start: n.start + at,
       }));

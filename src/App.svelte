@@ -17,6 +17,9 @@
   import RecordBar from "./record/RecordBar.svelte";
   import { song } from "./store/song.js";
 
+  /** A song is open: before one is picked, the page is the song list alone. */
+  const hasSong = $derived($song.notes.length > 0);
+
   /** @type {HTMLElement | undefined} */
   let dock = $state();
 
@@ -55,7 +58,7 @@
 <header class="masthead">
   <h1>Hear Hear</h1>
   <p class="tagline">Think in relationships, not pitches.</p>
-  {#if $song.notes.length > 0}
+  {#if hasSong}
     <SongPicker />
   {/if}
   <div class="masthead-tools">
@@ -68,28 +71,30 @@
   <!-- Record mode: the take in progress, or the open tune's title (if it's the user's). -->
   <RecordBar />
   <!-- The empty landing has nothing to play or print, so no staff yet. -->
-  {#if $song.notes.length > 0}
+  {#if hasSong}
     <Staff />
   {/if}
   <div class="columns">
     <div class="step">
       <Landing />
-      {#if $song.notes.length > 0}<ChordDropdown />{/if}
+      {#if hasSong}<ChordDropdown />{/if}
     </div>
     <!-- Before a song is picked the page is step 1 alone: the song list. -->
-    {#if $song.notes.length > 0}
+    {#if hasSong}
       <div class="side">
         <TutorPanel />
         <TrustPanel />
       </div>
     {/if}
   </div>
-  <p class="credits" hidden={$song.notes.length === 0}>
-    Piano samples: Salamander Grand Piano by Alexander Holm,
-    <a href="https://creativecommons.org/licenses/by/3.0/" rel="license noopener" target="_blank"
-      >CC BY 3.0</a
-    >.
-  </p>
+  {#if hasSong}
+    <p class="credits">
+      Piano samples: Salamander Grand Piano by Alexander Holm,
+      <a href="https://creativecommons.org/licenses/by/3.0/" rel="license noopener" target="_blank"
+        >CC BY 3.0</a
+      >.
+    </p>
+  {/if}
 </main>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->

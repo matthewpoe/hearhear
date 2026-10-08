@@ -1,6 +1,6 @@
 /**
  * A song's limits, in one place: its title length, tempo range and default,
- * note count and length, lyric length, and swing range, read from
+ * note count, length and pitch range, lyric length, and swing range, read from
  * contracts/song.schema.json so the app and the schema can't drift. The
  * tutor request model on the server is held to the same bounds by
  * server/tests/test_song_limits.py.
@@ -25,6 +25,10 @@ export const MAX_NOTES = SONG.notes.maxItems;
 
 /** A note's longest, in ticks (twelve to the quarter). */
 export const MAX_NOTE_TICKS = DEFS.note.properties.dur.maximum;
+
+/** The piano's range, A0 to C8: every note's MIDI lies within it. */
+export const MIN_MIDI = DEFS.note.properties.midi.minimum;
+export const MAX_MIDI = DEFS.note.properties.midi.maximum;
 
 /** A note's lyric syllable's longest, in characters. */
 export const MAX_LYRIC_CHARS = DEFS.note.properties.lyric.maxLength;
