@@ -42,14 +42,14 @@ class MessageDeltas:
 
 
 class InvalidReply(ValueError):
-    """The reply is not usable at all: bad JSON, or a bad message or hint level."""
+    """The reply is not usable at all: bad JSON, or a bad message."""
 
 
 def validate_reply(text: str) -> tuple[TutorReply, int]:
     """Validate the full reply, dropping suggestions that fail on their own.
 
     Returns the reply and how many suggestions were dropped. One bad suggestion
-    never sinks the message; a bad message or hint level does.
+    never sinks the message; a bad message does.
     """
     try:
         raw: Any = from_json(text)

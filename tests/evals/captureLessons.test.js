@@ -20,8 +20,7 @@ const PLAN = {
       song: "ode-to-joy",
       key: "committed",
       chords: [{ bar: 1, beat: 1, numeral: "I" }],
-      hint_level: "comparison",
-      question: "What chord could go under bar 4, beat 3?",
+      mode: "review",
     },
     {
       id: "bar4-follow-up",
@@ -29,7 +28,7 @@ const PLAN = {
       song: "ode-to-joy",
       key: "committed",
       chords: [],
-      hint_level: "answer",
+      mode: "question",
       question: "Which one would you pick?",
     },
   ],
@@ -45,13 +44,13 @@ const SUGGESTION = {
 };
 
 /**
- * @param {{ fallback?: boolean, error?: boolean, deltas?: string[], nudge?: boolean }} [reply]
+ * @param {{ fallback?: boolean, error?: boolean, deltas?: string[], offers?: boolean }} [reply]
  */
 const replyEvents = ({
   fallback = false,
   error = false,
   deltas = ["Try two chords ", "under the long E."],
-  nudge = false,
+  offers = true,
 } = {}) => [
   ...deltas.map((delta) => /** @type {[string, object]} */ (["message", { delta }])),
   error
@@ -59,8 +58,7 @@ const replyEvents = ({
     : [
         "suggestions",
         {
-          hint_level: nudge ? "nudge" : "comparison",
-          suggestions: nudge ? [] : [SUGGESTION],
+          suggestions: offers ? [SUGGESTION] : [],
           snapshot_version: 4,
           dropped: 0,
           served_by: fallback ? "claude-fallback" : "claude-opus-5-5",
@@ -155,9 +153,12 @@ test("capture saves each reply in the fixture shape, with history for a follow-u
     assert.deepEqual(lesson.request.snapshot.bars[0].chords, [
       { beat: 1, numeral: "I", nashville: "1", letter: "D" },
     ]);
-    // The follow-up carries the first exchange as history.
+    assert.equal(lesson.request.mode, "review");
+    assert.equal(lesson.request.question, null, "a review needs no question");
+    // The follow-up carries the first exchange as history; a review shows as the button's name.
+    assert.equal(tutor.bodies[1].mode, "question");
     assert.deepEqual(tutor.bodies[1].history, [
-      { role: "student", text: "What chord could go under bar 4, beat 3?" },
+      { role: "student", text: "Review my chords" },
       { role: "tutor", text: "Try two chords under the long E." },
     ]);
   } finally {
@@ -226,18 +227,21 @@ test("capture won't record from a tutor in fixture mode", async () => {
   }
 });
 
-test("capture refuses a hidden-key reply that names the key, and saves a clean nudge", async () => {
+test("capture refuses a hidden-key reply that names the key, and saves a clean one", async () => {
   const hidden = {
     song: "st-james-infirmary",
     key: "provisional",
     key_hidden: true,
     chords: [],
-    hint_level: "nudge",
+    mode: "question",
     question: "How do I find home?",
   };
   const tutor = await fakeTutor([
-    replyEvents({ nudge: true, deltas: ["Home is E ", "minor here."] }),
-    replyEvents({ nudge: true, deltas: ["Listen to the last note. ", "Does it feel like rest?"] }),
+    replyEvents({ offers: false, deltas: ["Home is E ", "minor here."] }),
+    replyEvents({
+      offers: false,
+      deltas: ["Listen to the last note. ", "Does it feel like rest?"],
+    }),
   ]);
   const ws = await workspace({
     exchanges: [

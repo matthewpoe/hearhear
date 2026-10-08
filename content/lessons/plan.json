@@ -1,88 +1,85 @@
 {
-  "$comment": "The exchanges `make capture-lessons` records from the live tutor, in order. Each one's song state is built through the app's song store and snapshot. `key` is committed (the student confirmed home) or provisional; `key_hidden` hides the key labels as the demo does before the guess. `chords` are placed on the note at that bar and beat. `follows` names an earlier exchange: its question and the tutor's recorded reply become this one's history. See content/lessons/README.md.",
+  "$comment": "The exchanges `make capture-lessons` records from the live tutor, in order: the product as a student uses it, a fully chorded Ode to Joy reviewed, then questions about the chart. Each one's song state is built through the app's song store and snapshot. `key` is committed (the student confirmed home) or provisional; `key_hidden` hides the key labels as the demo does before the guess. `chords` are placed on the note at that bar and beat. `mode` is review (the whole chart; `question` optional) or question. `follows` names an earlier exchange: its question (or, for a review, the button's name) and the tutor's recorded reply become this one's history. `ode-ending` is the guided path's 'Ask why' lesson (content/guided-path.json). See content/lessons/README.md.",
   "exchanges": [
     {
-      "id": "ode-where-is-home",
-      "label": "Ode to Joy: where to listen for home while the key is hidden",
-      "song": "ode-to-joy",
-      "key": "provisional",
-      "key_hidden": true,
-      "chords": [],
-      "hint_level": "nudge",
-      "question": "I can't tell where home is yet. Where in the tune should I listen?"
-    },
-    {
-      "id": "ode-bar4-compare",
-      "label": "Ode to Joy: two chords to audition under the long note in bar 4",
-      "song": "ode-to-joy",
-      "key": "committed",
-      "chords": [{ "bar": 1, "beat": 1, "numeral": "I" }],
-      "hint_level": "comparison",
-      "question": "What chord could go under the long note at bar 4, beat 3?"
-    },
-    {
-      "id": "ode-bar4-follow-up",
-      "label": "Ode to Joy: following up on the bar 4 comparison",
-      "follows": "ode-bar4-compare",
-      "song": "ode-to-joy",
-      "key": "committed",
-      "chords": [{ "bar": 1, "beat": 1, "numeral": "I" }],
-      "hint_level": "answer",
-      "question": "I tried both. One makes the phrase sound like it's asking a question. Is that the one you'd pick?"
-    },
-    {
-      "id": "ode-unfinished",
-      "label": "Ode to Joy: why the half cadence feels unfinished",
+      "id": "ode-review",
+      "label": "Ode to Joy: a review of the whole chart",
       "song": "ode-to-joy",
       "key": "committed",
       "chords": [
         { "bar": 1, "beat": 1, "numeral": "I" },
-        { "bar": 4, "beat": 3, "numeral": "V" }
+        { "bar": 2, "beat": 1, "numeral": "V" },
+        { "bar": 3, "beat": 1, "numeral": "I" },
+        { "bar": 4, "beat": 1, "numeral": "I" },
+        { "bar": 4, "beat": 3, "numeral": "V" },
+        { "bar": 5, "beat": 1, "numeral": "I" },
+        { "bar": 6, "beat": 1, "numeral": "V" },
+        { "bar": 7, "beat": 1, "numeral": "I" },
+        { "bar": 8, "beat": 1, "numeral": "V" },
+        { "bar": 8, "beat": 3, "numeral": "I" }
       ],
-      "hint_level": "answer",
-      "question": "Why does the chord at bar 4, beat 3 feel unfinished?"
+      "mode": "review"
+    },
+    {
+      "id": "ode-review-follow-up",
+      "label": "Ode to Joy: following up on the review's bar 4",
+      "follows": "ode-review",
+      "song": "ode-to-joy",
+      "key": "committed",
+      "chords": [
+        { "bar": 1, "beat": 1, "numeral": "I" },
+        { "bar": 2, "beat": 1, "numeral": "V" },
+        { "bar": 3, "beat": 1, "numeral": "I" },
+        { "bar": 4, "beat": 1, "numeral": "I" },
+        { "bar": 4, "beat": 3, "numeral": "ii" },
+        { "bar": 5, "beat": 1, "numeral": "I" },
+        { "bar": 6, "beat": 1, "numeral": "V" },
+        { "bar": 7, "beat": 1, "numeral": "I" },
+        { "bar": 8, "beat": 1, "numeral": "V" },
+        { "bar": 8, "beat": 3, "numeral": "I" }
+      ],
+      "mode": "question",
+      "question": "I swapped in ii under the long note in bar 4. It's softer, but does the tune still feel like it's halfway?"
     },
     {
       "id": "ode-ending",
-      "label": "Ode to Joy: the chord that ends the tune",
+      "label": "Ode to Joy: why the ending lands",
       "song": "ode-to-joy",
       "key": "committed",
       "chords": [
         { "bar": 1, "beat": 1, "numeral": "I" },
+        { "bar": 2, "beat": 1, "numeral": "V" },
+        { "bar": 3, "beat": 1, "numeral": "I" },
+        { "bar": 4, "beat": 1, "numeral": "I" },
         { "bar": 4, "beat": 3, "numeral": "V" },
-        { "bar": 8, "beat": 1, "numeral": "V" }
+        { "bar": 5, "beat": 1, "numeral": "I" },
+        { "bar": 6, "beat": 1, "numeral": "V" },
+        { "bar": 7, "beat": 1, "numeral": "I" },
+        { "bar": 8, "beat": 1, "numeral": "V" },
+        { "bar": 8, "beat": 3, "numeral": "I" }
       ],
-      "hint_level": "answer",
-      "question": "What chord should go under the last note, at bar 8, beat 3?"
+      "mode": "question",
+      "question": "Why does the ending land now?"
     },
     {
-      "id": "st-james-where-is-home",
-      "label": "St. James Infirmary: finding home in a minor tune while the key is hidden",
-      "song": "st-james-infirmary",
-      "key": "provisional",
-      "key_hidden": true,
-      "chords": [],
-      "hint_level": "nudge",
-      "question": "This one sounds darker than Ode to Joy. How do I find home?"
-    },
-    {
-      "id": "st-james-bar4",
-      "label": "St. James Infirmary: the minor key's chord under the long B in bar 4",
-      "song": "st-james-infirmary",
+      "id": "ode-bar2",
+      "label": "Ode to Joy: what the melody does over V in bar 2",
+      "song": "ode-to-joy",
       "key": "committed",
-      "chords": [{ "bar": 1, "beat": 1, "numeral": "i" }],
-      "hint_level": "comparison",
-      "question": "What chord could go under the long note at bar 4, beat 1?"
-    },
-    {
-      "id": "st-james-bar4-follow-up",
-      "label": "St. James Infirmary: following up on why a major chord fits a minor tune",
-      "follows": "st-james-bar4",
-      "song": "st-james-infirmary",
-      "key": "committed",
-      "chords": [{ "bar": 1, "beat": 1, "numeral": "i" }],
-      "hint_level": "answer",
-      "question": "The song is minor, so why would a major chord sound right there?"
+      "chords": [
+        { "bar": 1, "beat": 1, "numeral": "I" },
+        { "bar": 2, "beat": 1, "numeral": "V" },
+        { "bar": 3, "beat": 1, "numeral": "I" },
+        { "bar": 4, "beat": 1, "numeral": "I" },
+        { "bar": 4, "beat": 3, "numeral": "V" },
+        { "bar": 5, "beat": 1, "numeral": "I" },
+        { "bar": 6, "beat": 1, "numeral": "V" },
+        { "bar": 7, "beat": 1, "numeral": "I" },
+        { "bar": 8, "beat": 1, "numeral": "V" },
+        { "bar": 8, "beat": 3, "numeral": "I" }
+      ],
+      "mode": "question",
+      "question": "Bar 2 feels restless under my V. What is the melody doing against it?"
     }
   ]
 }

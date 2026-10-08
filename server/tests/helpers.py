@@ -67,7 +67,7 @@ LESSON = {
         {"event": "message", "data": {"delta": "Recorded: it lands."}, "delayMs": 0},
         {
             "event": "suggestions",
-            "data": {"hint_level": "answer", "suggestions": [], "dropped": 0},
+            "data": {"suggestions": [], "dropped": 0},
             "delayMs": 0,
         },
         {"event": "done", "data": {}, "delayMs": 0},

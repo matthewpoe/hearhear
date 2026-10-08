@@ -8,20 +8,21 @@
 import { createSseParser } from "./sse.js";
 
 /**
- * The request body, shaped by contracts/tutor-request.schema.json.
+ * The request body, shaped by contracts/tutor-request.schema.json. A review
+ * reads the whole chart, and its question is optional; a question needs its
+ * text.
  * @typedef {{
  *   snapshot: ReturnType<typeof import("../store/snapshot.js").toTutorSnapshot>,
- *   hint_level: HintLevel,
+ *   mode: Mode,
  *   question: string | null,
  *   history: Turn[],
  * }} TutorRequest
- * @typedef {"nudge" | "comparison" | "answer"} HintLevel
+ * @typedef {"review" | "question"} Mode
  * @typedef {{ role: "student" | "tutor", text: string }} Turn
  *
  * The `suggestions` event's data. Suggestions are still untrusted here:
  * the panel re-validates them (src/tutor/validate.js).
  * @typedef {{
- *   hint_level: HintLevel,
  *   suggestions: unknown[],
  *   snapshot_version: number,
  *   dropped: number,

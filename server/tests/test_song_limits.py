@@ -50,22 +50,26 @@ def test_swing_range_matches_the_song_schema() -> None:
 
 @pytest.mark.parametrize("swing", [1, 2, 2.5, 3])
 def test_swing_is_accepted_within_its_range(swing: float) -> None:
-    request = TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "swing": swing}})
+    request = TutorRequest.model_validate(
+        {"mode": "review", "snapshot": {**SNAPSHOT, "swing": swing}}
+    )
     assert request.snapshot.swing == swing
 
 
 def test_swing_is_optional() -> None:
-    assert TutorRequest.model_validate({"snapshot": SNAPSHOT}).snapshot.swing is None
+    assert (
+        TutorRequest.model_validate({"snapshot": SNAPSHOT, "mode": "review"}).snapshot.swing is None
+    )
 
 
 @pytest.mark.parametrize("swing", [0, 0.99, 3.01, 10, "fast"])
 def test_swing_outside_its_range_is_refused(swing: Any) -> None:
     with pytest.raises(ValidationError):
-        TutorRequest.model_validate({"snapshot": {**SNAPSHOT, "swing": swing}})
+        TutorRequest.model_validate({"mode": "review", "snapshot": {**SNAPSHOT, "swing": swing}})
 
 
 def _snapshot_data(snapshot: dict[str, Any]) -> Any:
-    text = user_message(TutorRequest.model_validate({"snapshot": snapshot}))
+    text = user_message(TutorRequest.model_validate({"mode": "review", "snapshot": snapshot}))
     (body,) = re.findall(r"<snapshot>(.*?)</snapshot>", text, flags=re.S)
     return json.loads(body)
 

@@ -15,7 +15,6 @@ def reply_from_fixture(name: str) -> dict[str, Any]:
     message = "".join(e["data"]["delta"] for e in fixture["events"] if e["event"] == "message")
     final = next(e["data"] for e in fixture["events"] if e["event"] == "suggestions")
     return {
-        "hint_level": final["hint_level"],
         "message": message,
         "suggestions": final["suggestions"],
     }
@@ -31,7 +30,7 @@ def stream_message(text: str, size: int) -> tuple[str, list[str]]:
     return "".join(sent), [d for d in sent if d]
 
 
-@pytest.mark.parametrize("name", ["nudge", "comparison", "answer"])
+@pytest.mark.parametrize("name", ["review", "question", "malformed"])
 @pytest.mark.parametrize("size", [1, 3, 7, 64])
 def test_deltas_rebuild_the_fixture_message_at_any_chunking(name: str, size: int) -> None:
     reply = reply_from_fixture(name)
@@ -40,7 +39,7 @@ def test_deltas_rebuild_the_fixture_message_at_any_chunking(name: str, size: int
 
 
 def test_message_streams_before_the_reply_is_complete() -> None:
-    reply = reply_from_fixture("answer")
+    reply = reply_from_fixture("review")
     text = json.dumps(reply)
     _, sent = stream_message(text[: text.index('"suggestions"')], 5)
     assert len(sent) > 10, "the message arrives in many pieces, not one at the end"
@@ -55,9 +54,7 @@ def test_message_streams_before_the_reply_is_complete() -> None:
 def test_escapes_split_across_chunks_are_never_sent_half_decoded(
     message: str, ensure_ascii: bool
 ) -> None:
-    text = json.dumps(
-        {"hint_level": "nudge", "message": message, "suggestions": []}, ensure_ascii=ensure_ascii
-    )
+    text = json.dumps({"message": message, "suggestions": []}, ensure_ascii=ensure_ascii)
     streamed, _ = stream_message(text, 1)
     assert streamed == message
 
@@ -66,18 +63,18 @@ def test_nothing_is_sent_until_the_message_starts() -> None:
     deltas = MessageDeltas()
     assert deltas.feed("") == ""
     assert deltas.feed("  ") == ""
-    assert deltas.feed('{"hint_level": "nudge", ') == ""
+    assert deltas.feed('{"suggestions": [], ') == ""
     assert deltas.feed('"message": "Li') == "Li"
     assert deltas.feed("sten") == "sten"
 
 
 def test_valid_reply_keeps_every_suggestion() -> None:
-    reply, dropped = validate_reply(json.dumps(reply_from_fixture("answer")))
-    assert (len(reply.suggestions), dropped) == (3, 0)
+    reply, dropped = validate_reply(json.dumps(reply_from_fixture("review")))
+    assert (len(reply.suggestions), dropped) == (4, 0)
 
 
 def test_invalid_suggestions_are_dropped_and_counted() -> None:
-    raw = reply_from_fixture("comparison")
+    raw = reply_from_fixture("question")
     good = raw["suggestions"][0]
     raw["suggestions"] = [
         good,
@@ -92,7 +89,7 @@ def test_invalid_suggestions_are_dropped_and_counted() -> None:
 
 
 def test_suggestions_past_eight_are_dropped_and_counted() -> None:
-    raw = reply_from_fixture("answer")
+    raw = reply_from_fixture("review")
     raw["suggestions"] = raw["suggestions"][:1] * 11
     reply, dropped = validate_reply(json.dumps(raw))
     assert (len(reply.suggestions), dropped) == (8, 3)
@@ -101,13 +98,13 @@ def test_suggestions_past_eight_are_dropped_and_counted() -> None:
 @pytest.mark.parametrize(
     "text",
     [
-        '{"hint_level": "nudge", "message": "cut off',
+        '{"message": "cut off',
         "[]",
-        json.dumps({"hint_level": "verdict", "message": "hi", "suggestions": []}),
-        json.dumps({"hint_level": "nudge", "message": "x" * 4001, "suggestions": []}),
-        json.dumps({"hint_level": "nudge", "suggestions": []}),
+        json.dumps({"hint_level": "answer", "message": "hi", "suggestions": []}),
+        json.dumps({"message": "x" * 4001, "suggestions": []}),
+        json.dumps({"suggestions": []}),
     ],
-    ids=["truncated", "not-object", "bad-hint-level", "long-message", "no-message"],
+    ids=["truncated", "not-object", "old-hint-level", "long-message", "no-message"],
 )
 def test_unusable_replies_raise(text: str) -> None:
     with pytest.raises(InvalidReply):

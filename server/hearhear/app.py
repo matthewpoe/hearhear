@@ -260,7 +260,7 @@ async def tutor(
     headers = {"Cache-Control": "no-store", "X-Request-Id": request_id}
     # A recorded lesson replays in either mode, before the gate, the budget
     # and the in-flight cap: committed files, no Claude call, no cost. One not
-    # recorded yet plays the committed sample reply for its hint level instead
+    # recorded yet plays the committed sample reply for its mode instead
     # (served_by "fixture", so the panel says it's a sample), so the guided
     # path's tutor step answers anyone, with or without the access code.
     if x_tutor_fixture is not None and is_lesson_name(x_tutor_fixture):
@@ -269,7 +269,7 @@ async def tutor(
             return error_response(404, "lesson_not_found", LESSON_MISSING_MESSAGE, headers)
         lesson = load_lesson(x_tutor_fixture)
         source = "fixture" if lesson is None else "recorded"
-        log_event("tutor_lesson", request_id=request_id, hint_level=body.hint_level, source=source)
+        log_event("tutor_lesson", request_id=request_id, mode=body.mode, source=source)
         replayed = (
             replay_fixture(body, settings.fixtures_dir, request_id)
             if lesson is None
@@ -277,7 +277,7 @@ async def tutor(
         )
         return StreamingResponse(replayed, media_type="text/event-stream", headers=headers)
     if settings.tutor_mode == "fixture":
-        log_event("tutor_fixture", request_id=request_id, hint_level=body.hint_level)
+        log_event("tutor_fixture", request_id=request_id, mode=body.mode)
         return StreamingResponse(
             replay_fixture(body, settings.fixtures_dir, request_id, x_tutor_fixture),
             media_type="text/event-stream",

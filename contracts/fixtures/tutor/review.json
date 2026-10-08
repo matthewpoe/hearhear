@@ -1,0 +1,460 @@
+{
+  "name": "review",
+  "song": "ode-to-joy",
+  "description": "Mode review: a review of a fully chorded Ode to Joy (I | V | I | I V | I | V | I | V I), with alternatives to audition at three spots.",
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "delta": "Bars 5 to 7 repeat bars 1 to 3 note "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "for note, and your chart treats "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "them alike, I, V, I both times. "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "That makes bars 4 and 8 the whole "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "story. The melody changes by one "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "step there: bar 4 stops on a long "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "2, and bar 8 falls through 2 to a "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "long 1. Your chords follow it, V "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "under the first ending and V to I "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "under the second, so the tune asks "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "a question and then answers it: a "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "half cadence, then an authentic "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "cadence. That pairing is the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "backbone of hymns and folk tunes "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "built from two matching lines, and "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "it is why this one sounds so sure "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "of itself.\n\nUnder the long 2 in bar "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "4, your V puts the melody on the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "chord's fifth. V wants home because "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "its third, the leading tone, sits a "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "half step under 1, and ending a "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "phrase on it leaves that pull "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "hanging. ii would hold the same 2, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "as its root, so the melody gives no "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "evidence either way here. What "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "decides it is where the music goes "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "next: bar 5 starts over on I, and V "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "leans into that restart, while ii "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "steps aside more softly and lets "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "bar 5 sound like a fresh start "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "rather than an arrival.\n\nTwo more "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "spots are worth another listen. In "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "bar 2, your V holds through beat 3, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "where the melody's 3 sits over it "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "as a sixth, a gentle rub before the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "2 on beat 4 settles back in. I "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "under beat 3 would make that 3 the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "chord's third: smoother, with the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "harmony moving twice as fast. If "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "you like the lean, that's the case "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "for your chart.\n\nIn bar 7 the line "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "climbs 1-2-3 toward the final "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "cadence, and your I holds under all "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "of it. ii under the 2 on beat 3 "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "turns bars 7 and 8 into a ii-V-I, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "one of the most common ways home. "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "V/V there, the applied dominant of "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "V, does the same job with more "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "push: its third is a raised 4, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "which leans up a half step into the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "V of bar 8.\n\n1. Hear your V under "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "bar 4, beat 3, then ii: does the "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "phrase ask a question, or just "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "pause?\n2. Hear I at bar 2, beat 3, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "then your V: which one leans harder "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "into bar 3?\n3. Hear ii at bar 7, "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "beat 3, then V/V: which one makes "
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "message",
+      "data": {
+        "delta": "the last bar feel more inevitable?"
+      },
+      "delayMs": 45
+    },
+    {
+      "event": "suggestions",
+      "data": {
+        "snapshot_version": 3,
+        "dropped": 0,
+        "suggestions": [
+          {
+            "bar": 4,
+            "beat": 3,
+            "numeral": "ii",
+            "letter": "Em",
+            "confidence": "medium",
+            "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          },
+          {
+            "bar": 2,
+            "beat": 3,
+            "numeral": "I",
+            "letter": "D",
+            "confidence": "medium",
+            "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
+          },
+          {
+            "bar": 7,
+            "beat": 3,
+            "numeral": "ii",
+            "letter": "Em",
+            "confidence": "medium",
+            "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
+          },
+          {
+            "bar": 7,
+            "beat": 3,
+            "numeral": "V/V",
+            "letter": "E",
+            "confidence": "low",
+            "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          }
+        ]
+      },
+      "delayMs": 30
+    },
+    {
+      "event": "done",
+      "data": {},
+      "delayMs": 0
+    }
+  ]
+}

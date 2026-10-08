@@ -45,7 +45,7 @@ def ask(client: TestClient, code: str | None, ip: str = "203.0.113.9") -> Any:
     headers = {"X-Forwarded-For": ip}
     if code is not None:
         headers["X-Tutor-Access"] = code
-    return client.post("/api/tutor", json={"snapshot": SNAPSHOT}, headers=headers)
+    return client.post("/api/tutor", json={"snapshot": SNAPSHOT, "mode": "review"}, headers=headers)
 
 
 @pytest.mark.parametrize(

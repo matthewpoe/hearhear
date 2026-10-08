@@ -17,7 +17,9 @@ MAX_MESSAGE_CHARS = 1000
 MAX_TITLE_CHARS = 120
 MAX_BODY_BYTES = 128 * 1024
 
-HintLevel = Literal["nudge", "comparison", "answer"]
+# "review": read the whole chart (a question is optional). "question": answer
+# the student's question about it.
+Mode = Literal["review", "question"]
 LabelStyle = Literal["roman", "nashville", "letters", "roman+letters"]
 
 # Spelled pitch with octave, e.g. "F#4". Octaves 0-8 bound the piano range
@@ -133,9 +135,21 @@ class Turn(Strict):
 
 class TutorRequest(Strict):
     snapshot: Snapshot
-    hint_level: HintLevel = "nudge"
+    mode: Annotated[
+        Mode,
+        Field(
+            description="review: read the whole chart (the question is optional). "
+            "question: answer the student's question about the chart.",
+        ),
+    ]
     question: Annotated[str, Field(max_length=MAX_MESSAGE_CHARS)] | None = None
     history: Annotated[list[Turn], Field(max_length=MAX_HISTORY_TURNS)] = []
+
+    @model_validator(mode="after")
+    def _question_has_text(self) -> "TutorRequest":
+        if self.mode == "question" and not (self.question or "").strip():
+            raise ValueError("a question needs its text")
+        return self
 
 
 # --- Reply (the structured output Claude returns) --------------------------------
@@ -159,7 +173,6 @@ class Suggestion(Strict):
 class TutorReply(Strict):
     """What Claude returns, constrained by structured outputs."""
 
-    hint_level: HintLevel
     message: Annotated[
         str,
         Field(

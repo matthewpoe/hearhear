@@ -1,7 +1,7 @@
 """SSE framing, the `suggestions` event, and fixture mode (protocol: contracts/tutor-sse.md).
 
 Fixture mode, the default, replays a shape fixture chosen by the request's
-hint level, so the app and tests run with no API key. Live mode is in live.py.
+mode, so the app and tests run with no API key. Live mode is in live.py.
 """
 
 import asyncio
@@ -10,13 +10,13 @@ import re
 from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Final
+from typing import Any
 
 from hearhear.config import REPO_ROOT
 from hearhear.log import log_event
-from hearhear.models import HintLevel, TutorRequest
+from hearhear.models import TutorRequest
 
-FIXTURE_NAMES = frozenset({"nudge", "comparison", "answer", "malformed", "over-budget"})
+FIXTURE_NAMES = frozenset({"review", "question", "malformed", "over-budget"})
 # `served_by` in fixture mode: no model served the reply. The eval harness
 # runs against live mode, so it never sees one.
 FIXTURE_SERVED_BY = "fixture"
@@ -36,56 +36,35 @@ def sse(event: str, data: dict[str, Any]) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
-# Hint levels from least to most revealing.
-HINT_RANK: Final[dict[HintLevel, int]] = {"nudge": 0, "comparison": 1, "answer": 2}
-
-
 @dataclass(frozen=True)
 class Clamp:
     """What the server held back from one `suggestions` event, as counts for the logs.
 
-    Each withheld suggestion is counted under the first reason that applies
-    (hidden key, then provisional key, then a nudge), so the three sum to the
-    number withheld.
+    Only a hidden key holds suggestions back: a letter-name chord would give
+    away the key the student is still guessing.
     """
 
     withheld_hidden: int = 0
-    withheld_provisional: int = 0
-    withheld_nudge: int = 0
-    # 1 when the reply claimed a higher hint level than the request asked for.
-    hint_clamped: int = 0
 
     @property
     def withheld(self) -> int:
-        return self.withheld_hidden + self.withheld_provisional + self.withheld_nudge
+        return self.withheld_hidden
 
     @property
     def applied(self) -> bool:
-        return bool(self.withheld or self.hint_clamped)
+        return bool(self.withheld)
 
     def log_fields(self) -> dict[str, int]:
         return asdict(self)
 
 
-def _clamp(request: TutorRequest, claimed: HintLevel, suggestion_count: int) -> Clamp:
-    snapshot = request.snapshot
-    if snapshot.key_hidden:
-        reason = "withheld_hidden"
-    elif snapshot.key.provisional:
-        reason = "withheld_provisional"
-    elif request.hint_level == "nudge":
-        reason = "withheld_nudge"
-    else:
-        reason = None
-    withheld = {reason: suggestion_count} if reason and suggestion_count else {}
-    clamped = int(HINT_RANK[claimed] > HINT_RANK[request.hint_level])
-    return Clamp(**withheld, hint_clamped=clamped)
+def _clamp(request: TutorRequest, suggestion_count: int) -> Clamp:
+    return Clamp(withheld_hidden=suggestion_count if request.snapshot.key_hidden else 0)
 
 
 def suggestions_data(
     request: TutorRequest,
     *,
-    hint_level: HintLevel,
     suggestions: list[dict[str, Any]],
     dropped: int,
     served_by: str,
@@ -96,15 +75,13 @@ def suggestions_data(
     `fallback` is true when the refusal fallback served any of the reply; the
     eval harness excludes those replies on this flag, not by comparing ids.
 
-    Withholding by default is enforced here, not only by the system prompt:
-    every suggestion is withheld, and counted in `withheld`, when the request
-    asked for a nudge, the key is provisional, or the key is hidden (a
-    letter-name chord gives a hidden key away). A reply that claims a higher
-    hint level than the request asked for is reported at the requested level.
+    The hidden-key clamp is enforced here, not only by the system prompt:
+    while the key is hidden (a demo before the guess), every suggestion is
+    withheld and counted in `withheld`, since a letter-name chord gives the
+    key away.
     """
-    clamp = _clamp(request, hint_level, len(suggestions))
+    clamp = _clamp(request, len(suggestions))
     data = {
-        "hint_level": request.hint_level if clamp.hint_clamped else hint_level,
         "suggestions": [] if clamp.withheld else suggestions,
         "snapshot_version": request.snapshot.version,
         "dropped": dropped,
@@ -139,9 +116,9 @@ def load_lesson(name: str) -> dict[str, Any] | None:
 async def replay_fixture(
     request: TutorRequest, fixtures_dir: Path, request_id: str, name: str | None = None
 ) -> AsyncIterator[str]:
-    """Replay a shape fixture with its recorded pacing: the hint level's, or
+    """Replay a shape fixture with its recorded pacing: the request mode's, or
     the one `name` picks (tests use it for the failure fixtures)."""
-    chosen = name if name in FIXTURE_NAMES else request.hint_level
+    chosen = name if name in FIXTURE_NAMES else request.mode
     fixture = json.loads((fixtures_dir / f"{chosen}.json").read_text())
     async for chunk in replay(request, fixture, request_id, FIXTURE_SERVED_BY):
         yield chunk
@@ -157,7 +134,6 @@ async def replay(
         if step["event"] == "suggestions":
             data, clamp = suggestions_data(
                 request,
-                hint_level=data["hint_level"],
                 suggestions=data["suggestions"],
                 dropped=data["dropped"],
                 served_by=served_by,

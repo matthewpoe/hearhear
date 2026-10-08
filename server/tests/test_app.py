@@ -66,7 +66,7 @@ def test_path_traversal_falls_back_to_index(client: TestClient) -> None:
 
 
 def test_tutor_fixture_stream_follows_the_protocol(client: TestClient) -> None:
-    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "hint_level": "comparison"})
+    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "mode": "review"})
     assert response.headers["content-type"].startswith("text/event-stream")
     stream = events(response.text)
     names = [name for name, _ in stream]
@@ -75,7 +75,29 @@ def test_tutor_fixture_stream_follows_the_protocol(client: TestClient) -> None:
     assert set(names[: names.index("suggestions")]) == {"message"}
     suggestions = dict(stream)["suggestions"]
     assert suggestions["snapshot_version"] == 7
-    assert len(suggestions["suggestions"]) == 2
+    assert len(suggestions["suggestions"]) == 4
+    assert "hint_level" not in suggestions
+
+
+@pytest.mark.parametrize(
+    ("body", "fixture"),
+    [
+        ({"mode": "review"}, "review"),
+        ({"mode": "review", "question": "Focus on the ending."}, "review"),
+        ({"mode": "question", "question": "Why does the ending land?"}, "question"),
+    ],
+    ids=["review", "review-with-focus", "question"],
+)
+def test_fixture_mode_replays_the_fixture_for_the_requests_mode(
+    client: TestClient, body: dict[str, Any], fixture: str
+) -> None:
+    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, **body})
+    expected = json.loads(
+        (REPO_ROOT / "contracts" / "fixtures" / "tutor" / f"{fixture}.json").read_text()
+    )
+    sent = "".join(e["data"]["delta"] for e in expected["events"] if e["event"] == "message")
+    stream = events(response.text)
+    assert "".join(data["delta"] for name, data in stream if name == "message") == sent
 
 
 def test_csp_hash_is_pinned_to_the_locked_abcjs() -> None:
@@ -86,7 +108,7 @@ def test_csp_hash_is_pinned_to_the_locked_abcjs() -> None:
 
 
 def test_fixture_reports_it_was_served_by_no_model(client: TestClient) -> None:
-    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "hint_level": "comparison"})
+    response = client.post("/api/tutor", json={"snapshot": SNAPSHOT, "mode": "review"})
     suggestions = dict(events(response.text))["suggestions"]
     assert suggestions["served_by"] == "fixture"
     assert suggestions["fallback"] is False
@@ -103,11 +125,11 @@ def clamp_logs(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
     return logged
 
 
-def fixture_reply(
-    client: TestClient, fixture: str, hint_level: str, **snapshot: Any
-) -> dict[str, Any]:
-    body = {"snapshot": {**SNAPSHOT, **snapshot}, "hint_level": hint_level}
-    response = client.post("/api/tutor", json=body, headers={"X-Tutor-Fixture": fixture})
+def fixture_reply(client: TestClient, mode: str, **snapshot: Any) -> dict[str, Any]:
+    body: dict[str, Any] = {"snapshot": {**SNAPSHOT, **snapshot}, "mode": mode}
+    if mode == "question":
+        body["question"] = "Why does the ending land?"
+    response = client.post("/api/tutor", json=body)
     suggestions: dict[str, Any] = dict(events(response.text))["suggestions"]
     return suggestions
 
@@ -120,73 +142,35 @@ def test_hidden_key_withholds_fixture_suggestions_too(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     logged = clamp_logs(monkeypatch)
-    suggestions = fixture_reply(client, "comparison", "comparison", key_hidden=True)
+    suggestions = fixture_reply(client, "question", key_hidden=True)
     assert suggestions["suggestions"] == []
     assert (suggestions["dropped"], suggestions["withheld"]) == (0, 2), "withheld, not dropped"
     (entry,) = logged
     assert len(entry["request_id"]) == 32
-    assert counts(entry) == {
-        "withheld_hidden": 2,
-        "withheld_provisional": 0,
-        "withheld_nudge": 0,
-        "hint_clamped": 0,
-    }
+    assert counts(entry) == {"withheld_hidden": 2}
 
 
-def test_provisional_key_withholds_fixture_suggestions(
+def test_a_provisional_key_is_not_clamped(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """Only a hidden key holds suggestions back; the prompt asks for none while
+    the key is provisional, and the server no longer enforces it."""
     logged = clamp_logs(monkeypatch)
     key = {**SNAPSHOT["key"], "provisional": True}
-    suggestions = fixture_reply(client, "comparison", "comparison", key=key)
-    assert suggestions["suggestions"] == []
-    assert (suggestions["dropped"], suggestions["withheld"]) == (0, 2), "withheld, not dropped"
-    (entry,) = logged
-    assert counts(entry) == {
-        "withheld_hidden": 0,
-        "withheld_provisional": 2,
-        "withheld_nudge": 0,
-        "hint_clamped": 0,
-    }
+    suggestions = fixture_reply(client, "question", key=key)
+    assert len(suggestions["suggestions"]) == 2
+    assert suggestions["withheld"] == 0
+    assert logged == []
 
 
-def test_a_nudge_withholds_fixture_suggestions_and_reports_a_nudge(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize("mode", ["review", "question"])
+def test_a_visible_key_passes_every_suggestion_in_either_mode(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, mode: str
 ) -> None:
     logged = clamp_logs(monkeypatch)
-    suggestions = fixture_reply(client, "answer", "nudge")
-    assert suggestions["hint_level"] == "nudge"
-    assert suggestions["suggestions"] == []
-    assert (suggestions["dropped"], suggestions["withheld"]) == (0, 3), "withheld, not dropped"
-    (entry,) = logged
-    assert counts(entry) == {
-        "withheld_hidden": 0,
-        "withheld_provisional": 0,
-        "withheld_nudge": 3,
-        "hint_clamped": 1,
-    }
-
-
-def test_a_fixture_claiming_more_than_was_asked_reports_the_requested_level(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    logged = clamp_logs(monkeypatch)
-    suggestions = fixture_reply(client, "answer", "comparison")
-    assert suggestions["hint_level"] == "comparison"
-    assert len(suggestions["suggestions"]) == 3
+    suggestions = fixture_reply(client, mode)
+    assert suggestions["suggestions"], "a review and an answer both carry their alternatives"
     assert (suggestions["dropped"], suggestions["withheld"]) == (0, 0)
-    (entry,) = logged
-    assert counts(entry)["hint_clamped"] == 1
-    assert counts(entry)["withheld_nudge"] == 0
-
-
-@pytest.mark.parametrize("level", ["nudge", "comparison", "answer"])
-def test_a_fixture_at_the_requested_level_is_not_clamped(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch, level: str
-) -> None:
-    logged = clamp_logs(monkeypatch)
-    suggestions = fixture_reply(client, level, level)
-    assert suggestions["hint_level"] == level
     assert logged == [], "nothing held back, so nothing logged"
 
 
@@ -217,7 +201,7 @@ def test_fixture_mode_needs_no_api_key() -> None:
 def test_tutor_over_budget_fixture(client: TestClient) -> None:
     response = client.post(
         "/api/tutor",
-        json={"snapshot": SNAPSHOT},
+        json={"snapshot": SNAPSHOT, "mode": "review"},
         headers={"X-Tutor-Fixture": "over-budget"},
     )
     first_event, data = events(response.text)[0]
@@ -236,7 +220,8 @@ def test_tutor_over_budget_fixture(client: TestClient) -> None:
     ids=["long-question", "long-history", "bad-hint-level", "extra-field"],
 )
 def test_tutor_rejects_out_of_bounds_requests(client: TestClient, change: dict[str, Any]) -> None:
-    body = {"snapshot": SNAPSHOT, **change}
+    body = {"snapshot": SNAPSHOT, "mode": "review", **change}
+    body = {k: v for k, v in body.items() if v is not None}
     response = client.post("/api/tutor", json=body)
     assert response.status_code == 422
     error = response.json()["error"]
@@ -269,7 +254,7 @@ def test_snapshot_rejects_midi_numbers_as_pitches() -> None:
 
 
 def test_fixture_header_replays_a_recorded_lesson(client: TestClient, recorded: Path) -> None:
-    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    body = {"snapshot": SNAPSHOT, "mode": "review"}
     response = client.post(
         "/api/tutor", json=body, headers={"X-Tutor-Fixture": "lesson:ode-ending"}
     )
@@ -281,21 +266,21 @@ def test_fixture_header_replays_a_recorded_lesson(client: TestClient, recorded: 
 def test_a_lesson_not_recorded_yet_plays_the_sample_reply(
     client: TestClient, recorded: Path
 ) -> None:
-    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    body = {"snapshot": SNAPSHOT, "mode": "review"}
     response = client.post(
         "/api/tutor", json=body, headers={"X-Tutor-Fixture": "lesson:ode-unfinished"}
     )
     assert response.status_code == 200
     stream = dict(events(response.text))
     assert stream["suggestions"]["served_by"] == "fixture"
-    assert stream["suggestions"]["hint_level"] == "nudge"
+    assert len(stream["suggestions"]["suggestions"]) == 4, "the review sample, for a review"
 
 
 @pytest.mark.parametrize("name", ["lesson:../secret", "lesson:", "lesson:Ode"])
 def test_a_lesson_name_that_isnt_a_plain_id_is_a_404_never_another_file(
     client: TestClient, recorded: Path, name: str
 ) -> None:
-    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    body = {"snapshot": SNAPSHOT, "mode": "review"}
     response = client.post("/api/tutor", json=body, headers={"X-Tutor-Fixture": name})
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "lesson_not_found"
@@ -313,7 +298,7 @@ def test_a_replay_never_pauses_longer_than_the_cap(
         waits.append(seconds)
 
     monkeypatch.setattr(tutor.asyncio, "sleep", sleep)
-    body = {"snapshot": SNAPSHOT, "hint_level": "nudge"}
+    body = {"snapshot": SNAPSHOT, "mode": "review"}
     response = client.post("/api/tutor", json=body, headers={"X-Tutor-Fixture": "lesson:slow"})
     assert response.status_code == 200
     assert waits == [tutor.MAX_REPLAY_DELAY_MS / 1000] * 3

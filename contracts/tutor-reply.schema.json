@@ -58,15 +58,6 @@
   "additionalProperties": false,
   "description": "What Claude returns, constrained by structured outputs.",
   "properties": {
-    "hint_level": {
-      "enum": [
-        "nudge",
-        "comparison",
-        "answer"
-      ],
-      "title": "Hint Level",
-      "type": "string"
-    },
     "message": {
       "description": "What the tutor says, in the student's chord-label style.",
       "maxLength": 4000,
@@ -83,7 +74,6 @@
     }
   },
   "required": [
-    "hint_level",
     "message",
     "suggestions"
   ],
