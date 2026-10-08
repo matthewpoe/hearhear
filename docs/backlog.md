@@ -46,6 +46,7 @@ The musician and non-musician walkthroughs on the deployed app found these. The 
 - **Record chords from the chord row while recording,** so a phrase captures melody and harmony in one pass.
 - **Punch-in mid-tune:** re-record from a chosen bar without redoing the phrases before it.
 - **A count-in for phrase recording,** so a phrase that starts on a pickup is captured on the right beat. (Distinct from the meter prompt's count-in bar above, which sets up the click test.)
+- **Mark pickup notes in a recording** (Matthew, Oct 7). Let the student say the first note or two are a pickup, so bar 1 starts on the downbeat after them. Without it, a tune that starts on a pickup gets bars that are off by the pickup's length.
 - **Sign in to save sessions.** A recording lives in the browser tab today and is gone when the tab closes. (This is the "persistence" extension below, made concrete.)
 - **MIDI keyboard input and hum or voice input.** (The PRD's "Web MIDI and microphone input" below; listed here because the video names it as next.)
 - **Time signatures beyond the current set.**
