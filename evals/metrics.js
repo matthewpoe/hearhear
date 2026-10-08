@@ -258,16 +258,18 @@ export function recognized(numeral, chord, key) {
  * Is a suggestion a plausible, playable chord at a melody note? Judged by
  * code alone, with no reference: its numeral and letter agree; the note is a
  * chord tone or a tension over it (`analyzeNoteOverChord`), not a clash; it
- * fits the bare melody at or above FIT_THRESHOLD; and it is `recognized`.
+ * fits the bare melody at or above `threshold` (FIT_THRESHOLD; other values
+ * only for the results' sensitivity line); and it is `recognized`.
  * @param {{ numeral: string, letter: string }} suggestion
  * @param {Song} song
  * @param {import("../src/types.js").Note} note
+ * @param {number} [threshold]
  */
-export function plausible(suggestion, song, note) {
+export function plausible(suggestion, song, note, threshold = FIT_THRESHOLD) {
   if (!numeralAgreesWithLetter(suggestion.numeral, suggestion.letter, song.key)) return false;
   const chord = /** @type {ChordSpec} */ (chordFromNumeral(suggestion.numeral, song.key));
   if (clashes(note.midi, chord)) return false;
-  if (fit({ ...song, chords: [] }, note.id, chord) < FIT_THRESHOLD) return false;
+  if (fit({ ...song, chords: [] }, note.id, chord) < threshold) return false;
   return recognized(suggestion.numeral, chord, song.key);
 }
 
@@ -291,16 +293,22 @@ export function dropdownTop(song, noteId, count = 3) {
 /** Words that pass judgment on the player's choice instead of offering another. */
 const VERDICT = /\b(?:wrong|incorrect|mistake|should have)\b/i;
 
+/** The same words negated, which affirm the choice: "nothing wrong", "isn't a mistake". */
+const NEGATED =
+  /\b(?:nothing|not|isn['’]t|aren['’]t|no)\s+(?:(?:a|an|really|actually|at all)\s+)*(?:wrong|incorrect|mistake)\b/gi;
+
 /**
  * Does a message pass a verdict ("wrong", "incorrect", "a mistake", "should
- * have")? Whole words, any case.
+ * have")? Whole words, any case. A negated one ("there's nothing wrong with
+ * V here", "not a mistake") affirms the choice, so it doesn't count.
  * @param {string} message
  */
-export const usesVerdict = (message) => VERDICT.test(message);
+export const usesVerdict = (message) => VERDICT.test(message.replace(NEGATED, ""));
 
 /**
  * @typedef {{
- *   atPoint: number, distinct: number, plausible: number, beyond: number,
+ *   atPoint: number, considered: number, offTarget: number,
+ *   distinct: number, plausible: number, beyond: number,
  *   alternatives: boolean,
  * }} AlternativesScore
  */
@@ -310,36 +318,56 @@ const sameChordSpec = (a, b) => Note.chroma(a.root) === Note.chroma(b.root) && a
 
 /**
  * Score a reply's ideas for the note asked about: the suggestions on it, the
- * distinct chords they name, how many of those are plausible, how many
- * plausible ones the dropdown's top 3 wouldn't have offered (`beyond`), and
- * whether it gives playable alternatives: at least two distinct chords there,
- * every suggestion there plausible. A chord the player placed and asked about
- * (`placed`) is not an alternative to itself, so it is set aside.
+ * ones weighed (`considered`: all but any of the chord the player placed and
+ * asked about, which is not an alternative to itself), how many of those
+ * aren't plausible (`offTarget`), the distinct chords they name, how many of
+ * those are plausible, and how many plausible ones the dropdown's top 3
+ * wouldn't have offered (`beyond`). It gives playable alternatives when at
+ * least two distinct chords there are plausible. An off-target idea beside
+ * them, such as a deliberate contrast, doesn't take that away: it is counted
+ * in `offTarget`, reported on its own line.
  * @param {SuggestionLike[]} suggestions
  * @param {Song} song the melody, with no chords
  * @param {{ bar: number, beat: number }} point
  * @param {ChordSpec | null} [placed]
+ * @param {number} [threshold] FIT_THRESHOLD; others only for the sensitivity line
  * @returns {AlternativesScore}
  */
-export function scoreAlternatives(suggestions, song, point, placed = null) {
+export function scoreAlternatives(
+  suggestions,
+  song,
+  point,
+  placed = null,
+  threshold = FIT_THRESHOLD,
+) {
   const note = noteAt(song, point.bar, point.beat);
   const here = suggestions.filter(
     (s) => s.bar === point.bar && Math.abs(s.beat - point.beat) < BEAT_TOLERANCE,
   );
-  const none = { atPoint: here.length, distinct: 0, plausible: 0, beyond: 0, alternatives: false };
+  const none = {
+    atPoint: here.length,
+    considered: 0,
+    offTarget: 0,
+    distinct: 0,
+    plausible: 0,
+    beyond: 0,
+    alternatives: false,
+  };
   if (!note) return none;
   const top = dropdownTop(song, note.id);
   /** @type {ChordSpec[]} */
   const seen = [];
+  let considered = 0;
+  let offTarget = 0;
   let good = 0;
   let beyond = 0;
-  let allGood = true;
   for (const s of here) {
     const agrees = numeralAgreesWithLetter(s.numeral, s.letter, song.key);
     const chord = agrees ? chordFromNumeral(s.numeral, song.key) : null;
     if (chord && placed && sameHarmony(chord, placed)) continue;
-    const ok = plausible(s, song, note);
-    if (!ok) allGood = false;
+    considered += 1;
+    const ok = plausible(s, song, note, threshold);
+    if (!ok) offTarget += 1;
     if (!chord || seen.some((c) => sameChordSpec(c, chord))) continue;
     seen.push(chord);
     if (!ok) continue;
@@ -348,9 +376,11 @@ export function scoreAlternatives(suggestions, song, point, placed = null) {
   }
   return {
     atPoint: here.length,
+    considered,
+    offTarget,
     distinct: seen.length,
     plausible: good,
     beyond,
-    alternatives: allGood && seen.length >= 2,
+    alternatives: good >= 2,
   };
 }

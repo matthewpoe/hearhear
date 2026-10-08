@@ -196,7 +196,7 @@ test("dropdownTop takes the best three by fit, ties to the commoner chord", () =
   assert.deepEqual(top[0], baselineChord(song, "n1"));
 });
 
-test("scoreAlternatives wants two distinct chords at the note, every one plausible", () => {
+test("scoreAlternatives wants two distinct plausible chords at the note", () => {
   const at = (/** @type {string} */ numeral, /** @type {string} */ letter, beat = 1) => ({
     bar: 1,
     beat,
@@ -208,13 +208,34 @@ test("scoreAlternatives wants two distinct chords at the note, every one plausib
   assert.equal(good.atPoint, 2, "only suggestions on the note asked about");
   assert.equal(good.alternatives, true);
   assert.equal(good.plausible, 2);
+  assert.equal(good.offTarget, 0);
   assert.equal(good.beyond, 1, "the dropdown's top 3 has I, not A7");
   const twice = scoreAlternatives([at("I", "G"), at("I", "G")], song, point);
   assert.equal(twice.distinct, 1);
   assert.equal(twice.alternatives, false);
   const oneBad = scoreAlternatives([at("I", "G"), at("V7/V", "A7"), at("I", "C")], song, point);
-  assert.equal(oneBad.alternatives, false, "a malformed one spoils the reply");
+  assert.equal(oneBad.alternatives, true, "an off-target idea beside two good ones isn't a veto");
   assert.equal(oneBad.plausible, 2);
+  assert.deepEqual([oneBad.offTarget, oneBad.considered], [1, 3], "it is counted apart");
+  const contrast = scoreAlternatives(
+    [at("I", "G"), at("V7/V", "A7"), at("bII", "Ab")],
+    song,
+    point,
+  );
+  assert.equal(contrast.alternatives, true, "a deliberate contrast doesn't cost the headline");
+  assert.equal(contrast.offTarget, 1);
+  const lone = scoreAlternatives([at("I", "G"), at("bII", "Ab")], song, point);
+  assert.equal(lone.alternatives, false, "one plausible chord isn't alternatives");
+});
+
+test("scoreAlternatives takes the fit threshold for the sensitivity line", () => {
+  const point = { bar: 1, beat: 1 };
+  const two = [
+    { bar: 1, beat: 1, numeral: "I", letter: "G" },
+    { bar: 1, beat: 1, numeral: "V7/V", letter: "A7" },
+  ];
+  assert.equal(scoreAlternatives(two, song, point).alternatives, true);
+  assert.equal(scoreAlternatives(two, song, point, null, 1.01).alternatives, false);
 });
 
 test("scoreAlternatives sets aside the chord the player placed", () => {
@@ -232,10 +253,29 @@ test("scoreAlternatives sets aside the chord the player placed", () => {
 });
 
 test("usesVerdict flags verdict words, whole words in any case", () => {
-  for (const m of ["That's wrong.", "Incorrect here", "a MISTAKE", "You should have used IV"]) {
+  for (const m of [
+    "That's wrong.",
+    "Incorrect here",
+    "a MISTAKE",
+    "You should have used IV",
+    "There's nothing wrong with V, but this one is wrong.",
+  ]) {
     assert.equal(usesVerdict(m), true, m);
   }
   for (const m of ["It works; try IV too.", "a wrongly placed beam", "unmistakeable", ""]) {
+    assert.equal(usesVerdict(m), false, m);
+  }
+});
+
+test("usesVerdict lets a negated verdict word affirm the choice", () => {
+  for (const m of [
+    "There's nothing wrong with V here.",
+    "It's not wrong at all; try IV too.",
+    "V isn’t wrong under that note.",
+    "No mistake: V works. Compare it with IV.",
+    "That's not a mistake.",
+    "Nothing incorrect about it.",
+  ]) {
     assert.equal(usesVerdict(m), false, m);
   }
 });

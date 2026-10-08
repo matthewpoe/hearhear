@@ -2,7 +2,7 @@
  * Roll the eval's per-reply records up into rates, and render them as the
  * Markdown table in evals/results/README.md. Pure functions.
  *
- * @import { AlternativesScore, Rate, SuggestionScore } from "./metrics.js"
+ * @import { AlternativesScore, Rate, SuggestionLike, SuggestionScore } from "./metrics.js"
  */
 
 import { percentile, rate } from "./metrics.js";
@@ -21,12 +21,17 @@ import { percentile, rate } from "./metrics.js";
  *   bar: number, beat: number, reference: string | null, placed: string | null,
  *   outcome: "ok" | "excluded" | "invalid" | "failed", code: string | null,
  *   servedBy: string | null, message: string,
+ *   suggestions: SuggestionLike[] | null,
  *   dropped: number | null, withheld: number | null,
  *   schemaValid: boolean, score: SuggestionScore | null,
  *   alternatives: AlternativesScore | null, verdict: boolean | null,
  *   withholds: boolean | null,
  *   ms: number, firstDeltaMs: number | null,
  * }} ReplyRecord
+ *
+ * `suggestions`: the suggestions event's list as the server sent it (null
+ * without an event), kept so evals/score.js can re-score a run without asking
+ * again. `score`, `alternatives`, `verdict`, and `withholds` are that scoring.
  *
  * `dropped` and `withheld`: the suggestions event's counts of suggestions the
  * server rejected as invalid and valid ones its hint-level clamp held back
@@ -36,9 +41,10 @@ import { percentile, rate } from "./metrics.js";
  * @typedef {{
  *   replies: number, excluded: number, failed: number,
  *   schemaValidity: Rate, agreement: Rate,
- *   alternatives: Rate | null, beyond: Rate | null,
+ *   alternatives: Rate | null, beyond: Rate | null, offTarget: Rate | null,
  *   hitRate: Rate | null, clashRate: Rate,
- *   checkAlternatives: Rate | null, verdictFree: Rate | null,
+ *   checkAlternatives: Rate | null, checkOffTarget: Rate | null,
+ *   verdictFree: Rate | null,
  *   pedagogy: Rate | null, nudgesClamped: Rate | null,
  *   latencyMs: { p50: number | null, p95: number | null },
  *   firstDeltaMs: { p50: number | null, p95: number | null },
@@ -49,13 +55,24 @@ import { percentile, rate } from "./metrics.js";
 const roundMs = (ms) => (ms === null ? null : Math.round(ms));
 
 /**
- * Summarize replies at one hint level (or a mix). Alternatives and beyond
- * count "ask" replies at comparison and answer; hit rate ("includes the
- * conventional choice") only those with a hymnal reference; the "does this
- * work?" rates only "check" replies; pedagogy and clamped nudges only
- * nudges. Each is null when no reply of its kind is in `records`. A clamped
- * nudge is one where the server's clamp held back suggestions the model
- * offered (`withheld` > 0).
+ * The share of the ideas weighed at the note that aren't plausible.
+ * @param {AlternativesScore[]} alts
+ */
+const offTargetOf = (alts) =>
+  rate(
+    alts.reduce((n, a) => n + a.offTarget, 0),
+    alts.reduce((n, a) => n + a.considered, 0),
+  );
+
+/**
+ * Summarize replies at one hint level (or a mix). Alternatives, beyond, and
+ * off-target count "ask" replies at comparison and answer; hit rate
+ * ("includes the conventional choice") only those with a hymnal reference;
+ * the "does this work?" rates only "check" replies, and a check counts as
+ * answered with options only when it has playable alternatives and no
+ * verdict words; pedagogy and clamped nudges only nudges. Each is null when
+ * no reply of its kind is in `records`. A clamped nudge is one where the
+ * server's clamp held back suggestions the model offered (`withheld` > 0).
  * @param {ReplyRecord[]} records
  * @returns {LevelSummary}
  */
@@ -70,6 +87,7 @@ export function summarize(records) {
   const checks = ok.filter((r) => r.kind === "check");
   const nudges = ok.filter((r) => r.level === "nudge");
   const alts = asks.map((r) => /** @type {AlternativesScore} */ (r.alternatives));
+  const checkAlts = checks.map((r) => /** @type {AlternativesScore} */ (r.alternatives));
   const latencies = ok.map((r) => r.ms);
   const firsts = ok.flatMap((r) => (r.firstDeltaMs === null ? [] : [r.firstDeltaMs]));
   return {
@@ -88,6 +106,7 @@ export function summarize(records) {
           alts.reduce((n, a) => n + a.plausible, 0),
         )
       : null,
+    offTarget: asks.length ? offTargetOf(alts) : null,
     hitRate: referenced.length
       ? rate(referenced.filter((r) => r.score?.hit).length, referenced.length)
       : null,
@@ -96,8 +115,9 @@ export function summarize(records) {
       sum((s) => s.onOnset),
     ),
     checkAlternatives: checks.length
-      ? rate(checks.filter((r) => r.alternatives?.alternatives).length, checks.length)
+      ? rate(checks.filter((r) => r.alternatives?.alternatives && !r.verdict).length, checks.length)
       : null,
+    checkOffTarget: checks.length ? offTargetOf(checkAlts) : null,
     verdictFree: checks.length
       ? rate(checks.filter((r) => !r.verdict).length, checks.length)
       : null,
@@ -123,7 +143,7 @@ export function formatRate(r) {
 const formatMs = (ms) => (ms === null ? "—" : `${ms} ms`);
 
 /**
- * @typedef {{ alternatives: Rate, hitRate: Rate, clashRate: Rate }} Baseline
+ * @typedef {{ alternatives: Rate, offTarget: Rate, hitRate: Rate, clashRate: Rate }} Baseline
  */
 
 /**
@@ -145,7 +165,9 @@ export function resultsTable(results) {
     "Numeral = letter",
     "Playable alternatives",
     "Beyond the obvious",
-    "Does this work? alternatives",
+    "Off-target ideas",
+    "Does this work? options, no verdict",
+    "Does this work? off-target",
     "No verdict words",
     "Includes the conventional choice",
     "Clash rate",
@@ -165,7 +187,9 @@ export function resultsTable(results) {
     formatRate(s.agreement),
     formatRate(s.alternatives),
     formatRate(s.beyond),
+    formatRate(s.offTarget),
     formatRate(s.checkAlternatives),
+    formatRate(s.checkOffTarget),
     formatRate(s.verdictFree),
     formatRate(s.hitRate),
     formatRate(s.clashRate),
@@ -184,6 +208,8 @@ export function resultsTable(results) {
     "baseline",
     ...Array(5).fill(dash),
     formatRate(b.alternatives),
+    dash,
+    formatRate(b.offTarget),
     ...Array(3).fill(dash),
     formatRate(b.hitRate),
     formatRate(b.clashRate),
