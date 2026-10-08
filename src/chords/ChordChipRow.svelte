@@ -3,6 +3,8 @@
   // in the user's label style; choosing one reopens the dropdown on its note.
   // Below them, the tutor's suggestions as alternatives to hear. A suggestion
   // never changes the song: the user tries it in the dropdown and decides.
+  // Hovering or focusing a suggestion rings its note on the staff, so a reply
+  // about bar 7 points at bar 7.
   /** @import { ChordSpec } from "../types.js" */
   import { song } from "../store/song.js";
   import { ui, keyLabelMode } from "../store/ui.js";
@@ -10,6 +12,10 @@
   import ChordBadge from "./ChordBadge.svelte";
   import { chordView } from "./chordView.js";
   import { whereOf } from "./where.js";
+  import { mark } from "../staff/staffEvents.js";
+
+  /** The staff class for the note under the suggestion being looked at. */
+  const SUGGESTED = "is-suggested";
 
   /**
    * @type {{
@@ -47,6 +53,16 @@
   );
   const unplaced = $derived($suggestions.items.length - ideas.length);
   const stale = $derived(isStale($suggestions, $song.version));
+
+  /** @param {string} noteId */
+  const ring = (noteId) => mark(SUGGESTED, [noteId]);
+  const unring = () => mark(SUGGESTED, []);
+
+  // A card can go (a new reply, a new song) while it is hovered or focused.
+  $effect(() => {
+    void $suggestions;
+    return unring;
+  });
 </script>
 
 {#if chips.length === 0}
@@ -94,7 +110,13 @@
     <ul>
       {#each ideas as { idea, place } (idea.id)}
         {@const view = viewOf(idea.chord)}
-        <li class="idea">
+        <li
+          class="idea"
+          onpointerenter={() => ring(idea.noteId)}
+          onpointerleave={unring}
+          onfocusin={() => ring(idea.noteId)}
+          onfocusout={unring}
+        >
           <ChordBadge {view} />
           <span class="where">{place?.where}</span>
           <span class="confidence">{idea.confidence} confidence</span>
@@ -197,5 +219,12 @@
     flex-basis: 100%;
     margin: 0;
     font-size: var(--text-sm);
+  }
+  /* The note a hovered or focused suggestion is for: a solid accent ring,
+     apart from the lesson's dashed start note and its pulsing spotlight. */
+  :global(#staff .is-suggested .abcjs-notehead) {
+    stroke: var(--accent);
+    stroke-width: 6px;
+    paint-order: stroke;
   }
 </style>
