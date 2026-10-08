@@ -159,7 +159,7 @@ for (const viewport of [
     await page.goto("/");
     const tour = page.getByRole("region", { name: "Guided lesson" });
     await expect(tour).toBeVisible();
-    const entry = page.getByRole("button", { name: "Guided lesson" });
+    const entry = page.getByRole("button", { name: "Guided lesson", exact: true });
     await expect(entry).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Show me how" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Beginner tips" })).toHaveCount(0);

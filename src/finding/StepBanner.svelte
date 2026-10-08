@@ -40,6 +40,9 @@
     }
   }
 
+  /** The celebration closes on the student's own ×, never on its own. */
+  let dismissed = $state(false);
+
   const rec = recorder;
   const busy = $derived($rec.status === "armed" || $rec.status === "recording");
 
@@ -53,8 +56,26 @@
           ? 2
           : $song.chords.length === 0
             ? 3
-            : 4,
+            : dismissed
+              ? null
+              : 4,
   );
+
+  /** The masthead's Guided lesson button pulses when the celebration lands. */
+  $effect(() => {
+    if (step !== 4) return;
+    tick().then(() => {
+      const entry = guidedEntry();
+      entry?.classList.remove("celebrate-pulse");
+      void entry?.offsetWidth;
+      entry?.classList.add("celebrate-pulse");
+    });
+  });
+
+  /** @returns {HTMLButtonElement | null} */
+  function guidedEntry() {
+    return /** @type {HTMLButtonElement | null} */ (document.querySelector("#guided-entry"));
+  }
 
   /** Step 2 sends the student to the key box: scroll to it and ring it. */
   function toKeyBox(scroll = true) {
@@ -115,10 +136,18 @@
             >
           </p>
         {:else if step === 4}
-          <h2 id="step-banner-title">You're set</h2>
+          <h2 id="step-banner-title">
+            Nice, your first chord!
+            <span class="burst" aria-hidden="true"
+              ><i class="tonic"></i><i class="sub"></i><i class="dom"></i></span
+            >
+          </h2>
           <p>
-            <b class="do">Keep placing chords</b>, then press <b class="do">Review my chords</b> for the
-            tutor's read of your chart: what it does, and what else to try.
+            Keep going, then press <b class="do">Review my chords</b> for the tutor's read of your
+            chart. Want to learn more?
+            <button type="button" class="link" onclick={() => guidedEntry()?.click()}
+              ><b class="do">Try the guided lesson</b></button
+            >.
           </p>
         {:else}
           <h2 id="step-banner-title">Place a chord</h2>
@@ -129,7 +158,13 @@
           </p>
         {/if}
       </div>
-      {#if step < 4}<span class="count">Step {step} of 3</span>{/if}
+      {#if step < 4}<span class="count">Step {step} of 3</span>
+      {:else}<button
+          type="button"
+          class="close"
+          aria-label="Close"
+          onclick={() => (dismissed = true)}>×</button
+        >{/if}
     </section>
   {/key}
 {/if}
@@ -260,6 +295,73 @@
     }
     100% {
       box-shadow: 0 0 0 14px transparent;
+    }
+  }
+  .close {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--accent);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .burst {
+    display: inline-flex;
+    gap: 6px;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+  .burst i {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    animation: pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .burst .tonic {
+    border-radius: 50%;
+    background: var(--fn-tonic);
+  }
+  .burst .sub {
+    background: var(--fn-subdominant);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    animation-delay: 90ms;
+  }
+  .burst .dom {
+    background: var(--fn-dominant);
+    animation-delay: 180ms;
+  }
+  @keyframes pop {
+    0% {
+      opacity: 0;
+      transform: translateY(8px) scale(0.2) rotate(-40deg);
+    }
+    70% {
+      opacity: 1;
+      transform: translateY(-6px) scale(1.25) rotate(8deg);
+    }
+    100% {
+      transform: none;
+    }
+  }
+  :global(#guided-entry.celebrate-pulse) {
+    animation: entry-pulse 1.4s ease-out 2;
+  }
+  @keyframes entry-pulse {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 14px transparent;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .burst i,
+    :global(#guided-entry.celebrate-pulse) {
+      animation: none;
     }
   }
   @media (max-width: 640px) {
