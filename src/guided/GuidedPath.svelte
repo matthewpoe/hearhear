@@ -253,8 +253,9 @@
   }
 
   // The step's target wears the spotlight while the step is current. Looked
-  // up again a frame after any song or view change, since the staff redraws
-  // (dropping its note classes) and the welcome gives way to the song select.
+  // up again a frame after any song or view change, since the welcome gives
+  // way to the song select and keys move. A note's ring is a staff mark, so
+  // it survives redraws this effect never hears about (spotlight.js).
   $effect(() => {
     const at = index;
     const on = $tour.running;
