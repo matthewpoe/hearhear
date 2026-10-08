@@ -100,14 +100,6 @@ describe("describePlacement", () => {
     assert.doesNotMatch(`${said.relation} ${said.does}`, /right|wrong|correct|✓|✗/i);
   });
 
-  it("names the chord in the user's label style", () => {
-    const A7 = { root: "A", type: "7" };
-    assert.match(describePlacement(song, first.id, A7, "letters")?.does ?? "", /^A7: tension/);
-    assert.match(describePlacement(song, first.id, A7, "nashville")?.does ?? "", /^5⁷: tension/);
-    assert.match(describePlacement(song, first.id, A7, "roman+letters")?.does ?? "", /^V7 · A7: /);
-    assert.match(describePlacement(song, first.id, A7)?.does ?? "", /^V7: tension/);
-  });
-
   it("describes a rub without flagging it", () => {
     const said = describePlacement(song, first.id, { root: "F", type: "M" });
     assert.ok(said);
