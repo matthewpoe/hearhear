@@ -10,7 +10,7 @@
    * chord on the first click anywhere. Once a tune is loaded that first click
    * starts audio silently instead, so a C chord never sounds over a tune in
    * another key (say, a note click on a demo before the key guess).
-   * @import { Key } from "../types.js"
+   * @import { ChordSpec, Key, Song } from "../types.js"
    */
   import { onMount, tick } from "svelte";
   import { song } from "../store/song.js";
@@ -105,23 +105,29 @@
   /**
    * What the chord the user just placed does, described, never graded
    * (chordFeedback.js). Set when one chord is placed; a new song, or that
-   * chord taken away, clears it.
-   * @type {{ noteId: string, relation: string, does: string } | null}
+   * chord taken away, clears it. The words are read from the song as it was
+   * at the placement, in the current label style, so switching styles
+   * renames the chord as it does on the chips.
+   * @type {{ noteId: string, chord: ChordSpec, at: Song } | null}
    */
-  let placement = $state(null);
+  let placed = $state(null);
+  const placement = $derived.by(() => {
+    if (!placed) return null;
+    const said = describePlacement(placed.at, placed.noteId, placed.chord, $ui.labelStyle);
+    return said && { noteId: placed.noteId, ...said };
+  });
   let before = song.get();
   $effect(() =>
     song.subscribe((now) => {
       const was = before;
       before = now;
-      const placed = placedChord(was, now);
-      if (placed && !now.key.provisional) {
-        const said = describePlacement(now, placed.noteId, placed.chord);
-        placement = said && { noteId: placed.noteId, relation: said.relation, does: said.does };
+      const chordPlaced = placedChord(was, now);
+      if (chordPlaced && !now.key.provisional) {
+        placed = { ...chordPlaced, at: now };
         return;
       }
-      const id = placement?.noteId;
-      if (now.id !== was.id || !now.chords.some((c) => c.noteId === id)) placement = null;
+      const id = placed?.noteId;
+      if (now.id !== was.id || !now.chords.some((c) => c.noteId === id)) placed = null;
     }),
   );
 
@@ -153,6 +159,38 @@
     ["straight", "Straight"],
     ["swing", "Swing"],
   ]);
+  /**
+   * A feel waiting on the user's say: a re-read replaces the notes, so once
+   * they've been edited by hand Feel asks first. Any change to the notes
+   * puts the question away.
+   * @type {"straight" | "swing" | null}
+   */
+  let pendingFeel = $state(null);
+  $effect(() => {
+    void $song.notes;
+    pendingFeel = null;
+  });
+
+  /**
+   * @param {Event & { currentTarget: HTMLInputElement }} event
+   * @param {"straight" | "swing"} value
+   */
+  function chooseFeel(event, value) {
+    if (!recorder.edited()) {
+      recorder.reread(value);
+      return;
+    }
+    // The radios stay on the tune's feel until the re-read is confirmed.
+    const radios = event.currentTarget.closest("fieldset")?.querySelectorAll("input") ?? [];
+    for (const radio of radios) radio.checked = radio.value === feel;
+    pendingFeel = value;
+  }
+
+  function confirmFeel() {
+    const value = pendingFeel;
+    pendingFeel = null;
+    if (value) recorder.reread(value);
+  }
 
   /** A demo's prompt waits for its guess; anywhere else the user can put it off. */
   const canDismiss = $derived(!($song.key.provisional && demo));
@@ -290,12 +328,21 @@
                   name="record-feel"
                   {value}
                   checked={feel === value}
-                  onchange={() => recorder.reread(value)}
+                  onchange={(event) => chooseFeel(event, value)}
                 />
                 {label}
               </label>
             {/each}
           </div>
+          {#if pendingFeel}
+            <div class="feel-confirm" role="status">
+              <p>Re-reading your recording replaces your note edits.</p>
+              <button type="button" onclick={confirmFeel}>
+                Re-read as {pendingFeel === "swing" ? "Swing" : "Straight"}
+              </button>
+              <button type="button" onclick={() => (pendingFeel = null)}>Keep my edits</button>
+            </div>
+          {/if}
           <p id="feel-gloss" class="gloss">
             Swing writes long-short pairs as even eighths that play back swung. Straight writes them
             as you played them, dotted where they're uneven. Undo takes a change back.
@@ -492,6 +539,16 @@
     margin: 0;
     padding: 0;
     border: none;
+  }
+  .feel-confirm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .feel-confirm p {
+    flex-basis: 100%;
+    color: var(--ink);
   }
   .feel legend {
     padding: 0;
