@@ -135,10 +135,11 @@ test("once the notes are edited by hand, Feel asks before a re-read replaces the
   await page.keyboard.press("Escape");
   await expect(menu).toHaveCount(0);
 
-  // Feel now asks first, leaving the notes and the radios as they were.
+  // Feel now asks first, leaving the notes as they were; the radios show the
+  // feel being asked about, and Keep my edits puts them back.
   await feel.locator("label", { hasText: "Swing" }).click();
   await expect(warning).toBeVisible();
-  await expect(straight).toBeChecked();
+  await expect(swing).toBeChecked();
   expect(await durations()).toBe(edited);
   await axe(page);
   await feel.getByRole("button", { name: "Keep my edits" }).click();

@@ -161,29 +161,28 @@
   ]);
   /**
    * A feel waiting on the user's say: a re-read replaces the notes, so once
-   * they've been edited by hand Feel asks first. Any change to the notes
-   * puts the question away.
+   * they've been edited by hand Feel asks first. The radios show the feel
+   * chosen (the tune's own, or the one being asked about). Any change to the
+   * song puts the question away and the radios back on the tune's feel.
    * @type {"straight" | "swing" | null}
    */
   let pendingFeel = $state(null);
+  let feelChoice = $derived(feel);
   $effect(() => {
-    void $song.notes;
+    void $song;
     pendingFeel = null;
+    feelChoice = feel;
   });
 
-  /**
-   * @param {Event & { currentTarget: HTMLInputElement }} event
-   * @param {"straight" | "swing"} value
-   */
-  function chooseFeel(event, value) {
-    if (!recorder.edited()) {
-      recorder.reread(value);
-      return;
-    }
-    // The radios stay on the tune's feel until the re-read is confirmed.
-    const radios = event.currentTarget.closest("fieldset")?.querySelectorAll("input") ?? [];
-    for (const radio of radios) radio.checked = radio.value === feel;
-    pendingFeel = value;
+  /** @param {"straight" | "swing"} value */
+  function chooseFeel(value) {
+    if (recorder.edited()) pendingFeel = value;
+    else if (!recorder.reread(value)) feelChoice = feel;
+  }
+
+  function keepEdits() {
+    pendingFeel = null;
+    feelChoice = feel;
   }
 
   function confirmFeel() {
@@ -322,13 +321,13 @@
           <legend>Feel <span class="gloss">— how your playing is read</span></legend>
           <div class="segmented">
             {#each FEELS as [value, label] (value)}
-              <label class:checked={feel === value}>
+              <label class:checked={feelChoice === value}>
                 <input
                   type="radio"
                   name="record-feel"
                   {value}
-                  checked={feel === value}
-                  onchange={(event) => chooseFeel(event, value)}
+                  bind:group={feelChoice}
+                  onchange={() => chooseFeel(value)}
                 />
                 {label}
               </label>
@@ -340,7 +339,7 @@
               <button type="button" onclick={confirmFeel}>
                 Re-read as {pendingFeel === "swing" ? "Swing" : "Straight"}
               </button>
-              <button type="button" onclick={() => (pendingFeel = null)}>Keep my edits</button>
+              <button type="button" onclick={keepEdits}>Keep my edits</button>
             </div>
           {/if}
           <p id="feel-gloss" class="gloss">
