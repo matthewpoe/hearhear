@@ -1,8 +1,8 @@
 // Matthew's rule for onboarding: every walkthrough step names one action, in
-// the accent color, and only doing it moves on. No Next, no Got it, and no
-// button that does the step for the viewer: the strip offers only the way
-// out. These checks keep that from regressing in the content or the
-// component.
+// the accent color, and doing it moves on. No Got it, and no button that does
+// the step for the viewer: the strip offers Back, Next and Restart to move
+// between steps, and the way out. These checks keep that from regressing in
+// the content or the component.
 
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
@@ -92,13 +92,22 @@ describe("every walkthrough step waits for one action", () => {
   });
 });
 
-describe("the strip offers only the way out", () => {
-  it("GuidedPath.svelte's buttons are Leave lesson and Finish, nothing else", async () => {
+describe("the strip moves between steps but never does one", () => {
+  it("GuidedPath.svelte's buttons only move, reopen the tune, or leave", async () => {
+    // Matthew, Oct 7, 2026: stuck on a step, he needed Back, Next and Restart
+    // (DECISIONS.md). They move between steps; none does a step's action.
     const markup = (await source("guided/GuidedPath.svelte")).split("</script>").at(-1) ?? "";
     const labels = [...markup.matchAll(/<button[^>]*>([^<]*)<\/button\s*>/g)].map(([, t]) =>
       t.trim(),
     );
-    assert.deepEqual(labels.sort(), ["Finish", "Leave lesson"]);
-    assert.doesNotMatch(markup, /["'>]\s*(Next|Got it|Back)\s*["'<]/);
+    assert.deepEqual(labels.sort(), [
+      "Back",
+      "Back to {tuneTitle}",
+      "Finish",
+      "Leave lesson",
+      "Next",
+      "Restart",
+    ]);
+    assert.doesNotMatch(markup, /["'>]\s*(Got it|Do it for me|Show me)\s*["'<]/);
   });
 });

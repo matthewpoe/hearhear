@@ -203,21 +203,66 @@ export function stepTarget(step, song) {
 /**
  * The note the running lesson points at on the staff, so onboarding's chord
  * step suggests that note rather than one of its own and the page points at
- * one place. Undefined when the lesson isn't running (the chord step picks
- * its own); null when it is but its current step targets no note on this
- * tune (another tune is open, or the step rings a control), so the chord
- * step suggests nothing.
+ * one place. Undefined when the lesson isn't running, or when its current
+ * step targets no note on this tune (another tune is open, or the step rings
+ * a control): the chord step then picks its own, so its heading never shows
+ * with nothing under it while the lesson is on another step.
  * @param {GuidedPath} path
  * @param {{ running: boolean, index: number }} tour
  * @param {Song} song
- * @returns {Note | null | undefined}
+ * @returns {Note | undefined}
  */
 export function lessonNote(path, tour, song) {
   if (!tour.running) return undefined;
   const step = path.steps[tour.index];
-  if (!step || song.id !== path.song) return null;
+  if (!step || song.id !== path.song) return undefined;
   const noteId = stepTarget(step, song)?.noteId;
-  return song.notes.find((n) => n.id === noteId) ?? null;
+  return song.notes.find((n) => n.id === noteId);
+}
+
+/**
+ * What the walkthrough does on its own at the current step: "advance" once
+ * it's done, "stay" otherwise. A step reached by moving forward naturally
+ * (its predecessor done, or a resume) advances at once when it's already
+ * done, so a key already chosen isn't asked for again. A step the viewer
+ * navigated to (Back or Next) is `held`: being done already doesn't move it
+ * on, or Back could never land on a finished step. A held step "release"s
+ * its hold once it isn't done (the viewer undid it, or Back cleared what it
+ * listens for), so doing it again advances as usual; until then, Next moves
+ * on. The last step never advances on its own.
+ * @param {{ met: boolean, held: boolean, last: boolean }} at
+ * @returns {"advance" | "stay" | "release"}
+ */
+export function autoStep({ met, held, last }) {
+  if (!met) return held ? "release" : "stay";
+  return held || last ? "stay" : "advance";
+}
+
+/**
+ * Whether a step is about the tour's tune, so another song on the staff
+ * stalls it: every step after the first, except the closing line (Record
+ * makes a new song of its own).
+ * @param {GuidedPath} path
+ * @param {number} index
+ */
+export function needsTune(path, index) {
+  const step = path.steps[index];
+  return index > 0 && step !== undefined && !step.sendOff;
+}
+
+/**
+ * A step's recorded lesson as the tutor panel needs it: the X-Tutor-Fixture
+ * value and the mode it was recorded for, from the lessons plan
+ * (content/lessons/plan.json). Null when the step names none, or one the
+ * plan doesn't list (so the panel asks as anyone would).
+ * @param {Step} step
+ * @param {{ exchanges: { id: string, mode: string }[] }} plan
+ * @returns {{ fixture: string, mode: "review" | "question" } | null}
+ */
+export function lessonOf(step, plan) {
+  const planned = step.lesson && plan.exchanges.find((e) => e.id === step.lesson);
+  if (!planned || (planned.mode !== "review" && planned.mode !== "question")) return null;
+  return { fixture: `lesson:${planned.id}`, mode: planned.mode };
 }
 
 /**

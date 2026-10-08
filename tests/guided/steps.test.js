@@ -4,7 +4,12 @@ import path from "../../content/guided-path.json" with { type: "json" };
 import ode from "../../content/songs/ode-to-joy.json" with { type: "json" };
 import { createSongStore } from "../../src/store/song.js";
 import { chordFromNumeral } from "../../src/theory/index.js";
+import plan from "../../content/lessons/plan.json" with { type: "json" };
+import controls from "../../content/controls.json" with { type: "json" };
 import {
+  autoStep,
+  lessonOf,
+  needsTune,
   checkPath,
   clampStep,
   conditionMet,
@@ -258,7 +263,7 @@ describe("stepTarget", () => {
     assert.deepEqual(target("numbers"), { codes: ["Digit3", "Digit4", "Digit5"] });
     assert.deepEqual(target("half-cadence"), noteId(4, 3));
     assert.deepEqual(target("land"), noteId(8, 3));
-    assert.deepEqual(target("ask"), { selector: "#tutor .ask" });
+    assert.deepEqual(target("review"), { selector: "#tutor", button: "Review my chords" });
     assert.deepEqual(target("transpose"), { selector: "#toolbar > summary" });
     assert.deepEqual(target("your-turn"), { selector: "#record-button, #record-card" });
   });
@@ -283,14 +288,73 @@ describe("lessonNote", () => {
     assert.equal(lessonNote(guided, on("land"), song), noteAt(song, 8, 3));
   });
 
-  it("is null while the lesson rings a control, or another tune is open", () => {
+  it("is undefined while the lesson rings a control, or another tune is open, so step 3 never points nowhere", () => {
     const song = demo().get();
-    assert.equal(lessonNote(guided, on("ask"), song), null);
-    assert.equal(lessonNote(guided, on("half-cadence"), { ...song, id: "other" }), null);
+    assert.equal(lessonNote(guided, on("numbers"), song), undefined);
+    assert.equal(lessonNote(guided, on("review"), song), undefined);
+    assert.equal(lessonNote(guided, on("half-cadence"), { ...song, id: "other" }), undefined);
   });
 
   it("is undefined outside the lesson, so step 3 picks its own note", () => {
     const song = demo().get();
     assert.equal(lessonNote(guided, { running: false, index: 4 }, song), undefined);
+  });
+});
+
+describe("autoStep", () => {
+  it("moves on from a done step reached naturally, so a done step is skipped", () => {
+    assert.equal(autoStep({ met: true, held: false, last: false }), "advance");
+    assert.equal(autoStep({ met: false, held: false, last: false }), "stay");
+  });
+
+  it("holds a step the viewer went back (or on) to, even when it's done", () => {
+    assert.equal(autoStep({ met: true, held: true, last: false }), "stay");
+  });
+
+  it("lets go of the hold once the step isn't done, so redoing it moves on", () => {
+    assert.equal(autoStep({ met: false, held: true, last: false }), "release");
+    // Released, then done again: forward as usual.
+    assert.equal(autoStep({ met: true, held: false, last: false }), "advance");
+  });
+
+  it("never moves past the last step on its own", () => {
+    assert.equal(autoStep({ met: true, held: false, last: true }), "stay");
+  });
+});
+
+describe("needsTune", () => {
+  const guided = /** @type {GuidedPath} */ (path);
+  const at = (/** @type {string} */ id) => steps.findIndex((s) => s.id === id);
+
+  it("is every step after loading it, but not the send-off (Record makes its own song)", () => {
+    assert.equal(needsTune(guided, at("load")), false);
+    for (const id of ["listen", "home", "numbers", "half-cadence", "land", "review", "transpose"]) {
+      assert.equal(needsTune(guided, at(id)), true, id);
+    }
+    assert.equal(needsTune(guided, at("your-turn")), false);
+  });
+});
+
+describe("the review step", () => {
+  const review = /** @type {Step} */ (steps.find((s) => s.id === "review"));
+
+  it("spotlights the tutor's Review my chords button by its real name", () => {
+    assert.deepEqual(review.target, {
+      type: "button",
+      within: "tutor",
+      name: controls.controls.review,
+    });
+  });
+
+  it("replays a lesson recorded as a review, never a question's answer", () => {
+    assert.deepEqual(lessonOf(review, plan), { fixture: "lesson:ode-review", mode: "review" });
+    const planned = plan.exchanges.find((e) => e.id === review.lesson);
+    assert.equal(planned?.mode, "review");
+    assert.equal(planned?.song, path.song);
+  });
+
+  it("names no lesson for a step without one, or one the plan lacks", () => {
+    assert.equal(lessonOf(steps[0], plan), null);
+    assert.equal(lessonOf({ ...review, lesson: "not-planned" }, plan), null);
   });
 });

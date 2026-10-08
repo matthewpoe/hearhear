@@ -33,6 +33,7 @@ from hearhear.tutor import (
     LESSON_SERVED_BY,
     is_lesson_id,
     is_lesson_name,
+    lesson_mode,
     load_lesson,
     replay,
     replay_fixture,
@@ -252,7 +253,8 @@ async def tutor(
 ) -> StreamingResponse | JSONResponse:
     """Order of checks: body cap (413, middleware), validation (422), rate
     limit (429), then a recorded lesson if X-Tutor-Fixture names one (the
-    sample reply when it isn't recorded yet, 404 when the id isn't plain),
+    sample reply when it isn't recorded yet, 404 when the id isn't plain or
+    the lesson was recorded for the other mode),
     then in live mode the access gate (429 locked, 401), the daily budget
     (503) and the in-flight cap (503), then the stream. Fixture mode has none
     of the live checks."""
@@ -268,6 +270,14 @@ async def tutor(
             log_event("request_rejected", code="lesson_not_found", request_id=request_id)
             return error_response(404, "lesson_not_found", LESSON_MISSING_MESSAGE, headers)
         lesson = load_lesson(x_tutor_fixture)
+        # A lesson answers only the kind of request it was recorded for: a
+        # question's answer replayed as a review (or the other way) would read
+        # as the tutor answering something it wasn't asked.
+        if lesson is not None and lesson_mode(lesson) not in (None, body.mode):
+            log_event(
+                "request_rejected", code="lesson_not_found", reason="mode", request_id=request_id
+            )
+            return error_response(404, "lesson_not_found", LESSON_MISSING_MESSAGE, headers)
         source = "fixture" if lesson is None else "recorded"
         log_event("tutor_lesson", request_id=request_id, mode=body.mode, source=source)
         replayed = (

@@ -44,7 +44,7 @@ const TARGETS = {
   numbers: ["#piano .key"],
   "half-cadence": [`#staff [data-note-id="nf"]`],
   land: [`#staff [data-note-id="${lastNote.id}"]`],
-  ask: ["#tutor > h2", "#tutor .demo", "#tutor .ask"],
+  review: ["#tutor > h2", "#tutor .demo", "#tutor .ask"],
   transpose: ["#toolbar summary"],
   "your-turn": ["#record-button"],
 };
@@ -167,9 +167,9 @@ for (const viewport of [
     await expect(heading).not.toBeFocused();
     const count = tour.getByText(/^Guided lesson · step \d+\/\d+$/);
     await expect(count).toHaveText(`Guided lesson · step 1/${steps.length - 1}`);
-    await expect(tour.getByText("Draft", { exact: true })).toBeVisible();
-    // The Draft badge carries the placeholder note, for screen readers too.
-    await expect(tour.getByText(/placeholder: pending Matthew's ear check/i)).toBeAttached();
+    // No "Draft" badge, and the content's status note stays out of the page.
+    await expect(tour.getByText("Draft", { exact: true })).toHaveCount(0);
+    await expect(tour.getByText(/placeholder: pending/i)).toHaveCount(0);
     // The step's action is in the accent color.
     const act = tour.locator(".act");
     await expect(act).toHaveText("Load Ode to Joy");
@@ -195,8 +195,13 @@ for (const viewport of [
       const at = steps.findIndex((/** @type {{ id: string }} */ s) => s.id === id);
       await expect(heading).toHaveText(`${titleOf(id)}:`);
       await expect(count).toHaveText(`Guided lesson · step ${at + 1}/${steps.length - 1}`);
-      // No button does the step: only the way out.
-      await expect(tour.getByRole("button")).toHaveText(["Leave lesson"]);
+      // No button does the step: only moving between steps, and the way out.
+      await expect(tour.getByRole("button")).toHaveText([
+        "Back",
+        "Next",
+        "Restart",
+        "Leave lesson",
+      ]);
       await expect.poll(() => spotlit(page, target), `${id} spotlight`).toBe(true);
       await expect.poll(() => stripProblems(page, id)).toEqual([]);
     };
@@ -281,18 +286,19 @@ for (const viewport of [
     await page.keyboard.press("a");
     await page.keyboard.press("Escape");
 
-    // 7. Ask the tutor in the viewer's own words.
-    await expectStep("ask", { selector: "#tutor .ask" });
+    // 7. Get a review: Review my chords is spotlit and pressing it is the step.
+    await expectStep("review", { selector: "#tutor .ask button", text: "Review my chords" });
     // The step needs no passphrase, so the live tutor doesn't ask for one here.
     await expect(page.locator("#tutor-gate-ask")).toHaveCount(0);
-    // In either mode it replays the step's lesson (the sample reply until it's
-    // recorded): anyone gets an answer, with no access code and no Claude call.
-    await page.locator("#tutor-question").fill("Why does the ending land now?");
+    // In either mode it replays the step's review lesson (the review sample
+    // until it's recorded): anyone gets a review, with no access code and no
+    // Claude call. Never a question's recorded answer.
     const replied = page.waitForResponse("**/api/tutor");
-    await page.locator("#tutor").getByRole("button", { name: "Ask", exact: true }).click();
+    await page.locator("#tutor").getByRole("button", { name: "Review my chords" }).click();
     const reply = await replied;
     expect(reply.status()).toBe(200);
-    expect(reply.request().headers()["x-tutor-fixture"]).toBe("lesson:ode-ending");
+    expect(reply.request().headers()["x-tutor-fixture"]).toBe("lesson:ode-review");
+    expect(reply.request().postDataJSON().mode).toBe("review");
     expect(reply.request().headers()["x-tutor-access"]).toBeUndefined();
     // The notice says the reply is a recorded sample (in live mode, that one reply).
     await expect(page.locator("#tutor .demo")).toContainText("recorded sample");
@@ -308,7 +314,7 @@ for (const viewport of [
     // pressing Record.
     await expect(heading).toHaveText(`${titleOf("your-turn")}:`);
     await expect(tour.getByText("Guided lesson · done")).toBeVisible();
-    await expect(tour.getByRole("button")).toHaveText(["Finish"]);
+    await expect(tour.getByRole("button")).toHaveText(["Back", "Restart", "Finish"]);
     await expect.poll(() => spotlit(page, { selector: "#record-button" })).toBe(true);
     await page.screenshot({ path: test.info().outputPath(`send-off-${viewport.width}.png`) });
     await axe(page);
@@ -368,16 +374,175 @@ test("another song mid-walk asks for the tour's tune back, and spotlights the so
   await expect(heading).toHaveText(`${titleOf("listen")}:`);
 
   await page.locator("#song-select").selectOption({ label: "St. James Infirmary" });
-  await expect(tour.locator(".hint")).toHaveText("Load Ode to Joy again to keep going.");
-  await expect(tour.locator(".hint .act")).toHaveText("Load Ode to Joy");
+  const hint = tour.locator(".hint");
+  await expect(hint).toContainText("This step is about Ode to Joy, and another song is open.");
   await expect.poll(() => spotlit(page, { selector: "#song-select" })).toBe(true);
   await expect(heading).toHaveText(`${titleOf("listen")}:`);
 
   await page.locator("#song-select").selectOption({ label: "Ode to Joy" });
-  await expect(tour.locator(".hint")).toHaveCount(0);
+  await expect(hint).toHaveCount(0);
   await expect
     .poll(() => spotlit(page, { selector: "#staff [aria-label='Playback'] button" }))
     .toBe(true);
+
+  // Further on, "Back to Ode to Joy" reopens the tune with the work kept (the
+  // key chosen), on the same step.
+  await page
+    .locator("#staff [aria-label='Playback']")
+    .getByRole("button", { name: "Play", exact: true })
+    .click();
+  await expect(heading).toHaveText(`${titleOf("home")}:`);
+  await page
+    .locator("#staff [aria-label='Playback']")
+    .getByRole("button", { name: "Stop" })
+    .click();
+  const homes = page.locator("#key-prompt").getByRole("group", { name: "Home note" });
+  await homes.getByRole("button", { name: "D", exact: true }).click();
+  await expect(heading).toHaveText(`${titleOf("numbers")}:`);
+  await page.locator("#song-select").selectOption({ label: "St. James Infirmary" });
+  const back = tour.getByRole("button", { name: "Back to Ode to Joy" });
+  await expect(back).toBeVisible();
+  await axe(page);
+  await back.click();
+  await expect(hint).toHaveCount(0);
+  await expect(page.locator("#song-select")).toHaveValue("ode-to-joy");
+  await expect(heading).toHaveText(`${titleOf("numbers")}:`);
+  await expect(homes.getByRole("button", { name: "D", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(heading).toBeFocused();
+});
+
+test("Back, Next and Restart move through the lesson; Back never bounces forward", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const tour = page.getByRole("region", { name: "Guided lesson" });
+  const heading = page.locator("#guided-step-title");
+  const back = tour.getByRole("button", { name: "Back a step" });
+  const next = tour.getByRole("button", { name: "Next step" });
+  const restart = tour.getByRole("button", { name: "Restart lesson" });
+  const count = tour.getByText(/^Guided lesson · step \d+\/\d+$/);
+  const at = (/** @type {string} */ id) =>
+    steps.findIndex((/** @type {{ id: string }} */ s) => s.id === id);
+  const onStep = async (/** @type {string} */ id) => {
+    await expect(heading).toHaveText(`${titleOf(id)}:`);
+    await expect(count).toHaveText(`Guided lesson · step ${at(id) + 1}/${steps.length - 1}`);
+  };
+  await expect(back).toBeDisabled();
+
+  const transport = page.locator("#staff [aria-label='Playback']");
+  await page
+    .locator("#song-chooser")
+    .getByRole("button", { name: /Ode to Joy/ })
+    .click();
+  await onStep("listen");
+  await transport.getByRole("button", { name: "Play", exact: true }).click();
+  await onStep("home");
+  await transport.getByRole("button", { name: "Stop" }).click();
+  const homes = page.locator("#key-prompt").getByRole("group", { name: "Home note" });
+  await homes.getByRole("button", { name: "D", exact: true }).click();
+  await onStep("numbers");
+
+  // Back to a done step: it stays there, marked done, its target spotlit again.
+  await back.click();
+  await onStep("home");
+  await expect(tour.getByText("Done.")).toBeVisible();
+  await expect.poll(() => spotlit(page, { selector: "#key-prompt" })).toBe(true);
+  await page.waitForTimeout(500);
+  await onStep("home");
+  await expect(back).toBeFocused();
+
+  // Back again, by keyboard, to Play: doing it again moves forward naturally,
+  // past the home already chosen.
+  await page.keyboard.press("Enter");
+  await onStep("listen");
+  await expect
+    .poll(() => spotlit(page, { selector: "#staff [aria-label='Playback'] button" }))
+    .toBe(true);
+  await transport.getByRole("button", { name: "Play", exact: true }).click();
+  await onStep("numbers");
+  await transport.getByRole("button", { name: "Stop" }).click();
+
+  // Next moves on without doing the step.
+  await next.click();
+  await onStep("half-cadence");
+  await expect.poll(() => spotlit(page, { noteId: "nf" })).toBe(true);
+  await next.click();
+  await onStep("land");
+
+  // Restart: step 1 done with a fresh Ode to Joy (no key, no chords), so
+  // it asks for Play again.
+  await restart.click();
+  await onStep("listen");
+  await expect(
+    page.locator("#key-prompt").getByRole("button", { name: "Help me find it" }),
+  ).toBeVisible();
+  await expect(homes.getByRole("button", { name: "D", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+  await back.click();
+  await onStep("load");
+  await expect(back).toBeDisabled();
+  await expect(heading).toBeFocused();
+  await axe(page);
+});
+
+test("during the review step, a typed question never carries the review lesson", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const at = steps.findIndex((/** @type {{ id: string }} */ s) => s.id === "review");
+  await page.addInitScript((at) => localStorage.setItem("hearhear.guided.step", String(at)), at);
+  /** @type {{ fixture: string | undefined, mode: string }[]} */
+  const sent = [];
+  await page.route("**/api/tutor", async (route) => {
+    sent.push({
+      fixture: route.request().headers()["x-tutor-fixture"],
+      mode: route.request().postDataJSON().mode,
+    });
+    await route.abort();
+  });
+  await page.goto("/");
+  await page
+    .locator("#song-chooser")
+    .getByRole("button", { name: /Ode to Joy/ })
+    .click();
+  await expect(page.locator("#guided-step-title")).toHaveText(`${titleOf("review")}:`);
+  await page.locator("#tutor-question").fill("Why does the ending land?");
+  await page.locator("#tutor").getByRole("button", { name: "Ask", exact: true }).click();
+  await expect.poll(() => sent.length).toBe(1);
+  expect(sent[0]).toEqual({ fixture: undefined, mode: "question" });
+});
+
+test("while the lesson is on a step with no note, the Chords step still suggests one", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page
+    .locator("#song-chooser")
+    .getByRole("button", { name: /Ode to Joy/ })
+    .click();
+  const transport = page.locator("#staff [aria-label='Playback']");
+  await transport.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.locator("#guided-step-title")).toHaveText(`${titleOf("home")}:`);
+  await transport.getByRole("button", { name: "Stop" }).click();
+  const question = page.locator("#key-prompt");
+  await question
+    .getByRole("group", { name: "Home note" })
+    .getByRole("button", { name: "D", exact: true })
+    .click();
+  // The lesson is on Count from home, which rings piano keys, not a note.
+  await expect(page.locator("#guided-step-title")).toHaveText(`${titleOf("numbers")}:`);
+  await question.getByRole("button", { name: "Next: find the chords" }).click();
+  // Step 3's heading never shows with nothing under it: its own first note.
+  const chordsStep = page.locator("#chords-step");
+  await expect(chordsStep).toContainText("Try a chord under the first note of bar 1");
+  await expect(page.locator("#staff [role='button'].is-start")).toHaveCount(1);
 });
 
 test("while the lesson runs, the Chords step suggests the lesson's note, not one of its own", async ({

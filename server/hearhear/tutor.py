@@ -113,6 +113,14 @@ def load_lesson(name: str) -> dict[str, Any] | None:
     return loaded
 
 
+def lesson_mode(lesson: dict[str, Any]) -> str | None:
+    """The mode a recorded lesson was captured for ("review" or "question"),
+    from the request saved with it, or None when the file doesn't say."""
+    request = lesson.get("request")
+    mode = request.get("mode") if isinstance(request, dict) else None
+    return mode if isinstance(mode, str) else None
+
+
 async def replay_fixture(
     request: TutorRequest, fixtures_dir: Path, request_id: str, name: str | None = None
 ) -> AsyncIterator[str]:
