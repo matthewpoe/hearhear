@@ -1,10 +1,10 @@
 {
   "run": {
-    "date": "2026-10-08T02:36:41.980Z",
-    "mode": "fixture",
-    "model": "fixture",
-    "endpoint": "http://127.0.0.1:8011/api/tutor",
-    "note": "Fixture run: the server replayed canned replies about a different song, so these numbers measure the plumbing (requests, streaming, parsing, scoring), not the model."
+    "date": "2026-10-08T03:36:01.744Z",
+    "mode": "live",
+    "model": "claude-opus-5-5",
+    "endpoint": "http://127.0.0.1:50594/api/tutor",
+    "note": "Live run against claude-opus-5-5."
   },
   "requests": 20,
   "headline": {
@@ -12,20 +12,20 @@
     "excluded": 0,
     "failed": 0,
     "schemaValidity": { "count": 20, "total": 20 },
-    "agreement": { "count": 0, "total": 56 },
-    "alternatives": { "count": 0, "total": 20 },
-    "beyond": { "count": 0, "total": 0 },
-    "offTarget": { "count": 32, "total": 32 },
-    "checkAlternatives": { "count": 0, "total": 12 },
+    "agreement": { "count": 76, "total": 76 },
+    "alternatives": { "count": 9, "total": 20 },
+    "beyond": { "count": 19, "total": 48 },
+    "offTarget": { "count": 3, "total": 51 },
+    "checkAlternatives": { "count": 1, "total": 12 },
     "verdictFree": { "count": 20, "total": 20 },
-    "barsExist": { "count": 17, "total": 20 },
-    "repeatCited": { "count": 3, "total": 4 },
+    "barsExist": { "count": 20, "total": 20 },
+    "repeatCited": { "count": 4, "total": 4 },
     "testsWithinThree": { "count": 20, "total": 20 },
-    "alternativesCarded": { "count": 12, "total": 20 },
-    "conventional": { "count": 0, "total": 12 },
-    "clashRate": { "count": 0, "total": 0 },
-    "latencyMs": { "p50": 1142, "p95": 2748 },
-    "firstDeltaMs": { "p50": 50, "p95": 52 },
+    "alternativesCarded": { "count": 4, "total": 20 },
+    "conventional": { "count": 10, "total": 12 },
+    "clashRate": { "count": 0, "total": 76 },
+    "latencyMs": { "p50": 25750, "p95": 38329 },
+    "firstDeltaMs": { "p50": 13196, "p95": 24898 },
     "baseline": {
       "alternatives": { "count": 12, "total": 12 },
       "offTarget": { "count": 0, "total": 24 },
@@ -34,17 +34,17 @@
     "sensitivity": [
       {
         "threshold": 0.4,
-        "alternatives": { "count": 0, "total": 20 },
+        "alternatives": { "count": 9, "total": 20 },
         "baseline": { "count": 12, "total": 12 }
       },
       {
         "threshold": 0.5,
-        "alternatives": { "count": 0, "total": 20 },
+        "alternatives": { "count": 9, "total": 20 },
         "baseline": { "count": 12, "total": 12 }
       },
       {
         "threshold": 0.6,
-        "alternatives": { "count": 0, "total": 20 },
+        "alternatives": { "count": 9, "total": 20 },
         "baseline": { "count": 10, "total": 12 }
       }
     ]
@@ -61,10 +61,10 @@
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 1, "total": 1 },
-          "agreement": { "count": 0, "total": 4 },
-          "alternatives": { "count": 0, "total": 1 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 4, "total": 4 },
+          "agreement": { "count": 5, "total": 5 },
+          "alternatives": { "count": 1, "total": 1 },
+          "beyond": { "count": 0, "total": 3 },
+          "offTarget": { "count": 1, "total": 4 },
           "checkAlternatives": null,
           "verdictFree": { "count": 1, "total": 1 },
           "barsExist": { "count": 1, "total": 1 },
@@ -72,9 +72,9 @@
           "testsWithinThree": { "count": 1, "total": 1 },
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2745, "p95": 2745 },
-          "firstDeltaMs": { "p50": 50, "p95": 50 }
+          "clashRate": { "count": 0, "total": 5 },
+          "latencyMs": { "p50": 37035, "p95": 37035 },
+          "firstDeltaMs": { "p50": 23130, "p95": 23130 }
         }
       },
       "baseline": {
@@ -94,20 +94,20 @@
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 1, "total": 1 },
-          "agreement": { "count": 0, "total": 4 },
-          "alternatives": { "count": 0, "total": 1 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 4, "total": 4 },
+          "agreement": { "count": 4, "total": 4 },
+          "alternatives": { "count": 1, "total": 1 },
+          "beyond": { "count": 1, "total": 3 },
+          "offTarget": { "count": 0, "total": 3 },
           "checkAlternatives": null,
           "verdictFree": { "count": 1, "total": 1 },
-          "barsExist": { "count": 0, "total": 1 },
+          "barsExist": { "count": 1, "total": 1 },
           "repeatCited": null,
           "testsWithinThree": { "count": 1, "total": 1 },
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2747, "p95": 2747 },
-          "firstDeltaMs": { "p50": 51, "p95": 51 }
+          "clashRate": { "count": 0, "total": 4 },
+          "latencyMs": { "p50": 38329, "p95": 38329 },
+          "firstDeltaMs": { "p50": 24520, "p95": 24520 }
         }
       },
       "baseline": {
@@ -127,20 +127,20 @@
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 1, "total": 1 },
-          "agreement": { "count": 0, "total": 4 },
-          "alternatives": { "count": 0, "total": 1 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 4, "total": 4 },
+          "agreement": { "count": 6, "total": 6 },
+          "alternatives": { "count": 1, "total": 1 },
+          "beyond": { "count": 1, "total": 5 },
+          "offTarget": { "count": 1, "total": 6 },
           "checkAlternatives": null,
           "verdictFree": { "count": 1, "total": 1 },
-          "barsExist": { "count": 0, "total": 1 },
+          "barsExist": { "count": 1, "total": 1 },
           "repeatCited": null,
           "testsWithinThree": { "count": 1, "total": 1 },
-          "alternativesCarded": { "count": 0, "total": 1 },
+          "alternativesCarded": { "count": 1, "total": 1 },
           "conventional": null,
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2749, "p95": 2749 },
-          "firstDeltaMs": { "p50": 50, "p95": 50 }
+          "clashRate": { "count": 0, "total": 6 },
+          "latencyMs": { "p50": 36708, "p95": 36708 },
+          "firstDeltaMs": { "p50": 22803, "p95": 22803 }
         }
       },
       "baseline": {
@@ -160,20 +160,20 @@
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 1, "total": 1 },
-          "agreement": { "count": 0, "total": 4 },
-          "alternatives": { "count": 0, "total": 1 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 4, "total": 4 },
+          "agreement": { "count": 4, "total": 4 },
+          "alternatives": { "count": 1, "total": 1 },
+          "beyond": { "count": 1, "total": 3 },
+          "offTarget": { "count": 1, "total": 4 },
           "checkAlternatives": null,
           "verdictFree": { "count": 1, "total": 1 },
-          "barsExist": { "count": 0, "total": 1 },
+          "barsExist": { "count": 1, "total": 1 },
           "repeatCited": null,
           "testsWithinThree": { "count": 1, "total": 1 },
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2747, "p95": 2747 },
-          "firstDeltaMs": { "p50": 50, "p95": 50 }
+          "clashRate": { "count": 0, "total": 4 },
+          "latencyMs": { "p50": 38042, "p95": 38042 },
+          "firstDeltaMs": { "p50": 24898, "p95": 24898 }
         }
       },
       "baseline": {
@@ -193,40 +193,40 @@
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 1, "total": 1 },
-          "agreement": { "count": 0, "total": 4 },
-          "alternatives": { "count": 0, "total": 1 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 4, "total": 4 },
+          "agreement": { "count": 5, "total": 5 },
+          "alternatives": { "count": 1, "total": 1 },
+          "beyond": { "count": 1, "total": 5 },
+          "offTarget": { "count": 0, "total": 5 },
           "checkAlternatives": null,
           "verdictFree": { "count": 1, "total": 1 },
           "barsExist": { "count": 1, "total": 1 },
           "repeatCited": null,
           "testsWithinThree": { "count": 1, "total": 1 },
-          "alternativesCarded": { "count": 0, "total": 1 },
+          "alternativesCarded": { "count": 1, "total": 1 },
           "conventional": null,
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2748, "p95": 2748 },
-          "firstDeltaMs": { "p50": 50, "p95": 50 }
+          "clashRate": { "count": 0, "total": 5 },
+          "latencyMs": { "p50": 25750, "p95": 25750 },
+          "firstDeltaMs": { "p50": 12906, "p95": 12906 }
         },
         "check": {
           "replies": 3,
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 3, "total": 3 },
-          "agreement": { "count": 0, "total": 6 },
+          "agreement": { "count": 6, "total": 6 },
           "alternatives": { "count": 0, "total": 3 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 0, "total": 0 },
+          "beyond": { "count": 0, "total": 3 },
+          "offTarget": { "count": 0, "total": 3 },
           "checkAlternatives": { "count": 0, "total": 3 },
           "verdictFree": { "count": 3, "total": 3 },
           "barsExist": { "count": 3, "total": 3 },
           "repeatCited": null,
           "testsWithinThree": { "count": 3, "total": 3 },
-          "alternativesCarded": { "count": 3, "total": 3 },
-          "conventional": { "count": 0, "total": 3 },
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 1142, "p95": 1143 },
-          "firstDeltaMs": { "p50": 52, "p95": 52 }
+          "alternativesCarded": { "count": 1, "total": 3 },
+          "conventional": { "count": 3, "total": 3 },
+          "clashRate": { "count": 0, "total": 6 },
+          "latencyMs": { "p50": 16852, "p95": 20218 },
+          "firstDeltaMs": { "p50": 7203, "p95": 9319 }
         }
       },
       "baseline": {
@@ -246,40 +246,40 @@
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 1, "total": 1 },
-          "agreement": { "count": 0, "total": 4 },
-          "alternatives": { "count": 0, "total": 1 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 4, "total": 4 },
+          "agreement": { "count": 8, "total": 8 },
+          "alternatives": { "count": 1, "total": 1 },
+          "beyond": { "count": 7, "total": 7 },
+          "offTarget": { "count": 0, "total": 7 },
           "checkAlternatives": null,
           "verdictFree": { "count": 1, "total": 1 },
           "barsExist": { "count": 1, "total": 1 },
-          "repeatCited": { "count": 0, "total": 1 },
+          "repeatCited": { "count": 1, "total": 1 },
           "testsWithinThree": { "count": 1, "total": 1 },
-          "alternativesCarded": { "count": 0, "total": 1 },
+          "alternativesCarded": { "count": 1, "total": 1 },
           "conventional": null,
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2740, "p95": 2740 },
-          "firstDeltaMs": { "p50": 50, "p95": 50 }
+          "clashRate": { "count": 0, "total": 8 },
+          "latencyMs": { "p50": 45378, "p95": 45378 },
+          "firstDeltaMs": { "p50": 27462, "p95": 27462 }
         },
         "check": {
           "replies": 3,
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 3, "total": 3 },
-          "agreement": { "count": 0, "total": 6 },
+          "agreement": { "count": 11, "total": 11 },
           "alternatives": { "count": 0, "total": 3 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 0, "total": 0 },
+          "beyond": { "count": 2, "total": 3 },
+          "offTarget": { "count": 0, "total": 3 },
           "checkAlternatives": { "count": 0, "total": 3 },
           "verdictFree": { "count": 3, "total": 3 },
           "barsExist": { "count": 3, "total": 3 },
           "repeatCited": null,
           "testsWithinThree": { "count": 3, "total": 3 },
-          "alternativesCarded": { "count": 3, "total": 3 },
-          "conventional": { "count": 0, "total": 3 },
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 1136, "p95": 1137 },
-          "firstDeltaMs": { "p50": 49, "p95": 49 }
+          "alternativesCarded": { "count": 0, "total": 3 },
+          "conventional": { "count": 1, "total": 3 },
+          "clashRate": { "count": 0, "total": 11 },
+          "latencyMs": { "p50": 24271, "p95": 29065 },
+          "firstDeltaMs": { "p50": 12995, "p95": 17408 }
         }
       },
       "baseline": {
@@ -299,10 +299,10 @@
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 1, "total": 1 },
-          "agreement": { "count": 0, "total": 4 },
-          "alternatives": { "count": 0, "total": 1 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 4, "total": 4 },
+          "agreement": { "count": 4, "total": 4 },
+          "alternatives": { "count": 1, "total": 1 },
+          "beyond": { "count": 1, "total": 2 },
+          "offTarget": { "count": 0, "total": 2 },
           "checkAlternatives": null,
           "verdictFree": { "count": 1, "total": 1 },
           "barsExist": { "count": 1, "total": 1 },
@@ -310,29 +310,29 @@
           "testsWithinThree": { "count": 1, "total": 1 },
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2747, "p95": 2747 },
-          "firstDeltaMs": { "p50": 49, "p95": 49 }
+          "clashRate": { "count": 0, "total": 4 },
+          "latencyMs": { "p50": 29880, "p95": 29880 },
+          "firstDeltaMs": { "p50": 16087, "p95": 16087 }
         },
         "check": {
           "replies": 3,
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 3, "total": 3 },
-          "agreement": { "count": 0, "total": 6 },
+          "agreement": { "count": 10, "total": 10 },
           "alternatives": { "count": 0, "total": 3 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 0, "total": 0 },
+          "beyond": { "count": 0, "total": 3 },
+          "offTarget": { "count": 0, "total": 3 },
           "checkAlternatives": { "count": 0, "total": 3 },
           "verdictFree": { "count": 3, "total": 3 },
           "barsExist": { "count": 3, "total": 3 },
           "repeatCited": null,
           "testsWithinThree": { "count": 3, "total": 3 },
-          "alternativesCarded": { "count": 3, "total": 3 },
-          "conventional": { "count": 0, "total": 3 },
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 1135, "p95": 1153 },
-          "firstDeltaMs": { "p50": 49, "p95": 65 }
+          "alternativesCarded": { "count": 0, "total": 3 },
+          "conventional": { "count": 3, "total": 3 },
+          "clashRate": { "count": 0, "total": 10 },
+          "latencyMs": { "p50": 26543, "p95": 27881 },
+          "firstDeltaMs": { "p50": 13863, "p95": 16370 }
         }
       },
       "baseline": {
@@ -352,10 +352,10 @@
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 1, "total": 1 },
-          "agreement": { "count": 0, "total": 4 },
-          "alternatives": { "count": 0, "total": 1 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 4, "total": 4 },
+          "agreement": { "count": 6, "total": 6 },
+          "alternatives": { "count": 1, "total": 1 },
+          "beyond": { "count": 3, "total": 6 },
+          "offTarget": { "count": 0, "total": 6 },
           "checkAlternatives": null,
           "verdictFree": { "count": 1, "total": 1 },
           "barsExist": { "count": 1, "total": 1 },
@@ -363,29 +363,29 @@
           "testsWithinThree": { "count": 1, "total": 1 },
           "alternativesCarded": { "count": 0, "total": 1 },
           "conventional": null,
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 2744, "p95": 2744 },
-          "firstDeltaMs": { "p50": 47, "p95": 47 }
+          "clashRate": { "count": 0, "total": 6 },
+          "latencyMs": { "p50": 31869, "p95": 31869 },
+          "firstDeltaMs": { "p50": 17692, "p95": 17692 }
         },
         "check": {
           "replies": 3,
           "excluded": 0,
           "failed": 0,
           "schemaValidity": { "count": 3, "total": 3 },
-          "agreement": { "count": 0, "total": 6 },
-          "alternatives": { "count": 0, "total": 3 },
-          "beyond": { "count": 0, "total": 0 },
-          "offTarget": { "count": 0, "total": 0 },
-          "checkAlternatives": { "count": 0, "total": 3 },
+          "agreement": { "count": 7, "total": 7 },
+          "alternatives": { "count": 1, "total": 3 },
+          "beyond": { "count": 2, "total": 5 },
+          "offTarget": { "count": 0, "total": 5 },
+          "checkAlternatives": { "count": 1, "total": 3 },
           "verdictFree": { "count": 3, "total": 3 },
           "barsExist": { "count": 3, "total": 3 },
           "repeatCited": null,
           "testsWithinThree": { "count": 3, "total": 3 },
-          "alternativesCarded": { "count": 3, "total": 3 },
-          "conventional": { "count": 0, "total": 3 },
-          "clashRate": { "count": 0, "total": 0 },
-          "latencyMs": { "p50": 1137, "p95": 1138 },
-          "firstDeltaMs": { "p50": 49, "p95": 50 }
+          "alternativesCarded": { "count": 0, "total": 3 },
+          "conventional": { "count": 3, "total": 3 },
+          "clashRate": { "count": 0, "total": 7 },
+          "latencyMs": { "p50": 21689, "p95": 24568 },
+          "firstDeltaMs": { "p50": 10897, "p95": 13196 }
         }
       },
       "baseline": {
@@ -405,82 +405,74 @@
       "placed": null,
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "servedBy": "claude-opus-5-5",
+      "message": "The most interesting thing in this tune is a repeat that splits. Bars 5 and 6 copy bars 1 and 2 note for note: the climb from 1 up to 3, then the dip to 2 on beat 3. Then the two halves part. Bar 3 falls back toward home (1, then 6, landing on low 5 in bar 4). Bar 7 instead leaps up to the high 5 and holds it for five beats, the peak of the whole phrase.\n\nYour chords honour the repeat: V7 sits on beat 3 of both bar 2 and bar 6, under the melody's 2, which is the fifth of V7. What follows each V7 differs, though. In bar 6, V7 goes to I, an authentic cadence: the leading tone in V7 rises a half step to home. In bar 2, V7 goes to vi on the downbeat of bar 3. That is the deceptive move, tension that wants home and gets home's minor cousin instead. It gives bar 3 a little shadow before IV and I bring it back.\n\nBar 3 is a spot where the melody gives no evidence either way. Its notes are 1 and 6, and both vi and IV contain both of them. Your vi-then-IV makes bar 3 move, a gentle step down in the bass. A single IV across the whole bar is the plain hymn-book choice. Plagal colour (IV to I, the 'Amen' sound) is the heart of this tradition, and a whole bar of IV feels broad and settled. Both are honest readings. What decides it is whether you want bar 2's V7 to sidestep or simply to pass.\n\nThe spot I'd most like you to hear again is bar 7. The held high 5 belongs to both I and V. Your I closes the phrase, so it sounds finished. But bar 8 has the pickup into a next phrase, so this is the midpoint of the tune, not the end. Hymns of this shape usually sit on V here, a half cadence: a held breath that says 'there's more.' That leaves the real arrival on I for the end of the second half. Your I is a fine choice if you want each half to feel complete. Try V and V7 there too.\n\nTwo smaller options to audition. In bar 2, beat 3, plain I lets the 2 be a passing note and makes the phrase calmer. In bar 8, beat 3, V7/IV under the pickup's 3 leans hard toward IV, a classic gospel lead-in, if the next phrase opens there.\n\n1. Play bar 7 with your I, then with V: stop after bar 7. Which one won't let you stop?\n2. Hear your vi under bar 3, beat 1, then IV: after bar 2's V7, does vi feel like a sidestep and IV like a broad arrival?\n3. Hear your V7 under bar 2, beat 3, then I: does bar 2 lean into bar 3, or just glide?",
       "suggestions": [
         {
-          "bar": 4,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
+          "bar": 7,
+          "beat": 1,
+          "numeral": "V",
+          "letter": "D",
+          "confidence": "high",
+          "reason": "Half cadence at the midpoint: the held high 5 becomes the root of V, leaving the phrase open and waiting for the second half."
+        },
+        {
+          "bar": 7,
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "D7",
           "confidence": "medium",
-          "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          "reason": "Same half cadence with the dominant's tritone added, so the held note sits on even more tension pulling toward the next phrase."
+        },
+        {
+          "bar": 3,
+          "beat": 1,
+          "numeral": "IV",
+          "letter": "C",
+          "confidence": "medium",
+          "reason": "One IV for the whole bar: melody 1 and 6 both fit it, the deceptive shadow of vi disappears, and bar 3 to 4 becomes a plain plagal IV to I."
         },
         {
           "bar": 2,
           "beat": 3,
           "numeral": "I",
-          "letter": "D",
-          "confidence": "medium",
-          "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
-        },
-        {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
-          "confidence": "medium",
-          "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
-        },
-        {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "V/V",
-          "letter": "E",
+          "letter": "G",
           "confidence": "low",
-          "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          "reason": "Stays home and lets the melody's 2 pass over I, so bar 2 glides into bar 3 instead of leaning on a dominant."
+        },
+        {
+          "bar": 8,
+          "beat": 3,
+          "numeral": "V7/IV",
+          "letter": "G7",
+          "confidence": "low",
+          "reason": "Turns home into a dominant of IV under the pickup's 3, a gospel lead-in that pushes into the next phrase if it starts on IV."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 4, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 5, "agreeing": 5, "onOnset": 5, "clashing": 0 },
       "alternatives": {
-        "atPoint": 4,
+        "atPoint": 5,
         "considered": 4,
-        "offTarget": 4,
-        "distinct": 0,
-        "plausible": 0,
+        "offTarget": 1,
+        "distinct": 4,
+        "plausible": 3,
         "beyond": 0,
-        "alternatives": false
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
         "missingBars": [],
         "repeatCited": true,
         "tests": 3,
-        "namedAlternatives": [
-          "V",
-          "V",
-          "V",
-          "ii",
-          "V",
-          "ii",
-          "ii",
-          "ii",
-          "V",
-          "V/V",
-          "V",
-          "V",
-          "ii",
-          "ii",
-          "V/V"
-        ],
-        "uncarded": ["V", "V", "V", "V", "V", "V", "V"],
+        "namedAlternatives": ["V", "V", "V", "V7", "V7/IV", "IV", "V", "IV", "IV"],
+        "uncarded": ["V", "V", "V7", "IV"],
         "conventional": null
       },
-      "ms": 2745,
-      "firstDeltaMs": 50
+      "ms": 37035,
+      "firstDeltaMs": 23130
     },
     {
       "tune": "joyful-joyful",
@@ -491,66 +483,66 @@
       "placed": null,
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "servedBy": "claude-opus-5-5",
+      "message": "The neatest thing in these four bars is a mirror. Bar 2 is bar 1 played backwards: 3 3 4 5 climbs to the peak, then 5 4 3 2 walks straight back down. Bar 3 starts the climb again from 1 instead of 3 (1 1 2 3), as if the tune backed up a step to get a running start, and bar 4 settles on 2 instead of reaching home. You chose I for almost all of it and saved the motion for the ends: V7 on the last beat of bar 2, a quick I to vii° to I in bar 3, and V at the end of bar 4. That suits a melody this stepwise. It is the Ode to Joy, written so a crowd could sing it, and in its long life as a hymn tune it lives almost entirely on I and V.\n\nBar 4 is a half cadence: the phrase stops on V, with the melody hanging on 2, one step above home. It is a question, and in this tune the next phrase answers it by repeating these bars and landing on 1 over I. Your chart treats bars 1 and 3, the two climbs, the same way (both start on I), which keeps the echo audible.\n\nYour vii° in bar 3 holds the leading tone, a half step under home, and the 4, a half step over 3, so both lean into the I that follows. It is a light passing chord, and I would keep it. V under that beat contains the melody's 2 just as well; the melody gives no evidence either way. The vii° is lighter, and V sounds more like a small cadence in the middle of the line.\n\nWorth another listen:\n\nBar 2. The melody's 5 on beat 1 fits I and V equally. On beat 2, though, the 4 is the seventh of V7, and over V7 it squeezes down by a half step to 3, the classic resolution of that seventh. Over your I it is a passing note. To hear the change, try V7 at bar 2 beat 1, then I at beat 3, then your V7 at beat 4. That moves the harmony twice as fast, so it is brighter and busier but less calm.\n\nBar 4, beat 1. The melody's 3 sits in I and in vi. vi would shade the approach to the half cadence a little darker, a brief minor cloud before V. Your I keeps it plain and open.\n\n1. Under bar 2, hear your chords, then the V7 button at beat 1: does the 4 on beat 2 drift past, or pull downward?\n2. At bar 3 beat 3, compare your vii° with V: which one keeps the climb moving, and which makes it pause?\n3. Turn on Drone on home and play bars 1 to 4, then hear bar 4 with vi at beat 1: does the last note sound more unfinished with the minor shade before it?",
       "suggestions": [
         {
-          "bar": 4,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
+          "bar": 2,
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "D7",
           "confidence": "medium",
-          "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          "reason": "Arrives on the dominant at the peak, so the 4 on beat 2 becomes V7's seventh and resolves down to 3. The harmony moves faster and with more pull."
         },
         {
           "bar": 2,
           "beat": 3,
           "numeral": "I",
+          "letter": "G",
+          "confidence": "medium",
+          "reason": "Pairs with V7 on beat 1: catches the melody's 3 as home before your V7 on beat 4."
+        },
+        {
+          "bar": 3,
+          "beat": 3,
+          "numeral": "V",
           "letter": "D",
           "confidence": "medium",
-          "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
+          "reason": "Contains the melody's 2 like your vii° does, but sounds like a small cadence in the middle of the climb, heavier than the passing vii°."
         },
         {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "ii",
+          "bar": 4,
+          "beat": 1,
+          "numeral": "vi",
           "letter": "Em",
-          "confidence": "medium",
-          "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
-        },
-        {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "V/V",
-          "letter": "E",
           "confidence": "low",
-          "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          "reason": "Holds the melody's 3 but swaps home for its minor relative, a darker shade just before the half cadence on V."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 4, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 4, "agreeing": 4, "onOnset": 4, "clashing": 0 },
       "alternatives": {
         "atPoint": 4,
-        "considered": 4,
-        "offTarget": 4,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
-        "alternatives": false
+        "considered": 3,
+        "offTarget": 0,
+        "distinct": 3,
+        "plausible": 3,
+        "beyond": 1,
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
-        "missingBars": [5, 6, 7, 8],
+        "missingBars": [],
         "repeatCited": null,
         "tests": 3,
-        "namedAlternatives": ["ii", "ii", "ii", "ii", "V", "V/V", "V", "V", "ii", "ii", "V/V"],
-        "uncarded": ["V", "V", "V"],
+        "namedAlternatives": ["V", "V", "vi", "vi", "V", "V", "vi"],
+        "uncarded": ["V"],
         "conventional": null
       },
-      "ms": 2747,
-      "firstDeltaMs": 51
+      "ms": 38329,
+      "firstDeltaMs": 24520
     },
     {
       "tune": "veni-emmanuel",
@@ -561,83 +553,82 @@
       "placed": null,
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "servedBy": "claude-opus-5-5",
+      "message": "The most interesting thing here is a mirror. Bar 1 climbs the home triad (1 up to 3, then 5, held), and bar 4 walks the same triad back down (5, 3, 1, 3). Each arpeggio bar is followed by a bar that starts on 4: bar 2 rises to 6 and falls back, bar 5 falls through 2 and 1 to 7. So bars 1 to 2 and 4 to 5 are a question and its reflection. Your chords treat them differently. Bar 1 starts on i, bar 4 on III. Bar 2 starts on VI6, bar 5 on iv. That difference is the story of your chart: the first phrase drifts into the relative major and the second finds its way back to minor.\n\nThe drift is well made. VII7 at the end of bar 2 is the dominant of III, so VII7 to III into bar 3 is an authentic cadence in the relative major, landing on the long 3 in the melody. Then VII under the 4 at the end of bar 3 sets up III again. This lean toward the relative major and back is everywhere in minor-key folk song. In bar 5, ii° is a predominant: it normally wants V next, but here it steps straight to i. That is gentler and more sideways than a dominant arrival. Ending on v, with 7 in the melody as the lowered seventh, leaves the tune open and modal rather than closed.\n\nFunction over fit: bar 1 holds 5 for three beats, and i, v and III all contain it. The melody gives no evidence for the changes, so the question is whether you want motion there or stillness. Bar 2 is subtler. Your VI6 and iv7 are the same four notes, so beats 1 and 2 are really one sound with a moving bass.\n\nWorth another listen:\nBar 2, beat 1. I'd consider plain iv here, to match bar 5 beat 1 and make the parallel audible. The case for your VI6 is that it keeps the bar leaning toward the major side you're heading to.\nThe bar 3 to 4 seam. Your VII to III keeps you in the major. Trying i at bar 4 beat 1 gives the modal VII to i return, which echoes bar 1. V7 at bar 3 beat 4 does the same job more forcefully, with the melody's 4 as its seventh.\nBar 5. V7 on beat 2 turns ii° to i into a real dominant-to-home pull. VII on beat 4 puts the melody's 7 in the bass, an even more open ending than your v. I'd keep your v if this tune repeats.\n\n1. Hear your VI6 under bar 2 beat 1, then iv: does bar 2 now sound like bar 5's twin?\n2. Hear your III under bar 4 beat 1, then i: are you still in the major, or home again?\n3. Hear your ii° under bar 5 beat 2, then V7: does beat 3 drift in, or arrive?",
       "suggestions": [
         {
-          "bar": 4,
-          "beat": 3,
-          "numeral": "ii",
+          "bar": 1,
+          "beat": 2,
+          "numeral": "i",
           "letter": "Em",
           "confidence": "medium",
-          "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          "reason": "Holds home under the sustained 5, so the arpeggio rings instead of changing chord every beat."
         },
         {
           "bar": 2,
-          "beat": 3,
-          "numeral": "I",
-          "letter": "D",
+          "beat": 1,
+          "numeral": "iv",
+          "letter": "Am",
           "confidence": "medium",
-          "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
+          "reason": "Matches bar 5 beat 1, making the two bars that start on 4 sound parallel."
         },
         {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "ii",
+          "bar": 3,
+          "beat": 4,
+          "numeral": "V7",
+          "letter": "B7",
+          "confidence": "low",
+          "reason": "Turns the melody's 4 into a dominant seventh that pulls hard back to i, instead of leaning to III."
+        },
+        {
+          "bar": 4,
+          "beat": 1,
+          "numeral": "i",
           "letter": "Em",
           "confidence": "medium",
-          "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
+          "reason": "VII to i, the modal return home, echoing bar 1's opening chord as the arpeggio reverses."
         },
         {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "V/V",
-          "letter": "E",
+          "bar": 5,
+          "beat": 2,
+          "numeral": "V7",
+          "letter": "B7",
+          "confidence": "medium",
+          "reason": "A real dominant under the 2, so beat 3 lands on home with a pull rather than a sideways step."
+        },
+        {
+          "bar": 5,
+          "beat": 4,
+          "numeral": "VII",
+          "letter": "D",
           "confidence": "low",
-          "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          "reason": "Puts the melody's lowered 7 in the bass, a brighter and more open modal ending than v."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 4, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 6, "agreeing": 6, "onOnset": 6, "clashing": 0 },
       "alternatives": {
-        "atPoint": 4,
-        "considered": 4,
-        "offTarget": 4,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
-        "alternatives": false
+        "atPoint": 6,
+        "considered": 6,
+        "offTarget": 1,
+        "distinct": 6,
+        "plausible": 5,
+        "beyond": 1,
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
-        "missingBars": [6, 7, 8],
+        "missingBars": [],
         "repeatCited": null,
         "tests": 3,
-        "namedAlternatives": [
-          "V",
-          "V",
-          "V",
-          "V",
-          "ii",
-          "V",
-          "ii",
-          "ii",
-          "ii",
-          "V",
-          "V/V",
-          "V",
-          "V",
-          "ii",
-          "ii",
-          "V/V"
-        ],
-        "uncarded": ["V", "V", "V", "V", "V", "V", "V", "V"],
+        "namedAlternatives": ["V", "V7", "V7", "VII", "V7"],
+        "uncarded": [],
         "conventional": null
       },
-      "ms": 2749,
-      "firstDeltaMs": 50
+      "ms": 36708,
+      "firstDeltaMs": 22803
     },
     {
       "tune": "god-rest-ye",
@@ -648,66 +639,79 @@
       "placed": null,
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "servedBy": "claude-opus-5-5",
+      "message": "The most interesting thing here is the shape of bars 2 and 3: the melody walks straight down the scale from 3 to 7, then turns and climbs straight back up from 1 to 4, arriving on 5 for the long note in bar 4. Your chords follow that mirror almost beat for beat, and in bar 2 you've landed on one of the oldest patterns in Western music: i, v, VI, III, the opening of the descending-fifths chain behind Pachelbel's Canon and the Renaissance romanesca. Each chord's root falls a fourth, then rises a step, so the bass sinks steadily while the melody descends with it.\n\nThe tune frames that with clear signposts. In bar 1 the melody itself supplies the seventh of your V7 on beat 4, and that seventh steps down to the third of i on bar 2's downbeat. That is the dominant seventh resolving exactly as the textbook asks. Bar 4 then ends on V under a held 5: a half cadence, a question mark, with the pickup on 1 ready to start again. Bar 1, beat 1 has no chord yet; a plain i on the downbeat would ground the opening before your i to V on the repeated 5.\n\nFunction over fit shows up in bar 2, beat 2. The melody note is 2, which sits in both your v and a major V, so the melody gives no evidence either way. What decides it is the natural 7 two beats later. Your minor v keeps the line in natural minor, folk-like and unhurried. A major V adds a leading tone that the melody then contradicts, which gives a brief tug rather than a flow.\n\nWorth another listen:\n\nBar 3, beat 1. The pattern you started in bar 2 would continue with iv, and the melody's 1 fits iv perfectly. Your VI repeats the chord from two beats earlier, which slows the chain. I lean toward iv for the continuity, but your VI gives a gentler, more static turn at the bottom of the line.\n\nBar 3, beat 4. Your iv under 4 is a solid predominant into the half cadence. A ii° (diminished supertonic) also holds that note and pushes harder toward V, darker and more urgent. Your iv is the one I'd keep, with ii° as something to hear.\n\nOne more thought: at tempo 160, a chord on every beat is busy. Try holding some chords for two beats and see whether the line breathes more.\n\n1. Hear your VI under bar 3, beat 1, then iv: does the bass keep stepping down the pattern, or stall and restart?\n2. Under bar 2, beat 2, compare your v with V: does the line drift down calmly, or does it catch on a tug?\n3. Under bar 3, beat 4, hear your iv, then ii°: does the arrival on V in bar 4 feel like a settled pause or a held breath?",
       "suggestions": [
         {
-          "bar": 4,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
-          "confidence": "medium",
-          "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          "bar": 3,
+          "beat": 1,
+          "numeral": "iv",
+          "letter": "Am",
+          "confidence": "high",
+          "reason": "Continues the i–v–VI–III descending-fifths chain; the bass keeps stepping down instead of repeating VI."
         },
         {
           "bar": 2,
-          "beat": 3,
-          "numeral": "I",
-          "letter": "D",
+          "beat": 2,
+          "numeral": "V",
+          "letter": "B",
           "confidence": "medium",
-          "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
+          "reason": "Adds the leading tone for a stronger pull, but the melody's natural 7 two beats later briefly contradicts it, a tug versus a folk flow."
         },
         {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "ii",
+          "bar": 3,
+          "beat": 4,
+          "numeral": "ii°",
+          "letter": "F#dim",
+          "confidence": "medium",
+          "reason": "A darker, tenser predominant holding the melody's 4; it pushes harder into the half cadence on V."
+        },
+        {
+          "bar": 1,
+          "beat": 1,
+          "numeral": "i",
           "letter": "Em",
-          "confidence": "medium",
-          "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
-        },
-        {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "V/V",
-          "letter": "E",
-          "confidence": "low",
-          "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          "confidence": "high",
+          "reason": "Grounds the downbeat on home before your i to V on the repeated 5."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 4, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 4, "agreeing": 4, "onOnset": 4, "clashing": 0 },
       "alternatives": {
         "atPoint": 4,
         "considered": 4,
-        "offTarget": 4,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
-        "alternatives": false
+        "offTarget": 1,
+        "distinct": 4,
+        "plausible": 3,
+        "beyond": 1,
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
-        "missingBars": [5, 6, 7, 8],
+        "missingBars": [],
         "repeatCited": null,
         "tests": 3,
-        "namedAlternatives": ["ii", "ii", "ii", "ii", "V", "V/V", "V", "V", "ii", "ii", "V/V"],
-        "uncarded": ["V", "V", "V"],
+        "namedAlternatives": [
+          "V",
+          "A major",
+          "V",
+          "iv",
+          "iv",
+          "iv",
+          "ii°",
+          "V",
+          "ii°",
+          "iv",
+          "V",
+          "ii°"
+        ],
+        "uncarded": ["A major", "iv", "V"],
         "conventional": null
       },
-      "ms": 2747,
-      "firstDeltaMs": 50
+      "ms": 38042,
+      "firstDeltaMs": 24898
     },
     {
       "tune": "st-james-infirmary",
@@ -718,54 +722,62 @@
       "placed": null,
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "servedBy": "claude-opus-5-5",
+      "message": "The most interesting thing here is the shape of the two phrases. Bars 5 and 6 repeat bars 1 and 2 almost note for note, so this is a question-and-answer pair. They part ways in the second half. Bars 3 and 4 leap up to the octave of home, touch the 6th degree, and then hang on the 5th for a whole bar: an open ending, a question. Bars 7 and 8 step down 3 to 2 to 1 and land on home: a closed ending, the answer. Your chart puts i under all eight bars, so it treats the question and the answer the same way. That is a real choice with real tradition behind it. Modal folk tunes, old-time fiddle tunes and swung minor vamps often sit on one chord and let the melody do the asking and answering. Over a held i, bar 4's 5th is a chord tone and sounds settled, so the open ending gets softened.\n\nIf you want the harmony to underline the shape, the classic move is a half cadence in bar 4: V under the held 5th. That 5th is the root of V, so the melody fits either chord, and nothing in the notes decides it. What decides it is the job. On V, bar 4 leans forward into bar 5. On i, it rests. Your i is lovely if you want that hypnotic, droning feel. Try V or V7 to hear the question mark, or minor v for a softer, more modal lean that keeps the leading tone out.\n\nAt the end, the 2nd degree on beat 4 of bar 7 is the 5th of V. A V7 there gives you an authentic cadence: its leading tone sits a half step under home and pulls up into bar 8, so the last note arrives instead of just continuing. To set that up, VI under the repeated 3rd at the start of bar 7 (the 3rd is VI's fifth) gives the descending bass line VI to V to i that runs through so much minor-key music.\n\nOne more spot: bar 3, beat 3 onward, the octave of home and then the 6th degree. Over i, that 6th is a passing rub, a half step above the chord's 5th. Under iv, both notes are chord tones and the climb gets warmer and darker. The melody fits either, so trust whichever color you prefer.\n\n1. Hear bar 4 with your i, then with the V7 button: does bar 4 rest, or ask to keep going?\n2. Play bar 7 beat 4 with the V7 button, then with your i: does bar 8 feel like arriving home, or like you never left?\n3. Compare bar 3 beat 3 on your i and on the iv button: does the 6th degree rub against the chord or melt into it?",
       "suggestions": [
         {
           "bar": 4,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
-          "confidence": "medium",
-          "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "B7",
+          "confidence": "high",
+          "reason": "Half cadence: the held 5th becomes the root of V, so bar 4 asks a question that leans into bar 5 instead of resting."
         },
         {
-          "bar": 2,
-          "beat": 3,
-          "numeral": "I",
-          "letter": "D",
+          "bar": 4,
+          "beat": 1,
+          "numeral": "v",
+          "letter": "Bm",
           "confidence": "medium",
-          "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
+          "reason": "A softer, modal half cadence with no leading tone. It still moves away from home, but with a folk color."
+        },
+        {
+          "bar": 3,
+          "beat": 3,
+          "numeral": "iv",
+          "letter": "Am",
+          "confidence": "medium",
+          "reason": "Makes both the octave of home and the 6th degree chord tones, so the climb sounds warmer and darker instead of rubbing."
         },
         {
           "bar": 7,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
+          "beat": 1,
+          "numeral": "VI",
+          "letter": "C",
           "confidence": "medium",
-          "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
+          "reason": "The repeated 3rd becomes VI's fifth and starts a descending bass line, VI to V to i, into the final cadence."
         },
         {
           "bar": 7,
-          "beat": 3,
-          "numeral": "V/V",
-          "letter": "E",
-          "confidence": "low",
-          "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          "beat": 4,
+          "numeral": "V7",
+          "letter": "B7",
+          "confidence": "high",
+          "reason": "Authentic cadence: the 2nd degree is V's fifth, and the leading tone pulls up into home at bar 8 so the ending lands."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 4, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 5, "agreeing": 5, "onOnset": 5, "clashing": 0 },
       "alternatives": {
-        "atPoint": 4,
-        "considered": 4,
-        "offTarget": 4,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
-        "alternatives": false
+        "atPoint": 5,
+        "considered": 5,
+        "offTarget": 0,
+        "distinct": 5,
+        "plausible": 5,
+        "beyond": 1,
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
@@ -777,24 +789,24 @@
           "V",
           "V",
           "V",
-          "ii",
+          "V7",
+          "v",
           "V",
-          "ii",
-          "ii",
-          "ii",
+          "V7",
+          "VI",
+          "VI",
+          "VI",
           "V",
-          "V/V",
-          "V",
-          "V",
-          "ii",
-          "ii",
-          "V/V"
+          "iv",
+          "V7",
+          "V7",
+          "iv"
         ],
-        "uncarded": ["V", "V", "V", "V", "V", "V", "V", "V"],
+        "uncarded": [],
         "conventional": null
       },
-      "ms": 2748,
-      "firstDeltaMs": 50
+      "ms": 25750,
+      "firstDeltaMs": 12906
     },
     {
       "tune": "st-james-infirmary",
@@ -805,36 +817,36 @@
       "placed": "B",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Yes, V works there, and the reason is simple: the melody note on bar 1, beat 1 is degree 5, which is the root of V, the most stable note that chord has. The rest of the bar keeps hovering on 5 and dips to 4 on beat 3. Over V, that 4 is the chord's seventh, the note that turns V into V7 and wants to fall to 3. That is exactly where bar 2 goes: the melody drops to 3 and then 1 over home. So V in bar 1 gives you tension in bar 1 and arrival in bar 2, like a tiny authentic cadence right at the start. It also reaches through the raised 7th inside V, the leading tone a half step under home, which pulls hard toward i.\n\nThe honest catch is that the melody gives no evidence either way on beat 1. Degree 5 sits just as comfortably in i, as its fifth. What decides it is how you want the opening to feel. With V, the tune starts away from home and falls into it on bar 2. With i, the tune starts at home, and the 4 on beat 3 becomes a passing note rather than a chord tone. That is calmer and more like a folk tune just setting out. Many minor folk tunes open on i for exactly that settled, storytelling feel. Opening on V makes the first phrase sound more like a call that bar 2 answers.\n\nIf you keep V, consider V7 for the whole bar. Because the melody already sings the seventh on beat 3, the left hand would simply agree with it, and the pull into bar 2 gets stronger.\n\n1. Hear your V under bar 1, beat 1, then the i button: does bar 1 sound like a question, or like you're already home?\n2. Play bar 1 with V, then with the V7 button, and listen to beat 3: does the dip to 4 sound more like it belongs to the chord?\n3. With each choice, stop at the end of bar 1: which one won't let you stop there?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 1,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
-          "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "numeral": "i",
+          "letter": "Em",
+          "confidence": "medium",
+          "reason": "Starts the tune at home; degree 5 is the chord's fifth, and the dip to 4 on beat 3 becomes a passing note. Calmer, folk-like opening."
         },
         {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
-          "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "bar": 1,
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "B7",
+          "confidence": "high",
+          "reason": "Keeps your V but adds the seventh the melody already sings on beat 3, strengthening the pull into home in bar 2."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 2, "agreeing": 2, "onOnset": 2, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 2,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -842,13 +854,13 @@
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "tests": 3,
+        "namedAlternatives": ["V", "V"],
+        "uncarded": ["V", "V"],
+        "conventional": true
       },
-      "ms": 1142,
-      "firstDeltaMs": 52
+      "ms": 15183,
+      "firstDeltaMs": 6722
     },
     {
       "tune": "st-james-infirmary",
@@ -859,36 +871,44 @@
       "placed": "G",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Yes, III works there. The melody note at bar 3, beat 1 is the 5th of the key, and it's the third of III, so it sits inside the chord with no rub. The melody holds that note for two beats, which gives III room to register as a shift of colour: after bars 1 and 2 settle onto home, III brightens things toward the relative major. Folk tunes in minor do this all the time, leaning briefly toward the major key that shares the same notes before turning back.\n\nThe melody alone doesn't settle it, though. That same note is also the fifth of i, so the melody gives no evidence either way at beat 1. What decides it is what you want bar 3 to do. With your III, bar 3 moves away from home and opens up. With i, bar 3 stays put, and the motion comes later in the bar.\n\nThat later motion is worth hearing. On beat 3 the melody jumps up to the octave of home and then touches the 6th. Both of those notes are in iv, so a iv on beat 3 would pick up that leap and push toward bar 4. Bar 4 holds the 5th for a whole bar at the end of the first phrase, which is a natural spot for V: a half cadence (a phrase ending on V), a pause that leans forward into bars 5 to 8. Those bars repeat the opening and then actually land home in bar 8. If you keep III, it can still flow into V there; the iv just makes the pull a step stronger.\n\nSo I'd keep your III at bar 3 if you like the lift. The alternatives below are there to hear, not to replace it.\n\n1. Choose the chord under bar 3, beat 1: hear your III, then i. Does bar 3 open up, or stay at home?\n2. Keep III, then add iv at bar 3, beat 3. Does the leap to the high note gain weight and push forward?\n3. Try V under bar 4, then play from bar 3 and stop at the end of bar 4. Does the phrase feel like a question waiting for bars 5 to 8?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 3,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
-          "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "numeral": "i",
+          "letter": "Em",
+          "confidence": "medium",
+          "reason": "Same melody fit as III (the note is its fifth), but it stays at home instead of brightening toward the relative major."
         },
         {
-          "bar": 8,
+          "bar": 3,
           "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
+          "numeral": "iv",
+          "letter": "Am",
           "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "reason": "Contains both the octave leap and the 6th on beat 4.5; adds motion mid-bar and leans toward V."
+        },
+        {
+          "bar": 4,
+          "beat": 1,
+          "numeral": "V",
+          "letter": "B",
+          "confidence": "high",
+          "reason": "The melody holds the 5th at the phrase end; V makes a half cadence that waits for the answering phrase."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 3, "agreeing": 3, "onOnset": 3, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -896,13 +916,13 @@
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "tests": 3,
+        "namedAlternatives": ["iv", "iv", "V", "V", "III", "V", "iv", "III", "iv", "V"],
+        "uncarded": ["iv", "iv", "III", "V", "iv", "III"],
+        "conventional": true
       },
-      "ms": 1143,
-      "firstDeltaMs": 52
+      "ms": 16852,
+      "firstDeltaMs": 7203
     },
     {
       "tune": "st-james-infirmary",
@@ -913,36 +933,28 @@
       "placed": "C",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Yes, VI works there, and it fits completely. The melody at bar 6 is the third of the key for half a beat, then home held for three beats, and both notes are in VI: home is its third and the third of the key is its fifth. Nothing rubs.\n\nBut i contains those same two notes, so the melody gives no evidence either way. Fit can't decide it. Function and phrase shape can.\n\nBars 5 and 6 repeat bars 1 and 2 almost note for note: the same repeated fifth, the dip to the fourth, then the fall through the third to home. The first time, in bar 2, that fall sounds like home. The second time it is the same melody arriving at the same note, and the chord under it decides whether it arrives. With i, bar 6 is home again, a plain restatement. With VI, the melody lands on home but the bass sits a third below it, so the arrival is softened. That is the same effect as a deceptive cadence, where the tune says 'we're here' and the harmony answers 'not quite'. It also leaves room for bar 8, after the third and second step down in bar 7, to be the real ending on i.\n\nThat is a strong reason to keep your VI: it treats the repeat differently, so the tune keeps moving into its last phrase instead of closing twice. In minor-key folk tunes and laments, VI under a held tonic note is a very common way to darken or widen a repeat without leaving the key. i is the plainer, more settled option, worth hearing so you know what VI is adding.\n\n1. Choose your VI under bar 6, beat 1, then the i button there: which one feels like the tune could stop, and which one pulls you into bar 7?\n2. Press Play and listen to bar 2, then bar 6 with your VI: does the second arrival sound like an echo of the first, or like a new color on the same words?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 6,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
-          "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
-        },
-        {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
+          "numeral": "i",
+          "letter": "Em",
           "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "reason": "Same melody notes, but this lands fully home, so bar 6 sounds like bar 2 again: settled, a second ending rather than a push toward bar 8."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 1, "agreeing": 1, "onOnset": 1, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -951,12 +963,12 @@
         "missingBars": [],
         "repeatCited": null,
         "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
+        "namedAlternatives": [],
         "uncarded": [],
-        "conventional": false
+        "conventional": true
       },
-      "ms": 1141,
-      "firstDeltaMs": 51
+      "ms": 20218,
+      "firstDeltaMs": 9319
     },
     {
       "tune": "sweet-georgia-brown",
@@ -967,83 +979,108 @@
       "placed": null,
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "servedBy": "claude-opus-5-5",
+      "message": "The most striking thing in this tune is a sequence. Bars 1 to 3, 5 to 7, and 9 to 11 are the same figure, a quick step up, a leap, and a fall back, restated a whole step lower each time. Each statement spells out a different chord in the melody itself. Bars 1 to 3 circle 6, #1 and 3, a major triad built on 6. Bars 5 to 7 turn #1 back into 1 and add #4, a dominant seventh built on 2. Bars 9 to 11 outline plain V. Then bar 13 lands on I. Bars 17 to 23 repeat 1 to 7 note for note, and you harmonized them identically, which fits.\n\nThat chain, a dominant on 6, then on 2, then on 5, then home, is the ragtime circle of fifths. Each chord is the V of the next, so every bar is tension that wants the following one, and the tune keeps leaning forward for twelve bars before it rests. It is the backbone of 1920s Tin Pan Alley and early jazz songs.\n\nYour chart reads those bars with the plain chords of the key: ii, iii, vi, IV, I, vi. Here the melody gives real evidence. Its long, held notes are the raised ones, #1 in bars 1 to 3 and #4 in bars 6 and 7. Under your ii and vi, that #1 sits a half step from the chord's own 1, and in bar 2 the #4 rubs against iii. It's a sharp grind, a colour some players enjoy in passing, but here those notes are the melody's main tones, not decorations. V7/ii takes in #1 as its third. V7/V takes in #4 as its third and 1 as its seventh, so bar 5's held 1 fits it too.\n\nWorth another listen:\nBars 1 to 3 (and 17 to 19): I'd try V7/ii across all three bars. The case for your ii is that it points where the chain is heading. But V7/ii is the chord that points there, and it holds the melody's #1 as its own note.\nBars 5 to 7 (and 21 to 23): V7/V across these bars, or keep your IV in bar 5 and bring V7/V in at bar 6, where #4 arrives. Your IV is a gentler entrance. Your I in bar 6 sits under #4, and that rub is the clearest place to compare.\nBars 9 to 11: your V fits every note. V7 adds the seventh, a fourth chord tone, which squeezes inward by half steps toward I and makes bar 13 feel more like arrival.\nBar 30: the chromatic climb 5, #5, 6 hints at V7/ii again. That would make a mini circle into your V in bar 31, a classic ending turnaround.\n\n1. Choose bar 1, beat 1: hear your ii, then V7/ii. Does the long note in the middle of the bar sit inside the chord or grind against it?\n2. Choose bar 6, beat 1: your I, then V7/V. Which one makes the held note feel like it's pulling toward bar 9?\n3. Choose bar 9, beat 1: your V, then V7, and play through to bar 13. Does home feel more like arriving with the seventh?",
       "suggestions": [
         {
-          "bar": 4,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
-          "confidence": "medium",
-          "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          "bar": 1,
+          "beat": 1,
+          "numeral": "V7/ii",
+          "letter": "E7",
+          "confidence": "high",
+          "reason": "Holds the melody's #1 as its third instead of rubbing against it, and starts the circle of fifths chain toward the dominant on 2."
         },
         {
           "bar": 2,
-          "beat": 3,
-          "numeral": "I",
-          "letter": "D",
+          "beat": 1,
+          "numeral": "V7/ii",
+          "letter": "E7",
+          "confidence": "high",
+          "reason": "Continues the dominant on 6 through bar 2. The #4 becomes a bright added colour on top instead of a clash with iii."
+        },
+        {
+          "bar": 5,
+          "beat": 1,
+          "numeral": "V7/V",
+          "letter": "A7",
           "confidence": "medium",
-          "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
+          "reason": "Resolves bar 3's tension straight down a fifth. The melody's held 1 becomes the chord's seventh, so the bar leans forward instead of settling."
+        },
+        {
+          "bar": 6,
+          "beat": 1,
+          "numeral": "V7/V",
+          "letter": "A7",
+          "confidence": "high",
+          "reason": "Takes in the melody's #4 as its third, so the long note on beat 2.5 pulls up toward 5 instead of rubbing against I."
         },
         {
           "bar": 7,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
-          "confidence": "medium",
-          "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
+          "beat": 1,
+          "numeral": "V7/V",
+          "letter": "A7",
+          "confidence": "high",
+          "reason": "Keeps the dominant on 2 under the #4 and the long 2, so bar 9's V arrives as a resolution."
         },
         {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "V/V",
-          "letter": "E",
-          "confidence": "low",
-          "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          "bar": 9,
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "D7",
+          "confidence": "medium",
+          "reason": "Adds the seventh to your V. It squeezes inward toward I by half steps, so bar 13 lands harder."
+        },
+        {
+          "bar": 17,
+          "beat": 1,
+          "numeral": "V7/ii",
+          "letter": "E7",
+          "confidence": "high",
+          "reason": "Same as bar 1 for the repeat: the melody's #1 becomes a chord tone and the chain of dominants restarts."
+        },
+        {
+          "bar": 30,
+          "beat": 1,
+          "numeral": "V7/ii",
+          "letter": "E7",
+          "confidence": "medium",
+          "reason": "Hears the 5, #5, 6 climb as a turnaround: the 5 on beat 1 is the chord's seventh and #5 is its third, which heads into your V in bar 31 and home."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 4, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 8, "agreeing": 8, "onOnset": 8, "clashing": 0 },
       "alternatives": {
-        "atPoint": 4,
-        "considered": 4,
-        "offTarget": 4,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
-        "alternatives": false
+        "atPoint": 8,
+        "considered": 7,
+        "offTarget": 0,
+        "distinct": 7,
+        "plausible": 7,
+        "beyond": 7,
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
         "missingBars": [],
-        "repeatCited": false,
+        "repeatCited": true,
         "tests": 3,
         "namedAlternatives": [
-          "V",
-          "V",
-          "V",
-          "V",
-          "ii",
-          "V",
-          "ii",
-          "ii",
-          "ii",
-          "V",
-          "V/V",
-          "V",
-          "V",
-          "ii",
-          "ii",
-          "V/V"
+          "V7/ii",
+          "V7/V",
+          "V7/ii",
+          "V7/ii",
+          "V7/V",
+          "V7/V",
+          "V7/ii",
+          "V7/ii",
+          "V7/V"
         ],
-        "uncarded": ["V", "V", "V", "V", "V", "V", "V", "V"],
+        "uncarded": [],
         "conventional": null
       },
-      "ms": 2740,
-      "firstDeltaMs": 50
+      "ms": 45378,
+      "firstDeltaMs": 27462
     },
     {
       "tune": "sweet-georgia-brown",
@@ -1054,50 +1091,82 @@
       "placed": "C",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Short answer: on that single note, yes. The melody note at bar 1, beat 1 is degree 6, which is the third of IV, so the two agree, and the melody gives no evidence either way on that one note. What decides it is the rest of the bar and where the music goes next.\n\nListen to what follows. On beat 2.5 the melody holds #1, a raised home note, for two full beats, and bar 2 lands on #4. Your IV has the plain home note in it, so the held #1 sits a half step against it: a sour rub, not a color. Put bars 1 to 3 together and the melody spells 6, #1, 3, which is a major chord built on degree 6. That is VI, or with the seventh added, V7/ii: an applied dominant, a chord that acts like the V of ii. Its #1 is a leading tone that wants to rise to 2.\n\nThe rest of the tune suggests that is the plan. Bars 5 to 7 bring back the same melodic figure, but the #1 turns natural and #4 shows up with 2: that spells V7/V, which is II as a dominant. Bars 9 to 11 outline plain V, and bars 13 to 15 settle on 3 over home, I. So each four-bar block is a dominant falling a fifth to the next: VI7, II7, V7, I. This is the ragtime and Tin Pan Alley circle of dominants, the engine under tunes like Sweet Georgia Brown: you start far from home and every block pulls you one step closer. Notice too that bars 1 to 4 and 5 to 8 share their opening shape, so the chord change itself, not the melody, tells you the harmony has taken a step.\n\nIf you keep IV, it reads as a plain move away from home that never explains the #1. With V7/ii, the opening is tension from the first beat, and bar 5 answers it.\n\n1. Choose your IV under bar 1, beat 1, then V7/ii: listen to the held note on beat 2.5. Does it rub, or settle in?\n2. Play bars 1 to 8 with V7/ii in bar 1 and V7/V in bar 5: does bar 5 feel like the next step down a staircase?\n3. Then try V7 at bar 9 and I at bar 13: by bar 13, does it feel like you've arrived home?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 1,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
+          "numeral": "V7/ii",
+          "letter": "E7",
           "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "reason": "Matches the #1 and #4 in bars 1 to 3; opens with dominant tension that pulls toward the next block instead of rubbing against the held #1."
         },
         {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
-          "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "bar": 5,
+          "beat": 1,
+          "numeral": "V7/V",
+          "letter": "A7",
+          "confidence": "high",
+          "reason": "The figure returns with natural 1 and #4 over 2: a II dominant, the next link in the circle, leaning toward V."
+        },
+        {
+          "bar": 9,
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "D7",
+          "confidence": "high",
+          "reason": "Melody outlines 5, 7, 2: the home dominant, the last tension before I."
+        },
+        {
+          "bar": 13,
+          "beat": 1,
+          "numeral": "I",
+          "letter": "G",
+          "confidence": "high",
+          "reason": "The long 3 over home: the circle arrives and the tension releases."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 4, "agreeing": 4, "onOnset": 4, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
+        "distinct": 1,
+        "plausible": 1,
+        "beyond": 1,
         "alternatives": false
       },
       "prose": {
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
+        "tests": 3,
+        "namedAlternatives": [
+          "VI",
+          "V7/ii",
+          "V",
+          "ii",
+          "V7/V",
+          "II",
+          "V",
+          "VI7",
+          "II7",
+          "V7",
+          "V7/ii",
+          "V7/ii",
+          "V7/ii",
+          "V7/V",
+          "V7"
+        ],
+        "uncarded": ["V", "ii", "VI7", "II7", "V7/ii"],
         "conventional": false
       },
-      "ms": 1137,
-      "firstDeltaMs": 49
+      "ms": 24271,
+      "firstDeltaMs": 12995
     },
     {
       "tune": "sweet-georgia-brown",
@@ -1108,36 +1177,60 @@
       "placed": "Bm",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Short answer: iii fits most of the bar, but the melody is pointing at V.\n\nLook at what the right hand does in bar 11: degree 5 on the downbeat, then 2, 7, and 5 again. That is the V chord spelled out, root, fifth, third, root. Your iii shares two of those notes (5 and 7), so on beat 1 alone the melody gives no evidence either way. Beat 3 decides it: the 2 is not in iii, so over iii it rubs as a passing note, while over V it is a chord tone. Bars 9 and 10 outline V too (5, 6, 7 and 2, 7, 3, 2).\n\nThe bigger reason is the shape of the tune. Bars 9 to 11 repeat the figure of bars 1 to 3 and 5 to 7, each time a step lower. Bars 1 to 3 outline a major chord on 6, with the raised 1 as its third. Bars 5 to 7 outline a major chord on 2, with the raised 4. Bars 9 to 11 outline V. That is the ragtime and Tin Pan Alley circle of fifths, V7/ii to V7/V to V7, each dominant falling a fifth to the next, until bar 13 lands on I under the long degree 3. Each chord's third, the raised note, is a leading tone pulling up a half step into the next chord's root. In that chain, bar 11 is the last link before home, and V7 there makes the arrival at bar 13 feel earned.\n\nWhat iii does instead: it is softer and more inward, sharing two notes with both I and V, so it takes the push out of the bar. You hear the phrase drift toward home rather than get thrown there. That is a real color and yours to choose. If you like it, try keeping iii in bar 11 and moving to V7 in bar 12, so you get the shade and still get the pull.\n\n1. Hear your iii under bar 11, beat 1, then V7: on beat 3, does the 2 sound like a chord tone or a note passing through?\n2. Play bars 9 to 13 with V under bar 9 and V7 under bar 11, then again with your iii in bar 11 and V7 in bar 12: which one makes bar 13 feel more like arriving?\n3. Try V7/ii under bar 1 and V7/V under bar 5, then play the tune: does each figure now hand off to the next one a step lower?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 11,
           "beat": 1,
           "numeral": "V7",
-          "letter": "A7",
+          "letter": "D7",
           "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "reason": "Makes every note in the bar a chord tone, including the 2 on beat 3, and completes the circle of fifths so bar 13 lands firmly on home."
         },
         {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
+          "bar": 9,
+          "beat": 1,
+          "numeral": "V",
+          "letter": "D",
           "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "reason": "Matches the arpeggio in bars 9 and 10 and starts the dominant link of the chain where the figure starts."
+        },
+        {
+          "bar": 12,
+          "beat": 2,
+          "numeral": "V7",
+          "letter": "D7",
+          "confidence": "medium",
+          "reason": "Keeps your softer iii in bar 11 but restores the pull into bar 13 just before the arrival."
+        },
+        {
+          "bar": 1,
+          "beat": 1,
+          "numeral": "V7/ii",
+          "letter": "E7",
+          "confidence": "medium",
+          "reason": "Matches the raised 1 in the melody and opens the chain of dominants that each fall a fifth."
+        },
+        {
+          "bar": 5,
+          "beat": 1,
+          "numeral": "V7/V",
+          "letter": "A7",
+          "confidence": "medium",
+          "reason": "Matches the raised 4 in bars 6 and 7 and leans toward V, the next link in the chain."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 5, "agreeing": 5, "onOnset": 5, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -1145,13 +1238,31 @@
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "tests": 3,
+        "namedAlternatives": [
+          "V",
+          "V",
+          "V",
+          "V",
+          "V",
+          "V7/ii",
+          "V7/V",
+          "V7",
+          "V7",
+          "V",
+          "V7",
+          "V7",
+          "V",
+          "V7",
+          "V7",
+          "V7/ii",
+          "V7/V"
+        ],
+        "uncarded": ["V7/ii", "V7/V"],
+        "conventional": true
       },
-      "ms": 1136,
-      "firstDeltaMs": 49
+      "ms": 29065,
+      "firstDeltaMs": 17408
     },
     {
       "tune": "sweet-georgia-brown",
@@ -1162,50 +1273,65 @@
       "placed": "Am",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Yes, ii works here, and it's a sensible ear call. The melody holds the 6th degree for two beats on the downbeat, which is the fifth of ii, and the phrase settles on a long 2, which is ii's root. So the ends of the bar agree with your chord.\n\nThe one note that rubs is the #4 on beat 3. ii contains the natural 4, so for that half beat the melody and the chord disagree by a half step. It goes by quickly as a passing note, but it's the same raised 4 that has been pushing through this whole tune (bars 2, 6, 7, 18, 22). That raised note is the major third of the chord built on 2.\n\nThat points to V7/V, the major II7: same root as your ii, but with the third raised to match the melody. Its job is different. ii is a gentle step away from home, a pre-dominant, the chord that sets up V. V7/V is an applied dominant: its raised 4 sits a half step under 5 and wants to push up into it, so the bar leans hard toward a V that will then lead home. This II7 to V7 to I chain (dominant pointing at dominant pointing at home) is the standard sound of ragtime and Tin Pan Alley, and this melody, with its chromatic leading notes, sits squarely in that tradition. One more thing to weigh: what comes after the long 2 in bar 24. If bar 25 lands on V, either chord gets you there, and V7/V just arrives with more pull.\n\nThere's also a middle path: keep your ii for the first half of the bar, then switch to V7/V on beat 3, exactly where the #4 appears. The chord turns major under the melody's raised note, so the push toward V builds within the bar.\n\nYour ii is the softer, more even reading. V7/V is the brighter one that pushes forward. Both are real options.\n\n1. Play bar 23 with your ii, then with the V7/V button at beat 1: does the #4 on beat 3 sound like a passing rub or like the chord's own note?\n2. Play bar 23 with the V7/V button at beat 3 (ii first, then the switch): does the bar gain momentum halfway through?\n3. Play from bar 21 and stop on the long note in bar 23, once with each chord: which one won't let you stop?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 23,
           "beat": 1,
-          "numeral": "V7",
+          "numeral": "V7/V",
           "letter": "A7",
           "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "reason": "Raises ii's third to match the melody's #4 on beat 3. The bar becomes an applied dominant that leans hard toward V, the classic II7-V7-I ragtime sound."
         },
         {
-          "bar": 8,
+          "bar": 23,
           "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
+          "numeral": "V7/V",
+          "letter": "A7",
           "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "reason": "Keeps your ii for the first half, then switches to the major II7 just as the melody's #4 arrives, so the pull toward V builds within the bar."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 2, "agreeing": 2, "onOnset": 2, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
+        "distinct": 1,
+        "plausible": 1,
+        "beyond": 1,
         "alternatives": false
       },
       "prose": {
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
+        "tests": 3,
+        "namedAlternatives": [
+          "V7/V",
+          "II7",
+          "V",
+          "V7/V",
+          "V",
+          "II7",
+          "V7",
+          "V",
+          "V7/V",
+          "V7/V",
+          "V",
+          "V7/V",
+          "V7/V",
+          "V7/V"
+        ],
+        "uncarded": ["V", "V", "V7", "V", "V7/V", "V"],
         "conventional": false
       },
-      "ms": 1136,
-      "firstDeltaMs": 48
+      "ms": 20143,
+      "firstDeltaMs": 10031
     },
     {
       "tune": "when-the-saints",
@@ -1216,66 +1342,66 @@
       "placed": null,
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "servedBy": "claude-opus-5-5",
+      "message": "The most striking thing about this tune is how patiently it waits. The same pickup figure, climbing 1, 3, 4 into a held 5, comes three times (bars 0 to 1, 2 to 3, 4 to 5), and you've put I under every arrival. The melody does all the work while the harmony stands still. That stillness is the tradition: in a New Orleans march like the Saints, the band vamps on home while the tune knocks at the door. Only on the third try does the line break loose, falling 5, 3, 1, 3 and settling on 2 in bar 7, where your V arrives. That's a half cadence, a pause on the chord that leans toward home. Then bars 9 to 15 answer the first half. Your IV in bar 11 is the one real excursion before home returns.\n\nThe melody gives no evidence either way in bar 10. It sings 3 and 5, which fit your I and also I7 (V7/IV, the home chord with a flatted 7th added). What decides it is where the music goes next: bar 11 is IV. I7's added 7th sits a half step above the 3rd of IV, so it pulls straight into it. In New Orleans style that I7 is almost a signature, the moment the brass pushes into the bridge. Your plain I gets to IV too, just without the push.\n\nWorth another listen:\n\nBar 14, beat 3. The melody steps to 2 over your I, so 2 is a passing note there. Under V7 that same note becomes a chord tone, and the V7's tritone (4 and 7) squeezes inward to 3 and 1 in bar 15. That makes an authentic cadence, the strongest arrival there is. Right now your ending reaches home from IV and I, which is gentler and more hymn-like. Both are honest choices.\n\nBar 12. IV carries through 4, 3, 4. A borrowed iv (minor IV, taken from the minor key) on beat 2 darkens the turn for home, a gospel-tinged sigh. Its flatted 6th slides down to 5 in bar 13. The melody's 3 on beat 3 rubs against it briefly, so let your ear decide whether that rub is spice or friction.\n\nBar 8, beat 2. Your V holds through 2, 3, 2. V7 would add the 7th and make the pause hungrier for home.\n\n1. Choose bar 10, beat 1: hear your I, then V7/IV. Does bar 10 stand still, or start walking into bar 11?\n2. Play bars 13 to 15 with your I at bar 14, beat 3, then with V7. Which ending sounds like the band hitting the last chord together?\n3. Choose bar 12, beat 2: your IV, then iv. Bright, or bittersweet on the way home?",
       "suggestions": [
         {
-          "bar": 4,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
-          "confidence": "medium",
-          "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          "bar": 10,
+          "beat": 1,
+          "numeral": "V7/IV",
+          "letter": "F7",
+          "confidence": "high",
+          "reason": "Adds a flatted 7th to home that leans a half step into IV in bar 11. It's the classic New Orleans push into the second half."
         },
         {
-          "bar": 2,
+          "bar": 14,
           "beat": 3,
-          "numeral": "I",
-          "letter": "D",
-          "confidence": "medium",
-          "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
+          "numeral": "V7",
+          "letter": "C7",
+          "confidence": "high",
+          "reason": "Turns the melody's 2 into a chord tone and sets up a full authentic cadence into bar 15. The ending lands decisively."
         },
         {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
+          "bar": 12,
+          "beat": 2,
+          "numeral": "iv",
+          "letter": "Bbm",
           "confidence": "medium",
-          "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
+          "reason": "A borrowed minor iv darkens the turn toward home. Its flatted 6th sinks to 5 in bar 13, though the melody's 3 on beat 3 rubs briefly."
         },
         {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "V/V",
-          "letter": "E",
-          "confidence": "low",
-          "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          "bar": 8,
+          "beat": 2,
+          "numeral": "V7",
+          "letter": "C7",
+          "confidence": "medium",
+          "reason": "Adds the 7th to your half-cadence V, so the pause in bars 7 and 8 pulls harder back to home in bar 9."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 4, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 4, "agreeing": 4, "onOnset": 4, "clashing": 0 },
       "alternatives": {
         "atPoint": 4,
-        "considered": 4,
-        "offTarget": 4,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
-        "alternatives": false
+        "considered": 2,
+        "offTarget": 0,
+        "distinct": 2,
+        "plausible": 2,
+        "beyond": 1,
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
         "missingBars": [],
         "repeatCited": true,
         "tests": 3,
-        "namedAlternatives": ["V", "V", "V", "ii", "V", "ii", "ii", "ii", "V/V", "ii", "ii", "V/V"],
-        "uncarded": ["V", "V", "V", "V"],
+        "namedAlternatives": ["I7", "I7", "V7", "V7", "IV", "IV", "iv", "IV", "V7", "V7", "iv"],
+        "uncarded": ["I7", "I7", "IV", "IV", "IV"],
         "conventional": null
       },
-      "ms": 2747,
-      "firstDeltaMs": 49
+      "ms": 29880,
+      "firstDeltaMs": 16087
     },
     {
       "tune": "when-the-saints",
@@ -1286,36 +1412,36 @@
       "placed": "C",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Yes, V works: the held note in bar 1 is the 5th degree, which is the root of V, so nothing rubs. But it's also the 5th of I, so the melody gives no evidence either way here. What decides it is the job the chord does at that spot in the phrase.\n\nLook at the shape. The pickup climbs 1, 3, 4 into a long 5, and bars 2 to 3 and 4 to 5 repeat that same gesture. The pickup spells out the home chord, so the long 5 sounds like the top of a home-chord arpeggio: the melody is announcing home, not leaving it. Under I, bar 1 sits still and confident, the way this kind of marching, New Orleans tune opens. Under V, the very first downbeat becomes tension that wants home, and the phrase leans forward before home has even been established. That can sound fresh, but it also asks a question: if bars 3 and 5 repeat the gesture, do they get V too? If they do, the tune circles without landing.\n\nThe melody tells you where V naturally belongs: bars 7 to 8, where it settles on the 2nd degree. That note is the 5th of V and doesn't belong to I. Then bar 9 lands on 1, an authentic cadence (V to I). In tradition this tune keeps I for a long stretch, then V7 there, then back home. Keep your V if you like the push, but try I first in bar 1 and save V7 for bar 7.\n\n1. Choose your V under bar 1, beat 1, then I: does the long note feel arrived, or leaning toward something?\n2. Turn on Drone on home and play bars 0 to 3: does the held note sit comfortably over home? If it does, I is the natural reading.\n3. Play the V7 button at bar 7, beat 1: hear how that held 2nd degree wants to fall to home in bar 9.",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 1,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
+          "numeral": "I",
+          "letter": "F",
           "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "reason": "The pickup outlines the home chord, so I makes the long 5th degree sound like arrival and lets the opening sit still before any tension."
         },
         {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
-          "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "bar": 7,
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "C7",
+          "confidence": "high",
+          "reason": "The held 2nd degree belongs to V, not I. V7 here is the phrase's real tension, resolving home at bar 9 as an authentic cadence."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 2, "agreeing": 2, "onOnset": 2, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -1323,13 +1449,13 @@
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "tests": 3,
+        "namedAlternatives": ["V", "V", "V", "V7", "V7"],
+        "uncarded": ["V7"],
+        "conventional": true
       },
-      "ms": 1153,
-      "firstDeltaMs": 65
+      "ms": 15169,
+      "firstDeltaMs": 6544
     },
     {
       "tune": "when-the-saints",
@@ -1340,36 +1466,52 @@
       "placed": "Dm",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Yes, it works, and the melody can't argue against it. At bar 6 the melody sings 1 on beat 1 and 3 on beat 3. Both notes sit in vi (1 is its third, 3 is its fifth), and both sit in I (root and third). So the melody gives no evidence either way here. What decides it is what the chord does in the phrase, and where the music goes next.\n\nThink about where bar 6 falls. Bars 0 to 5 hammer the same rising figure, 1-3-4-5, three times, and bar 6 is where that line comes to rest before the phrase opens out onto 2 in bar 7. A tune built this way, in the hymn and street-march tradition, usually stays on I right through the arrival. Home just keeps sounding, and the first real change comes with V under the held 2 in bar 7. Your vi does something different. After five bars of major home it turns the light down: same two melody notes, but now resting on a minor chord. It feels like a soft deceptive move, arriving without quite landing home.\n\nThe case for vi is that it gives bar 7 somewhere to go. From vi you can step around the circle of fifths, vi to ii to V, which makes the approach to bar 9's return home feel guided rather than sudden. Try ii under bar 7: the held 2 is its root, so it fits perfectly, and then V7 can take bar 8. Or go straight to V7 at bar 7, vi to V, which is plainer and more march-like. The case for I is momentum and brightness: it keeps the arrival bold, saves the first color change for the V, and matches bar 13, where the same 5-3-1 descent comes back.\n\nA middle path: I on beat 1, then vi on beat 3 under the 3. The arrival stays bright and the minor shade becomes a quick pivot into bar 7.\n\nTry these:\n1. Play bar 6 with your vi, then with the I button: does the arrival feel like home, or like home seen through a window?\n2. Keep vi at bar 6 and compare ii and V7 at bar 7: which one makes vi sound like it was going somewhere?\n3. Try I on beat 1 with vi on beat 3, then play through bar 7: does the late vi feel like a lift into the next phrase, or a fidget?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 6,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
+          "numeral": "I",
+          "letter": "F",
           "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "reason": "Keeps home sounding through the arrival of the rising figure; brighter and bolder, saving the first color change for V in bar 7."
         },
         {
-          "bar": 8,
+          "bar": 6,
           "beat": 3,
           "numeral": "vi",
-          "letter": "Bm",
+          "letter": "Dm",
           "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "reason": "With I on beat 1, moving to vi under the 3 keeps the arrival bright and adds a quick minor pivot that pushes toward bar 7."
+        },
+        {
+          "bar": 7,
+          "beat": 1,
+          "numeral": "ii",
+          "letter": "Gm",
+          "confidence": "medium",
+          "reason": "The held 2 is its root; after vi it continues the circle of fifths (vi-ii-V), giving your vi a clear direction."
+        },
+        {
+          "bar": 7,
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "C7",
+          "confidence": "high",
+          "reason": "The plain march choice under the held 2: tension that wants home at bar 9, reached from vi by a direct step."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 4, "agreeing": 4, "onOnset": 4, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -1377,13 +1519,30 @@
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "tests": 3,
+        "namedAlternatives": [
+          "V",
+          "vi",
+          "vi",
+          "vi",
+          "ii",
+          "V",
+          "ii",
+          "V7",
+          "V7",
+          "vi",
+          "V",
+          "V",
+          "ii",
+          "V7",
+          "vi",
+          "vi"
+        ],
+        "uncarded": ["vi", "vi", "vi", "vi", "vi", "vi"],
+        "conventional": true
       },
-      "ms": 1135,
-      "firstDeltaMs": 49
+      "ms": 26543,
+      "firstDeltaMs": 13863
     },
     {
       "tune": "when-the-saints",
@@ -1394,36 +1553,52 @@
       "placed": "C",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Short answer: yes, V fits the note it sits on, but listen to what the bar does next before you settle.\n\nOn beat 1 the melody is 5, which is the root of V, so the chord and the note agree completely. The catch is beat 2: the melody steps down to 4 and holds it for two beats, the longest note in the bar. Over V, that 4 is the chord's seventh, so the bar turns into a V7 sound: tension that wants to resolve down to 3 over I. Your melody does touch 3 in bar 12, but it keeps circling back up to 4 and doesn't really land until bar 13. Under V, that whole stretch hangs on the dominant: a long, held breath before home.\n\nThe other reading is IV. Over IV, that held 4 is the root, the most stable note there is, and the 5 on beat 1 becomes a leaning note that falls onto it. Because 4 gets the long note and 5 gets the short one, the melody leans slightly toward IV, but both are real options.\n\nTradition matters here. This tune comes from New Orleans, and that style loves to lift to IV at the high point of the phrase, often pushing toward it with I7 (I with a flat seventh added, the V7 of IV) the bar before, on the 5 in bar 10. Then it darkens IV into a borrowed iv (minor iv, taken from the parallel minor) in bar 12 before sliding home to I in bar 13. That iv lowers 6 a half step, and that half step falling toward 5 is a lot of the bittersweet pull.\n\nSo: keep V if you like the suspended, waiting feel. Try IV if you want the phrase to open up and arrive.\n\n1. Hear your V under bar 11, beat 1, then V7 there: does the held 4 sound like the same tension made explicit, or does it just get busier?\n2. Hear your V under bar 11, then IV: on the long 4, does the bar itch to move (V) or open out and rest (IV)?\n3. Choose IV at bar 11, then add I7 at bar 10, beat 3, and iv at bar 12, beat 2: does bar 10 now push forward, and does bar 12 turn wistful on its way home?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 11,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
+          "numeral": "IV",
+          "letter": "Bb",
           "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "reason": "Makes the long held 4 the root of the chord, so the phrase's high point opens out and rests instead of waiting on the dominant."
         },
         {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
+          "bar": 11,
+          "beat": 1,
+          "numeral": "V7",
+          "letter": "C7",
           "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "reason": "Puts the seventh that the melody's held 4 already implies into the chord, making the pull toward home more explicit."
+        },
+        {
+          "bar": 10,
+          "beat": 3,
+          "numeral": "V7/IV",
+          "letter": "F7",
+          "confidence": "medium",
+          "reason": "I with a flat seventh points straight at IV, so bar 10 pushes forward into bar 11, the classic New Orleans lead-in."
+        },
+        {
+          "bar": 12,
+          "beat": 2,
+          "numeral": "iv",
+          "letter": "Bbm",
+          "confidence": "medium",
+          "reason": "A borrowed minor iv after IV darkens the repeated 4 and lets a half step sink toward 5 before home in bar 13."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 4, "agreeing": 4, "onOnset": 4, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 2,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -1431,13 +1606,32 @@
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "tests": 3,
+        "namedAlternatives": [
+          "V",
+          "IV",
+          "IV",
+          "IV",
+          "IV",
+          "I7",
+          "V7",
+          "IV",
+          "IV",
+          "iv",
+          "iv",
+          "iv",
+          "IV",
+          "IV",
+          "IV",
+          "IV",
+          "I7",
+          "iv"
+        ],
+        "uncarded": ["V", "IV", "V7", "IV", "IV"],
+        "conventional": true
       },
-      "ms": 1135,
-      "firstDeltaMs": 48
+      "ms": 27881,
+      "firstDeltaMs": 16370
     },
     {
       "tune": "greensleeves",
@@ -1448,66 +1642,96 @@
       "placed": null,
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "Bars 5 to 7 repeat bars 1 to 3 note for note, and your chart treats them alike, I, V, I both times. That makes bars 4 and 8 the whole story. The melody changes by one step there: bar 4 stops on a long 2, and bar 8 falls through 2 to a long 1, home. Your chords follow it, V under the first ending and V to I under the second, so the tune asks a question and then answers it: a half cadence, then an authentic cadence. That pairing is the backbone of hymns and folk tunes built from two matching lines, and it is why this one sounds so sure of itself.\n\nUnder the long 2 in bar 4, your V puts the melody on the chord's fifth. V wants home because its third, the leading tone, sits a half step under 1, and ending a phrase on it leaves that pull hanging. ii would hold the same 2, as its root, so the melody gives no evidence either way here. What decides it is where the music goes next: bar 5 starts over on I, and V leans into that restart, while ii steps aside more softly and lets bar 5 sound like a fresh start rather than an arrival.\n\nTwo more spots are worth another listen. In bar 2, your V holds through beat 3, where the melody's 3 sits over it as a sixth, a gentle rub before the 2 on beat 4 settles back in. I under beat 3 would make that 3 the chord's third: smoother, with the harmony moving twice as fast. If you like the lean, that's the case for your chart.\n\nIn bar 7 the line climbs 1-2-3 toward the final cadence, and your I holds under all of it. ii under the 2 on beat 3 turns bars 7 and 8 into a ii-V-I, one of the most common ways home. V/V there, the applied dominant of V, does the same job with more push: its third is a raised 4, which leans up a half step into the V of bar 8.\n\n1. Hear your V under bar 4, beat 3, then ii: does the phrase ask a question, or just pause?\n2. Hear I at bar 2, beat 3, then your V: which one leans harder into bar 3?\n3. Hear ii at bar 7, beat 3, then V/V: which one makes the last bar feel more inevitable?",
+      "servedBy": "claude-opus-5-5",
+      "message": "The big shape first: bars 5 and 6 repeat bars 1 and 2 note for note, and then the tune splits. Bar 3 settles onto home and bar 4 hangs on degree 2 over your V, a half cadence, the musical question mark. Bar 7 instead climbs back up through the raised 6 and raised 7 (C# to D#) and lands on home in bar 8. That's the answer phrase. Your chart treats bars 1 and 2 and bars 5 and 6 alike, which suits the exact repeat. The question is whether bar 7 gets the harmony its new melody is asking for.\n\nThe harmony: i to iv to i to V is the classic minor-key question phrase, and the 6/8 lilt with that rise and fall puts this in folk-lament or slow-jig territory. One lovely detail: bar 2 uses the natural degree 7 (the plain D), while bars 3 and 7 use the raised 7 (D#). The natural 7 sounds old and modal, folk-flavored. The raised 7 is the leading tone, a half step under home, pulling hard upward. The tune moves between both worlds, and your chords can follow it.\n\nWorth another listen:\n\nBar 7, beat 4. The melody sits on D# for a dotted beat, then C# and D#, all pointing at home. Over your i, that D# rubs a half step against the home note in the chord. A V there carries D# as its own third, so the leading tone becomes a chord tone and bar 8 becomes a true authentic cadence (V to i, the strongest close). Try V, or V7 for the extra pull of the dominant's tritone squeezing inward. The case for your i: it keeps the ending soft and modal, letting the melody alone carry the cadence. For bar 7, beat 1, VI is worth hearing too. The melody (G, then E) fits i and VI equally, so it gives no evidence either way. VI to V makes a darker, lament-like slide down into the cadence.\n\nBar 2 (and bar 6). The melody outlines A, F#, D, which is exactly a VII triad. Your iv holds the A and colors the bar plagal and soft, but the F# and D lean against it. VII fits every strong note and brings out that modal, natural-7 sound. A middle path is to keep your iv on beat 1 and move to VII on beat 3.\n\n1. Under bar 7, beat 4, hear your i, then V: does the D# sting, or settle in, and does bar 8 feel more like arriving?\n2. Under bar 2, beat 1, hear your iv, then VII: which sounds like the chord the melody is already spelling?\n3. Play the tune and stop after bar 4, then after bar 8: does one pause feel like a question and the other like an answer?",
       "suggestions": [
         {
-          "bar": 4,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
+          "bar": 7,
+          "beat": 4,
+          "numeral": "V",
+          "letter": "B",
+          "confidence": "high",
+          "reason": "Makes the melody's D# the chord's third, so bar 7 to 8 becomes an authentic cadence instead of a rub over home."
+        },
+        {
+          "bar": 7,
+          "beat": 4,
+          "numeral": "V7",
+          "letter": "B7",
           "confidence": "medium",
-          "reason": "The held E is the root of Em: a softer pause that steps away from home instead of leaning back to it."
+          "reason": "Adds the dominant's tritone, so the pull into bar 8 is even stronger."
+        },
+        {
+          "bar": 7,
+          "beat": 1,
+          "numeral": "VI",
+          "letter": "C",
+          "confidence": "low",
+          "reason": "Fits the melody's G and E as well as i does; VI sliding to V gives a darker, lament-like approach to the cadence."
+        },
+        {
+          "bar": 2,
+          "beat": 1,
+          "numeral": "VII",
+          "letter": "D",
+          "confidence": "medium",
+          "reason": "The melody outlines A, F#, D, this chord exactly; it brings out the modal natural-7 color."
         },
         {
           "bar": 2,
           "beat": 3,
-          "numeral": "I",
+          "numeral": "VII",
           "letter": "D",
           "confidence": "medium",
-          "reason": "The F# becomes the chord's third instead of a sixth over A: smoother, and the harmony moves twice as fast."
+          "reason": "Keeps your iv on beat 1, then moves to VII under the F# and D, so the harmony follows the melody's shift."
         },
         {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "ii",
-          "letter": "Em",
+          "bar": 6,
+          "beat": 1,
+          "numeral": "VII",
+          "letter": "D",
           "confidence": "medium",
-          "reason": "E is the root of Em, so bars 7 and 8 become ii-V-I: a gentler, more prepared approach to home."
-        },
-        {
-          "bar": 7,
-          "beat": 3,
-          "numeral": "V/V",
-          "letter": "E",
-          "confidence": "low",
-          "reason": "E major's G# leans up a half step into the A of bar 8: the same approach as ii, with more push."
+          "reason": "Same as bar 2. Use it here too if you want the repeat harmonized alike."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 4, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 6, "agreeing": 6, "onOnset": 6, "clashing": 0 },
       "alternatives": {
-        "atPoint": 4,
-        "considered": 4,
-        "offTarget": 4,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
-        "alternatives": false
+        "atPoint": 6,
+        "considered": 6,
+        "offTarget": 0,
+        "distinct": 6,
+        "plausible": 6,
+        "beyond": 3,
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
         "missingBars": [],
         "repeatCited": true,
         "tests": 3,
-        "namedAlternatives": ["V", "ii", "ii", "ii", "ii", "V", "V/V", "V", "V", "ii", "ii", "V/V"],
-        "uncarded": ["V", "V", "V", "V"],
+        "namedAlternatives": [
+          "V",
+          "V",
+          "V",
+          "V7",
+          "VI",
+          "VI",
+          "VI",
+          "V",
+          "VII",
+          "VII",
+          "VII",
+          "V",
+          "VII"
+        ],
+        "uncarded": ["V", "V7", "V"],
         "conventional": null
       },
-      "ms": 2744,
-      "firstDeltaMs": 47
+      "ms": 31869,
+      "firstDeltaMs": 17692
     },
     {
       "tune": "greensleeves",
@@ -1518,36 +1742,36 @@
       "placed": "G",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Yes, III works. The melody's first downbeat is degree 3, which is the root of III, so it sits as consonantly as anything can. But i contains that same note as its third. Both chords also hold degree 5, the other long note in bar 1. So the melody gives no evidence either way here. What decides it is the color you want and where bar 2 goes.\n\nWhat each does: the pickup is degree 1, so your ear has just been handed home. Your III answers it with the relative major: brighter, a little wistful, the tune stepping into a sunnier room right away. i confirms the minor home first and saves the brightness for later. With III, the minor home arrives at bar 3.\n\nThere's real tradition behind your choice. This tune comes from the Renaissance world of ground basses, and one of them, the romanesca, opens exactly on III, then VII, then i, then V. That pattern sits close to this melody. Its sibling, the passamezzo antico, opens on i instead: i, VII, i, V. So you've landed on a historically sound reading. If you keep III, try VII under bar 2 to finish the romanesca move. The melody's degree 4 at the start of bar 2 is the fifth of VII, and the line then traces down through VII's own notes.\n\nOne thing to weigh: bar 5 repeats bar 1 exactly. Whatever you choose at bar 1, decide whether bar 5 matches it or answers it. Starting one on III and the other on i is a lovely way to vary a repeat.\n\n1. Choose your III under bar 1, beat 1, then the i suggestion: does the opening brighten, or settle in at home?\n2. With III in place, try the VII suggestion under bar 2, beat 1, and play from the pickup through bar 3: does the line feel like it's walking down a set of stairs toward home?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 1,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
+          "numeral": "i",
+          "letter": "Em",
           "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "reason": "Confirms the minor home the pickup just named; darker, more settled opening, saving the relative-major brightness for later."
         },
         {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
+          "bar": 2,
+          "beat": 1,
+          "numeral": "VII",
+          "letter": "D",
           "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "reason": "Continues the romanesca move from your III: the melody's degree 4 is its fifth, and the bass steps down toward i at bar 3."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 2, "agreeing": 2, "onOnset": 2, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -1556,12 +1780,24 @@
         "missingBars": [],
         "repeatCited": null,
         "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "namedAlternatives": [
+          "III",
+          "VII",
+          "V",
+          "VII",
+          "V",
+          "III",
+          "VII",
+          "VII",
+          "VII",
+          "III",
+          "VII"
+        ],
+        "uncarded": ["III", "V", "V", "III", "III"],
+        "conventional": true
       },
-      "ms": 1133,
-      "firstDeltaMs": 49
+      "ms": 16648,
+      "firstDeltaMs": 7972
     },
     {
       "tune": "greensleeves",
@@ -1572,36 +1808,36 @@
       "placed": "C",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "Yes, VI works there, and it does a specific job. The melody at bar 3, beat 1 is degree 3, held for a quarter of the bar, and VI holds it as its fifth. The rest of the bar leans on degree 1, which is VI's third, so the chord agrees with nearly everything the right hand plays. The one rub is the quick raised 7 at beat 5.5: a leading-tone neighbor (a note that steps away and straight back) brushing past home. It goes by fast enough to pass as color.\n\nHere's the catch: i contains the same two notes, degree 3 and degree 1. The melody gives no evidence either way at bar 3, so what decides it is where the music goes next and what you want the bar to feel like.\n\nWhere it goes is bar 4. Its long degree 2 and the drop to degree 5 point to V, a half cadence (a phrase pausing on the dominant, the open-ended stop) that sets up bars 5 to 8 to repeat the opening and close on home. With VI in bar 3, the bass falls a half step into V. That descending half step from 6 to 5 is the classic minor-key approach to a half cadence, the sigh at the bottom of the lament bass, and it suits a 6/8 tune that sounds like a ballad or folk air. With i in bar 3, you land home before the pause. That's steadier and plainer, and the half cadence arrives as a fresh step away rather than a slide.\n\nThere's also a phrase-level reason to weigh it. Bar 3 is the end of a two-bar sweep that keeps circling home in the melody. If the harmony also sits on i, bars 1 to 3 may feel static. VI gives the moment some warmth and lift without leaving the key's orbit. That's a good case for keeping yours, but i is honestly just as defensible.\n\nTo hear the difference, I've put i at bar 3 and V at bar 4 as buttons.\n\n1. Choose your VI under bar 3, beat 1, then i: does bar 3 feel like you've already arrived, or like you're still a step away from home?\n2. Choose V under bar 4, beat 1, then play bars 3 to 4 with VI, then with i, in bar 3: listen for the bass sinking a half step into bar 4 versus jumping there. Which pause in bar 4 sounds more like a held breath?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 3,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
-          "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "numeral": "i",
+          "letter": "Em",
+          "confidence": "medium",
+          "reason": "Holds the same melody notes as VI but lands on home a bar early: steadier and more settled, with less lift before the half cadence."
         },
         {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
-          "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "bar": 4,
+          "beat": 1,
+          "numeral": "V",
+          "letter": "B",
+          "confidence": "high",
+          "reason": "The half cadence the melody points to (degree 2 falling to 5). It lets you hear VI sink a half step into it versus i leaping there."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 2, "agreeing": 2, "onOnset": 2, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 1,
+        "considered": 1,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
+        "distinct": 1,
+        "plausible": 1,
         "beyond": 0,
         "alternatives": false
       },
@@ -1610,12 +1846,12 @@
         "missingBars": [],
         "repeatCited": null,
         "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "namedAlternatives": ["V", "V", "V", "V"],
+        "uncarded": ["V"],
+        "conventional": true
       },
-      "ms": 1138,
-      "firstDeltaMs": 49
+      "ms": 21689,
+      "firstDeltaMs": 10897
     },
     {
       "tune": "greensleeves",
@@ -1626,50 +1862,72 @@
       "placed": "G",
       "outcome": "ok",
       "code": null,
-      "servedBy": "fixture",
-      "message": "The ending lands because bar 8 finishes what bar 4 left open. Bars 5 to 7 repeat 1 to 3, but bar 4 stops on a long 2 over V, a half cadence, while bar 8 falls from 2 to 1 as the chords move V to I: an authentic cadence. V carries the leading tone, a half step under home, and when I arrives the melody's 1 is the chord's root, so the tension and the tune resolve together. That V to I close ends countless hymns and folk songs.\n\nFor a stronger pull, V7 at bar 8, beat 1 adds 4 above the leading tone, and the two squeeze inward by half steps onto 1 and 3. For a surprise, vi at bar 8, beat 3 holds the 1 as its third and dodges home: a deceptive cadence.\n\n1. Hear V7 at bar 8, beat 1, then your V: does the last bar pull harder?\n2. Hear vi at bar 8, beat 3, then your I: which one lets you stop?",
+      "servedBy": "claude-opus-5-5",
+      "message": "It works, but as color rather than as a clean fit, and the melody tells you why. The note on bar 6, beat 1 is degree 4, held for a full two eighths, and it isn't in III at all. Over III it sounds as an added ninth, a soft rub that's pretty but slightly unsettled. Then the bar walks down 4, 2, 7. Under III, degree 2 is its major seventh and only degree 7 is a true chord tone. So III gives the bar a lush, floating quality, with the melody hovering around the chord rather than spelling it.\n\nNow look at what the bar spells by itself: 4, 2, 7, 1, 2. Degrees 4, 2 and 7 are exactly VII, the major chord on the lowered seventh. That's the chord the melody is outlining, and it's a staple of folk tunes in minor, especially lilting 6/8 tunes like this one. VII has a modal, open-air sound, the natural minor without a leading tone. It also makes good sense in the phrase. Bar 6 is the 'moving away' bar, and bar 7 brings out the raised 6 and 7, the melodic-minor turn that announces V before the final i in bar 8. VII to V to i walks the bass down toward that cadence. III, by contrast, is close kin to home (the relative major), so it slows the motion a little right where the phrase wants to travel.\n\nTwo other readings are worth a listen. v7 contains every note of the bar, with the held degree 4 as its seventh, so it's a darker, minor-tinged cousin of VII. iv catches the held degree 4 as its root and gives a plaintive, sinking feel, though the 2 and 7 that follow then pass over it as non-chord tones. One more thing: bar 6 repeats bar 2 note for note. Whatever you settle on, consider whether bar 2 should match it or deliberately differ.\n\nMy lean is VII, because the melody spells it. But if you love the haze of III, keep it: it's a legitimate color choice, not a fit problem.\n\n1. Hear your III under bar 6, then VII: does the held note on beat 1 melt into the chord, or rub against it?\n2. Compare VII and v7 at bar 6: same notes in the melody, but which feels brighter and more folk, and which more shadowed?\n3. Play bars 6 to 8 with III, then with VII: which one pushes harder into bar 7's lead-in to home?",
       "suggestions": [
         {
-          "bar": 8,
+          "bar": 6,
           "beat": 1,
-          "numeral": "V7",
-          "letter": "A7",
+          "numeral": "VII",
+          "letter": "D",
           "confidence": "high",
-          "reason": "The added G and the leading tone C# squeeze inward onto F# and D: the pull home gets stronger."
+          "reason": "Spells the bar's melody (4, 2, 7) exactly, so the held note sits inside the chord; open modal folk sound that walks down toward V in bar 7."
         },
         {
-          "bar": 8,
-          "beat": 3,
-          "numeral": "vi",
-          "letter": "Bm",
+          "bar": 6,
+          "beat": 1,
+          "numeral": "v7",
+          "letter": "Bm7",
           "confidence": "medium",
-          "reason": "The final D is the third of Bm: a deceptive cadence that dodges home."
+          "reason": "Contains every melody note in the bar, with the held note as the seventh; darker, more shadowed than VII."
+        },
+        {
+          "bar": 6,
+          "beat": 1,
+          "numeral": "iv",
+          "letter": "Am",
+          "confidence": "low",
+          "reason": "Takes the held note as its root for a plaintive, sinking color; the notes after it pass over the chord rather than belonging to it."
         }
       ],
       "dropped": 0,
       "withheld": 0,
       "schemaValid": true,
-      "score": { "suggestions": 2, "agreeing": 0, "onOnset": 0, "clashing": 0 },
+      "score": { "suggestions": 3, "agreeing": 3, "onOnset": 3, "clashing": 0 },
       "alternatives": {
-        "atPoint": 0,
-        "considered": 0,
+        "atPoint": 3,
+        "considered": 3,
         "offTarget": 0,
-        "distinct": 0,
-        "plausible": 0,
-        "beyond": 0,
-        "alternatives": false
+        "distinct": 3,
+        "plausible": 3,
+        "beyond": 2,
+        "alternatives": true
       },
       "prose": {
         "verdict": false,
         "missingBars": [],
         "repeatCited": null,
-        "tests": 2,
-        "namedAlternatives": ["V", "V", "V", "V", "V7", "vi", "V7", "vi"],
-        "uncarded": [],
-        "conventional": false
+        "tests": 3,
+        "namedAlternatives": [
+          "VII",
+          "VII",
+          "V",
+          "VII",
+          "V",
+          "v7",
+          "VII",
+          "iv",
+          "VII",
+          "VII",
+          "VII",
+          "v7",
+          "VII"
+        ],
+        "uncarded": ["V", "V"],
+        "conventional": true
       },
-      "ms": 1137,
-      "firstDeltaMs": 50
+      "ms": 24568,
+      "firstDeltaMs": 13196
     }
   ]
 }
