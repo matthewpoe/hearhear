@@ -172,8 +172,7 @@
             midi: voicingIn(at, option.chord),
             fn: hidden ? "other" : functionOf(option.numeral, song.get().key.mode),
           },
-          melody: [at.note.midi],
-          drone,
+          melody: [...drone, at.note.midi],
         };
         written = { lights, option, passage: at, drone };
         ui.update({ keyboardLights: lights });
@@ -311,10 +310,8 @@
       : noteId
         ? document.querySelector(`#staff [data-note-id="${CSS.escape(noteId)}"]`)
         : null;
-    // SVGElement implements focus() as HTMLElement does. Focus goes back to
-    // where it was without scrolling: the note was on screen when it opened
-    // the dropdown, and a scroll here pushed the masthead off the top.
-    /** @type {HTMLElement | SVGElement | null} */ (target)?.focus({ preventScroll: true });
+    // SVGElement implements focus() as HTMLElement does.
+    /** @type {HTMLElement | SVGElement | null} */ (target)?.focus();
   }
 
   /**

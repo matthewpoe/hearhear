@@ -15,9 +15,7 @@
  * @import { SongStore } from "./song.js"
  */
 
-import songSchema from "../../contracts/song.schema.json" with { type: "json" };
 import { isLyric, isSwing, validateSong } from "./song.js";
-import { isTitle } from "./songLimits.js";
 
 /** Bump when the stored shape changes; older entries are then ignored. */
 export const STORE_VERSION = 1;
@@ -30,20 +28,23 @@ const MY_SONG_ID = /^mine-[a-z0-9]{1,58}$/;
 /** Wait this long after the last change before saving. */
 const SAVE_DELAY_MS = 300;
 
-// The shape a saved song must have, read from the schema itself so the two
-// can't drift. The browser has no schema validator, so isSong checks it.
-const { properties: SONG, $defs: DEFS } = songSchema;
-/** @param {{ pattern: string }} rule */
-const pattern = (rule) => new RegExp(rule.pattern);
-const SONG_ID = pattern(SONG.id);
-const NOTE_ID = pattern(DEFS.note.properties.id);
-const CHORD_ID = pattern(DEFS.chord.properties.id);
-const TONIC = pattern(DEFS.key.properties.tonic);
-const PITCH_CLASS = pattern(DEFS.pitchClassName);
-/** The chord types a song may use. */
-const CHORD_TYPES = new Set(DEFS.chord.properties.type.enum);
-const MODES = new Set(DEFS.key.properties.mode.enum);
-const BEAT_UNITS = new Set(DEFS.meter.properties.beatUnit.enum);
+const TONIC = /^[A-G](#|b)?$/;
+const PITCH_CLASS = /^[A-G](##|bb|#|b)?$/;
+const CHORD_TYPES = new Set([
+  "M",
+  "m",
+  "7",
+  "maj7",
+  "m7",
+  "dim",
+  "dim7",
+  "m7b5",
+  "aug",
+  "sus2",
+  "sus4",
+  "6",
+  "m6",
+]);
 
 /**
  * sessionStorage-like access; the getter itself may throw (blocked storage).
@@ -56,77 +57,60 @@ const BEAT_UNITS = new Set(DEFS.meter.properties.beatUnit.enum);
  * @typedef {{ song: Song, demoAwaitingGuess: boolean }} SavedSong
  */
 
-/**
- * An integer within a schema rule's bounds.
- * @param {unknown} n
- * @param {{ minimum?: number, maximum?: number }} rule
- */
-const isInt = (n, { minimum = -Infinity, maximum = Infinity }) =>
-  Number.isInteger(n) &&
-  /** @type {number} */ (n) >= minimum &&
-  /** @type {number} */ (n) <= maximum;
-
-/**
- * An array no longer than a schema rule allows, every item passing `check`.
- * @param {unknown} list
- * @param {{ maxItems?: number }} rule
- * @param {(item: any) => boolean} check
- */
-const isList = (list, { maxItems = Infinity }, check) =>
-  Array.isArray(list) && list.length <= maxItems && list.every(check);
+/** @param {unknown} n @param {number} min @param {number} [max] */
+const isInt = (n, min, max = Infinity) =>
+  Number.isInteger(n) && /** @type {number} */ (n) >= min && /** @type {number} */ (n) <= max;
 
 /** @param {unknown} value @returns {value is Record<string, any>} */
 const isObject = (value) => typeof value === "object" && value !== null;
 
 /**
- * The checks song.schema.json makes, in plain JS, with the schema's own
- * patterns, enums, and bounds. validateSong covers the rest.
+ * The checks song.schema.json makes, in plain JS (the browser has no schema
+ * validator). validateSong covers the rest.
  * @param {unknown} song
  * @returns {song is Song}
  */
 function isSong(song) {
-  if (!isObject(song) || song.schemaVersion !== SONG.schemaVersion.const) return false;
+  if (!isObject(song) || song.schemaVersion !== 1) return false;
   const { id, title, key, meter, tempo, version, notes, chords } = song;
-  const meterRules = DEFS.meter.properties;
-  const noteRules = DEFS.note.properties;
   return (
     typeof id === "string" &&
-    SONG_ID.test(id) &&
-    isTitle(title) &&
+    /^[a-z0-9-]{1,64}$/.test(id) &&
+    typeof title === "string" &&
+    // By code point, as cleanTitle and song.rename count.
+    title.length >= 1 &&
+    Array.from(title).length <= 120 &&
     isObject(key) &&
     typeof key.tonic === "string" &&
     TONIC.test(key.tonic) &&
-    MODES.has(key.mode) &&
+    (key.mode === "major" || key.mode === "minor") &&
     typeof key.provisional === "boolean" &&
     isObject(meter) &&
-    isInt(meter.beatsPerBar, meterRules.beatsPerBar) &&
-    BEAT_UNITS.has(meter.beatUnit) &&
-    isInt(meter.pickupTicks, meterRules.pickupTicks) &&
+    isInt(meter.beatsPerBar, 2, 12) &&
+    (meter.beatUnit === 4 || meter.beatUnit === 8) &&
+    isInt(meter.pickupTicks, 0, 144) &&
     typeof meter.provisional === "boolean" &&
-    isInt(tempo, SONG.tempo) &&
+    isInt(tempo, 30, 240) &&
     (song.swing === undefined || isSwing(song.swing)) &&
-    isInt(version, SONG.version) &&
-    isList(
-      notes,
-      SONG.notes,
+    isInt(version, 0) &&
+    Array.isArray(notes) &&
+    notes.every(
       (n) =>
         isObject(n) &&
         typeof n.id === "string" &&
-        NOTE_ID.test(n.id) &&
-        isInt(n.midi, noteRules.midi) &&
-        isInt(n.start, noteRules.start) &&
-        isInt(n.dur, noteRules.dur) &&
+        /^n[0-9a-z]{1,16}$/.test(n.id) &&
+        isInt(n.midi, 21, 108) &&
+        isInt(n.start, 0) &&
+        isInt(n.dur, 1, 576) &&
         (n.lyric === undefined || isLyric(n.lyric)),
     ) &&
-    isList(
-      chords,
-      SONG.chords,
+    Array.isArray(chords) &&
+    chords.every(
       (c) =>
         isObject(c) &&
         typeof c.id === "string" &&
-        CHORD_ID.test(c.id) &&
+        /^c[0-9a-z]{1,16}$/.test(c.id) &&
         typeof c.noteId === "string" &&
-        NOTE_ID.test(c.noteId) &&
         typeof c.root === "string" &&
         PITCH_CLASS.test(c.root) &&
         CHORD_TYPES.has(c.type),
@@ -236,9 +220,9 @@ export function createSongMemory(storage) {
 }
 
 /**
- * Install song memory on the app's stores: open() recalls saved songs,
- * forget() drops them, the song open last in this tab comes back, and every
- * change after that is saved, debounced. Call once at startup.
+ * Install song memory on the app's stores: open() recalls saved songs, the
+ * song open last in this tab comes back, and every change after that is
+ * saved, debounced. Call once at startup.
  * @param {{
  *   song: SongStore,
  *   ui: ReturnType<typeof import("./ui.js").createUiStore>,
@@ -247,8 +231,7 @@ export function createSongMemory(storage) {
  *   stop: () => void,
  * }} options `fresh` sets up a tune with no saved copy (loadDemo); `stop`
  *   silences audio before a saved song takes over
- * @returns {{ flush: () => void, forget: (id: string) => void }} flush saves
- *   any pending change now (page hide); forget is what song.forget() calls
+ * @returns {{ flush: () => void }} flush saves any pending change now (page hide)
  */
 export function installPersistence({ song, ui, storage, fresh, stop }) {
   const memory = createSongMemory(storage);
@@ -262,19 +245,6 @@ export function installPersistence({ song, ui, storage, fresh, stop }) {
     clearTimeout(timer);
     if (pending) memory.save(pending);
     pending = null;
-  }
-
-  /**
-   * Forget a song's saved copy, and cancel a save of it that hasn't run yet,
-   * so the copy can't come back after it is forgotten.
-   * @param {string} id
-   */
-  function forget(id) {
-    if (pending?.song.id === id) {
-      clearTimeout(timer);
-      pending = null;
-    }
-    memory.forget(id);
   }
 
   song.setOpenHooks({
@@ -298,7 +268,6 @@ export function installPersistence({ song, ui, storage, fresh, stop }) {
       };
     },
     fresh,
-    forget,
   });
 
   // Reopen before watching, so the empty starting song never overwrites a saved one.
@@ -329,5 +298,5 @@ export function installPersistence({ song, ui, storage, fresh, stop }) {
     changed();
   });
 
-  return { flush, forget };
+  return { flush };
 }

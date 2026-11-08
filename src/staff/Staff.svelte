@@ -165,8 +165,7 @@
     const index = byId >= 0 ? byId : Math.min(Math.max(place.index, 0), noteButtons.length - 1);
     const stop = noteButtons[index];
     stop.setAttribute("tabindex", "0");
-    // The redraw puts the note back where it was, so its focus mustn't scroll.
-    if (place.hadFocus && stop instanceof SVGElement) stop.focus({ preventScroll: true });
+    if (place.hadFocus && stop instanceof SVGElement) stop.focus();
   }
 
   /**
@@ -499,12 +498,7 @@
     outline: 2px solid var(--focus);
     outline-offset: 3px;
   }
-  /* The note sounding now glows gold, like its key on the piano. */
-  .notation :global(.is-playing .abcjs-notehead) {
-    stroke: var(--melody);
-    stroke-width: 6px;
-    paint-order: stroke;
-  }
+  .notation :global(.is-playing .abcjs-notehead),
   .notation :global(.is-hovered .abcjs-notehead) {
     stroke: var(--key-glow-melody);
     stroke-width: 6px;
