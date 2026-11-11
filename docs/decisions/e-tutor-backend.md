@@ -14,6 +14,8 @@ Format: **date — decision.** Why. _Rejected:_ alternatives.
 
 ## Live mode
 
+> Superseded by the review-mode decision (Oct 7): see DECISIONS.md.
+
 - **2026-10-07 — The structured-output schema is `anthropic.transform_schema(TutorReply)`, built from the same Pydantic model that generates `contracts/tutor-reply.schema.json`.** The API rejects or ignores some JSON Schema keywords (`maxLength`, `minimum`, `maximum`, `pattern`, `maxItems`). The SDK's transform moves them into each field's description, so Claude still sees the bounds, and Pydantic enforces them on the full reply. It is the same transform `messages.parse` uses. _Rejected:_ sending the committed contract file as is (it carries keywords the API won't take); a hand-written copy (contracts are never hand-copied).
 - **2026-10-07 — The partial parse uses `from_json(..., allow_partial="trailing-strings")`, not `allow_partial=True`.** With `True`, an unfinished string is dropped, so the message would arrive only when Claude closes the whole field, in one piece at the end. `trailing-strings` includes the unfinished string, so the message streams as it is written. Split escapes (`\"`, `\n`, `é`) are held back until they are complete; tests feed fixture replies one character at a time. Deviation from the brief's wording, not its intent.
 - **2026-10-07 — Suggestions are validated one by one; invalid ones are dropped and counted, and so is any suggestion past eight.** One bad suggestion never sinks the reply. A reply whose JSON is incomplete, or whose message or hint level fails validation, ends the stream with `error: invalid_output`, and the message text already shown stays, per `tutor-sse.md`. A `stop_reason` other than `end_turn` (`max_tokens`, `refusal`) is also `invalid_output`. _Superseded by Matthew's review of PRs 8–11: a refusal, a max_tokens stop, or a context-window stop now ends as `unanswerable` ("The tutor couldn't answer that one. Try asking another way."); `invalid_output` is kept for genuinely malformed replies and unexpected stops._
@@ -29,12 +31,16 @@ Format: **date — decision.** Why. _Rejected:_ alternatives.
 
 ## Prompt and injection posture
 
+> Superseded by the review-mode decision (Oct 7): see DECISIONS.md.
+
 - **2026-10-07 — Each request becomes one user message: the snapshot, history, and question as JSON inside `<snapshot>`, `<history>`, and `<student_message>`, with `<` and `>` escaped as `<` and `>`.** No field can close its tag, and the student's words still reach Claude exactly. Only validated closed-set values (hint level, label style, key provisional) appear outside the tags. History is folded into the data rather than replayed as assistant turns, so a client-edited "tutor" turn can't speak in the tutor's voice. This also avoids a last-turn assistant message, which Opus 5.5 rejects as prefill. _Rejected:_ mapping history to user and assistant roles (gives forged tutor turns the model's own voice).
 - **2026-10-07 — `snapshot.version` is removed from what Claude sees,** per `tutor-sse.md` ("Claude never sees or produces it"); the server echoes it in the `suggestions` event.
 - **2026-10-07 — A provisional key is handled in the prompt: don't name the key, tonic, or mode, and return no suggestions.** Letter-name suggestions would give the key away during a demo. Nudge-level replies also return no suggestions, which matches the nudge fixture. For a provisional key this stays prompt-level; the server-side guarantee keys on `key_hidden` (D5, see Wave-1 fixes).
 - **2026-10-07 — No prompt caching yet.** The system prompt is about 1,000 tokens, under Opus's minimum cacheable prefix, so a cache breakpoint would do nothing. Revisit if the prompt grows.
 
 ## Logging
+
+> Superseded by the review-mode decision (Oct 7): see DECISIONS.md.
 
 - **2026-10-07 — One JSON line per event on stdout** (`tutor_live`, `tutor_fixture`, `tutor_invalid_reply`, `request_rejected`): request id, model, hint level, outcome, dropped count, input and output tokens, budget spent, and duration. Never the question, history, snapshot, reply text, client IP, or any key. The request id goes back to the client as `X-Request-Id`. Rejections at 413 and 429 happen before a request id exists and are logged by code only.
 

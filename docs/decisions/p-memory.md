@@ -1,5 +1,7 @@
 # Stream P: songs and the passphrase remember themselves
 
+> Superseded by the review-mode decision (Oct 7): see DECISIONS.md.
+
 Format: **date — decision.** Why. _Rejected:_ alternatives.
 
 - **2026-10-07 — Each song is saved in sessionStorage under `hearhear.song.<id>`, and the open song's id under `hearhear.openSong`.** Matthew: "The songs should be stateful when you load the page... Use session storage." The entry is `{ schemaVersion, song, demoAwaitingGuess }`: the song as the user has it (key with its provisional flag, notes, chords, meter, tempo, title) plus the demo flag that decides hidden labels. This tab only; nothing goes to localStorage. _Rejected:_ localStorage (outlives the tab, which Matthew didn't ask for); one entry holding every song (one corrupt write would lose them all).

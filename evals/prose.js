@@ -15,10 +15,7 @@ import { Note as TNote } from "tonal";
 import { chordFromLetter, chordFromNumeral } from "../src/theory/index.js";
 import { NUMERAL_FORMS } from "../src/theory/numerals.js";
 import { DEGREE_INTERVALS } from "../src/theory/pitch.js";
-import { sameHarmony } from "./metrics.js";
-
-/** Snapshot beats are rounded to three places (src/store/snapshot.js). */
-const BEAT_TOLERANCE = 0.001;
+import { BEAT_TOLERANCE, sameHarmony } from "./metrics.js";
 
 /**
  * One place the message points at: a bar, or a run of bars, and a beat when
@@ -30,11 +27,14 @@ const BAR_WORD = /\b(?:bars?|measures?)\s+/gi;
 const NUMBER_OR_RANGE = /^(\d+)(?:\s*(?:[-–—]|to|through|thru)\s*(\d+))?/i;
 const LIST_JOIN = /^(?:\s*,\s*(?:and\s+)?|\s+and\s+|\s*&\s*)/i;
 const BEAT_AFTER = /^,?\s*beats?\s+(\d+(?:\.\d+)?)/i;
+/** What may follow a bar reached by a bare comma: another item, "and", or the list's end. */
+const LIST_GOES_ON = /^(?:\s*,|\s+and\b|\s*&|\s*[.;:!?)\]]|\s*$)/i;
 
 /**
  * The bars a message cites: "bar 5", "bars 5–8", "bars 1, 5, and 9",
  * "measures 3 to 4", each with its beat when one follows ("bar 5, beat 3").
- * A bare number is never read as a bar.
+ * A bare number is never read as a bar, nor is one after a comma unless the
+ * list goes on or ends there: "bar 3, 5 times" cites bar 3 only.
  * @param {string} text
  * @returns {BarCitation[]}
  */
@@ -43,9 +43,12 @@ export function barCitations(text) {
   const cited = [];
   for (const m of text.matchAll(BAR_WORD)) {
     let at = /** @type {number} */ (m.index) + m[0].length;
+    let afterComma = false;
     for (;;) {
       const range = text.slice(at).match(NUMBER_OR_RANGE);
       if (!range) break;
+      // "bar 3, 5 times": a number after a bare comma is a bar only when the list goes on or ends.
+      if (afterComma && !LIST_GOES_ON.test(text.slice(at + range[0].length))) break;
       const from = Number(range[1]);
       const to = range[2] === undefined ? from : Number(range[2]);
       at += range[0].length;
@@ -59,6 +62,7 @@ export function barCitations(text) {
       if (beat) break;
       const join = text.slice(at).match(LIST_JOIN);
       if (!join || !/^\d/.test(text.slice(at + join[0].length))) break;
+      afterComma = !/and|&/i.test(join[0]);
       at += join[0].length;
     }
   }
@@ -154,7 +158,7 @@ export function citesRepeat(message, repeats) {
 
 /**
  * How many numbered tests (things to try) a message lists: list items that
- * start a line ("1.", "2)", "(3)"), "(1)" inline, and "Test 2" or "test #2",
+ * start a line ("1.", "2)", "(3)", "Step 4:"), "(1)" inline, and "Test 2" or "test #2",
  * counted by distinct number. An inline "1." is not counted: "…in bar 4. Then"
  * reads the same.
  * @param {string} message
@@ -164,15 +168,16 @@ export function numberedTests(message) {
   for (const m of message.matchAll(/^\s*(?:(\d+)[.)]|\((\d+)\))\s/gm)) numbers.add(m[1] ?? m[2]);
   for (const m of message.matchAll(/(?:^|\s)\((\d+)\)\s/g)) numbers.add(m[1]);
   for (const m of message.matchAll(/\btest\s*#?(\d+)\b/gi)) numbers.add(m[1]);
+  for (const m of message.matchAll(/^\s*step\s+(\d+)\s*:/gim)) numbers.add(m[1]);
   return numbers.size;
 }
 
 const ROMAN = "(?:VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)";
 const ROMAN_CHORD = new RegExp(
-  `^[b#]?${ROMAN}(?:°7?|ø7?|o7?|\\+|maj7|m7|7|6|sus[24])?(?:/[b#]?${ROMAN})?$`,
+  `^[b#]?${ROMAN}(?:°7?|ø7?|o7|\\+|maj7|m7|7|6|sus[24])?(?:/[b#]?${ROMAN})?$`,
 );
 const LETTER_CHORD =
-  /^[A-G][#b]?(?:m7b5|maj7|min|maj|dim7?|aug|sus[24]|m7|m6|M7|m|7|6|°7?|ø7?|o7?|\+)$/;
+  /^[A-G][#b]?(?:m7b5|maj7|min|maj|dim7?|aug|sus[24]|m7|m6|M7|m|7|6|°7?|ø7?|o7|\+)$/;
 const NASHVILLE = /^([b#]?)([1-7])(m7|m6|maj7|m|°7|°|ø7|\+|sus[24]|7|6)?$/;
 const CHORD_NOUN = "(?:chord|triad|seventh)";
 const LETTER_PHRASE = new RegExp(
@@ -232,7 +237,8 @@ function chordFromNashville(token, key) {
  * letter phrases ("D minor", "the C chord"), and Nashville numbers with a
  * quality or a superscript ("2m", "5⁷"). Read to be sure, not to be complete:
  * a bare "I" or "i" is the pronoun, a bare letter a melody note ("the long
- * E"), a bare digit a degree or a bar, and "in G major" names the key. A
+ * E"), a bare digit a degree or a bar, "in G major" names the key, and
+ * "Am I" is a question ("o" alone is never read as diminished: "Go", "Do"). A
  * name the theory can't read ("iim7") is left out.
  * @param {string} message
  * @param {Key} key
@@ -251,6 +257,9 @@ export function namedChords(message, key) {
     /** @type {ChordSpec | null} */
     let chord = null;
     if (token === "I" || token === "i") continue;
+    // A chord token ends at a non-letter: "D'you" or "Am'll" is a word, and "Am I" is a question.
+    const rest = message.slice(index + raw.length);
+    if (/^['’]\p{L}/u.test(rest) || (token === "Am" && /^\s+I\b/.test(rest))) continue;
     if (ROMAN_CHORD.test(token)) chord = chordFromNumeral(token, key);
     else if (LETTER_CHORD.test(token) && !isKey(index, index + raw.length)) {
       chord = chordFromLetter(token.replace(/^([A-G][#b]?)maj$/, "$1"));

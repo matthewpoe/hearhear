@@ -45,9 +45,9 @@ test("hiddenKeyFailures refuses a hidden-key reply that names the key", () => {
   assert.match(failures[0], /x: the key is hidden, but the reply names it \(E, E minor\)/);
 });
 
-test("hiddenKeyFailures passes a clean nudge, and any reply when the key is shown", () => {
-  const nudge = events("Listen to the last note. ", "Does it feel like rest?");
-  assert.deepEqual(hiddenKeyFailures("x", request(true), nudge), []);
+test("hiddenKeyFailures passes a reply that keeps the key, and any reply when the key is shown", () => {
+  const clean = events("Listen to the last note. ", "Does it feel like rest?");
+  assert.deepEqual(hiddenKeyFailures("x", request(true), clean), []);
   assert.deepEqual(hiddenKeyFailures("x", request(false), events("Home is E.")), []);
 });
 

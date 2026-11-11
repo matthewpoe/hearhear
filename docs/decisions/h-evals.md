@@ -1,5 +1,7 @@
 # Stream H: evals v1 and the trust panel
 
+> Superseded by the review-mode decision (Oct 7): see DECISIONS.md.
+
 Format: **date — decision.** Why. _Rejected:_ alternatives.
 
 - **2026-10-07 — Reference chords are read by code from four-voice hymnal settings, not transcribed by hand.** The sources are Open Hymnal Project ABC files (marked public domain, each naming the printed hymnal it follows: Excell 1900/1915, _The Methodist Hymnal_ 1905, _Common Service Book_ 1917, _Carols Old and Carols New_ 1918). `evals/dataset/derive.js` parses all four voices and names the chord they sound at each change point; the source files are committed and a test fails if the songs drift from them. This makes "never from memory" checkable. _Rejected:_ reading chords off scanned PDFs by eye (unverifiable, error-prone); hymnary.org pages as the citation (its tune pages refused automated fetches, so they couldn't be checked).

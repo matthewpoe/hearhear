@@ -17,7 +17,7 @@ import {
 } from "../src/theory/index.js";
 
 /** Snapshot beats are rounded to three places (src/store/snapshot.js). */
-const BEAT_TOLERANCE = 0.001;
+export const BEAT_TOLERANCE = 0.001;
 
 /**
  * A count out of a total. The total travels with the rate so a reader sees
